@@ -25,15 +25,9 @@ class Analysis:
 
     """
     def __init__(self,filepath):
-        self.data,self.dataarray = Data.LoadOld(filepath)
-        #a = Data()
-        #a.Read(filepath)
+        self.data,self.dataarray,self.keyslist = Data.LoadOld(filepath)
         self.filepath = filepath
         self.filename = filepath.split('/')[-1]
-        #self.data      = a.data
-        #self.dataarray = a.dataarray
-        #self.keys      = a.keys
-        #self.units     = a.units
         self.plots     = []
         self._plottitle = self.filename.split('.')[0]
         self.ndata     = len(self.data['X'])
@@ -60,11 +54,11 @@ class Analysis:
 
         #remove the variable from the subset
         #find it's index in keys list
-        indexofvariabletoremove = self.data.keyslist.index(variable)
+        indexofvariabletoremove = self.keyslist.index(variable)
         for value in uniquevalues:
             mask      = _np.round(self.data[variable],2) == value
             dcopy     = self.dataarray[mask]
-            dcopydict = dict(zip(self.data.keyslist,[dcopy[:,i] for i in range(_np.shape(dcopy)[1])]))
+            dcopydict = dict(zip(self.keyslist,[dcopy[:,i] for i in range(_np.shape(dcopy)[1])]))
 
             #dcopydict = Data.AsciiData(zip(self.data.keyslist,[dcopy[:,i] for i in range(_np.shape(dcopy)[1])]))
             dcopydict['nparticles'] = _np.shape(dcopy)[0]
