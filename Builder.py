@@ -92,13 +92,13 @@ class Machine(list):
     def WriteLattice(self, filename):
         WriteLattice(self,filename)
     
-    def AddMarker(self,name='mk'):
+    def AddMarker(self, name='mk'):
         self.append(Element(name,'marker',0.0))
     
-    def AddDrift(self,name='dr',length=0.1,**kwargs):
+    def AddDrift(self, name='dr', length=0.1, **kwargs):
         self.append(Element(name,'drift',length,**kwargs))
           
-    def AddDipole(self,name='dp',category='sbend',length=0.1,angle=None,b=None,**kwargs):
+    def AddDipole(self, name='dp', category='sbend', length=0.1, angle=None, b=None, **kwargs):
         """
         AddDipole(category='sbend')
 
@@ -112,19 +112,19 @@ class Machine(list):
         else:
             self.append(Element(name,category,length,B=b,**kwargs))
 
-    def AddQuadrupole(self,name='qd',length=0.1,k1=0.0,**kwargs):
+    def AddQuadrupole(self, name='qd', length=0.1, k1=0.0, **kwargs):
         self.append(Element(name,'quadrupole',length,k1=k1,**kwargs))
         
-    def AddSextupole(self,name='sx',length=0.1,k2=0.0,**kwargs):
+    def AddSextupole(self, name='sx', length=0.1, k2=0.0, **kwargs):
         self.append(Element(name,'sextupole',length,k2=k2,**kwargs))
 
-    def AddOctupole(self,name='oc',length=0.1,k3=0.0,**kwargs):
+    def AddOctupole(self, name='oc', length=0.1, k3=0.0, **kwargs):
         self.append(Element(name,'octupole',length,k3=k3,**kwargs))
 
-    def AddMultipole(self,name='mp',length=0.1,knl=(0),ksl=(0),**kwargs):
+    def AddMultipole(self, name='mp', length=0.1, knl=(0), ksl=(0), **kwargs):
         pass
 
-    def AddRF(self,name='arreff',length=0.1,gradient=10,**kwargs):
+    def AddRF(self, name='arreff', length=0.1, gradient=10, **kwargs):
         """
         AddRF(name,length,graident,**kwargs)
         
@@ -133,13 +133,32 @@ class Machine(list):
         """
         self.append(Element(name,'rf',length,gradient=gradient,**kwargs))
         
-    def AddRCol(self,name='rc',length=0.1,xsize=0.1,ysize=0.1,**kwargs):
+    def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.append(Element(name,'rcol',length,xsize=xsize,ysize=ysize,**kwargs))
+    
+    def AddRColAngled(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, angle=0.1745329, **kwargs):
+        """
+        default angle is 10 degrees in radians (0.1745329)
 
-    def AddECol(self,name='ec',length=0.1,xsize=0.1,ysize=0.1,**kwargs):
+        """
+        #append transform3d
+        #append rcol
+        #append -ve transform3d
+        pass
+
+    def AddRColAngledTilted(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, angle=0.1745329, tilt=0.01, **kwargs):
+        pass
+
+    def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.append(Element(name,'ecol',length,xsize=xsize,ysize=ysize,**kwargs))
+        
+    def AddHKicker(self, name='hk', length=0.1, **kwargs):
+        self.append(Element(name,'hkicker',length,**kwargs))
 
-    def AddFodoCell(self,basename='fodo',magnetlength=1.0,driftlength=4.0,kabs=1.0,**kwargs):
+    def AddVKicker(self, name='vk', length=0.1, **kwargs):
+        self.append(Element(name,'vkicker',length,**kwargs))
+
+    def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=1.0,**kwargs):
         """
         AddFodoCell(basename,magnetlength,driftlength,kabs,**kwargs)
         basename     - the basename for the fodo cell beam line elements
@@ -155,7 +174,7 @@ class Machine(list):
         self.append(Element(basename,'drift',driftlength))
         self.append(Element(basename+'_qfb','quadrupole',magnetlength/2.0,k1=kabs,**kwargs))
 
-    def AddFodoCellSplitDrift(self,basename='fodo',magnetlength=1.0,driftlength=4.0,kabs=1.0,nsplits=10,**kwargs):
+    def AddFodoCellSplitDrift(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0,nsplits=10, **kwargs):
         """
         AddFodoCellSplitDrift(basename,magnetlength,driftlength,kabs,nsplits,**kwargs)
         basename - the basename for the fodo cell beam line elements
@@ -183,21 +202,21 @@ class Machine(list):
             self.append(Element(basename+'_d'+str(i).zfill(maxn),'drift',splitdriftlength))
         self.append(Element(basename+'_qfb','quadrupole',magnetlength/2.0,k1=kabs,**kwargs))
 
-    def AddFodoCellMultiple(self,basename='fodo',magnetlength=1.0,driftlength=4.0,kabs=1.0,ncells=2,**kwargs):
+    def AddFodoCellMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0, ncells=2, **kwargs):
         ncells = int(ncells)
         maxn   = int(len(str(ncells)))
         for i in range(ncells):
             cellname = basename+'_'+str(i).zfill(maxn)
             self.AddFodoCell(cellname,magnetlength,driftlength,kabs,**kwargs)
 
-    def AddFodoCellSplitDriftMultiple(self,basename='fodo',magnetlength=1.0,driftlength=4.0,kabs=1.0,nsplits=10,ncells=2,**kwargs):
+    def AddFodoCellSplitDriftMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0, nsplits=10, ncells=2, **kwargs):
         ncells = int(ncells)
         maxn   = int(len(str(ncells)))
         for i in range(ncells):
             cellname = basename+'_'+str(i).zfill(maxn)
             self.AddFodoCellSplitDrift(cellname,magnetlength,driftlength,kabs,nsplits=10,**kwargs)
             
-    def SetSamplers(self,command='first'):
+    def SetSamplers(self, command='first'):
         """
         SetSamplers(command)
         command is a string and one of:
