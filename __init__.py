@@ -23,10 +23,12 @@ Analysis - encapsulates functions & plots for a single file
 
 """
 
+from Beam import Beam
 import Builder
 import Constants
 import Data
 #import Gmad
+import Options
 import Plot
 
 import _General
@@ -34,4 +36,4 @@ import _General
 from Analysis import Analysis
 
 #__all__ = ['Builder','Data','Gmad','Plot']
-__all__ = ['Builder','Data','Plot']
+__all__ = ['Beam.Beam','Builder','Constants','Data','Options','Plot']
