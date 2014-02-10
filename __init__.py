@@ -36,4 +36,4 @@ import _General
 from Analysis import Analysis
 
 #__all__ = ['Builder','Data','Gmad','Plot']
-__all__ = ['Beam.Beam','Builder','Constants','Data','Options','Plot']
+__all__ = ['Beam','Builder','Constants','Data','Options','Plot']
