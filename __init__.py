@@ -16,10 +16,12 @@ Modules:
 Builder - create generic accelerators for bdsim
 Data    - read the bdsim output formats
 Gmad    - create bdsim input files - lattices & options
+Options - methods to generate bdsim options
 Plot    - some nice plots for data
 
 Classes:
-Analysis - encapsulates functions & plots for a single file 
+Analysis - encapsulates functions & plots for a single file
+Beam     - a beam options dictionary with methods
 
 """
 

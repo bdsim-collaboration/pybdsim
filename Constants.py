@@ -1,4 +1,4 @@
-PDGid = {
+PDGind = {
 #COMMON
     2212  : ('Proton',                'p'),
     -2212 : ('Antiproton',            r'$\={p}$'),
@@ -28,9 +28,10 @@ PDGid = {
 }
 
 PDGname = {}
-for k,v in PDGid.iteritems():
+for k,v in PDGind.iteritems():
     PDGname[v[0]] = k
     PDGname[v[0].lower()] = k
+del k,v
 
 def GetPDGInd(particlename):
     if particlename in PDGname:
@@ -42,7 +43,7 @@ def GetPDGInd(particlename):
 
 def GetPDGName(particleid):
     try:
-        return PDGid[particleid]
+        return PDGind[particleid]
     except KeyError:
         print 'Unknown particle id ',particleid
         return ('','')
