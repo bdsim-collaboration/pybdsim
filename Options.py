@@ -208,7 +208,7 @@ class Options(dict):
         self['deltaOneStep'] = str(dos) + '*' + unitsstring
 
     def SetThresholdCutCharged(self,tcc=100,unitsstring='MeV'):
-        self['thresholdCutCharged'] = str(tcc) + unitsstring
+        self['thresholdCutCharged'] = str(tcc) + '*' + unitsstring
 
     def SetThresholdCutPhotons(self,tcp=1,unitsstring='MeV'):
         self['thresholdCutPhotons'] = str(tcp) + '*' + unitsstring
