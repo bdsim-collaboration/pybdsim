@@ -96,7 +96,10 @@ class Machine(list):
         self.append(Element(name,'marker',0.0))
     
     def AddDrift(self, name='dr', length=0.1, **kwargs):
-        self.append(Element(name,'drift',length,**kwargs))
+        if length < 1e-12:
+            self.AddMarker(name)
+        else:
+            self.append(Element(name,'drift',length,**kwargs))
           
     def AddDipole(self, name='dp', category='sbend', length=0.1, angle=None, b=None, **kwargs):
         """
@@ -122,7 +125,10 @@ class Machine(list):
         self.append(Element(name,'octupole',length,k3=k3,**kwargs))
 
     def AddMultipole(self, name='mp', length=0.1, knl=(0), ksl=(0), **kwargs):
-        pass
+        if length > 1e-12:
+            self.AddDrift(name,length)
+        else:
+            self.AddMarker(name)
 
     def AddRF(self, name='arreff', length=0.1, gradient=10, **kwargs):
         """
@@ -136,27 +142,33 @@ class Machine(list):
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.append(Element(name,'rcol',length,xsize=xsize,ysize=ysize,**kwargs))
     
+    def AddTransform3D(self, name='t3d', **kwargs):
+        if len(kwargs.keys()) == 0:
+            pass
+        else:
+            length=0.0
+            self.append(Element(name,'transform3d',length, **kwargs))
+        
     def AddRColAngled(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, angle=0.1745329, **kwargs):
         """
         default angle is 10 degrees in radians (0.1745329)
 
         """
-        #append transform3d
-        #append rcol
-        #append -ve transform3d
-        pass
+        self.AddTransform3D(name+'_angle_pos', psi=angle)
+        self.append(Element(name,'rcol',length,xsize=xsize,ysize=ysize,**kwargs))
+        self.AddTransform3D(name+'_angle_neg', psi=-1*angle)
 
     def AddRColAngledTilted(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, angle=0.1745329, tilt=0.01, **kwargs):
-        pass
+        self.AddDrift(name,length)
 
     def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.append(Element(name,'ecol',length,xsize=xsize,ysize=ysize,**kwargs))
         
     def AddHKicker(self, name='hk', length=0.1, **kwargs):
-        self.append(Element(name,'hkicker',length,**kwargs))
+        self.append(Element(name,'hkick',length,**kwargs))
 
     def AddVKicker(self, name='vk', length=0.1, **kwargs):
-        self.append(Element(name,'vkicker',length,**kwargs))
+        self.append(Element(name,'vkick',length,**kwargs))
 
     def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=1.0,**kwargs):
         """
@@ -383,7 +395,7 @@ def WriteLattice(machine, filename):
         filename += '.gmad'
     #check if file already exists
     filename = _General.CheckFileExists(filename)
-    basefilename = filename[:-5]
+    basefilename = filename[:-5].split('/')[-1]
 
     #prepare names
     maxn    = len(str(len(machinechunks)))
@@ -403,11 +415,13 @@ def WriteLattice(machine, filename):
         f.write('! COMPONENT DEFINITION - File number '+str(filenumber+1)+'/'+str(len(fn_comp))+'\n\n')
         for e in machinechunks[filenumber]:
             if e.category == 'marker':
-                linetowrite = e.name+' : '+ e.category
+                linetowrite = e.name+' : ' + e.category
+            elif e.length < 1e-12:
+                linetowrite = e.name+' : ' + 'marker'
             else:
                 linetowrite = e.name+' : '+e.category+', l=%(LENGTH).15f *m' %{'LENGTH':e.length}
-            for parameter in  e.keysextra():
-                linetowrite = linetowrite+', '+str(parameter)+'=%(NUMBER).15f' %{'NUMBER':e[parameter]}
+                for parameter in  e.keysextra():
+                    linetowrite += ', '+str(parameter)+'=%(NUMBER).15f' %{'NUMBER':e[parameter]}
             linetowrite = linetowrite + ';\n'
             f.write(linetowrite)
             elementnames.append(e.name)
