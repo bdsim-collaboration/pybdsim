@@ -14,6 +14,7 @@ matplotlib  - 1.3.0
 
 Modules:
 Builder - create generic accelerators for bdsim
+Convert - convert other formats into gmad
 Data    - read the bdsim output formats
 Gmad    - create bdsim input files - lattices & options
 Options - methods to generate bdsim options
@@ -28,6 +29,7 @@ Beam     - a beam options dictionary with methods
 from Beam import Beam
 import Builder
 import Constants
+import Convert
 import Data
 #import Gmad
 import Options
