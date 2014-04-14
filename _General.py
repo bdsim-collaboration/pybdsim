@@ -29,3 +29,17 @@ def Chunks(l, n):
 def NearestEvenInteger(number):
     number = int(number)
     return number + number%2
+
+def Cast(string):
+    """
+    Cast(string)
+    
+    tries to cast to a (python)float and if it doesn't work, 
+    returns a string
+
+    """
+    try:
+        return float(string)
+    except ValueError:
+        return string
+
