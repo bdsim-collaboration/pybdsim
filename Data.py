@@ -97,10 +97,12 @@ def _LoadRoot(filepath):
 def _LoadAscii2(filepath):
     data = BDSAsciiData()
     f = open(filepath,'r')
+    newdata = False
     for i, line in enumerate(f):
         # first 3 lines are header
         if i > 2:
             data.append(tuple(map(float,line.split())))
+            #data.append(tuple(map(float,line.split()[1:])+[line.split()[0]]))
     f.close()
     data._MakeSamplerIndex()
     return data
