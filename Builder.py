@@ -395,7 +395,7 @@ def WriteLattice(machine, filename, verbose=False):
         filename += '.gmad'
     #check if file already exists
     filename = _General.CheckFileExists(filename)
-    basefilename = filename[:-5].split('/')[-1]
+    basefilename = filename[:-5]#.split('/')[-1]
 
     #prepare names
     maxn    = len(str(len(machinechunks)))
@@ -423,7 +423,8 @@ def WriteLattice(machine, filename, verbose=False):
             else:
                 linetowrite = e.name+' : '+e.category+', l=%(LENGTH).15f *m' %{'LENGTH':e.length}
                 for parameter in  e.keysextra():
-                    linetowrite += ', '+str(parameter)+'=%(NUMBER).15f' %{'NUMBER':e[parameter]}
+                    #linetowrite += ', '+str(parameter)+'=%(NUMBER).15f' %{'NUMBER':e[parameter]}
+                    linetowrite += ', '+str(parameter)+'='+str(e[parameter])
             linetowrite = linetowrite + ';\n'
             f.write(linetowrite)
             elementnames.append(e.name)
@@ -472,6 +473,7 @@ def WriteLattice(machine, filename, verbose=False):
     f.write('! total length       = ' + str(machine.totallength) + ' m\n\n')
     
     for fn in files:
+        fn = fn.split('/')[-1]
         f.write('include '+fn+';\n')
     f.close()
 
