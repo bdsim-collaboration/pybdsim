@@ -72,13 +72,14 @@ class Machine(list):
     each element is a list of [name,type,length...other parameters]
 
     """
-    def __init__(self):
+    def __init__(self, verbose=False):
         list.__init__(self)
         self.nelements     = int(0)
         self.samplers      = []
         self.totallength   = Decimal(str(0.0))
         self._elementindex = int(0)
-        self._maxindexpow  = 5 
+        self._maxindexpow  = 5
+        self.verbose       = verbose
 
     def append(self, object):
         if type(object) == Element:
@@ -90,12 +91,20 @@ class Machine(list):
         self._elementindex += 1
        
     def WriteLattice(self, filename, verbose=False):
-        WriteLattice(self,filename,verbose)
+        if self.verbose==True or verbose == True:
+            v = True
+        else:
+            v = False
+        WriteLattice(self,filename,v)
     
     def AddMarker(self, name='mk'):
+        if self.verbose:
+            print 'AddMarker> ',name
         self.append(Element(name,'marker',0.0))
     
     def AddDrift(self, name='dr', length=0.1, **kwargs):
+        if self.verbose:
+            print 'AddDrift>  ',name,' ',length,' ',kwargs
         if length < 1e-12:
             self.AddMarker(name)
         else:
