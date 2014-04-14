@@ -44,10 +44,10 @@ def LoadOld(filepath):
     if format not in knownfiletypes:
         print 'pybdsim.Data.Load - unknown format'
     elif format == 'txt':
-       data = _LoadAscii(filepath)
+        data,dataarray,keys,units = _LoadAscii(filepath)
     elif format == 'root':
-        data = _LoadRoot(filepath)
-    return data
+        data,dataarray,keys,units = _LoadRoot(filepath)
+    return data,dataarray,keys
 
 def ParseKeys(keyline):
     rawkeys    = keyline.split()[1:]
@@ -82,21 +82,27 @@ def _LoadAscii(filepath):
     for i,key in enumerate(keys):
         data[key] = list(dataarray[:,i])
     data.SetUnits(dict(zip(keys,units)))
-    return data,dataarray
+    return data,dataarray,keys,units
     
 def _LoadRoot(filepath):
     data = RootData()
+    units = []
+    keys  = []
+    dataarray = _np.array([])
     f = open(filepath,'r')
     #stuff here
     f.close()
-    return data
+    return data,dataarray,keys,units
     
 def _LoadAscii2(filepath):
     data = BDSAsciiData()
     f = open(filepath,'r')
+    newdata = False
     for i, line in enumerate(f):
-        if i > 3:
+        # first 3 lines are header
+        if i > 2:
             data.append(tuple(map(float,line.split())))
+            #data.append(tuple(map(float,line.split()[1:])+[line.split()[0]]))
     f.close()
     data._MakeSamplerIndex()
     return data

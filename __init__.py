@@ -14,19 +14,25 @@ matplotlib  - 1.3.0
 
 Modules:
 Builder - create generic accelerators for bdsim
+Convert - convert other formats into gmad
 Data    - read the bdsim output formats
 Gmad    - create bdsim input files - lattices & options
+Options - methods to generate bdsim options
 Plot    - some nice plots for data
 
 Classes:
-Analysis - encapsulates functions & plots for a single file 
+Analysis - encapsulates functions & plots for a single file
+Beam     - a beam options dictionary with methods
 
 """
 
+from Beam import Beam
 import Builder
 import Constants
+import Convert
 import Data
 #import Gmad
+import Options
 import Plot
 
 import _General
@@ -34,4 +40,4 @@ import _General
 from Analysis import Analysis
 
 #__all__ = ['Builder','Data','Gmad','Plot']
-__all__ = ['Builder','Data','Plot']
+__all__ = ['Beam','Builder','Constants','Data','Options','Plot']
