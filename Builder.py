@@ -89,8 +89,8 @@ class Machine(list):
         self.totallength   += object.length
         self._elementindex += 1
        
-    def WriteLattice(self, filename):
-        WriteLattice(self,filename)
+    def WriteLattice(self, filename, verbose=False):
+        WriteLattice(self,filename,verbose)
     
     def AddMarker(self, name='mk'):
         self.append(Element(name,'marker',0.0))
@@ -355,7 +355,7 @@ def SuggestFodoK(magnetlength,driftlength):
     """
     return 1.0 / (float(magnetlength)*(float(magnetlength) + float(driftlength)))
 
-def WriteLattice(machine, filename):
+def WriteLattice(machine, filename, verbose=False):
     """
     WriteLattice(machineclassinstance,filenamestring)
 
@@ -414,6 +414,8 @@ def WriteLattice(machine, filename):
         f.write('! pybdsim.Builder Lattice \n')
         f.write('! COMPONENT DEFINITION - File number '+str(filenumber+1)+'/'+str(len(fn_comp))+'\n\n')
         for e in machinechunks[filenumber]:
+            if verbose:
+                print e['name']
             if e.category == 'marker':
                 linetowrite = e.name+' : ' + e.category
             elif e.length < 1e-12:
