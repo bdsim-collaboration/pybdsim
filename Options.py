@@ -332,3 +332,9 @@ class Options(dict):
 
     def SetNLinesIgnore(self,nlines=0):
         self['nlinesIgnore'] = nlines
+
+class Editor : 
+    def __init__(self, fileName) :
+        self.fileName = fileName 
+
+    
