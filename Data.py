@@ -1,6 +1,6 @@
 # pybdsim.Data - output data loader for pybdsim
 # Version 1.0
-# L. Nevay
+# L. Nevay, S.Boogert
 # laurie.nevay@rhul.ac.uk
 
 """
