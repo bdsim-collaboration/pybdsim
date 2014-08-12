@@ -1,6 +1,6 @@
 # pybdsim.Data - output data loader for pybdsim
 # Version 1.0
-# L. Nevay, S.T.Boogert
+# L. Nevay
 # laurie.nevay@rhul.ac.uk
 
 """
@@ -43,8 +43,10 @@ def LoadOld(filepath):
     format = filepath.split('.')[-1]
     if format not in knownfiletypes:
         print 'pybdsim.Data.Load - unknown format'
+    elif filepath.count('eloss') > 0 :
+        data,dataarray,keys,units = _LoadAscii3(filepath)
     elif format == 'txt':
-        data,dataarray,keys,units = _LoadAscii(filepath)
+        data,dataarray,keys,units = _LoadAscii2(filepath)
     elif format == 'root':
         data,dataarray,keys,units = _LoadRoot(filepath)
     return data,dataarray,keys
@@ -107,20 +109,72 @@ def _LoadAscii2(filepath):
     data._MakeSamplerIndex()
     return data
 
+def _LoadAscii3(filepath):
+    data = BDSAsciiData2()
+    f = open(filepath, 'r')
+    for i, line in enumerate(f):
+        # first line is header
+        if i == 1:
+            names,units = ParseHeaderLine(line)
+            for name,unit in zip(names,units):
+                data._AddProperty(name,unit)
+        if i > 1:
+            data.append(tuple(map(float,line.split())))
+    f.close()
+    return data
+
 def Load(filepath):
     extension = filepath.split('.')[-1]
-    if extension == 'txt':
-        #ascii output
-        return _LoadAscii2(filepath)
+    if filepath.count('eloss') > 0:
+        return _LoadAscii3(filepath)
+    elif extension == 'txt':
+        return _LoadAscii3(filepath)
     elif extension == 'root':
         print 'Root loader not implemented yet...'
     else:
         raise IOError("Unknown file type - not BDSIM data")
 
+def ParseHeaderLine(line):
+    names = []
+    units = []
+    for word in line.split():
+        if word.count('[') > 0:
+            names.append(word.split('[')[0])
+            units.append(word.split('[')[1].strip(']'))
+        else:
+            names.append(word)
+            units.append('NA')
+    return names, units
+                
+
+class BDSAsciiData2(list):
+    def __init__(self, *args, **kwargs):
+        list.__init__(self, *args, **kwargs)
+        self.units = []
+        self.names = []
+
+    def _AddMethod(self, variablename):
+        """
+        This is used to dynamically add a getter function for a variable name.
+        """
+        def GetAttribute():
+            if self.names.count(variablename) == 0:
+                raise KeyError(variablename+" is not a variable in this data")
+            ind = self.names.index(variablename)
+            return [event[ind] for event in self]
+        setattr(self,variablename,GetAttribute)
+
+    def _AddProperty(self,variablename,variableunit='NA'):
+        """
+        This is used to add a new variable and hence new getter function
+        """
+        self.names.append(variablename)
+        self.units.append(variableunit)
+        self._AddMethod(variablename)
 
 class BDSAsciiData(list):
     """
-    BDSAsciiData class
+    BDSAsciiData class (OBSELETE - only kept for sampler Z grouping)
 
     Inherits python list class
 
