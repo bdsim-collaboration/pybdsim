@@ -15,6 +15,7 @@ git clone http://bitbucket.org/nevay/pybdsim .
 -> edit your terminal (perhaps bash) profile
 
 $PYTHONPATH=$PYTHONPATH:/path/to/where/you/put/pybdsim
+
 $>python
 
 $>>> import pybdsim
