@@ -16,8 +16,11 @@ git clone http://bitbucket.org/nevay/pybdsim .
 
 $PYTHONPATH=$PYTHONPATH:/path/to/where/you/put/pybdsim
 $>python
+
 $>>> import pybdsim
+
 $>>> a = pybdsim.Data.Load("run1_output.txt")
+
 $>>> hist(a.Xp())
 
 # Dependencies #
