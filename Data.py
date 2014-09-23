@@ -123,9 +123,34 @@ def _LoadAscii3(filepath):
     f.close()
     return data
 
+def _LoadAsciiHistogram(filepath):
+    data = BDSAsciiData2()
+    f = open(filepath,'r')
+    for i, line in enumerate(f):
+        # first line is header (0 counting)
+        if i == 1:
+            names,units = ParseHeaderLine(line)
+            for name,unit in zip(names,units):
+                data._AddProperty(name,unit)
+        elif "underflow" in line:
+            print line
+            print line.strip().split()[1]
+            data.underflow = float(line.strip().split()[1])
+        elif "overflow" in line:
+            print line
+            print line.strip().split()[1]
+            data.overflow  = float(line.strip().split()[1])
+        elif i >= 4:
+            print line
+            data.append(tuple(map(float,line.split())))
+    f.close()
+    return data
+
 def Load(filepath):
     extension = filepath.split('.')[-1]
-    if filepath.count('eloss') > 0:
+    if "elosshist" in filepath:
+        return _LoadAsciiHistogram(filepath)
+    elif "eloss" in filepath:
         return _LoadAscii3(filepath)
     elif extension == 'txt':
         return _LoadAscii3(filepath)
