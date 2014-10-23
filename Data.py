@@ -40,7 +40,7 @@ def _LoadRoot(filepath):
     return data,dataarray,keys,units
 
 def _LoadAscii(filepath):
-    data = BDSAsciiData2()
+    data = BDSAsciiData()
     f = open(filepath, 'r')
     for i, line in enumerate(f):
         if line.startswith("#"):
@@ -56,7 +56,7 @@ def _LoadAscii(filepath):
     return data
 
 def _LoadAsciiHistogram(filepath):
-    data = BDSAsciiData2()
+    data = BDSAsciiData()
     f = open(filepath,'r')
     for i, line in enumerate(f):
         # first line is header (0 counting)
@@ -91,7 +91,7 @@ def ParseHeaderLine(line):
     return names, units
                 
 
-class BDSAsciiData2(list):
+class BDSAsciiData(list):
     def __init__(self, *args, **kwargs):
         list.__init__(self, *args, **kwargs)
         self.units = []
@@ -137,7 +137,7 @@ class BDSAsciiData2(list):
         Return type is BDSAsciiData
         """
         if hasattr(self,parametername):
-            a = BDSAsciiData2()            #build bdsasciidata2
+            a = BDSAsciiData()            #build bdsasciidata2
             a._DuplicateNamesUnits(self)   #copy names and units
             pindex = a.names.index(parametername)
             filtereddata = [event for event in self if abs(event[pindex]-matchvalue)<=tolerance]
@@ -147,114 +147,14 @@ class BDSAsciiData2(list):
             print "The parameter: ",parametername," does not exist in this instance"
 
     def Filter(self,booleanarray):
-        a = BDSAsciiData2()
         """
         Filter the data with a booleanarray.  Where true, will return
         that event in the data.
 
         Return type is BDSAsciiData
         """
+        a = BDSAsciiData()
         a._DuplicateNamesUnits(self)
         a.extend([event for i,event in enumerate(self) if booleanarray[i]])
         return a
 
-class BDSAsciiData(list):
-    """
-    BDSAsciiData class (OBSELETE - only kept for sampler Z grouping)
-
-    Inherits python list class
-
-    callable with arguments (particletype='all', samplerindex='all')
-
-    eg.
-    a = pyBdsim.Data.Load('path/to/file.txt') #returns BDSAsciiData instance
-
-    a('electron',0) # returns electrons at sampler number 0
-    a('all',12)     # returns all partcles at sampler number 12
-    a(11,0)         # returns electrons (PDGid=11) at sampler number 0
-
-    see pyBdsim.Constants.PDGid for names
-     
-    """
-    def __init__(self, *args, **kwargs):
-        list.__init__(self, *args, **kwargs)
-        self.names = ['PT', 'E',   'X',      'Y',      'Z', 'Xp',  'Yp',  'NEvent', 'Weight', 'ParentID', 'TrackID']
-        self.units = ['NA', 'GeV', '$\mu$m', '$\mu$m', 'm', 'rad', 'rad', 'NA',     'NA',     'NA',       'NA']
-        self._zr   = 3 #z grouping tolerance in decimal places
-        self._MakeSamplerIndex()
-        
-    def _MakeSamplerIndex(self):
-        self.samplerzs = sorted(list(set([round(x[self.names.index('Z')],self._zr) for x in self])))
-        
-    def SamplerIndex(self,zlocation):
-        if zlocation not in self.samplerzs:
-            raise ValueError("zlocation does not match any sampler")
-        else:
-            return self.samplerzs.index(zlocation)
-
-    def __call__(self,particletype='all', samplerindex='all'):
-        if particletype != 'all':
-            if type(particletype) == str:
-                pt = _Constants.GetPDGInd(particletype)
-            else:
-                pt = particletype
-        if samplerindex != 'all':
-            samplerz = self.samplerzs[samplerindex]
-        
-        ptind   = self.names.index('PT')
-        zind    = self.names.index('Z')
-        
-        if (particletype != 'all'):
-            df = filter(lambda event: event[ptind] == pt, self)
-        else:
-            df = self
-        if samplerindex != 'all':
-            df      = filter(lambda event: round(event[zind],self._zr) == samplerz, df)
-        return BDSAsciiData(df)
-        
-    def __repr__(self):
-        return '('+', '.join(self.names)+')'
-
-    def ParticleType(self):
-        ind = self.names.index('PT')
-        return [e[ind] for e in self]
-    
-    def E(self):
-        ind = self.names.index('E')
-        return [e[ind] for e in self]
-        
-    def X(self):
-        ind = self.names.index('X')
-        return [e[ind] for e in self]
-        
-    def Y(self):
-        ind = self.names.index('Y')
-        return [e[ind] for e in self]
-        
-    def Z(self):
-        ind = self.names.index('Z')
-        return [e[ind] for e in self]
-        
-    def Xp(self):
-        ind = self.names.index('Xp')
-        return [e[ind] for e in self]
-        
-    def Yp(self):
-        ind = self.names.index('Yp')
-        return [e[ind] for e in self]
-        
-    def NEvent(self):
-        ind = self.names.index('NEvent')
-        return [e[ind] for e in self]
-        
-    def Weight(self):
-        ind = self.names.index('Weight')
-        return [e[ind] for e in self]
-        
-    def ParentID(self):
-        ind = self.names.index('ParentID')
-        return [e[ind] for e in self]
-        
-    def TrackID(self):
-        ind = self.names.index('TrackID')
-        return [e[ind] for e in self]
