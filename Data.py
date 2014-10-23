@@ -127,7 +127,7 @@ class BDSAsciiData2(list):
         a parameter withing a certain tolerance.
 
         a = pybdsim.Data.Load("myfile.txt")
-        MatchValue(a.S,0.3,0.0004)
+        MatchValue("S",0.3,0.0004)
         
         this will match the "S" variable in instance "a" to the value of 0.3
         within +- 0.0004.
@@ -148,6 +148,12 @@ class BDSAsciiData2(list):
 
     def Filter(self,booleanarray):
         a = BDSAsciiData2()
+        """
+        Filter the data with a booleanarray.  Where true, will return
+        that event in the data.
+
+        Return type is BDSAsciiData
+        """
         a._DuplicateNamesUnits(self)
         a.extend([event for i,event in enumerate(self) if booleanarray[i]])
         return a
