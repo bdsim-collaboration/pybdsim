@@ -13,79 +13,22 @@ Data - read various output files
 
 
 """
-
 import numpy as _np
 import Constants as _Constants
 
-class AsciiData(dict):
-    def __init__(self, *args, **kwargs):
-        dict.__init__(self)
-        self._Update(*args, **kwargs)
-        self._UpdateKeys()
-        self.units = {}
-        
-    def _Update(self, *args, **kwargs):
-        for k,v in dict(*args,**kwargs).iteritems():
-            self[k] = v
-    
-    def SetUnits(self,unitsdict):
-        self.unitsdict = unitsdict
-        
-    def _UpdateKeys(self):
-        self.keyslist = self.keys()
+def Load(filepath):
+    extension = filepath.split('.')[-1]
+    if "elosshist" in filepath:
+        return _LoadAsciiHistogram(filepath)
+    elif "eloss" in filepath:
+        return _LoadAscii(filepath)
+    elif extension == 'txt':
+        return _LoadAscii(filepath)
+    elif extension == 'root':
+        print 'Root loader not implemented yet...'
+    else:
+        raise IOError("Unknown file type - not BDSIM data")
 
-    def __setitem__(self,key,value):
-        dict.__setitem__(self,key,value)
-        self._UpdateKeys()
-
-def LoadOld(filepath):
-    knownfiletypes = ['txt','root']
-    format = filepath.split('.')[-1]
-    if format not in knownfiletypes:
-        print 'pybdsim.Data.Load - unknown format'
-    elif filepath.count('eloss') > 0 :
-        data,dataarray,keys,units = _LoadAscii3(filepath)
-    elif format == 'txt':
-        data,dataarray,keys,units = _LoadAscii2(filepath)
-    elif format == 'root':
-        data,dataarray,keys,units = _LoadRoot(filepath)
-    return data,dataarray,keys
-
-def ParseKeys(keyline):
-    rawkeys    = keyline.split()[1:]
-    keys  = []
-    units = []
-    #remove units from keys
-    for i,key in enumerate(rawkeys):
-        if key.count('[') > 0:
-            unit   = key.split('[')[1].split(']')[0].replace('mu','$\mu$')
-            newkey = key.split('[')[0] 
-            keys.append(newkey)
-            units.append(unit)
-        else:
-            keys.append(key)
-            units.append('NA')
-    return keys,units
-
-def _LoadAscii(filepath):
-    data = AsciiData()
-    f = open(filepath,'r')
-    datalist = []
-    for i, line in enumerate(f):
-        if i < 2:
-            pass
-        elif i == 2:
-            keys,units = ParseKeys(line)
-        else:
-            datalist.append(map(float,line.split()))
-    f.close()
-    dataarray = _np.array(datalist)
-    del datalist
-    for i,key in enumerate(keys):
-        data[key] = list(dataarray[:,i])
-    data.SetUnits(dict(zip(keys,units)))
-    return data,dataarray,keys,units
-    
 def _LoadRoot(filepath):
     data = RootData()
     units = []
@@ -95,30 +38,19 @@ def _LoadRoot(filepath):
     #stuff here
     f.close()
     return data,dataarray,keys,units
-    
-def _LoadAscii2(filepath):
-    data = BDSAsciiData()
-    f = open(filepath,'r')
-    newdata = False
-    for i, line in enumerate(f):
-        # first 3 lines are header
-        if i > 2:
-            data.append(tuple(map(float,line.split())))
-            #data.append(tuple(map(float,line.split()[1:])+[line.split()[0]]))
-    f.close()
-    data._MakeSamplerIndex()
-    return data
 
-def _LoadAscii3(filepath):
+def _LoadAscii(filepath):
     data = BDSAsciiData2()
     f = open(filepath, 'r')
     for i, line in enumerate(f):
+        if line.startswith("#"):
+            pass
+        elif i == 1:
         # first line is header
-        if i == 1:
             names,units = ParseHeaderLine(line)
             for name,unit in zip(names,units):
                 data._AddProperty(name,unit)
-        if i > 1:
+        else:
             data.append(tuple(map(float,line.split())))
     f.close()
     return data
@@ -146,19 +78,6 @@ def _LoadAsciiHistogram(filepath):
     f.close()
     return data
 
-def Load(filepath):
-    extension = filepath.split('.')[-1]
-    if "elosshist" in filepath:
-        return _LoadAsciiHistogram(filepath)
-    elif "eloss" in filepath:
-        return _LoadAscii3(filepath)
-    elif extension == 'txt':
-        return _LoadAscii3(filepath)
-    elif extension == 'root':
-        print 'Root loader not implemented yet...'
-    else:
-        raise IOError("Unknown file type - not BDSIM data")
-
 def ParseHeaderLine(line):
     names = []
     units = []
@@ -177,7 +96,7 @@ class BDSAsciiData2(list):
         list.__init__(self, *args, **kwargs)
         self.units = []
         self.names = []
-
+        
     def _AddMethod(self, variablename):
         """
         This is used to dynamically add a getter function for a variable name.
@@ -186,7 +105,7 @@ class BDSAsciiData2(list):
             if self.names.count(variablename) == 0:
                 raise KeyError(variablename+" is not a variable in this data")
             ind = self.names.index(variablename)
-            return [event[ind] for event in self]
+            return _np.array([event[ind] for event in self])
         setattr(self,variablename,GetAttribute)
 
     def _AddProperty(self,variablename,variableunit='NA'):
@@ -196,6 +115,42 @@ class BDSAsciiData2(list):
         self.names.append(variablename)
         self.units.append(variableunit)
         self._AddMethod(variablename)
+
+    def _DuplicateNamesUnits(self,bdsasciidata2instance):
+        d = bdsasciidata2instance
+        for name,unit in zip(d.names,d.units):
+            self._AddProperty(name,unit)
+
+    def MatchValue(self,parametername,matchvalue,tolerance):
+        """
+        This is used to filter the instance of the class based on matching
+        a parameter withing a certain tolerance.
+
+        a = pybdsim.Data.Load("myfile.txt")
+        MatchValue(a.S,0.3,0.0004)
+        
+        this will match the "S" variable in instance "a" to the value of 0.3
+        within +- 0.0004.
+
+        You can therefore used to match any parameter.
+
+        Return type is BDSAsciiData
+        """
+        if hasattr(self,parametername):
+            a = BDSAsciiData2()            #build bdsasciidata2
+            a._DuplicateNamesUnits(self)   #copy names and units
+            pindex = a.names.index(parametername)
+            filtereddata = [event for event in self if abs(event[pindex]-matchvalue)<=tolerance]
+            a.extend(filtereddata)
+            return a
+        else:
+            print "The parameter: ",parametername," does not exist in this instance"
+
+    def Filter(self,booleanarray):
+        a = BDSAsciiData2()
+        a._DuplicateNamesUnits(self)
+        a.extend([event for i,event in enumerate(self) if booleanarray[i]])
+        return a
 
 class BDSAsciiData(list):
     """
