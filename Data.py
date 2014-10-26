@@ -47,7 +47,7 @@ def _LoadAscii(filepath):
             pass
         elif i == 1:
         # first line is header
-            names,units = ParseHeaderLine(line)
+            names,units = _ParseHeaderLine(line)
             for name,unit in zip(names,units):
                 data._AddProperty(name,unit)
         else:
@@ -61,7 +61,7 @@ def _LoadAsciiHistogram(filepath):
     for i, line in enumerate(f):
         # first line is header (0 counting)
         if i == 1:
-            names,units = ParseHeaderLine(line)
+            names,units = _ParseHeaderLine(line)
             for name,unit in zip(names,units):
                 data._AddProperty(name,unit)
         elif "underflow" in line:
@@ -78,7 +78,7 @@ def _LoadAsciiHistogram(filepath):
     f.close()
     return data
 
-def ParseHeaderLine(line):
+def _ParseHeaderLine(line):
     names = []
     units = []
     for word in line.split():
