@@ -15,6 +15,7 @@ Data - read various output files
 """
 import numpy as _np
 import Constants as _Constants
+import _General
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
@@ -51,7 +52,8 @@ def _LoadAscii(filepath):
             for name,unit in zip(names,units):
                 data._AddProperty(name,unit)
         else:
-            data.append(tuple(map(float,line.split())))
+            #this tries to cast to float, but if not leaves as string
+            data.append(tuple(map(_General.Cast,line.split())))
     f.close()
     return data
 
