@@ -38,6 +38,7 @@ import Plot
 import _General
 
 from Analysis import Analysis
+from AnalysisRoot import AnalysisRoot
 
 #__all__ = ['Builder','Data','Gmad','Plot']
 __all__ = ['Beam','Builder','Constants','Data','Options','Plot']
