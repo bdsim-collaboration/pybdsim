@@ -54,6 +54,7 @@ class AnalysisRoot:
         if normalised:
             scale = 1./max(self.elosshist)
             print 'Normalising by factor',scale
+            self.normalisation = scale
             self.elosshist.Scale(scale)
         
         _PlotHistogram(self.elosshist,normalised)
@@ -76,6 +77,7 @@ class AnalysisRoot:
         #normalise if required
         if normalised:
             scale = 1./max(self.plosshist)
+            self.normalisation = scale
             print 'Normalising by factor',scale
             self.plosshist.Scale(scale)
         
