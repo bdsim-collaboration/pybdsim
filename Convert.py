@@ -101,15 +101,22 @@ def MadxTfs2Gmad(inputfile,outputfile,startname=None,endname=None,ignorezeroleng
             a.AddDipole(name,'sbend',l,angle=madx.data['ANGLE'][i],**kws)
         elif t == 'RCOLLIMATOR':
             #only use xsize as only have half gap
-            if coll.has_key(name):
-                kws['material'] = coll[name]['bdsim_material']
-            if gaps.has_key(name):
-                xsize = gaps[name]['halfgap'] * 2.0
-                angle = gaps[name]['angle']
-            else:
+            try : 
+                if coll.has_key(name):
+                    kws['material'] = coll[name]['bdsim_material']
+                if gaps.has_key(name):
+                    xsize = gaps[name]['halfgap'] * 2.0
+                    angle = gaps[name]['angle']
+                else:
+                    xsize = opencollimatorsetting
+                    angle = 0.0
+                    ysize = opencollimatorsetting
+            except NameError :  # if there is no coll or gaps structures 
+                opencollimatorsetting = 10.0
                 xsize = opencollimatorsetting
+                ysize = opencollimatorsetting
                 angle = 0.0
-            ysize = opencollimatorsetting
+                
             a.AddRColAngled(name,l,xsize,ysize,angle,**kws)
             #a.AddRCol(name,l,xsize,ysize,**kws)
         elif t == 'RFCAVITY':
@@ -132,7 +139,7 @@ def MadxTfs2Gmad(inputfile,outputfile,startname=None,endname=None,ignorezeroleng
                 a.AddDrift(name,l)
 
     a.SetSamplers(samplers)
-    a.WriteLattice(outputfilename)
+    a.WriteLattice(outputfile)
     
 def InterrogateLattice(tfsfilename):
     """
