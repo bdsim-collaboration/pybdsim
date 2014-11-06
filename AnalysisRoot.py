@@ -7,6 +7,10 @@ import matplotlib.pyplot as _plt
 
 class AnalysisRoot:
     def __init__(self,filelist):
+        if filelist != None:
+            self.Load(filelist)
+
+    def Load(self,filelist):
         self.filelist = filelist
         self.nfiles   = 0
         self._LoadElossTree()
@@ -86,7 +90,7 @@ class AnalysisRoot:
 
 def _PlotHistogram(hist,normalised,title=''):
         #plot histogram
-        fig = _plt.figure()
+        fig = _plt.figure(figsize=(12,5))
         ax  = fig.add_subplot(111)
         ax.plot(hist)
         #set x limits to add 2% on either side
@@ -106,3 +110,4 @@ def _PlotHistogram(hist,normalised,title=''):
         ax.set_yscale('log')
         ax.grid()
         ax.set_title(title)
+        _plt.subplots_adjust(left=0.08,right=0.97)
