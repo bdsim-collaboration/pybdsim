@@ -255,7 +255,7 @@ class Machine1:
         gradient in MV / m
         """
         self.AddDrift(name,length)
-        self.Append(Element(name,'rfcavity',l=length,gradient=gradient,**kwargs))
+        #self.Append(Element(name,'rfcavity',l=length,gradient=gradient,**kwargs))
         
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,material=kwargs['material']))
@@ -272,7 +272,6 @@ class Machine1:
 
         """
         self.AddTransform3D(name+'_angle_pos', psi=angle)
-        #self.AddDrift(name,length)
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**kwargs))
         self.AddTransform3D(name+'_angle_neg', psi=-1*angle)
 
