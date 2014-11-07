@@ -89,25 +89,26 @@ class AnalysisRoot:
         
 
 def _PlotHistogram(hist,normalised,title=''):
-        #plot histogram
-        fig = _plt.figure(figsize=(12,5))
-        ax  = fig.add_subplot(111)
-        ax.plot(hist)
-        #set x limits to add 2% on either side
-        xr = len(hist)
-        ax.set_xlim(0-0.02*xr,xr+0.02*xr)
-        #set large log yscale
-        if not normalised:
-            ax.set_ylim(min(hist)*0.7,max(hist*1.4))
-        else:
-            ax.set_ylim(0.7e-7,1.4)
-        
-        ax.set_xlabel('S Position (m)')
-        if not normalised:
-            ax.set_ylabel('Number')
-        else:
-            ax.set_ylabel('Fraction')
-        ax.set_yscale('log')
-        ax.grid()
-        ax.set_title(title)
-        _plt.subplots_adjust(left=0.08,right=0.97)
+    #plot histogram
+    fig = _plt.figure(figsize=(12,5))
+    ax  = fig.add_subplot(111)
+    ax.plot(hist)
+    #set x limits to add 2% on either side
+    xr = len(hist)
+    ax.set_xlim(0-0.02*xr,xr+0.02*xr)
+    #set large log yscale
+    if not normalised:
+        ax.set_ylim(min(hist)*0.7,max(hist*1.4))
+    else:
+        ax.set_ylim(0.7e-7,1.4)
+    
+    ax.set_xlabel('S Position (m)')
+    if not normalised:
+        ax.set_ylabel('Number')
+    else:
+        ax.set_ylabel('Fraction')
+    ax.set_yscale('log')
+    ax.grid()
+    ax.set_title(title)
+    _plt.subplots_adjust(left=0.08,right=0.97)
+    
