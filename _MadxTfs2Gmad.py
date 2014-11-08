@@ -179,15 +179,18 @@ def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignore
                     kws['material'] = collimatordict[name]['bdsim_material']
                 else:
                     kws['material'] = 'Copper'
-                if 'halfgap' in collimatordict[name]:
-                    xsize = collimatordict[name]['halfgap']
+                if 'xsize' in collimatordict[name]:
+                    xsize = collimatordict[name]['xsize']
                 else:
                     xsize = opencollimatorsetting
+                if 'ysize' in collimatordict[name]:
+                    ysize = collimatordict[name]['ysize']
+                else:
+                    tsize = opencollimatorsetting
                 if 'angle' in collimatordict[name]:
                     angle = collimatordict[name]['angle']
                 else:
                     angle = 0.0
-                ysize = opencollimatorsetting
             else:
                 xsize = beampipeRadius
                 ysize = beampipeRadius
