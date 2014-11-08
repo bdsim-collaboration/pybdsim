@@ -7,21 +7,54 @@ def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignore
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
 
-    MadxTfs2Gamd(inputfilename,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers=None,verbose=False)
+    MadxTfs2Gamd(inputfilename,
+                 outputfilename,
+                 startname             = None,
+                 endname               = None,
+                 ignorezerolengthitems = True,
+                 samplers              = 'all',
+                 aperturedict          = {},
+                 collimatordict        = {}, 
+                 beampipeRaidius       = 0.2, 
+                 verbose               = False
+                 )
 
     inputfilename  - path to the input file
     outputfilename - requested output file
     startname      - the name (exact string match) of the lattice element to start the machine at
+                     this can also be an integer index of the element sequence number in madx tfs
     stopname       - the name (exact string match) of the lattice element to stop the machine at
+                     this can also be an integer index of the element sequence number in madx tfs
 
-    ignorezerolengthitems=True    - nothing can be zero length in bdsim as real objects 
-                                    of course have some finite size.  Markers, etc are 
-                                    acceptable but for large lattices this can slow things down.
-                                    True allows to ignore these altogether, which doesn't
-                                    affect the length of the machine.
+    ignorezerolengthitems = True - nothing can be zero length in bdsim as real objects 
+                                   of course have some finite size.  Markers, etc are 
+                                   acceptable but for large lattices this can slow things down.
+                                   True allows to ignore these altogether, which doesn't
+                                   affect the length of the machine.
 
-    samplers   - can specify where to set samplers - options are None or 'all', or list of 
-                 names of elements (normal python list of strings).
+    samplers   - can specify where to set samplers - options are None, 'all', or list of 
+                 names of elements (normal python list of strings). Note default 'all' 
+                 will generate separate outputfilename_samplers.gmad with all the samplers
+                 which will be included in the main .gmad file - you can comment out the 
+                 include to therefore exclude all samplers and retain the samplers file.
+
+    aperturedict - a dictionary of aperture information.  
+                   keys should be exact string match of element name in tfs file
+                   value should be a single number of the circular aperture (only circular just now)
+                   e.g.  aperturdict = {'TCT1Bxy2':0.15,'TCT2Bxy2:0.20}
+                   note values in metres
+
+    collimatordict - a dictionary of dictionaries with collimator information
+                     keys should be exact string match of element name in tfs file
+                     value should be dictionary with the following keys:
+                     "bdsim_material"   - the material - exact string as in bdsim manual
+                     "angle"            - rotation angle of collimator in radians
+                     "xsize"            - x full width in metres
+                     "ysize"            - y full width in metres
+
+    beampipeRadius - in metres.  Default beam pipe radius and collimator setting if unspecified
+
+    verbose - print out lots of information when building the model
 
     """
     izlis  = ignorezerolengthitems
