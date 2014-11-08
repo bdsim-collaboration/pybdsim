@@ -266,7 +266,7 @@ class Machine:
         else:
             self.Append(Element(name,'transform3d',**kwargs))
         
-    def AddRColAngled(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, angle=0.1745329, **kwargs):
+    def AddRColAngled(self, name='rcol', length=0.1, xsize=0.1, ysize=0.1, angle=0.1745329, **kwargs):
         """
         default angle is 10 degrees in radians (0.1745329)
 
@@ -280,6 +280,15 @@ class Machine:
 
     def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**kwargs))
+
+    def AddEColAngled(self, name='ecol', length=0.1, xsize=0.1, ysize=0.1, angle=0.1745329, **kwargs):
+        """
+        default angle is 10 degrees in radians (0.1745329)
+
+        """
+        self.AddTransform3D(name+'_angle_pos', psi=angle)
+        self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**kwargs))
+        self.AddTransform3D(name+'_angle_neg', psi=-1*angle)
         
     def AddHKicker(self, name='hk', length=0.1, **kwargs):
         self.AddDrift(name,length)

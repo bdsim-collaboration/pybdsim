@@ -175,7 +175,10 @@ def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignore
         elif t == 'RCOLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
-                kws['material'] = collimatordict[name]['bdsim_material']
+                if 'bdsim_material' in collimatordict[name]:
+                    kws['material'] = collimatordict[name]['bdsim_material']
+                else:
+                    kws['material'] = 'Copper'
                 if 'halfgap' in collimatordict[name]:
                     xsize = collimatordict[name]['halfgap']
                 else:
@@ -191,6 +194,30 @@ def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignore
                 angle = 0.0
                 kws['material'] = "Copper"
             a.AddRColAngled(rname,l,xsize,ysize,angle,**kws)
+        elif t == 'ECOLLIMATOR':
+            if name in collimatordict:
+                if 'bdsim_material' in collimatordict[name]:
+                    kws['material'] = collimatordict[name]['bdsim_material']
+                else:
+                    kws['material'] = 'Copper'
+                if 'xsize' in collimatordict[name]:
+                    xsize = collimatordict[name]['xsize']
+                else:
+                    xsize = opencollimatorsetting
+                if 'ysize' in collimatordict[name]:
+                    ysize = collimatordict[name]['ysize']
+                else:
+                    tsize = opencollimatorsetting
+                if 'angle' in collimatordict[name]:
+                    angle = collimatordict[name]['angle']
+                else:
+                    angle = 0.0
+            else:
+                xsize = beampipeRadius
+                ysize = beampipeRadius
+                angle = 0.0
+                kws['material'] = "Copper"
+            a.AddEColAngled(rname,l,xsize,ysize,angle,**kws)
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
