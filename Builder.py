@@ -496,7 +496,10 @@ def WriteLattice(machine, filename, verbose=False):
     if filename[-5:] != '.gmad':
         filename += '.gmad'
     #check if file already exists
+    ofilename = filename
     filename = _General.CheckFileExists(filename)
+    if filename != ofilename:
+        print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
     basefilename = filename[:-5]#.split('/')[-1]
 
     #prepare names
