@@ -280,7 +280,8 @@ def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignore
                 print 'putting drift in instead as it has finite length'
                 a.AddDrift(rname,l)
 
-        a.AddMarker('theendoftheline')
+    #add a single marker at the end of the line
+    a.AddMarker('theendoftheline')
     
     a.AddSampler(samplers)
     a.WriteLattice(outputfilename)
