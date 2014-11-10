@@ -1,6 +1,7 @@
 import ROOT as _ROOT
 from ROOT import TChain as _TChain
 from ROOT import TH1F as _TH1F
+from ROOT import TFile as _TFile
 
 import matplotlib.pyplot as _plt
 
@@ -15,8 +16,29 @@ class AnalysisRoot:
         self.nfiles   = 0
         self._LoadElossTree()
         self._LoadPlossTree()
+        self._LoadSamplerTree()
         if self.nfiles == 0:
             self._NoFilesWarning()
+
+    def _LoadSamplerTree(self) : 
+        # open a single file and determine the available samplers 
+        f = _TFile.Open(self.filelist[0])
+        k = f.GetListOfKeys()
+
+        self.samplerNames = [] 
+        self.samplerDict  = {}        
+
+        for i in  range(0,k.GetEntries(),1) : 
+            if k[i].GetName().find("Sampler") == 0 : 
+                self.samplerNames.append(k[i].GetName()) 
+        
+        print self.samplerNames
+
+        # Sampler chain dictionary
+        for n in self.samplerNames : 
+            self.samplerDict[n] = _TChain(n)
+            for f in self.filelist : 
+                self.samplerDict[n].Add(f)
 
     def _LoadElossTree(self):
         self.elossch = _TChain("ElossTree")
