@@ -1,10 +1,9 @@
-import ROOT as _ROOT
+import ROOT             as _ROOT
 from ROOT import TChain as _TChain
-from ROOT import TH1F as _TH1F
-from ROOT import TFile as _TFile
+from ROOT import TH1F   as _TH1F
+from ROOT import TFile  as _TFile
 
 import matplotlib.pyplot as _plt
-
 
 class AnalysisRoot:
     def __init__(self,filelist):
@@ -14,12 +13,19 @@ class AnalysisRoot:
     def Load(self,filelist):
         self.filelist = filelist
         self.nfiles   = 0
+        self._LoadPrimaries()
         self._LoadElossTree()
         self._LoadPlossTree()
         self._LoadSamplerTree()
         if self.nfiles == 0:
             self._NoFilesWarning()
 
+    def _LoadPrimaries(self) : 
+        self.primaries = _TChain("primaries") 
+        if type(self.filelist) == list : 
+            for f in self.filelist : 
+                self.primaries.Add(f)
+                
     def _LoadSamplerTree(self) : 
         # open a single file and determine the available samplers 
         f = _TFile.Open(self.filelist[0])
@@ -31,8 +37,6 @@ class AnalysisRoot:
         for i in  range(0,k.GetEntries(),1) : 
             if k[i].GetName().find("Sampler") == 0 : 
                 self.samplerNames.append(k[i].GetName()) 
-        
-        print self.samplerNames
 
         # Sampler chain dictionary
         for n in self.samplerNames : 

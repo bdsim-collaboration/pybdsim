@@ -3,7 +3,7 @@ import pymadx
 import Builder
 
 
-def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False,):
+def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False,):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
 
@@ -58,7 +58,11 @@ def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignore
 
     """
     izlis  = ignorezerolengthitems
-    madx   = pymadx.Tfs(inputfilename)
+    if type(input) == 'str' :  
+        madx   = pymadx.Tfs(inputfilename)
+    else : 
+        madx   = input
+
     nitems = madx.nitems
     opencollimatorsetting = beampipeRadius
 
