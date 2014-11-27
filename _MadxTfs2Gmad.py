@@ -275,7 +275,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         else:
             print 'unknown element type: ',t,' for element named: ',name
             if zerolength:
-                if excludezerolength:
+                if izlis :
                     itemsomitted.append(name)
                 else:
                     print 'putting marker in instead as its zero length'
