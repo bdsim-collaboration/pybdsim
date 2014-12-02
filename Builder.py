@@ -579,3 +579,28 @@ def WriteLattice(machine, filename, verbose=False):
     for fn in files:
         print(fn)
     print 'All included in main file: \n',fn_main
+
+
+def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=True):
+    """
+    Create a gmad file with samplers for all the elements in a beamline
+    as described by the survey outline from bdsim
+    
+    bdsim --file=mylattice.gmad --outline=survey.dat --outline_type=survey
+
+    excludesamplers - bool - exclude any existing samplers
+
+    """
+    a = Data.Load(surveyfile)
+    samplers = []
+    for name in a.Name():
+        if ('ampler' in name) and excludesamplers:
+            pass
+        else:
+            samplers.append(Sampler(name))
+
+    #write the output
+    f = open(outputfilename,'w')
+    for sampler in samplers:
+        f.write(sampler.__repr__())
+    f.close()
