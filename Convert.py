@@ -4,7 +4,7 @@ import Builder as _Builder
 import _MadxTfs2Gmad
 
 """
-Module for various conversions.  Primarily here MadxTfs2Gmad.
+Module for various conversions.
 
 """
 
