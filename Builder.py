@@ -360,6 +360,10 @@ class Machine:
                 #remember we can only have samplers on uniquely
                 #named elements (for now)
                 self.samplers.append(Sampler(element.name))
+        elif elementnames[0] == 'first':
+            self.samplers.append(Sampler(self.elements[0].name))
+        elif elementnames[0] == 'last':
+            self.samplers.append(Sampler(self.elements[-1].name))
         else:
             for element in elementnames[0]:
                 if element not in self.elements:
@@ -398,7 +402,7 @@ def CreateDipoleRing(filename, ncells=60, circumference=100.0, dfraction=0.1, sa
         a.AddDipole(length=dlength, angle=dangle)
         a.AddDrift(length=driftlength)
     a.AddDipole(length=dlength/_Decimal(2), angle=dangle/_Decimal(2))
-    a.SetSamplers(samplers)
+    a.AddSampler(samplers)
     a.WriteLattice(filename)
 
 def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='first'):
@@ -441,7 +445,7 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
         a.AddDipole(cellname+'_dp_b','sbend',dl,da)
         a.AddDrift(cellname+'_dr_d',drl)
         a.AddQuadrupole(cellname+'_qd_c',ql/_Decimal('2.0'),k1)
-    a.SetSamplers(samplers)
+    a.AddSampler(samplers)
     a.WriteLattice(filename)
     
 def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, samplers='all',**kwargs):
@@ -459,7 +463,7 @@ def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, sampl
     a      = Machine()
     k1     = SuggestFodoK(magnetlength,driftlength)
     a.AddFodoCellSplitDriftMultiple(magnetlength=magnetlength,driftlength=driftlength,kabs=k1,nsplits=10,ncells=ncells,**kwargs)
-    a.SetSamplers(samplers)
+    a.AddSampler(samplers)
     a.WriteLattice(filename)
 
 def SuggestFodoK(magnetlength,driftlength):
@@ -468,6 +472,10 @@ def SuggestFodoK(magnetlength,driftlength):
 
     returns k1 (float) value for matching into next quad in a FODO cell.
     f = 1/(k1 * magnetlength) = driftlength -> solve for k1
+
+    Note the convention in pybdsim.Builder is that the quadrupoles in
+    the fodo cell are split in two.  So this is in fact half the integrated
+    k you need.  This matches with the other functions in Builder.
 
     """
     return 1.0 / (float(magnetlength)*(float(magnetlength) + float(driftlength)))
