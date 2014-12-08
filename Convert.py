@@ -1,6 +1,6 @@
 import numpy as _np
-import pymadx
-import Builder
+import pymadx as _pymadx
+import Builder as _Builder
 import _MadxTfs2Gmad
 
 """
@@ -23,9 +23,9 @@ def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignore
     _MadxTfs2Gmad.MadxTfs2Gmad(inputfilename,outputfilename,startname,endname,ignorezerolengthitems,samplers,aperturedict,collimatordict,beampipeRadius,verbose)
     
     
-def InterrogateLattice(tfsfilename):
+def InterrogateMadXLattice(tfsfilename):
     """
-    InterrogateLattice(tfsfilename)
+    InterrogateMadXLattice(tfsfilename)
 
     return populations,populationsbynumber
 
