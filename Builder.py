@@ -18,16 +18,10 @@ Machine - a list of elements
 """
 
 import _General
+from   _General import IsFloat as _IsFloat
 from   decimal import Decimal as _Decimal
 import math
 import time
-
-def _IsFloat(stringtotest):
-    try:
-        float(stringtotest)
-        return True
-    except ValueError:
-        return False
 
 bdsimcategories = [
     'marker',
