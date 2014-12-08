@@ -3,6 +3,21 @@
 # L. Nevay
 # laurie.nevay@rhul.ac.uk
 
+BDSIMDistributionTypes = [
+    'reference',
+    'gauss',
+    'gausstwiss',
+    'eshell',
+    'ring'
+]
+
+BDSIMParticleTypes = [
+    'e-',
+    'e+',
+    'proton',
+    'gamma',
+]
+
 class Beam(dict):
     def __init__(self,particletype='e-',energy=1.0,distrtype='reference',*args,**kwargs):
         dict.__init__(self,*args,**kwargs)
@@ -10,14 +25,9 @@ class Beam(dict):
         self.SetEnergy(energy)
         self.SetDistributionType(distrtype)
         
+        
     def SetParticleType(self,particletype='e-'):
-        particlelist = [
-            'e-',
-            'e+',
-            'proton',
-            'gamma',
-        ]
-        if particletype not in particlelist:
+        if particletype not in BDSIMParticleTypes:
             raise ValueError("Unknown particle type: '"+str(particletype)+"'")
         self['particle'] = '"' + str(particletype) + '"'
 
@@ -25,36 +35,36 @@ class Beam(dict):
         self['energy'] = str(energy) + '*' + unitsstring
 
     def SetDistributionType(self,distrtype='reference'):
+        if distrtype not in BDSIMDistributionTypes:
+            raise ValueError("Unknown distribution type: '"+str(distrtype)+"'")
+        
         self['distrType'] = '"' + distrtype + '"'
         if distrtype == 'reference':
             pass
         elif distrtype == 'gauss':
-            setattr(Beam, 'SetSigmaX',     _SetSigmaX)
-            setattr(Beam, 'SetSigmaY',     _SetSigmaY)
-            setattr(Beam, 'SetSigmaE',     _SetSigmaE)
-            setattr(Beam, 'SetSigmaXP',    _SetSigmaXP)
-            setattr(Beam, 'SetSigmaYP',    _SetSigmaYP)
-            setattr(Beam, 'SetSigmaT',     _SetSigmaT)
+            setattr(self, 'SetSigmaX',     _SetSigmaX)
+            setattr(self, 'SetSigmaY',     _SetSigmaY)
+            setattr(self, 'SetSigmaE',     _SetSigmaE)
+            setattr(self, 'SetSigmaXP',    _SetSigmaXP)
+            setattr(self, 'SetSigmaYP',    _SetSigmaYP)
+            setattr(self, 'SetSigmaT',     _SetSigmaT)
         elif distrtype == 'gausstwiss':
-            setattr(Beam, 'SetBetaX',      _SetBetaX)
-            setattr(Beam, 'SetBetaY',      _SetBetaY)
-            setattr(Beam, 'SetAlphaX',     _SetAlphaX)
-            setattr(Beam, 'SetAlphaY',     _SetAlphaY)
-            setattr(Beam, 'SetEmittanceX', _SetEmittanceX)
-            setattr(Beam, 'SetBmittanceY', _SetEmittanceY)
-            setattr(Beam, 'SetSigmaE',     _SetSigmaE)
-            setattr(Beam, 'SetSigmaT',     _SetSigmaT)
+            setattr(self, 'SetBetaX',      _SetBetaX)
+            setattr(self, 'SetBetaY',      _SetBetaY)
+            setattr(self, 'SetAlphaX',     _SetAlphaX)
+            setattr(self, 'SetAlphaY',     _SetAlphaY)
+            setattr(self, 'SetEmittanceX', _SetEmittanceX)
+            setattr(self, 'SetEmittanceY', _SetEmittanceY)
+            setattr(self, 'SetSigmaE',     _SetSigmaE)
+            setattr(self, 'SetSigmaT',     _SetSigmaT)
         elif distrtype == 'eshell':
-            setattr(Beam, 'SetShellX',     _SetShellX)
-            setattr(Beam, 'SetShellY',     _SetShelly)
-            setattr(Beam, 'SetShellXP',    _SetShellXP)
-            setattr(Beam, 'SetShellYP',    _SetShellYP)
+            setattr(self, 'SetShellX',     _SetShellX)
+            setattr(self, 'SetShellY',     _SetShelly)
+            setattr(self, 'SetShellXP',    _SetShellXP)
+            setattr(self, 'SetShellYP',    _SetShellYP)
         elif distrtype == 'ring':
-            setattr(Beam, 'SetRMin',       _SetRMin)
-            setattr(Beam, 'SetRMax',       _SetRMax)
-        else:
-            raise ValueError('unkonwn distribution type')
-
+            setattr(self, 'SetRMin',       _SetRMin)
+            setattr(self, 'SetRMax',       _SetRMax)
     
     def ReturnBeamString(self):
         s = ''
@@ -119,7 +129,7 @@ def _SetBetaY(self,bety=1.0,unitsstring='m'):
 def _SetAlphaX(self,alphax=1.0,unitsstring='m'):
     self['alfx'] = str(alphax) + '*' + unitsstring
 
-def _SetAlpgaY(self,alphay=1.0,unitsstring='m'):
+def _SetAlphaY(self,alphay=1.0,unitsstring='m'):
     self['alfy'] = str(alphay) + '*' + unitsstring
 
 def _SetEmittanceX(self,emitx=1.0,unitsstring='um'):
