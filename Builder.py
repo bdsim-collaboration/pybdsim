@@ -18,7 +18,7 @@ Machine - a list of elements
 """
 
 import _General
-from   decimal import Decimal
+from   decimal import Decimal as _Decimal
 import math
 import time
 
@@ -81,10 +81,10 @@ class Element(dict):
         for key,value in kwargs.iteritems():
             if type(value) == tuple:
                 #use a tuple for (value,units)
-                self[key] = (Decimal(str(value[0])),value[1])
+                self[key] = (_Decimal(str(value[0])),value[1])
             elif _IsFloat(value):
                 #just a number
-                self[key] = Decimal(str(value))
+                self[key] = _Decimal(str(value))
             else:
                 #must be a string
                 self[key] = '"'+value+'"'
@@ -394,16 +394,16 @@ def CreateDipoleRing(filename, ncells=60, circumference=100.0, dfraction=0.1, sa
         raise Warning("Fraction of dipoles must be greater than 1.0 -> setting to 0.1")
         dfraction = 0.1
     a           = Machine()
-    dangle      = Decimal(str(2.0*math.pi / ncells))
-    clength     = Decimal(str(float(circumference) / ncells))
-    dlength     = clength * Decimal(str(dfraction))
+    dangle      = _Decimal(str(2.0*math.pi / ncells))
+    clength     = _Decimal(str(float(circumference) / ncells))
+    dlength     = clength * _Decimal(str(dfraction))
     driftlength = clength - dlength
-    a.AddDipole(length=dlength/Decimal(2), angle=dangle/Decimal(2))
+    a.AddDipole(length=dlength/_Decimal(2), angle=dangle/_Decimal(2))
     a.AddDrift(length=driftlength)
     for i in range(1,ncells,1):
         a.AddDipole(length=dlength, angle=dangle)
         a.AddDrift(length=driftlength)
-    a.AddDipole(length=dlength/Decimal(2), angle=dangle/Decimal(2))
+    a.AddDipole(length=dlength/_Decimal(2), angle=dangle/_Decimal(2))
     a.SetSamplers(samplers)
     a.WriteLattice(filename)
 
@@ -422,31 +422,31 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     30% beam pipe / drift
     """
     a       = Machine()
-    cangle  = Decimal(str(2.0*math.pi / ncells))
-    clength = Decimal(str(float(circumference) / ncells))
+    cangle  = _Decimal(str(2.0*math.pi / ncells))
+    clength = _Decimal(str(float(circumference) / ncells))
     #dipole = 0.5 of cell, quads=0.2, drift=0.3, two dipoles
     #dipole:
-    dl  = clength * Decimal(str(0.5)) * Decimal(str(0.5))
-    da  = cangle/Decimal(2.0)
+    dl  = clength * _Decimal(str(0.5)) * _Decimal(str(0.5))
+    da  = cangle/_Decimal(2.0)
     #quadrupole:
-    ql  = clength * Decimal('0.2') * Decimal('0.5')
-    k1  = Decimal(str(SuggestFodoK(ql,dl)))
+    ql  = clength * _Decimal('0.2') * _Decimal('0.5')
+    k1  = _Decimal(str(SuggestFodoK(ql,dl)))
     #drift:
-    drl = clength * Decimal('0.3') * Decimal('0.25')
+    drl = clength * _Decimal('0.3') * _Decimal('0.25')
     #naming
     nplaces  = len(str(ncells))
     basename = 'dfodo_'
     for i in range(ncells):
         cellname = basename + str(i).zfill(nplaces)
-        a.AddQuadrupole(cellname+'_qd_a',ql/Decimal('2.0'),k1)
+        a.AddQuadrupole(cellname+'_qd_a',ql/_Decimal('2.0'),k1)
         a.AddDrift(cellname+'_dr_a',drl)
         a.AddDipole(cellname+'_dp_a','sbend',dl,da)
         a.AddDrift(cellname+'_dr_b',drl)
-        a.AddQuadrupole(cellname+'_qf_b',ql,k1*Decimal('-1.0'))
+        a.AddQuadrupole(cellname+'_qf_b',ql,k1*_Decimal('-1.0'))
         a.AddDrift(cellname+'_dr_c',drl)
         a.AddDipole(cellname+'_dp_b','sbend',dl,da)
         a.AddDrift(cellname+'_dr_d',drl)
-        a.AddQuadrupole(cellname+'_qd_c',ql/Decimal('2.0'),k1)
+        a.AddQuadrupole(cellname+'_qd_c',ql/_Decimal('2.0'),k1)
     a.SetSamplers(samplers)
     a.WriteLattice(filename)
     
