@@ -193,6 +193,25 @@ class Lattice:
         s = self._GenerateReprString()
         return s
 
+    def __iter__(self):
+        self._iterindex = -1
+        if hasattr(self,"lattice") == False:
+            raise IOError("No gmad file loaded - cannot iterate")
+        return self
+
+    def next(self):
+        if self._iterindex == len(self.sequence)-1:
+            raise StopIteration
+        self._iterindex += 1
+        return self.lattice[self._iterindex]
+
+    def __getitem__(self,index):
+        if type(index) == str:
+            ind = GetIndexOfElementNamed(index)
+            return self.lattice[ind]
+        else:
+            return self.lattice[index]
+
     def Load(self, filename):
         """
         Load the BDSIM input file and parse it using the
