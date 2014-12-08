@@ -43,3 +43,9 @@ def Cast(string):
     except ValueError:
         return string
 
+def IsFloat(stringtotest):
+    try:
+        float(stringtotest)
+        return True
+    except ValueError:
+        return False
