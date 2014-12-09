@@ -11,8 +11,8 @@ versions of them.
 
 """
 
-import Gmad
-import Builder
+import Gmad as _Gmad
+import Builder as _Builder
 
 def GenerateFullListOfSamplers(inputfile, outputfile):
     """
@@ -25,7 +25,7 @@ def GenerateFullListOfSamplers(inputfile, outputfile):
     own input.
 
     """
-    lattice  = Gmad.Lattice(inputfile)
+    lattice  = _Gmad.Lattice(inputfile)
     samplers = []
     typestoignore = [
         'None',
@@ -43,7 +43,7 @@ def GenerateFullListOfSamplers(inputfile, outputfile):
         ]
     for e in lattice:
         if e['Type'] not in typestoignore:
-           samplers.append(Builder.Sampler(e['Name']))
+           samplers.append(_Builder.Sampler(e['Name']))
 
     _WriteSamplerToGmadFile(samplers,outputfile)
 
