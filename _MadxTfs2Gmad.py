@@ -2,6 +2,8 @@ import numpy as _np
 import pymadx
 import Builder
 
+from _General import IndexOfElement as _IndexOfElement
+
 
 def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False,):
     """
