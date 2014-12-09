@@ -58,11 +58,13 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
 
     """
     izlis  = ignorezerolengthitems
-    if type(input) == 'str' :  
-        madx   = pymadx.Tfs(inputfilename)
-    else : 
+    if type(input) == str :
+        print 'MadxTfs2Gmad> Loading file using pymadx'
+        madx   = pymadx.Tfs(input)
+    else :
+        print 'Already a pymadx instance - proceeding'
         madx   = input
-
+    
     nitems = madx.nitems
     opencollimatorsetting = beampipeRadius
 
