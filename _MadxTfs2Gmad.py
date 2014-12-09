@@ -1,9 +1,9 @@
 import numpy as _np
 import pymadx
 import Builder
+import Beam
 
-
-def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False,):
+def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
 
@@ -292,6 +292,10 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
     a.AddSampler(samplers)
     a.WriteLattice(outputfilename)
 
+    # Make beam file 
+    if beam : 
+        MadxTfs2GmadBeam(madx)
+
     if verbose:
         print 'lentot ',lentot
         print 'angtot ',angtot
@@ -299,3 +303,13 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         print itemsomitted
         #return lldiff,dldiff,a
     return a
+
+def MadxTfs2GmadBeam(tfs) : 
+    energy   = float(tfs.header['ENERGY'])
+    gamma    = float(tfs.header['GAMMA'])
+    particle = tfs.header['PARTICLE']
+    
+    data     = tfs.GetElementDict(tfs.sequence[0])
+
+    beam     = Beam.Beam()
+    

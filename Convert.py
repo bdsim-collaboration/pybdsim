@@ -18,9 +18,9 @@ def _IndexOfElement(tfsinstance,markername):
         print 'Unknown element name'
     return i
 
-def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False):
+def MadxTfs2Gmad(inputfilename,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
     __doc__ = _MadxTfs2Gmad.MadxTfs2Gmad.__doc__
-    _MadxTfs2Gmad.MadxTfs2Gmad(inputfilename,outputfilename,startname,endname,ignorezerolengthitems,samplers,aperturedict,collimatordict,beampipeRadius,verbose)
+    _MadxTfs2Gmad.MadxTfs2Gmad(inputfilename,outputfilename,startname,endname,ignorezerolengthitems,samplers,aperturedict,collimatordict,beampipeRadius,verbose, beam)
     
     
 def InterrogateMadXLattice(tfsfilename):
