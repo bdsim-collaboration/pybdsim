@@ -3,8 +3,6 @@ import pymadx
 import Builder
 import Beam
 
-from _General import IndexOfElement as _IndexOfElement
-
 def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
@@ -93,13 +91,13 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
     elif type(startname) == int:
         startindex = startname
     else:
-        startindex = _IndexOfElement(madx,startname)
+        startindex = madx.IndexFromName(startname)
     if endname   == None:
         stopindex = nitems #this is 1 larger, but ok as range will stop at n-step -> step=1, range function issue
     elif type(stopname) == int:
         stopindex = stopname
     else:
-        stopindex  = _IndexOfElement(madx,endname)
+        stopindex  = madx.IndexFromName(stopname)
     if stopindex <= startindex:
         print 'stopindex <= startindex'
         stopindex = startindex + 1
