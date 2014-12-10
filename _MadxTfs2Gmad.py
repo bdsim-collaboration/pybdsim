@@ -59,7 +59,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
     verbose - print out lots of information when building the model
 
     """
-    lFake  = 1e-6 # fake length for thin magnets
+    lFake  = 1e-1 # fake length for thin magnets
     izlis  = ignorezerolengthitems
     if type(input) == str :
         print 'MadxTfs2Gmad> Loading file using pymadx'
@@ -298,7 +298,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
             angle = madx.data[name][angleindex]
-            a.AddDipole(rname,'sbend',l,angle=angle,**kws)
+            k1 = madx.data[name][k1lindex] / l
+            a.AddDipole(rname,'sbend',l,angle=angle, k1=k1,**kws)
         elif t == 'SEXTUPOLE':
             k2 = madx.data[name][k2lindex] / l
             a.AddSextupole(rname,l,k2=k2,**kws)
