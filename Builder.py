@@ -523,7 +523,7 @@ def WriteLattice(machine, filename, verbose=False):
     fn_components = basefilename + '_components.gmad'
     fn_sequence   = basefilename + '_sequence.gmad'
     fn_samplers   = basefilename + '_samplers.gmad'
-    fn_beam       = basefilename + '_beam.gamd'
+    fn_beam       = basefilename + '_beam.gmad'
     fn_options    = basefilename + '_options.gmad'
     timestring = '! ' + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()) + '\n'
     
