@@ -148,6 +148,7 @@ class Machine:
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0
+        self.beam      = None
 
     def __repr__(self):
         s = ''
@@ -198,6 +199,9 @@ class Machine:
             WriteLattice(self,filename,True)
         else:
             WriteLattice(self,filename,False)
+
+    def AddBeam(self, beam=None) :         
+        self.beam = beam
 
     def AddMarker(self, name='mk'):
         if self.verbose:
@@ -519,6 +523,7 @@ def WriteLattice(machine, filename, verbose=False):
     fn_components = basefilename + '_components.gmad'
     fn_sequence   = basefilename + '_sequence.gmad'
     fn_samplers   = basefilename + '_samplers.gmad'
+    fn_beam       = basefilename + '_beam.gamd'
     fn_options    = basefilename + '_options.gmad'
     timestring = '! ' + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()) + '\n'
     
@@ -560,6 +565,15 @@ def WriteLattice(machine, filename, verbose=False):
         for sampler in machine.samplers:
             f.write(str(sampler))
         f.close()
+
+    # write beam 
+    if machine.beam != None : 
+        f = open(fn_beam,'w') 
+        files.append(fn_beam)
+        f.write(timestring) 
+        f.write('! pybdsim.Builder \n')
+        f.write('! BEAM DEFINITION \n\n')
+        f.write(machine.beam.ReturnBeamString())
 
     # WRITE MACHINE OPTIONS
     # YET TO BE IMPLMENTED

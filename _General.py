@@ -49,3 +49,13 @@ def IsFloat(stringtotest):
         return True
     except ValueError:
         return False
+
+def IndexOfElement(tfsinstance,markername):
+    t = tfsinstance
+    names = list(t.data['NAME'])
+    try:
+        i = names.index(markername)
+    except ValueError:
+        i = 0
+        print 'Unknown element name'
+    return i

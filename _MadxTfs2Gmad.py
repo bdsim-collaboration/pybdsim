@@ -3,6 +3,9 @@ import pymadx
 import Builder
 import Beam
 
+from _General import IndexOfElement as _IndexOfElement
+
+
 def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
@@ -290,11 +293,14 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
     a.AddMarker('theendoftheline')
     
     a.AddSampler(samplers)
-    a.WriteLattice(outputfilename)
 
     # Make beam file 
     if beam : 
-        MadxTfs2GmadBeam(madx)
+        b = MadxTfs2GmadBeam(madx)
+        a.AddBeam(b)
+
+    a.WriteLattice(outputfilename)
+
 
     if verbose:
         print 'lentot ',lentot
@@ -308,8 +314,37 @@ def MadxTfs2GmadBeam(tfs) :
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])
     particle = tfs.header['PARTICLE']
-    
+    ex       = tfs.header['EX']
+    ey       = tfs.header['EY']
+    sigmae   = float(tfs.header['SIGE'])
+    sigmat   = float(tfs.header['SIGT'])
+
     data     = tfs.GetElementDict(tfs.sequence[0])
 
-    beam     = Beam.Beam()
+    if particle == 'ELECTRON' :
+        particle = 'e-'
+    elif particle == 'POSITRON' : 
+        particle = 'e+' 
+    elif particle == 'PROTON' : 
+        particle = 'proton' 
+
+    print particle,energy,gamma,ex,ey
+    print data['BETX'],data['ALFX'],data['MUX']
+    print data['BETY'],data['ALFY'],data['MUY']
+    
+    gammax = (1.0+data['ALFX'])/data['BETX']
+    gammay = (1.0+data['ALFY'])/data['BETY']
+    
+    beam     = Beam.Beam(particle,energy,'gausstwiss')
+    beam.SetBetaX(data['BETX'])
+    beam.SetBetaY(data['BETY'])
+    beam.SetAlphaX(data['ALFX'])
+    beam.SetAlphaY(data['ALFY'])
+    beam.SetEmittanceX(ex,'m') 
+    beam.SetEmittanceY(ey,'m')
+    
+    return beam
+
+    
+
     
