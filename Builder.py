@@ -73,9 +73,11 @@ class Element(dict):
         self['category'] = self.category
         self._keysextra = []
         for key,value in kwargs.iteritems():
-            if type(value) == tuple:
+            if type(value) == tuple and category != 'multipole':
                 #use a tuple for (value,units)
                 self[key] = (_Decimal(str(value[0])),value[1])
+            elif type(value) == tuple and category == 'multipole' : 
+                self[key] = value
             elif _IsFloat(value):
                 #just a number
                 self[key] = _Decimal(str(value))
@@ -100,8 +102,10 @@ class Element(dict):
         s += self.category
         if len(self._keysextra) > 0:
             for key in self._keysextra:
-                if type(self[key]) == tuple:
+                if type(self[key]) == tuple and self.category != 'multipole':
                     s += ', ' + key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+                elif type(self[key]) == tuple and self.category == 'multipole' : 
+                    s += ', ' + key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
                 else:
                     s += ', ' + key + '=' + str(self[key])
         s += ';\n'
@@ -239,10 +243,10 @@ class Machine:
     def AddOctupole(self, name='oc', length=0.1, k3=0.0, **kwargs):
         self.Append(Element(name,'octupole',l=length,k3=k3,**kwargs))
 
-    def AddMultipole(self, name='mp', length=0.1, knl=(0), ksl=(0), **kwargs):
+    def AddMultipole(self, name='mp', length=0.1, knl=(0), ksl=(0), tilt=0.0, **kwargs):
         if length > 1e-12:
-            self.AddDrift(name,length)
-        else:
+            self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, tilt=tilt, **kwargs))
+        else :
             self.AddMarker(name)
 
     def AddRF(self, name='arreff', length=0.1, gradient=10, **kwargs):

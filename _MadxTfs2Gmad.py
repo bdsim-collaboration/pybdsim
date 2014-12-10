@@ -5,8 +5,7 @@ import Beam
 
 from _General import IndexOfElement as _IndexOfElement
 
-
-def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
+def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
 
@@ -60,6 +59,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
     verbose - print out lots of information when building the model
 
     """
+    lFake  = 1e-6 # fake length for thin magnets
     izlis  = ignorezerolengthitems
     if type(input) == str :
         print 'MadxTfs2Gmad> Loading file using pymadx'
@@ -177,9 +177,15 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
+
             #figure out which components are non zero
             #a.AddMultipole(name,l,)
             #TO BE FINISHED
+
+            # cludge for thin multipoles (uses lFake for a short non-zero length)
+            if thinmultipoles : 
+                a.AddMultipole(name,l=lFake)
+
             if izlis and zerolength:
                 itemsomitted.append(name)
             elif (not izlis) and zerolength:
