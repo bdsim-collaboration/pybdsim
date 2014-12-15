@@ -8,7 +8,8 @@ BDSIMDistributionTypes = [
     'gauss',
     'gausstwiss',
     'eshell',
-    'ring'
+    'ring',
+    'ptc'
 ]
 
 BDSIMParticleTypes = [
@@ -65,7 +66,10 @@ class Beam(dict):
         elif distrtype == 'ring':
             setattr(self, 'SetRMin',       self._SetRMin)
             setattr(self, 'SetRMax',       self._SetRMax)
-    
+        elif distrtype == 'ptc' : 
+            setattr(self, 'SetSigmaE',     self._SetSigmaE)            
+            setattr(self, 'SetDistribFileName',self._SetDistribFileName) 
+
     def ReturnBeamString(self):
         s = ''
         for k,v in self.iteritems():
@@ -162,7 +166,8 @@ class Beam(dict):
                 raise ValueError('Rmin must be < RMax')
         self['Rmax'] = str(rmax) + '*' + unitsstring
 
-    
+    def _SetDistribFileName(self, fileName) :
+        self['distrFile'] = '"'+fileName+'"'
 
     
 
