@@ -153,8 +153,8 @@ class Machine:
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0
-        self.beam      = None
-        self.options   = None
+        self.beam      = _Beam.Beam()
+        self.options   = _Options.MinimumStandard()
 
     def __repr__(self):
         s = ''
@@ -580,24 +580,22 @@ def WriteLattice(machine, filename, verbose=False):
         f.close()
 
     # write beam 
-    if machine.beam != None: 
-        f = open(fn_beam,'w') 
-        files.append(fn_beam)
-        f.write(timestring) 
-        f.write('! pybdsim.Builder \n')
-        f.write('! BEAM DEFINITION \n\n')
-        f.write(machine.beam.ReturnBeamString())
-        f.close()
+    f = open(fn_beam,'w') 
+    files.append(fn_beam)
+    f.write(timestring) 
+    f.write('! pybdsim.Builder \n')
+    f.write('! BEAM DEFINITION \n\n')
+    f.write(machine.beam.ReturnBeamString())
+    f.close()
 
     # write options
-    if machine.options != None:
-        f = open(fn_options,'w')
-        files.append(fn_options)
-        f.write(timestring) 
-        f.write('! pybdsim.Builder \n')
-        f.write('! OPTIONS DEFINITION \n\n')
-        f.write(machine.options.ReturnOptionsString())
-        f.close()
+    f = open(fn_options,'w')
+    files.append(fn_options)
+    f.write(timestring) 
+    f.write('! pybdsim.Builder \n')
+    f.write('! OPTIONS DEFINITION \n\n')
+    f.write(machine.options.ReturnOptionsString())
+    f.close()
 
     # write main file
     f = open(fn_main,'w')
