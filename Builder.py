@@ -16,7 +16,8 @@ Element - beam line element that always has name,type and length
 Machine - a list of elements
 
 """
-
+import Beam as _Beam
+import Options as _Options
 import _General
 from   _General import IsFloat as _IsFloat
 from   decimal import Decimal as _Decimal
@@ -153,6 +154,7 @@ class Machine:
         self.length    = 0.0
         self.angint    = 0.0
         self.beam      = None
+        self.options   = None
 
     def __repr__(self):
         s = ''
@@ -204,9 +206,16 @@ class Machine:
         else:
             WriteLattice(self,filename,False)
 
-    def AddBeam(self, beam=None) :         
+    def AddBeam(self, beam=None):
+        if type(beam) != _Beam.Beam:
+            raise TypeError("Incorrect type - please provide pybdsim.Beam.Beam instance")
         self.beam = beam
 
+    def AddOptions(self, options=None):
+        if type(options) != _Options.Options:
+            raise TypeError("Incorrect type - please provide pybdsim.Options.Options instance")
+        self.options = options
+        
     def AddMarker(self, name='mk'):
         if self.verbose:
             print 'AddMarker> ',name
@@ -571,16 +580,24 @@ def WriteLattice(machine, filename, verbose=False):
         f.close()
 
     # write beam 
-    if machine.beam != None : 
+    if machine.beam != None: 
         f = open(fn_beam,'w') 
         files.append(fn_beam)
         f.write(timestring) 
         f.write('! pybdsim.Builder \n')
         f.write('! BEAM DEFINITION \n\n')
         f.write(machine.beam.ReturnBeamString())
+        f.close()
 
-    # WRITE MACHINE OPTIONS
-    # YET TO BE IMPLMENTED
+    # write options
+    if machine.options != None:
+        f = open(fn_options,'w')
+        files.append(fn_options)
+        f.write(timestring) 
+        f.write('! pybdsim.Builder \n')
+        f.write('! OPTIONS DEFINITION \n\n')
+        f.write(machine.options.ReturnOptionsString())
+        f.close()
 
     # write main file
     f = open(fn_main,'w')
