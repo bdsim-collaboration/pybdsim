@@ -63,6 +63,7 @@ def MinimumStandard():
     a.SetBoxSize(1,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
+    a.SetBeamPipeRadius(5,'cm')
     return a
 
 class Options(dict):
