@@ -41,7 +41,7 @@ def ElectronColliderOptions():
     #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
     a.SetChordStepMinimum(0.1,'nm')
-    a.SetDeltaChordIntersection(10,'nm')
+    a.SetDeltaIntersection(10,'nm')
     a.SetDeltaChord(1,'mm')
     a.SetLengthSafety(10,'um')
     a.SetThresholdCutCharged(100,'MeV')
