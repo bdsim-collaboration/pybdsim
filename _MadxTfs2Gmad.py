@@ -194,20 +194,24 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
 
             # cludge for thin multipoles (uses lFake for a short non-zero length)
             if thinmultipoles : 
-                k1  = madx.data[name][k1lindex] * lFake
-                k2  = madx.data[name][k2lindex] * lFake
-                k3  = madx.data[name][k3lindex] * lFake
-                k4  = madx.data[name][k4lindex] * lFake
-                k5  = madx.data[name][k5lindex] * lFake
-                k6  = madx.data[name][k6lindex] * lFake
-                k1s = madx.data[name][k1slindex] * lFake
-                k2s = madx.data[name][k2slindex] * lFake
-                k3s = madx.data[name][k3slindex] * lFake
-                k4s = madx.data[name][k4slindex] * lFake
-                k5s = madx.data[name][k5slindex] * lFake
-                k6s = madx.data[name][k6slindex] * lFake
+                k1  = madx.data[name][k1lindex] / lFake
+                k2  = madx.data[name][k2lindex] / lFake
+                k3  = madx.data[name][k3lindex] / lFake
+                k4  = madx.data[name][k4lindex] / lFake
+                k5  = madx.data[name][k5lindex] / lFake
+                k6  = madx.data[name][k6lindex] / lFake
+                k1s = madx.data[name][k1slindex] / lFake
+                k2s = madx.data[name][k2slindex] / lFake
+                k3s = madx.data[name][k3slindex] / lFake
+                k4s = madx.data[name][k4slindex] / lFake
+                k5s = madx.data[name][k5slindex] / lFake
+                k6s = madx.data[name][k6slindex] / lFake
                 tilt= madx.data[name][tiltindex]
-                a.AddMultipole(name,length=lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),tilt=tilt)
+                if k1 != 0 : 
+                    a.AddQuadrupole(rname,k1=k1,length=lFake,tilt=tilt) 
+                else : 
+                    a.AddMarker(rname)
+#                    a.AddMultipole(name,length=lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),tilt=tilt)
 
             if izlis and zerolength:
                 itemsomitted.append(name)
