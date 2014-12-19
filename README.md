@@ -14,15 +14,23 @@ git clone http://bitbucket.org/nevay/pybdsim .
 
 -> edit your terminal (perhaps bash) profile
 
+
+```
+#!csh
+
 $PYTHONPATH=$PYTHONPATH:/path/to/where/you/put/pybdsim
 
+```
+
+
+```
+#!python
+
 $>python
-
 $>>> import pybdsim
-
 $>>> a = pybdsim.Data.Load("run1_output.txt")
-
 $>>> hist(a.Xp())
+```
 
 # Dependencies #
 Where possible, all attempt has been made to only use built in python types.  However, matplotlib is required for plotting.  Numpy and pyRoot are required for root output analysis.
