@@ -36,3 +36,12 @@ $>>> hist(a.Xp())
 Where possible, all attempt has been made to only use built in python types.  However, matplotlib is required for plotting.  Numpy and pyRoot are required for root output analysis.
 
 In future, conventional python setup scripts will be implemented along with dynamic import based on available dependencies.
+
+* python2.7
+* ipython
+* numpy
+* scipy
+* matplotlib 
+* [pymad8]()
+* [pymadx]()
+* [robdsim]()
