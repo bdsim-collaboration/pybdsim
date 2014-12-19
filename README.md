@@ -42,6 +42,7 @@ In future, conventional python setup scripts will be implemented along with dyna
 * numpy
 * scipy
 * matplotlib 
+* pyroot (build root with python extensions)
 * [pymad8]()
 * [pymadx]()
 * [robdsim]()
