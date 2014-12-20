@@ -66,9 +66,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, sampler
                             length=c.data[i][c.keys['sben']['l']], 
                             angle =c.data[i][c.keys['sben']['angle']])
         elif c.type[i] == 'LCAV' : 
-            a.AddDrift(c.name[i],length=c.data[i][c.keys['rfcavity']['l']])            
+            length   = c.data[i][c.keys['rfcavity']['l']]
+            deltaE   = (c.data[i][c.keys['rfcavity']['E']]-c.data[i-1][c.keys['rfcavity']['E']])*1000 # MeV 
+            gradient = deltaE/length
+            print i, c.name[i], deltaE, gradient
+            a.AddRFCavity(c.name[i],length=length, gradient=-gradient)            
         elif c.type[i] == 'ECOL' : 
-            print c.name[i], c.data[i][c.keys['rcol']['xsize']], c.data[i][c.keys['rcol']['ysize']]
+#            print c.name[i], c.data[i][c.keys['rcol']['xsize']], c.data[i][c.keys['rcol']['ysize']]
             if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                 a.AddECol(c.name[i], 
                           length  = c.data[i][c.keys['rcol']['l']], 
@@ -78,7 +82,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, sampler
             else : 
                 a.AddMarker(c.name[i])
         elif c.type[i] == 'RCOL' : 
-            print c.name[i], c.data[i][c.keys['rcol']['xsize']], c.data[i][c.keys['rcol']['ysize']]
+#            print c.name[i], c.data[i][c.keys['rcol']['xsize']], c.data[i][c.keys['rcol']['ysize']]
             if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                 a.AddRCol(c.name[i], 
                           length  = c.data[i][c.keys['rcol']['l']], 
@@ -116,7 +120,7 @@ def Mad8MakeCollimatorTemplate(inputFileName,outputFileName) :
     pass
 
 
-def Mad8CollimatorDataBase: 
+class Mad8CollimatorDataBase: 
     '''
     Load collimator file into memory and functions to open and manipulate collimator system
     c = Mad8CollimatorDataBase(fileName)

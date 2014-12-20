@@ -258,15 +258,8 @@ class Machine:
         else :
             self.AddMarker(name)
 
-    def AddRF(self, name='arreff', length=0.1, gradient=10, **kwargs):
-        """
-        AddRF(name,length,graident,**kwargs)
-        
-        length in metres
-        gradient in MV / m
-        """
-        self.AddDrift(name,length)
-        #self.Append(Element(name,'rfcavity',l=length,gradient=gradient,**kwargs))
+    def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
+        self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
         
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,material=kwargs['material']))
