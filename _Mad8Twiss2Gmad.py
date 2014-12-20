@@ -3,6 +3,7 @@ import pymad8
 import Builder
 import Beam
 
+
 def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, samplers='all') :         
     o = pymad8.Mad8.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
@@ -104,3 +105,64 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     beam.SetAlphaY(alfy)
     
     return beam
+
+def Mad8MakeCollimatorTemplate(inputFileName,outputFileName) : 
+    '''
+    Read Twiss file and generate template of collimator file 
+    inputFileName  = "twiss.tape"
+    outputFileName = "collimator.dat"
+    collimator.dat must be edited to provide types and materials, apertures will be defined from lattice   
+    '''
+    pass
+
+
+def Mad8CollimatorDataBase: 
+    '''
+    Load collimator file into memory and functions to open and manipulate collimator system
+    c = Mad8CollimatorDataBase(fileName)
+    fileName = "collimator.dat"
+    file format
+    <name> <type> <length> <x_size/2> <ysize/2> <material> <geom>
+    <length> includes the tapers, so entire length along machine 
+    '''
+
+    def __init__(self,collimatorFileName) :
+        self.collimatorDbFileName = collimatorFileName
+        self.LoadCollimatorDb(self.collimatorFileName) 
+        
+    def LoadCollimatorDb(self,collimatorFileName) : 
+        f = open(fileName) 
+
+        inx = 0 
+
+        self._coll = {}
+        for l in f : 
+            t = l.split()
+            name     = t[0]
+            type     = t[1]
+            length   = float(t[2])
+            xsize    = float(t[3])
+            ysize    = float(t[4]) 
+            material = t[5]
+            geom     = t[6]
+            inx = inx + 1 
+
+            d = {'index':inx, 'type':type, 'l':length, 'xsize':xsize,
+                 'ysize':ysize, 'bdsim_material':material, 'bdsim_geom':geom}
+
+            self._coll[name] = d     
+        
+    def OpenCollimators(self,openHalfSizeX=0.1, openHalfSizeY=0.1) : 
+        for c in self._coll.keys() :
+            self._coll[c]['xsize'] = openHalfSizeX
+            self._coll[c]['ysize'] = openHalfSizeY
+    
+    def GetCollimators(self) : 
+        return self._coll.keys()
+
+    def GetCollimator(self, name) : 
+        return self._coll[name]
+
+    def GetDict(self) : 
+        return self._coll
+        
