@@ -9,34 +9,3 @@ from _Mad8Twiss2Gmad import Mad8Twiss2Gmad
 Module for various conversions.
 
 """
-    
-def InterrogateMadXLattice(tfsfilename):
-    """
-    InterrogateMadXLattice(tfsfilename)
-
-    return populations,populationsbynumber
-
-    two dictionaries with the keyword arguement and the number
-    of items in the MADX tfs file supplied that match that
-    keyword.
-
-    """
-    
-    a = pymadx.MadX.Tfs(tfsfilename)
-    keys = set(a.data['KEYWORD'])
-    nitems = len(a.data['NAME'])
-    print 'Filename           > ',tfsfilename
-    print 'Number of Elements > ',nitems
-    print 'Lattice Length     > ',a.data['S'][-1]+a.data['L'][-1]+'m'
-    populations = {key:0 for key in keys}
-    for i in range(nitems):
-        populations[a.data['KEYWORD'][i]] += 1
-    #flip dictionary around
-    popsr = zip([populations[key] for key in populations.keys()],populations.keys())
-    #sort it so we can see what's the most common element
-    popsr = sorted(popsr)[::-1]
-    #print feedback
-    print 'Type'.ljust(15)+'#'.rjust(len(str(max(popsr)[0])))
-    for item in popsr:
-        print item[1].ljust(15,'.')+str(item[0]).rjust(len(str(max(popsr)[0])),'.')
-    return populations,popsr
