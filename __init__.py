@@ -31,14 +31,18 @@ import Builder
 import Constants
 import Convert
 import Data
-#import Gmad
+import Gmad
 import Options
 import Plot
+import ModelProcessing
+
+#import Root
 
 import _General
 
-from Analysis import Analysis
-from AnalysisRoot import AnalysisRoot
+#from Analysis import Analysis
+#from AnalysisRoot import AnalysisRoot
+#from AnalysisRootOptics import AnalysisRootOptics
 
 #__all__ = ['Builder','Data','Gmad','Plot']
-__all__ = ['Beam','Builder','Constants','Data','Options','Plot']
+__all__ = ['Beam','Builder','Constants','Data','Gmad','Options','Plot']
