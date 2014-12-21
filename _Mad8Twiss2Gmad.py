@@ -1,8 +1,11 @@
+#!/usr/bin/env python2.6
+
 import numpy as _np
+import optparse as _op
+
 import pymad8
 import Builder
 import Beam
-
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, samplers='all', beam=True, gemit=(1e-10,1e-10)) :         
 
@@ -10,6 +13,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, samplers='all', be
     o = pymad8.Mad8.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
 
+    # check type of start 
+    # if string find element number
+    if type(istart) == str : 
+        print "Mad8Twiss2Gmad> finding start : ",istart 
+        istart = c.findByName(istart)[0]
+        print "Mad8Twiss2Gmad> using index   : ",istart
+        
     # create machine instance 
     a = Builder.Machine()    
 
@@ -172,3 +182,32 @@ class Mad8CollimatorDataBase:
     def GetDict(self) : 
         return self._coll
         
+def main() : 
+    usage = "usage : %prog [inputFileName]" 
+    parser = _op.OptionParser(usage)
+    parser.add_option("-i","--input",action="store",   type="string",     dest="inputFileName",help="Input file name")
+    parser.add_option("-o","--ouput",action="store",   type="string",     dest="outputFileName",default="output",help="output base file name")
+    parser.add_option("-s","--start",action="store",   type="string",     dest="start",         default="0",     help="starting element (named or index)")
+    parser.add_option("-a","--sampler",action="store", type="string",     dest="samplers",      default="all",   help="samplers (all|)") 
+    parser.add_option("-b","--beam",action="store_true",                  dest="beam",          default=True,    help="generate beam (True|False)") 
+    parser.add_option("-x","--emitx",action="store",   type="float",      dest="gemitx",        default=1e-10,   help="geometric emittance in x")
+    parser.add_option("-y","--emity",action="store",   type="float",      dest="gemity",        default=1e-10,   help="geometric emittance in x")
+    (options, args) = parser.parse_args()
+
+    if options.inputFileName == None : 
+        print "_Mad8Twiss2Gmad> Require input file name"
+        parser.print_usage()
+        return 
+    print '_Mad8Twiss2Gmad> inputFileName,outputFileName,start,samplers,beam,gemitx,gemity'
+    print '_Mad8Twiss2Gmad>', options.inputFileName,options.outputFileName,options.start,options.samplers,options.beam,options.gemitx,options.gemity
+    
+    # try to decode the start point either value or name
+    try :
+        options.start = int(options.start) 
+    except ValueError : 
+        pass 
+    
+    Mad8Twiss2Gmad(options.inputFileName, options.outputFileName, options.start, options.samplers, options.beam, (options.gemitx,options.gemity))
+    
+if __name__ == "__main__":
+    main()
