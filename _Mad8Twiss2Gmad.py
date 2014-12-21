@@ -4,7 +4,9 @@ import Builder
 import Beam
 
 
-def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, samplers='all') :         
+def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, samplers='all', beam=True, gemit=(1e-10,1e-10)) :         
+
+    # open mad output
     o = pymad8.Mad8.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
 
@@ -12,11 +14,12 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, sampler
     a = Builder.Machine()    
 
     # create beam 
-    E = c.data[istart][c.keys['drif']['E']] 
-    b = Mad8Twiss2Beam(t,istart,"e-",E)
-    b.SetEmittanceX(1e-10,'m')
-    b.SetEmittanceY(1e-10,'m')
-    a.AddBeam(b)
+    if beam : 
+        E = c.data[istart][c.keys['drif']['E']] 
+        b = Mad8Twiss2Beam(t,istart,"e-",E)
+        b.SetEmittanceX(gemit[0],'m')
+        b.SetEmittanceY(gemit[1],'m')
+        a.AddBeam(b)
 
     # iterate through objects and build machine 
     for i in range(istart,len(c.name),1) : 
@@ -69,7 +72,6 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, sampler
             length   = c.data[i][c.keys['rfcavity']['l']]
             deltaE   = (c.data[i][c.keys['rfcavity']['E']]-c.data[i-1][c.keys['rfcavity']['E']])*1000 # MeV 
             gradient = deltaE/length
-            print i, c.name[i], deltaE, gradient
             a.AddRFCavity(c.name[i],length=length, gradient=-gradient)            
         elif c.type[i] == 'ECOL' : 
 #            print c.name[i], c.data[i][c.keys['rcol']['xsize']], c.data[i][c.keys['rcol']['ysize']]
