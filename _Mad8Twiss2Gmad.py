@@ -132,7 +132,7 @@ def Mad8MakeCollimatorTemplate(inputFileName,outputFileName) :
     pass
 
 
-class Mad8CollimatorDataBase: 
+class Mad8CollimatorDatabase: 
     '''
     Load collimator file into memory and functions to open and manipulate collimator system
     c = Mad8CollimatorDataBase(fileName)
@@ -143,11 +143,11 @@ class Mad8CollimatorDataBase:
     '''
 
     def __init__(self,collimatorFileName) :
-        self.collimatorDbFileName = collimatorFileName
+        self.collimatorFileName = collimatorFileName
         self.LoadCollimatorDb(self.collimatorFileName) 
         
     def LoadCollimatorDb(self,collimatorFileName) : 
-        f = open(fileName) 
+        f = open(collimatorFileName) 
 
         inx = 0 
 
