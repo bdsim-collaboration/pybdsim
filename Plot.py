@@ -27,11 +27,11 @@ def _CheckItsTfs(tfsfile):
 
 def _GetOpticalDataFromTfs(tfsobject):
     d = {}
-    d['s']     = tfsobject.ColumnByIndex('S')
-    d['betx']  = tfsobject.ColumnByIndex('BETX')
-    d['bety']  = tfsobject.ColumnByIndex('BETY')
-    d['dispx'] = tfsobject.ColumnByIndex('DX')
-    d['dispy'] = tfsobject.ColumnByIndex('DY')
+    d['s']     = tfsobject.GetColumn('S')
+    d['betx']  = tfsobject.GetColumn('BETX')
+    d['bety']  = tfsobject.GetColumn('BETY')
+    d['dispx'] = tfsobject.GetColumn('DX')
+    d['dispy'] = tfsobject.GetColumn('DY')
     return d
 
 def PlotMadXTfsBetaSimple(tfsfile):

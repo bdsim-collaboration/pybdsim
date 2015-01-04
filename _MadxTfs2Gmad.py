@@ -353,7 +353,7 @@ def MadxTfs2GmadBeam(tfs) :
     sigmae   = float(tfs.header['SIGE'])
     sigmat   = float(tfs.header['SIGT'])
 
-    data     = tfs.GetElementDict(tfs.sequence[0])
+    data     = tfs.GetRowDict(tfs.sequence[0])
 
     if particle == 'ELECTRON' :
         particle = 'e-'
