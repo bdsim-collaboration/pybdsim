@@ -72,7 +72,7 @@ def PlotMadXTfsBeta(tfsfile,title='',outputfilename=None):
     f    = _plt.figure(figsize=(11,5))
     f.set_facecolor('white')
     gs   = _plt.GridSpec(2,1,height_ratios=(1,5))
-    axmachine = _plt.subplot(gs[0])
+    axmachine = _plt.subplot(gs[0], projection="My_Axes")
     axoptics  = _plt.subplot(gs[1])
 
     def MachineXlim(ax): 
