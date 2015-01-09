@@ -93,7 +93,7 @@ def PlotMadXTfsBeta(tfsfile,title='',outputfilename=None):
     axoptics.plot(d['s'],_np.sqrt(d['bety']),'g-', label=r'$\sqrt{\beta_{y}}$')
     axoptics.plot(-100,-100,'r--', label=r'$\mathrm{D}(x)$') #fake plot for legend
     axoptics.set_xlabel('S (m)')
-    axoptics.set_ylabel(r'$\sqrt{\beta_{x,y}}$ (m$^{1/2}$)')
+    axoptics.set_ylabel(r'$\sqrt{\beta_{x,y}}$ ($\sqrt{\mathrm{m}}$)')
     axoptics.legend(loc=0,fontsize='small') #best position
 
     #plot dispersion - only in horizontal
@@ -175,31 +175,29 @@ def _DrawMachineLattice(axesinstance,pymadxtfsobject):
     tfs = pymadxtfsobject
 
     #define temporary functions to draw individual objects
-    def DrawBend(e):
-        br = _patches.Rectangle((e['S'],-0.1),e['L'],0.2,color='b')
+    def DrawBend(e,color='b',alpha=1.0):
+        br = _patches.Rectangle((e['S'],-0.1),e['L'],0.2,color=color,alpha=alpha)
         ax.add_patch(br)
-    def DrawQuad(e):
+    def DrawQuad(e,color='r',alpha=1.0):
         if e['K1L'] > 0 :
-            qr = _patches.Rectangle((e['S'],0),e['L'],0.2,color='r')
+            qr = _patches.Rectangle((e['S'],0),e['L'],0.2,color=color,alpha=alpha)
         elif e['K1L'] < 0: 
-            qr = _patches.Rectangle((e['S'],-0.2),e['L'],0.2,color='r')
-        else: 
-            qr = _patches.Rectangle((e['S'],-0.1),e['L'],0.2,color='#B2B2B2') #a nice grey in hex
+            qr = _patches.Rectangle((e['S'],-0.2),e['L'],0.2,color=color,alpha=alpha)
+        else:
+            #quadrupole off
+            qr = _patches.Rectangle((e['S'],-0.1),e['L'],0.2,color='#B2B2B2',alpha=0.5) #a nice grey in hex
         ax.add_patch(qr)
-    def DrawHex(e,color):
+    def DrawHex(e,color,alpha=1.0):
         s = e['S']
         l = e['L']
-        coloryellow = '#ffcf17'
         edges = _np.array([[s,-0.1],[s,0.1],[s+l/2.,0.13],[s+l,0.1],[s+l,-0.1],[s+l/2.,-0.13]])
-        sr = _patches.Polygon(edges,color=color,fill=True)
+        sr = _patches.Polygon(edges,color=color,fill=True,alpha=alpha)
         ax.add_patch(sr)
-
-    def DrawRect(e,color):
-        rect = _patches.Rectangle((e['S'],-0.1),e['L'],0.2,color=color)
+    def DrawRect(e,color,alpha=1.0):
+        rect = _patches.Rectangle((e['S'],-0.1),e['L'],0.2,color=color,alpha=alpha)
         ax.add_patch(rect)
-
-    def DrawLine(e,color):
-        ax.plot([e['S'],e['S']],[-0.2,0.2],'-',color=color)
+    def DrawLine(e,color,alpha=1.0):
+        ax.plot([e['S'],e['S']],[-0.2,0.2],'-',color=color,alpha=alpha)
             
     # plot beam line 
     ax.plot([0,tfs.smax],[0,0],'k-',lw=1)
