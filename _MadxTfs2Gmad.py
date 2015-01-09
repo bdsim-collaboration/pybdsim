@@ -1,67 +1,48 @@
 import numpy as _np
-import pymadx
-import Builder
-import Beam
+import pymadx as _pymadx
+import Builder as _Builder
+import Beam as _Beam
 
 def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
-
-    MadxTfs2Gamd(inputfilename,
-                 outputfilename,
-                 startname             = None,
-                 endname               = None,
-                 ignorezerolengthitems = True,
-                 samplers              = 'all',
-                 aperturedict          = {},
-                 collimatordict        = {}, 
-                 beampipeRaidius       = 0.2, 
-                 verbose               = False
-                 )
-
+    
     inputfilename  - path to the input file
     outputfilename - requested output file
     startname      - the name (exact string match) of the lattice element to start the machine at
                      this can also be an integer index of the element sequence number in madx tfs
     stopname       - the name (exact string match) of the lattice element to stop the machine at
                      this can also be an integer index of the element sequence number in madx tfs
-
-    ignorezerolengthitems = True - nothing can be zero length in bdsim as real objects 
-                                   of course have some finite size.  Markers, etc are 
-                                   acceptable but for large lattices this can slow things down.
-                                   True allows to ignore these altogether, which doesn't
-                                   affect the length of the machine.
-
-    samplers   - can specify where to set samplers - options are None, 'all', or list of 
-                 names of elements (normal python list of strings). Note default 'all' 
-                 will generate separate outputfilename_samplers.gmad with all the samplers
-                 which will be included in the main .gmad file - you can comment out the 
-                 include to therefore exclude all samplers and retain the samplers file.
-
-    aperturedict - a dictionary of aperture information.  
-                   keys should be exact string match of element name in tfs file
-                   value should be a single number of the circular aperture (only circular just now)
-                   e.g.  aperturdict = {'TCT1Bxy2':0.15,'TCT2Bxy2:0.20}
-                   note values in metres
-
-    collimatordict - a dictionary of dictionaries with collimator information
+    ignorezerolengthitems -
+                   - nothing can be zero length in bdsim as real objects of course have some finite 
+                     size.  Markers, etc are acceptable but for large lattices this can slow things 
+                     down. True allows to ignore these altogether, which doesn't affect the length 
+                     of the machine.
+    samplers       - can specify where to set samplers - options are None, 'all', or list of 
+                     names of elements (normal python list of strings). Note default 'all' 
+                     will generate separate outputfilename_samplers.gmad with all the samplers
+                     which will be included in the main .gmad file - you can comment out the 
+                     include to therefore exclude all samplers and retain the samplers file.
+    aperturedict   - a dictionary of aperture information.  
                      keys should be exact string match of element name in tfs file
-                     value should be dictionary with the following keys:
+                     value should be a single number of the circular aperture (only circular just now)
+                     e.g.  aperturdict = {'TCT1Bxy2':0.15,'TCT2Bxy2:0.20}  note values in metres
+    collimatordict - a dictionary of dictionaries with collimator information keys should be exact 
+                     string match of element name in tfs file value should be dictionary with the 
+                     following keys:
                      "bdsim_material"   - the material - exact string as in bdsim manual
                      "angle"            - rotation angle of collimator in radians
                      "xsize"            - x full width in metres
                      "ysize"            - y full width in metres
-
     beampipeRadius - in metres.  Default beam pipe radius and collimator setting if unspecified
-
-    verbose - print out lots of information when building the model
+    verbose        - print out lots of information when building the model
 
     """
     lFake  = 1e-6 # fake length for thin magnets
     izlis  = ignorezerolengthitems
     if type(input) == str :
         print 'MadxTfs2Gmad> Loading file using pymadx'
-        madx   = pymadx.Tfs(input)
+        madx   = _pymadx.Tfs(input)
     else :
         print 'Already a pymadx instance - proceeding'
         madx   = input
@@ -83,7 +64,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
     kws = {} #extra parameters TO BE FINISHED
     
     #iterate through items in tfs and construct machine
-    a = Builder.Machine()
+    a = _Builder.Machine()
     
     #prepare index for iteration:
     if startname == None:
@@ -117,8 +98,6 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
     k5slindex   = madx.ColumnIndex('K5SL')
     k6slindex   = madx.ColumnIndex('K6SL')
     tiltindex   = madx.ColumnIndex('TILT')
-
-
     tindex     = madx.ColumnIndex('KEYWORD')
     if verbose:
         print 'L       Column Index: ',lindex
@@ -187,12 +166,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
-
-            #figure out which components are non zero
-            #a.AddMultipole(name,l,)
-            #TO BE FINISHED
-
-            # cludge for thin multipoles (uses lFake for a short non-zero length)
+            # TBC - cludge for thin multipoles (uses lFake for a short non-zero length)
             if thinmultipoles : 
                 k1  = madx.data[name][k1lindex] / lFake
                 k2  = madx.data[name][k2lindex] / lFake
@@ -335,7 +309,6 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
 
     a.WriteLattice(outputfilename)
 
-
     if verbose:
         print 'lentot ',lentot
         print 'angtot ',angtot
@@ -369,7 +342,7 @@ def MadxTfs2GmadBeam(tfs) :
     gammax = (1.0+data['ALFX'])/data['BETX']
     gammay = (1.0+data['ALFY'])/data['BETY']
     
-    beam     = Beam.Beam(particle,energy,'gausstwiss')
+    beam     = _Beam.Beam(particle,energy,'gausstwiss')
     beam.SetBetaX(data['BETX'])
     beam.SetBetaY(data['BETY'])
     beam.SetAlphaX(data['ALFX'])
