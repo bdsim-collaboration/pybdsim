@@ -132,6 +132,43 @@ def PlotMadXTfsBeta(tfsfile,title='',outputfilename=None):
         _plt.savefig(outputfilename+'.pdf')
         _plt.savefig(outputfilename+'.png')
 
+def AddMachineLatticeToFigure(figure,tfsfile):
+    tfs = _CheckItsTfs(tfsfile) #load the machine description
+
+    axs = figure.get_axes() #get the existing graph
+    axoptics = axs[0]  #get the only presumed axes from the figure
+
+    #adjust existing plot to make way for machine lattice
+    gs = _plt.GridSpec(2,1,height_ratios=(1,5))
+    axoptics.set_position(gs[1].get_position(figure))
+    axoptics.set_subplotspec(gs[1])
+    #axoptics.spines['top'].set_visible(False)
+
+    #add new axes for machine lattice
+    axmachine = figure.add_subplot(gs[0], projection="My_Axes")
+    axmachine.get_xaxis().set_visible(False)
+    axmachine.get_yaxis().set_visible(False)
+    axmachine.spines['top'].set_visible(False)
+    axmachine.spines['bottom'].set_visible(False)
+    axmachine.spines['left'].set_visible(False)
+    axmachine.spines['right'].set_visible(False)
+    figure.set_facecolor('white')
+    _plt.subplots_adjust(hspace=0.01,top=0.95,left=0.1,right=0.92)
+
+    #generate the machine lattice plot
+    _DrawMachineLattice(axmachine,tfs)
+
+    #put callbacks for linked scrolling
+    def MachineXlim(ax): 
+        axmachine.set_autoscale_on(False)
+        axoptics.set_xlim(axmachine.get_xlim())
+
+    def Click(a) : 
+        if a.button == 3 : 
+            print 'Closest element: ',tfs.NameFromNearestS(a.xdata)
+
+    axmachine.callbacks.connect('xlim_changed', MachineXlim)
+    figure.canvas.mpl_connect('button_press_event', Click) 
 
 def _DrawMachineLattice(axesinstance,pymadxtfsobject):
     ax  = axesinstance #handy shortcut
@@ -189,10 +226,10 @@ def _DrawMachineLattice(axesinstance,pymadxtfsobject):
             pass
         else:
             if element['L'] > 1e-1:
-                DrawRect(element,'#cccccc') #light gray
+                DrawRect(element,'#cccccc',alpha=0.1) #light grey, probably multipole
             else:
                 #relatively short element - just draw a line
-                DrawLine(element,'#cccccc')
+                DrawLine(element,'#cccccc',alpha=0.1)
         
 
 
