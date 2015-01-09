@@ -9,12 +9,24 @@ Useful plots for bdsim output
 
 """
 import Data
-
 import pymadx
 
+import matplotlib as _matplotlib
 import matplotlib.pyplot as _plt
 import matplotlib.patches as _patches
 import numpy as _np
+
+class My_Axes(_matplotlib.axes.Axes):
+    """
+    Inherit matplotlib.axes.Axes but override pan action for mouse.
+    Only allow horizontal panning - useful for lattice axes.
+    """
+    name = "My_Axes"
+    def drag_pan(self, button, key, x, y):
+        _matplotlib.axes.Axes.drag_pan(self, button, 'x', x, y) # pretend key=='x'
+
+#register the new class of axes
+_matplotlib.projections.register_projection(My_Axes)
 
 def _CheckItsTfs(tfsfile):
     if type(tfsfile) == str:
