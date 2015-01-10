@@ -1,7 +1,7 @@
 import numpy as _np
 import pymadx as _pymadx
-import Builder as _Builder
-import Beam as _Beam
+from .. import Builder as _Builder
+from .. import Beam as _Beam
 
 def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
     """
@@ -335,14 +335,17 @@ def MadxTfs2GmadBeam(tfs) :
     elif particle == 'PROTON' : 
         particle = 'proton' 
 
-    print particle,energy,gamma,ex,ey
-    print data['BETX'],data['ALFX'],data['MUX']
-    print data['BETY'],data['ALFY'],data['MUY']
+    #print particle,energy,gamma,ex,ey
+    #print data['BETX'],data['ALFX'],data['MUX']
+    #print data['BETY'],data['ALFY'],data['MUY']
     
     gammax = (1.0+data['ALFX'])/data['BETX']
     gammay = (1.0+data['ALFY'])/data['BETY']
-    
-    beam     = _Beam.Beam(particle,energy,'gausstwiss')
+
+    #note, in the main pybdsim.__init__.py Beam class is imported from Beam.py
+    #so in this submodule when we do from .. import Beam it's actually the
+    #already imported class that's being imported
+    beam   = _Beam(particle,energy,'gausstwiss')
     beam.SetBetaX(data['BETX'])
     beam.SetBetaY(data['BETY'])
     beam.SetAlphaX(data['ALFX'])
