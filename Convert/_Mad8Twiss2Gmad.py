@@ -4,8 +4,8 @@ import numpy as _np
 import optparse as _op
 
 import pymad8
-import Builder
-import Beam
+from .. import Builder
+from .. import Beam
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(1e-10,1e-10), collimator=None, samplers='all') :         
 
