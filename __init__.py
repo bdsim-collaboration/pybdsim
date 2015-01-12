@@ -30,7 +30,7 @@ from Beam import Beam
 import Builder
 import Constants
 import Convert
-import Comparison
+import Compare
 import Data
 import Gmad
 import Options
