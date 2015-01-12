@@ -375,9 +375,9 @@ class Machine:
         elif elementnames[0] == 'last':
             self.samplers.append(Sampler(self.elements[-1].name))
         else:
-            for element in elementnames[0]:
-                if element not in self.elements:
-                    raise ValueError(elementname+" is not a valid element in this machine")
+            for element in elementnames:
+                if element not in self.sequence:
+                    raise ValueError(element+" is not a valid element in this machine")
                 else:
                     self.samplers.append(Sampler(element))
 
