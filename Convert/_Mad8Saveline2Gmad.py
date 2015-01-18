@@ -15,7 +15,6 @@ def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=Non
     else:
         mad8 = input
 
-    kws = {}
     ilc = _Builder.Machine()
 
     for element in mad8.elementList:
@@ -35,7 +34,7 @@ def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=Non
 
                 construct_sequence(ilc, name, sequence_element_type, sequence_element_properties, length,
                                    ignore_zero_length_items, items_omitted, zero_length, aperture_dict, collimator_dict,
-                                   beam_pipe_radius, verbose, beam, kws)
+                                   beam_pipe_radius, verbose, beam)
 
     ilc.AddSampler('all')
 
@@ -54,18 +53,18 @@ def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=Non
 
 
 def construct_sequence(ilc, element, element_type, element_properties, length, ignore_zero_length_items,
-                       items_omitted, zero_length, aperture_dict, collimator_dict, beam_pipe_radius, verbose, beam,
-                       kws):
+                       items_omitted, zero_length, aperture_dict, collimator_dict, beam_pipe_radius, verbose, beam):
+    kws = {}
     if element_type == 'DRIFT':
             ilc.AddDrift(element, length, **kws)
 
     elif element_type == 'VKICKER':
-        kick = element_properties['KICK'] if 'KICK' in element_properties else 0
+        kws['kick'] = element_properties['KICK'] if 'KICK' in element_properties else 0
 
-        ilc.AddVKicker(element, length)  # Doesn't actually seem to add the kick??
+        ilc.AddVKicker(element, length, **kws)  # Doesn't actually seem to add the kick??
 
     elif element_type == 'HKICKER':
-        kick = element_properties['KICK'] if 'KICK' in element_properties else 0
+        kws['kick'] = element_properties['KICK'] if 'KICK' in element_properties else 0
 
         ilc.AddHKicker(element, length, **kws)  # Doesn't actually seem to add the kick??
 
@@ -76,17 +75,17 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
             ilc.AddMarker(element)
 
     elif element_type == 'SBEND':
-        hgap = element_properties['HGAP'] if 'HGAP' in element_properties else 0
         angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
-        fintx = element_properties['FINTX'] if 'FINTX' in element_properties else 0
-        tilt = element_properties['TILT'] if 'TILT' in element_properties else 0
-        fint = element_properties['FINT'] if 'FINT' in element_properties else 0
-        e1 = element_properties['E1'] if 'E1' in element_properties else 0
-        e2 = element_properties['E2'] if 'E2' in element_properties else 0
         k1 = (element_properties['K1'] / length) if 'K1' in element_properties else 0
 
-        ilc.AddDipole(element, 'sbend', length, angle, k1=k1, **kws)
+        kws['hgap'] = element_properties['HGAP'] if 'HGAP' in element_properties else 0
+        kws['fintx'] = element_properties['FINTX'] if 'FINTX' in element_properties else 0
+        kws['tilt'] = element_properties['TILT'] if 'TILT' in element_properties else 0
+        kws['fint'] = element_properties['FINT'] if 'FINT' in element_properties else 0
+        kws['e1'] = element_properties['E1'] if 'E1' in element_properties else 0
+        kws['e2'] = element_properties['E2'] if 'E2' in element_properties else 0
 
+        ilc.AddDipole(element, 'sbend', length, angle, k1=k1, **kws)
 
     elif element_type == 'RBEND':
         angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
@@ -94,20 +93,24 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         ilc.AddDipole(element, 'rbend', angle, **kws)
 
     elif element_type == 'QUADRUPOLE':
-        aperture = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
         k1 = element_properties['K1'] if 'K1' in element_properties else 0
+        #  Doesn't look like aperture is suported by bdsim.  Ignore for now.
+        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
-        ilc.AddQuadrupole(element, length, k1)
+        ilc.AddQuadrupole(element, length, k1, **kws)
 
     elif element_type == 'SEXTUPOLE':
-        aperture = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
         k2 = element_properties['K2'] if 'K2' in element_properties else 0
-        tilt = element_properties['TILT'] if 'TILT' in element_properties else 0
 
-        ilc.AddSextupole(element, length, k2)
+        kws['tilt'] = element_properties['TILT'] if 'TILT' in element_properties else 0
+
+        #  Aperture not currently supported
+        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
+
+        ilc.AddSextupole(element, length, k2, **kws)
 
     elif element_type == 'OCTUPOLE':
-        aperture = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
+
         k3 = element_properties['K3'] if 'K3' in element_properties else 0
 
         if ignore_zero_length_items and zero_length:
@@ -119,17 +122,17 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
                 print element, ' -> marker instead of octupole'
             else:
                 ilc.AddDrift(element, length, **kws)'''
+        #  Aperture not currently supported.
+        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
-        ilc.AddOctupole(element, length, k3)
+        ilc.AddOctupole(element, length, k3, **kws)
 
     elif element_type == 'MULTIPOLE':  # Not fully implemented, but ready to go when AddMultipole works
-        lrad = element_properties['LRAD'] if 'LRAD' in element_properties else 0
-        aperture = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
         tilt = element_properties['TILT'] if 'TILT' in element_properties else 0
         knl = ()
         kns = ()
 
-        for i in range(1, 7): # Range is fixed to between 1 - 6 as far as I can tell, might be more though
+        for i in range(1, 7):  # Range is fixed to between 1 - 6 as far as I can tell, might be more though
             key_l = 'K%sL' % i
             key_s = 'K%sS' % i
             temp = element_properties[key_l] if key_l in element_properties else 0
@@ -137,21 +140,11 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
             knl = knl + (temp,)
             kns = kns + (temp2,)
 
-        if knl[0] != 0:
-            ilc.AddQuadrupole(element, length, knl[0])
-        else:
-            ilc.AddMarker(element)
+        kws['lrad'] = element_properties['LRAD'] if 'LRAD' in element_properties else 0
+        #  Aperture not currently supported
+        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
-        if ignore_zero_length_items and zero_length:
-            items_omitted.append(element)
-        elif (not ignore_zero_length_items) and zero_length:
-            ilc.AddMarker(element)
-            if verbose:
-                print element, ' -> marker instead of multipole.'
-        else:
-            ilc.AddDrift(element, length, **kws)
-
-        # ilc.AddMultipole(element, length, knl, ksl=kns, tilt)  # ksl should be kns to keep format
+        ilc.AddMultipole(element, length, knl, ksl=kns, tilt=tilt, **kws)  # ksl should be kns to keep format
 
     elif element_type == 'ECOLLIMATOR':
         if element in collimator_dict:
