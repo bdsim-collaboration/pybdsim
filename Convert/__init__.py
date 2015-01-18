@@ -9,4 +9,5 @@ from .. import Builder as _Builder
 
 from _MadxTfs2Gmad import MadxTfs2Gmad
 from _Mad8Twiss2Gmad import Mad8Twiss2Gmad
+from _Mad8Saveline2Gmad import mad8_saveline_to_gmad
 
