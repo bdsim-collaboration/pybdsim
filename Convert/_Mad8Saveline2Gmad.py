@@ -23,18 +23,15 @@ def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=Non
         zero_length = True if length < 1e-9 else False
 
         if element_type == 'LINE':
-            #  Need to add the elements here in the order of the elements that appear in the Lines...
-            #  Could belong in the parser, not sure.
-
             for name in element_properties:
                 sequence_element_type = mad8.elementDict[name].keys()[0]
                 sequence_element_properties = mad8.elementDict[name].values()[0]
                 # Everything has a length.
                 length = sequence_element_properties['L'] if 'L' in sequence_element_properties else fake_length
 
-                construct_sequence(ilc, name.lower(), sequence_element_type, sequence_element_properties, length,
+                construct_sequence(ilc, name, sequence_element_type, sequence_element_properties, length,
                                    ignore_zero_length_items, items_omitted, zero_length, aperture_dict, collimator_dict,
-                                   beam_pipe_radius, verbose, beam)
+                                   beam_pipe_radius, verbose)
 
     ilc.AddSampler('all')
 
@@ -53,7 +50,7 @@ def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=Non
 
 
 def construct_sequence(ilc, element, element_type, element_properties, length, ignore_zero_length_items,
-                       items_omitted, zero_length, aperture_dict, collimator_dict, beam_pipe_radius, verbose, beam):
+                       items_omitted, zero_length, aperture_dict, collimator_dict, beam_pipe_radius, verbose):
     kws = {}
     if element_type == 'DRIFT':
             ilc.AddDrift(element, length, **kws)
@@ -69,11 +66,10 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         ilc.AddHKicker(element, length, **kws)
 
     elif element_type == 'MARKER':
-        '''if ignore_zero_length_items:
+        if ignore_zero_length_items:
             items_omitted.append(element)
         else:
-            ilc.AddMarker(element)'''
-        ilc.AddMarker(element)
+            ilc.AddMarker(element)
 
     elif element_type == 'SBEND':
         angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
@@ -95,8 +91,8 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
 
     elif element_type == 'QUADRUPOLE':
         k1 = element_properties['K1'] if 'K1' in element_properties else 0
-        #  Doesn't look like aperture is supported by bdsim.  Ignore for now.
-        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
+
+        #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
         ilc.AddQuadrupole(element, length, k1, **kws)
 
@@ -106,7 +102,7 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         kws['tilt'] = element_properties['TILT'] if 'TILT' in element_properties else 0
 
         #  Aperture not currently supported
-        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
+        #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
         ilc.AddSextupole(element, length, k2, **kws)
 
@@ -114,7 +110,7 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         k3 = element_properties['K3'] if 'K3' in element_properties else 0
 
         #  Aperture not currently supported.
-        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
+        #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
         ilc.AddOctupole(element, length, k3, **kws)
 
@@ -133,7 +129,7 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
 
         kws['lrad'] = element_properties['LRAD'] if 'LRAD' in element_properties else 0
         #  Aperture not currently supported
-        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
+        #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
         ilc.AddMultipole(element, length, knl, ksl=kns, tilt=tilt, **kws)  # ksl should be kns to keep format
 
@@ -165,37 +161,40 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         ilc.AddRColAngled(element, length, xsize, ysize, angle, **kws)
 
     elif element_type == 'WIRE':
-        ilc.AddMarker(element)
+        if ignore_zero_length_items and zero_length:
+            items_omitted.append(element)
+        elif (not ignore_zero_length_items) and zero_length:
+            ilc.AddMarker(element)
+            if verbose:
+                print element, ' -> marker instead of wire.'
+        else:
+            ilc.AddDrift(element, length, **kws)
 
     elif element_type == 'INSTRUMENT':
-        '''if ignore_zero_length_items and zero_length:
+        if ignore_zero_length_items and zero_length:
             items_omitted.append(element)
         elif (not ignore_zero_length_items) and zero_length:
             ilc.AddMarker(element)
             if verbose:
                 print element, ' -> marker instead of instrument.'
         else:
-            ilc.AddDrift(element, length, **kws)'''
-        if element == 'dump':
-            element = 'pmud'
-        ilc.AddMarker(element)
+            ilc.AddDrift(element, length, **kws)
 
     elif element_type == 'MONITOR':
-        '''if ignore_zero_length_items and zero_length:
+        if ignore_zero_length_items and zero_length:
             items_omitted.append(element)
         elif (not ignore_zero_length_items) and zero_length:
             ilc.AddMarker(element)
             if verbose:
                 print element, ' -> marker instead of monitor.'
         else:
-            ilc.AddDrift(element, length, **kws)'''
-        ilc.AddMarker(element)
+            ilc.AddDrift(element, length, **kws)
 
     elif element_type == 'LCAVITY':
         deltae = element_properties['DELTAE'] * 1000 if 'DELTAE' in element_properties else 0  # MeV
         gradient = deltae / length
 
-        #  kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
+        #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
         kws['freq'] = element_properties['FREQ'] if 'FREQ' in element_properties else 0
         kws['phi0'] = element_properties['PHI0'] if 'PHI0' in element_properties else 0
         kws['eloss'] = element_properties['ELOSS'] if 'ELOSS' in element_properties else 0
