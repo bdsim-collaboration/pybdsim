@@ -263,6 +263,9 @@ class Machine:
         
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,material=kwargs['material']))
+
+    def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
+        self.Append(Element(name,'solenoid',l=length,ks=ks,**kwargs))
     
     def AddTransform3D(self, name='t3d', **kwargs):
         if len(kwargs.keys()) == 0:
