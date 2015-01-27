@@ -3,8 +3,9 @@ from .. import Beam as _Beam
 import pymad8.Saveline as _Saveline
 
 
+
 def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=None, ignore_zero_length_items=True,
-    samplers='all', aperture_dict={}, collimator_dict={}, beam_pipe_radius=0.2, verbose=False, beam=False):
+    samplers='all', aperture_dict={}, collimator_dict={}, beam_pipe_radius=0.2, verbose=False, beam=True):
 
     items_omitted = []  # Store any items that have been skipped over.
     fake_length = 1e-6
@@ -33,16 +34,20 @@ def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=Non
                                    ignore_zero_length_items, items_omitted, zero_length, aperture_dict, collimator_dict,
                                    beam_pipe_radius, verbose)
 
-    ilc.AddSampler('all')
+    ilc.AddSampler(samplers)
 
-    if beam:  # For testing purposes.
-        beam = _Beam(particletype='e-', energy=250, distrtype='gauss')
-        beam.SetX0(38.2245006897, unitsstring='um')
-        beam.SetY0(1.79944994192, unitsstring='um')
-        beam.SetXP0(.99204575405)  # Need a unit string?
-        beam.SetYP0(.073917234767)
+    if beam:  # Use ILC defaults
+        beam = _Beam(particletype='e-', energy=250, distrtype='gausstwiss')
+
+        beam._SetBetaX(71.482996720846, unitsstring='m')
+        beam._SetBetaY(39.603963961143, unitsstring='m')
+        beam._SetAlphaX(-1.562625067837)
+        beam._SetAlphaY(1.283201237991)
         beam.SetZ0(-1, unitsstring='um')
         beam.SetT0(1e-15)
+        beam._SetEmittanceX(emitx=2.044e-11)
+        beam._SetEmittanceY(emity=8.176e-14)
+
         ilc.AddBeam(beam)
 
     ilc.options.SetNGenerate(1000)
@@ -102,7 +107,7 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         kws['tilt'] = element_properties['TILT'] if 'TILT' in element_properties else 0
 
         #  Aperture not currently supported
-        #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
+        #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0 aperX / aperY
 
         ilc.AddSextupole(element, length, k2, **kws)
 
