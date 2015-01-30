@@ -2,7 +2,7 @@ from .. import Builder as _Builder
 from .. import Beam as _Beam
 import pymad8.Saveline as _Saveline
 
-
+# pybdsim.Convert.mad8_saveline_to_gmad('../ebds.saveline', 'ilc.gmad', ignore_zero_length_items=False)
 
 def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=None, ignore_zero_length_items=True,
     samplers='all', aperture_dict={}, collimator_dict={}, beam_pipe_radius=0.2, verbose=False, beam=True):
@@ -45,8 +45,8 @@ def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=Non
         beam._SetAlphaY(1.283201237991)
         beam.SetZ0(-1, unitsstring='um')
         beam.SetT0(1e-15)
-        beam._SetEmittanceX(emitx=2.044e-11)
-        beam._SetEmittanceY(emity=8.176e-14)
+        beam._SetEmittanceX(emitx=2.044e-11,unitsstring='m')
+        beam._SetEmittanceY(emity=8.176e-14, unitsstring='m')
 
         ilc.AddBeam(beam)
 
@@ -109,15 +109,16 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         #  Aperture not currently supported
         #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0 aperX / aperY
 
-        ilc.AddSextupole(element, length, k2, **kws)
-
+        #ilc.AddSextupole(element, length, k2, **kws)
+        ilc.AddDrift(element,length)
     elif element_type == 'OCTUPOLE':
         k3 = element_properties['K3'] if 'K3' in element_properties else 0
 
         #  Aperture not currently supported.
         #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
-        ilc.AddOctupole(element, length, k3, **kws)
+        # ilc.AddOctupole(element, length, k3, **kws)
+        ilc.AddDrift(element, length)
 
     elif element_type == 'MULTIPOLE':  # Not fully implemented, but ready to go when AddMultipole works
         tilt = element_properties['TILT'] if 'TILT' in element_properties else 0
@@ -136,7 +137,8 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         #  Aperture not currently supported
         #kws['aperture'] = element_properties['APERTURE'] if 'APERTURE' in element_properties else 0
 
-        ilc.AddMultipole(element, length, knl, ksl=kns, tilt=tilt, **kws)  # ksl should be kns to keep format
+        # ilc.AddMultipole(element, length, knl, ksl=kns, tilt=tilt, **kws)  # ksl should be kns to keep format
+        ilc.AddMarker(element)
 
     elif element_type == 'ECOLLIMATOR':
         if element in collimator_dict:
