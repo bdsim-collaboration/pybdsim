@@ -182,7 +182,9 @@ class Machine:
             return self.elementsd[name]
 
     def __len__(self):
-        return len(self.elementsd.keys())
+        print 'Number of unique elements:      ',len(self.elementsd.keys())
+        print 'Number of elements in sequence: ',len(self.sequence),' <- returning this'
+        return len(self.sequence)
 
     def Append(self,object):
         if type(object) not in (Element,Line):
@@ -407,7 +409,7 @@ def CreateDipoleRing(filename, ncells=60, circumference=100.0, dfraction=0.1, sa
         raise Warning("Fraction of dipoles must be greater than 1.0 -> setting to 0.1")
         dfraction = 0.1
     a           = Machine()
-    dangle      = _Decimal(str(2.0*math.pi / ncells))
+    dangle      = _Decimal(str(2.0*_math.pi / ncells))
     clength     = _Decimal(str(float(circumference) / ncells))
     dlength     = clength * _Decimal(str(dfraction))
     driftlength = clength - dlength
@@ -435,7 +437,7 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     30% beam pipe / drift
     """
     a       = Machine()
-    cangle  = _Decimal(str(2.0*math.pi / ncells))
+    cangle  = _Decimal(str(2.0*_math.pi / ncells))
     clength = _Decimal(str(float(circumference) / ncells))
     #dipole = 0.5 of cell, quads=0.2, drift=0.3, two dipoles
     #dipole:
@@ -536,7 +538,7 @@ def WriteLattice(machine, filename, verbose=False):
     fn_samplers   = basefilename + '_samplers.gmad'
     fn_beam       = basefilename + '_beam.gmad'
     fn_options    = basefilename + '_options.gmad'
-    timestring = '! ' + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()) + '\n'
+    timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
     
     #write component files
     f = open(fn_components,'w')
