@@ -21,8 +21,10 @@ import Options as _Options
 import _General
 from   _General import IsFloat as _IsFloat
 from   decimal import Decimal as _Decimal
-import math
-import time
+import math as _math
+import time as _time
+import os as _os
+import numpy as _np
 
 bdsimcategories = [
     'marker',
