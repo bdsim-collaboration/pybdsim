@@ -85,6 +85,9 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
 
     lindex     = madx.ColumnIndex('L')
     angleindex = madx.ColumnIndex('ANGLE')
+    vkickangleindex = madx.ColumnIndex('VKICK')
+    hkickangleindex = madx.ColumnIndex('HKICK')
+    ksIindex   = madx.ColumnIndex('KSI')
     k1lindex   = madx.ColumnIndex('K1L')
     k2lindex   = madx.ColumnIndex('K2L')
     k3lindex   = madx.ColumnIndex('K3L')
@@ -139,7 +142,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         if t == 'DRIFT':
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
-            a.AddHKicker(rname,l,**kws)
+            kickangle = madx.data[name][hkickangleindex]
+            a.AddHKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
             if izlis and zerolength:
@@ -284,7 +288,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         elif t == 'TKICKER':
             a.AddDrift(rname,l,**kws)
         elif t == 'VKICKER':
-            a.AddDrift(rname,l,**kws)
+            kickangle = madx.data[name][vkickangleindex]
+            a.AddDrift(rname,l,angle=kickangle,**kws)
         else:
             print 'unknown element type: ',t,' for element named: ',name
             if zerolength:

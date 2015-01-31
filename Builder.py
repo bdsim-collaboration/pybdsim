@@ -301,13 +301,13 @@ class Machine:
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**kwargs))
         self.AddTransform3D(name+'_angle_neg', psi=-1*angle)
         
-    def AddHKicker(self, name='hk', length=0.1, **kwargs):
-        self.AddDrift(name,length)
-        #self.Append(Element(name,'hkick',l=length,**kwargs))
+    def AddHKicker(self, name='hk', length=0.1, angle=0.0, **kwargs):
+        #self.AddDrift(name,length)
+        self.Append(Element(name,'hkick', l=length, angle=angle, **kwargs))
 
-    def AddVKicker(self, name='vk', length=0.1, **kwargs):
-        self.AddDrift(name,length)
-        #self.Append(Element(name,'vkick',l=length,**kwargs))
+    def AddVKicker(self, name='vk', length=0.1, angle=0.0, **kwargs):
+        #self.AddDrift(name,length)
+        self.Append(Element(name,'vkick', l=length, angle=angle, **kwargs))
 
     def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=1.0,**kwargs):
         """
