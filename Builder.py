@@ -523,12 +523,19 @@ def WriteLattice(machine, filename, verbose=False):
     #check filename
     if filename[-5:] != '.gmad':
         filename += '.gmad'
+
+    #check for directory and make it if not:
+    if '/' in filename:
+        directory = '/'.join(filename.split('/')[:-1]) #strip the filename off
+        if not _os.path.exists(directory):
+            _os.system("mkdir -p " + directory)
+    
     #check if file already exists
     ofilename = filename
     filename = _General.CheckFileExists(filename)
     if filename != ofilename:
         print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
-    basefilename = filename[:-5]#.split('/')[-1]
+    basefilename = filename[:-5] #everything before '.gmad'
 
     #prepare names
     files         = []
