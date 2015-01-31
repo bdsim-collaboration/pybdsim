@@ -548,14 +548,20 @@ def WriteLattice(machine, filename, verbose=False):
     timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
     
     #write component files
-    f = open(fn_components,'w')
-    files.append(fn_components)
-    f.write(timestring)
-    f.write('! pybdsim.Builder Lattice \n')
-    f.write('! COMPONENT DEFINITION\n\n')
-    for element in machine.elements:
-        f.write(str(element))
-    f.close()
+    ncomponentfiles = int(_np.ceil(len(machine.elements)/1000.0))
+    for i in range(0,ncomponentfiles):
+        if i == 0:
+            fname = fn_components
+        else:
+            fname = fn_components[:-5]+'_'+str(i)+'.gmad'
+        f = open(fname,'w')
+        files.append(fname)
+        f.write(timestring)
+        f.write('! pybdsim.Builder Lattice \n')
+        f.write('! COMPONENT DEFINITION\n\n')
+        for element in machine.elements[i*1000:i*1000+1000]:
+            f.write(str(element))
+        f.close()
 
     #write lattice sequence
     f = open(fn_sequence,'w')
