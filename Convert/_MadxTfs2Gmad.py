@@ -18,6 +18,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
                      size.  Markers, etc are acceptable but for large lattices this can slow things 
                      down. True allows to ignore these altogether, which doesn't affect the length 
                      of the machine.
+    thinmultipoles - will convert thin multipoles to ~1um thick finite length multipoles with
+                     upscaled k values - experimental feature
     samplers       - can specify where to set samplers - options are None, 'all', or list of 
                      names of elements (normal python list of strings). Note default 'all' 
                      will generate separate outputfilename_samplers.gmad with all the samplers
@@ -34,8 +36,17 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
                      "angle"            - rotation angle of collimator in radians
                      "xsize"            - x full width in metres
                      "ysize"            - y full width in metres
-    beampipeRadius - in metres.  Default beam pipe radius and collimator setting if unspecified
+    beampiperadius - in metres.  Default beam pipe radius and collimator setting if unspecified
     verbose        - print out lots of information when building the model
+    beam           - True | False - generate an input gauss Twiss beam based on the values
+                     of the twiss parameters at the beginning of the lattice (startname)
+                     NOTE - we thoroughly recommend checking these parameters and this functionality
+                     is only for partial convenience to have a model that works straight away.
+    flipmagnets    - Trye | False - flip the sign of all k values for magnets - MADX currently 
+                     tracks particles agnostic of the particle charge - BDISM however, follows their 
+                     manual definition strictly - positive k -> horizontal focussing for positive 
+                     partilces therefore, positive k -> vertical focussing for negative particles.  
+                     Use this flag to flip the sign of all magnets.                    
 
     """
     lFake  = 1e-6 # fake length for thin magnets
