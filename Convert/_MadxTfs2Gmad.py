@@ -3,7 +3,7 @@ import pymadx as _pymadx
 from .. import Builder as _Builder
 from .. import Beam as _Beam
 
-def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
+def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampiperadius=0.2,verbose=False, beam=True, flipmagnets=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
@@ -59,7 +59,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         madx   = input
     
     nitems = madx.nitems
-    opencollimatorsetting = beampipeRadius
+    opencollimatorsetting = beampiperadius
 
     if verbose:
         madx.ReportPopulations()
@@ -84,7 +84,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         startindex = startname
     else:
         startindex = madx.IndexFromName(startname)
-    if endname   == None:
+    if stopname   == None:
         stopindex = nitems #this is 1 larger, but ok as range will stop at n-step -> step=1, range function issue
     elif type(stopname) == int:
         stopindex = stopname
@@ -256,8 +256,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
                 else:
                     angle = 0.0
             else:
-                xsize = beampipeRadius
-                ysize = beampipeRadius
+                xsize = beampiperadius
+                ysize = beampiperadius
                 angle = 0.0
                 kws['material'] = "Copper"
             a.AddRColAngled(rname,l,xsize,ysize,angle,**kws)
@@ -280,8 +280,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
                 else:
                     angle = 0.0
             else:
-                xsize = beampipeRadius
-                ysize = beampipeRadius
+                xsize = beampiperadius
+                ysize = beampiperadius
                 angle = 0.0
                 kws['material'] = "Copper"
             a.AddEColAngled(rname,l,xsize,ysize,angle,**kws)
