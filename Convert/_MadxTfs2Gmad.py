@@ -320,7 +320,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
 
     # Make beam file 
     if beam : 
-        b = MadxTfs2GmadBeam(madx)
+        b = MadxTfs2GmadBeam(madx, startname)
         a.AddBeam(b)
 
     a.WriteLattice(outputfilename)
@@ -333,7 +333,14 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         #return lldiff,dldiff,a
     return a
 
-def MadxTfs2GmadBeam(tfs) : 
+def MadxTfs2GmadBeam(tfs,startname=None):
+    if startname == None:
+        startindex = 0
+    elif type(startname) == int:
+        startindex = startname
+    else:
+        startindex = madx.IndexFromName(startname)
+    
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])
     particle = tfs.header['PARTICLE']
@@ -342,7 +349,7 @@ def MadxTfs2GmadBeam(tfs) :
     sigmae   = float(tfs.header['SIGE'])
     sigmat   = float(tfs.header['SIGT'])
 
-    data     = tfs.GetRowDict(tfs.sequence[0])
+    data     = tfs.GetRowDict(tfs.sequence[startindex])
 
     if particle == 'ELECTRON' :
         particle = 'e-'
