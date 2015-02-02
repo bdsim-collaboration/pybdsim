@@ -182,19 +182,20 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
             # TBC - cludge for thin multipoles (uses lFake for a short non-zero length)
+            factor = -1 if flipmagnets else 1  #flipping magnets
             if thinmultipoles : 
-                k1  = madx.data[name][k1lindex] / lFake
-                k2  = madx.data[name][k2lindex] / lFake
-                k3  = madx.data[name][k3lindex] / lFake
-                k4  = madx.data[name][k4lindex] / lFake
-                k5  = madx.data[name][k5lindex] / lFake
-                k6  = madx.data[name][k6lindex] / lFake
-                k1s = madx.data[name][k1slindex] / lFake
-                k2s = madx.data[name][k2slindex] / lFake
-                k3s = madx.data[name][k3slindex] / lFake
-                k4s = madx.data[name][k4slindex] / lFake
-                k5s = madx.data[name][k5slindex] / lFake
-                k6s = madx.data[name][k6slindex] / lFake
+                k1  = madx.data[name][k1lindex] / lFake * factor
+                k2  = madx.data[name][k2lindex] / lFake * factor
+                k3  = madx.data[name][k3lindex] / lFake * factor
+                k4  = madx.data[name][k4lindex] / lFake * factor
+                k5  = madx.data[name][k5lindex] / lFake * factor
+                k6  = madx.data[name][k6lindex] / lFake * factor
+                k1s = madx.data[name][k1slindex] / lFake * factor
+                k2s = madx.data[name][k2slindex] / lFake * factor
+                k3s = madx.data[name][k3slindex] / lFake * factor
+                k4s = madx.data[name][k4slindex] / lFake * factor
+                k5s = madx.data[name][k5slindex] / lFake * factor
+                k6s = madx.data[name][k6slindex] / lFake * factor
                 tilt= madx.data[name][tiltindex]
                 if k1 != 0 : 
                     a.AddQuadrupole(rname,k1=k1,length=lFake,tilt=tilt) 
@@ -231,7 +232,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                 if verbose:
                     print name,' -> marker instead of placeholder'
         elif t == 'QUADRUPOLE':
-            k1 = madx.data[name][k1lindex] / l
+            factor = -1 if flipmagnets else 1  #flipping magnets
+            k1 = madx.data[name][k1lindex] / l * factor
             a.AddQuadrupole(rname,l,k1=k1,**kws)
         elif t == 'RBEND':
             angle = madx.data[name][angleindex]
@@ -292,9 +294,13 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             k1 = madx.data[name][k1lindex] / l
             a.AddDipole(rname,'sbend',l,angle=angle, k1=k1,**kws)
         elif t == 'SEXTUPOLE':
-            k2 = madx.data[name][k2lindex] / l
+            factor = -1 if flipmagnets else 1  #flipping magnets
+            k2 = madx.data[name][k2lindex] / l * factor
             a.AddSextupole(rname,l,k2=k2,**kws)
         elif t == 'SOLENOID':
+            #factor = -1 if flipmagnets else 1  #flipping magnets
+            #ksi = madx.data[name][ksiindex]
+            #a.AddSolenoid(rname,l,ks=ksi
             a.AddDrift(rname,l,**kws)
         elif t == 'TKICKER':
             a.AddDrift(rname,l,**kws)
