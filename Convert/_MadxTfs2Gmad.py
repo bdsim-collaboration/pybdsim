@@ -63,7 +63,6 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
 
     if verbose:
         madx.ReportPopulations()
-        aper.ReportPopulations()
 
     # data structures for checks
     angtot = 0.0
@@ -133,6 +132,11 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             zerolength = True
         else:
             zerolength = False
+
+        if zerolength and ignorezerolengthitems:
+            itemsomitted.append(name)
+            continue #this skips the rest of the loop as we're ignoring this item
+            
         if verbose:
             print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
         lentot += l
