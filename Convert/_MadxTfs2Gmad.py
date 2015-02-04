@@ -1,4 +1,5 @@
 import numpy as _np
+import re as _re
 import pymadx as _pymadx
 from .. import Builder as _Builder
 from .. import Beam as _Beam
@@ -124,7 +125,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
     for i in range(startindex,stopindex):
         name = madx.sequence[i]
         #remove special characters like $, % etc 'reduced' name - rname
-        rname = ''.join(e for e in name if e.isalnum()) 
+        rname = _re.sub('[^a-zA-Z0-9_]+','',name) #only allow alphanumeric characters and '_'
         t     = madx.data[name][tindex]
         l     = madx.data[name][lindex]
         ang   = madx.data[name][angleindex]
