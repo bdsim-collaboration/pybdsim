@@ -21,8 +21,10 @@ import Options as _Options
 import _General
 from   _General import IsFloat as _IsFloat
 from   decimal import Decimal as _Decimal
-import math
-import time
+import math as _math
+import time as _time
+import os as _os
+import numpy as _np
 
 bdsimcategories = [
     'marker',
@@ -180,7 +182,9 @@ class Machine:
             return self.elementsd[name]
 
     def __len__(self):
-        return len(self.elementsd.keys())
+        print 'Number of unique elements:      ',len(self.elementsd.keys())
+        print 'Number of elements in sequence: ',len(self.sequence),' <- returning this'
+        return len(self.sequence)
 
     def Append(self,object):
         if type(object) not in (Element,Line):
@@ -297,13 +301,13 @@ class Machine:
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**kwargs))
         self.AddTransform3D(name+'_angle_neg', psi=-1*angle)
         
-    def AddHKicker(self, name='hk', length=0.1, **kwargs):
-        self.AddDrift(name,length)
-        #self.Append(Element(name,'hkick',l=length,**kwargs))
+    def AddHKicker(self, name='hk', length=0.1, angle=0.0, **kwargs):
+        #self.AddDrift(name,length)
+        self.Append(Element(name,'hkick', l=length, angle=angle, **kwargs))
 
-    def AddVKicker(self, name='vk', length=0.1, **kwargs):
-        self.AddDrift(name,length)
-        #self.Append(Element(name,'vkick',l=length,**kwargs))
+    def AddVKicker(self, name='vk', length=0.1, angle=0.0, **kwargs):
+        #self.AddDrift(name,length)
+        self.Append(Element(name,'vkick', l=length, angle=angle, **kwargs))
 
     def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=1.0,**kwargs):
         """
@@ -405,7 +409,7 @@ def CreateDipoleRing(filename, ncells=60, circumference=100.0, dfraction=0.1, sa
         raise Warning("Fraction of dipoles must be greater than 1.0 -> setting to 0.1")
         dfraction = 0.1
     a           = Machine()
-    dangle      = _Decimal(str(2.0*math.pi / ncells))
+    dangle      = _Decimal(str(2.0*_math.pi / ncells))
     clength     = _Decimal(str(float(circumference) / ncells))
     dlength     = clength * _Decimal(str(dfraction))
     driftlength = clength - dlength
@@ -433,7 +437,7 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     30% beam pipe / drift
     """
     a       = Machine()
-    cangle  = _Decimal(str(2.0*math.pi / ncells))
+    cangle  = _Decimal(str(2.0*_math.pi / ncells))
     clength = _Decimal(str(float(circumference) / ncells))
     #dipole = 0.5 of cell, quads=0.2, drift=0.3, two dipoles
     #dipole:
@@ -519,12 +523,19 @@ def WriteLattice(machine, filename, verbose=False):
     #check filename
     if filename[-5:] != '.gmad':
         filename += '.gmad'
+
+    #check for directory and make it if not:
+    if '/' in filename:
+        directory = '/'.join(filename.split('/')[:-1]) #strip the filename off
+        if not _os.path.exists(directory):
+            _os.system("mkdir -p " + directory)
+    
     #check if file already exists
     ofilename = filename
     filename = _General.CheckFileExists(filename)
     if filename != ofilename:
         print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
-    basefilename = filename[:-5]#.split('/')[-1]
+    basefilename = filename[:-5] #everything before '.gmad'
 
     #prepare names
     files         = []
@@ -534,17 +545,23 @@ def WriteLattice(machine, filename, verbose=False):
     fn_samplers   = basefilename + '_samplers.gmad'
     fn_beam       = basefilename + '_beam.gmad'
     fn_options    = basefilename + '_options.gmad'
-    timestring = '! ' + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()) + '\n'
+    timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
     
     #write component files
-    f = open(fn_components,'w')
-    files.append(fn_components)
-    f.write(timestring)
-    f.write('! pybdsim.Builder Lattice \n')
-    f.write('! COMPONENT DEFINITION\n\n')
-    for element in machine.elements:
-        f.write(str(element))
-    f.close()
+    ncomponentfiles = int(_np.ceil(len(machine.elements)/1000.0))
+    for i in range(0,ncomponentfiles):
+        if i == 0:
+            fname = fn_components
+        else:
+            fname = fn_components[:-5]+'_'+str(i)+'.gmad'
+        f = open(fname,'w')
+        files.append(fname)
+        f.write(timestring)
+        f.write('! pybdsim.Builder Lattice \n')
+        f.write('! COMPONENT DEFINITION\n\n')
+        for element in machine.elements[i*1000:i*1000+1000]:
+            f.write(str(element))
+        f.close()
 
     #write lattice sequence
     f = open(fn_sequence,'w')
