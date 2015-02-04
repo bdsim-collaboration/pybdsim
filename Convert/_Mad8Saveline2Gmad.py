@@ -6,7 +6,6 @@ import pymad8.Saveline as _Saveline
 
 def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=None, ignore_zero_length_items=True,
     samplers='all', aperture_dict={}, collimator_dict={}, beam_pipe_radius=0.2, verbose=False, beam=True):
-
     items_omitted = []  # Store any items that have been skipped over.
     fake_length = 1e-6
 
@@ -140,7 +139,7 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         # ilc.AddMultipole(element, length, knl, ksl=kns, tilt=tilt, **kws)  # ksl should be kns to keep format
         ilc.AddMarker(element)
 
-    elif element_type == 'ECOLLIMATOR':
+    elif element_type == 'ECOLLIMATOR': # Need to check logic precedence here with Boog.
         if element in collimator_dict:
             kws['material'] = collimator_dict[element]['bdsim_material'] if 'bdsim_material' in collimator_dict else 'Copper'
             ysize = collimator_dict[element]['YSIZE'] if 'YSIZE' in collimator_dict[element] else beam_pipe_radius
@@ -148,9 +147,14 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
             angle = collimator_dict[element]['ANGLE'] if 'ANGLE' in collimator_dict[element] else 0.0
         else:
             kws['material'] = 'Copper'
-            xsize = beam_pipe_radius
-            ysize = beam_pipe_radius
-            angle = 0.0
+            xsize = element_properties['XSIZE'] if 'XSIZE' in element_properties else beam_pipe_radius
+            ysize = element_properties['YSIZE'] if 'YSIZE' in element_properties else beam_pipe_radius
+            angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
+
+            with open('collimators.dat', 'a') as f:
+                f.write('%s\t%s\t%s\t%s\t%s\t%s\n' % (element, angle, length, xsize, ysize, kws['material']))
+                f.close()
+
         ilc.AddEColAngled(element, length, xsize, ysize, angle, **kws)
 
     elif element_type == 'RCOLLIMATOR':
@@ -161,10 +165,12 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
             angle = collimator_dict[element]['ANGLE'] if 'ANGLE' in collimator_dict[element] else 0.0
         else:
             kws['material'] = 'Copper'
-            xsize = beam_pipe_radius
-            ysize = beam_pipe_radius
-            angle = 0.0
-
+            xsize = element_properties['XSIZE'] if 'XSIZE' in element_properties else beam_pipe_radius
+            ysize = element_properties['YSIZE'] if 'YSIZE' in element_properties else beam_pipe_radius
+            angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
+            with open('collimators.dat', 'a') as f:
+                f.write('%s\t%s\t%s\t%s\t%s\t%s\n' % (element, angle, length, xsize, ysize, kws['material']))
+                f.close()
         ilc.AddRColAngled(element, length, xsize, ysize, angle, **kws)
 
     elif element_type == 'WIRE':
