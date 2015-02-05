@@ -124,7 +124,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT, KEYWORD, VKICK, HKICK'
         print 'Given columns    : '
         print madx.columns
-        #return
+        return
         
     if verbose:
         print 'L       Column Index: ',lindex
@@ -186,7 +186,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         if name in aperturedict:
             #for now only 1 aperture - circular
             ap = (aperturedict[name],'m')
-            if ap[0] < 1e-4:
+            if ap[0] < 1e-6:
                 ap = (defaultbeampiperadius,'m')
             if t != 'RCOLLIMATOR':
                 kws['aper'] = ap
