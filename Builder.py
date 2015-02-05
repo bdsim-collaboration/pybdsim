@@ -564,7 +564,8 @@ def WriteLattice(machine, filename, verbose=False):
         files.append(fname)
         f.write(timestring)
         f.write('! pybdsim.Builder Lattice \n')
-        f.write('! COMPONENT DEFINITION\n\n')
+        #extra spaces added here to overcome wierd parser bug... seems to fix it
+        f.write('! COMPONENT DEFINITION                                      \n\n')
         for element in machine.elements[i*1000:i*1000+1000]:
             f.write(str(element))
         f.close()
