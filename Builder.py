@@ -200,6 +200,12 @@ class Machine:
             else:
                 self.elements.append(object)
                 self.elementsd[object.name] = object
+        else:
+            ws =  'WARNING: this element will not be appended to the machine as'
+            ws += '\n one with the same name already exists. Attempting to add'
+            ws += '\n object: '
+            print ws
+            print object
         #finally add it to the sequence
         self.sequence.append(object.name)
         self.length += object.length
