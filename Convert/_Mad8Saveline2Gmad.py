@@ -4,8 +4,8 @@ import pymad8.Saveline as _Saveline
 
 # pybdsim.Convert.Mad8Saveline2Gmad('../ebds.saveline', 'ilc.gmad', ignore_zero_length_items=False)
 
-def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=None, ignore_zero_length_items=True,
-    samplers='all', aperture_dict={}, collimator_dict={}, beam_pipe_radius=0.2, verbose=False, beam=True):
+def Mad8Saveline2Gmad(input, output_file_name, start_name=None, end_name=None, ignore_zero_length_items=True,
+    samplers='all', aperture_dict={}, collimator_dict="collimator.dat", beam_pipe_radius=0.2, verbose=False, beam=True):
     items_omitted = []  # Store any items that have been skipped over.
     fake_length = 1e-6
 
@@ -14,6 +14,10 @@ def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=Non
     else:
         mad8 = input
 
+    if type(collimator_dict) == str :
+        collimator_obj = Mad8SavelineCollimatorDatabase(collimator_dict)
+        collimator_dict = collimator_obj.GetDict()
+    
     ilc = _Builder.Machine()
 
     for element in mad8.elementList:
@@ -142,36 +146,30 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
     elif element_type == 'ECOLLIMATOR': # Need to check logic precedence here with Boog.
         if element in collimator_dict:
             kws['material'] = collimator_dict[element]['bdsim_material'] if 'bdsim_material' in collimator_dict else 'Copper'
-            ysize = collimator_dict[element]['YSIZE'] if 'YSIZE' in collimator_dict[element] else beam_pipe_radius
-            xsize = collimator_dict[element]['XSIZE'] if 'XSIZE' in collimator_dict[element] else beam_pipe_radius
-            angle = collimator_dict[element]['ANGLE'] if 'ANGLE' in collimator_dict[element] else 0.0
+            xsize = collimator_dict[element]['xsize'] if 'xsize' in collimator_dict[element] else beam_pipe_radius
+            ysize = collimator_dict[element]['ysize'] if 'ysize' in collimator_dict[element] else beam_pipe_radius
+#            angle = collimator_dict[element]['ANGLE'] if 'ANGLE' in collimator_dict[element] else 0.0
         else:
             kws['material'] = 'Copper'
-            xsize = element_properties['XSIZE'] if 'XSIZE' in element_properties else beam_pipe_radius
-            ysize = element_properties['YSIZE'] if 'YSIZE' in element_properties else beam_pipe_radius
-            angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
+            xsize = element_properties['xsize'] if 'xsize' in element_properties else beam_pipe_radius
+            ysize = element_properties['ysize'] if 'ysize' in element_properties else beam_pipe_radius
+#            angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
 
-            with open('collimators.dat', 'a') as f:
-                f.write('%s\t%s\t%s\t%s\t%s\t%s\n' % (element, angle, length, xsize, ysize, kws['material']))
-                f.close()
-
-        ilc.AddEColAngled(element, length, xsize, ysize, angle, **kws)
+        ilc.AddECol(element, length, xsize, ysize, **kws)
 
     elif element_type == 'RCOLLIMATOR':
         if element in collimator_dict:
             kws['material'] = collimator_dict[element]['bdsim_material'] if 'bdsim_material' in collimator_dict else 'Copper'
-            ysize = collimator_dict[element]['YSIZE'] if 'YSIZE' in collimator_dict[element] else beam_pipe_radius
-            xsize = collimator_dict[element]['XSIZE'] if 'XSIZE' in collimator_dict[element] else beam_pipe_radius
-            angle = collimator_dict[element]['ANGLE'] if 'ANGLE' in collimator_dict[element] else 0.0
+            xsize = collimator_dict[element]['xsize'] if 'xsize' in collimator_dict[element] else beam_pipe_radius
+            ysize = collimator_dict[element]['ysize'] if 'ysize' in collimator_dict[element] else beam_pipe_radius
+ #           angle = collimator_dict[element]['ANGLE'] if 'ANGLE' in collimator_dict[element] else 0.0
         else:
             kws['material'] = 'Copper'
-            xsize = element_properties['XSIZE'] if 'XSIZE' in element_properties else beam_pipe_radius
-            ysize = element_properties['YSIZE'] if 'YSIZE' in element_properties else beam_pipe_radius
-            angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
-            with open('collimators.dat', 'a') as f:
-                f.write('%s\t%s\t%s\t%s\t%s\t%s\n' % (element, angle, length, xsize, ysize, kws['material']))
-                f.close()
-        ilc.AddRColAngled(element, length, xsize, ysize, angle, **kws)
+            xsize = element_properties['xsize'] if 'xsize' in element_properties else beam_pipe_radius
+            ysize = element_properties['ysize'] if 'ysize' in element_properties else beam_pipe_radius
+#            angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
+
+        ilc.AddRCol(element, length, xsize, ysize, **kws)
 
     elif element_type == 'WIRE':
         if ignore_zero_length_items and zero_length:
@@ -214,3 +212,52 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
 
         ilc.AddRFCavity(element, length, gradient, **kws)
 
+
+class Mad8SavelineCollimatorDatabase: 
+    '''
+    Load collimator file into memory and functions to open and manipulate collimator system
+    c = Mad8CollimatorDataBase(fileName)
+    fileName = "collimator.dat"
+    file format
+    <name> <angle> <length> <x_size/2> <ysize/2> <material>
+    <length> includes the tapers, so entire length along machine 
+    '''
+
+    def __init__(self,collimatorFileName) :
+        self.collimatorFileName = collimatorFileName
+        self.LoadCollimatorDb(self.collimatorFileName) 
+        
+    def LoadCollimatorDb(self,collimatorFileName) : 
+        f = open(collimatorFileName) 
+
+        inx = 0 
+
+        self._coll = {}
+        for l in f : 
+            t = l.split()
+            name     = t[0]
+            angle    = float(t[1])
+            length   = float(t[2])
+            xsize    = float(t[3])
+            ysize    = float(t[4]) 
+            material = t[5]
+            inx = inx + 1 
+
+            d = {'index':inx, 'angle':angle, 'l':length, 'xsize':xsize,
+                 'ysize':ysize, 'bdsim_material':material}
+
+            self._coll[name] = d     
+        
+    def OpenCollimators(self,openHalfSizeX=0.1, openHalfSizeY=0.1) : 
+        for c in self._coll.keys() :
+            self._coll[c]['xsize'] = openHalfSizeX
+            self._coll[c]['ysize'] = openHalfSizeY
+    
+    def GetCollimators(self) : 
+        return self._coll.keys()
+
+    def GetCollimator(self, name) : 
+        return self._coll[name]
+
+    def GetDict(self) : 
+        return self._coll
