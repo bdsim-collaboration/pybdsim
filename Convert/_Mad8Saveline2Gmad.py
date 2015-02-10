@@ -2,7 +2,7 @@ from .. import Builder as _Builder
 from .. import Beam as _Beam
 import pymad8.Saveline as _Saveline
 
-# pybdsim.Convert.mad8_saveline_to_gmad('../ebds.saveline', 'ilc.gmad', ignore_zero_length_items=False)
+# pybdsim.Convert.Mad8Saveline2Gmad('../ebds.saveline', 'ilc.gmad', ignore_zero_length_items=False)
 
 def mad8_saveline_to_gmad(input, output_file_name, start_name=None, end_name=None, ignore_zero_length_items=True,
     samplers='all', aperture_dict={}, collimator_dict={}, beam_pipe_radius=0.2, verbose=False, beam=True):
