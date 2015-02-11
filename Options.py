@@ -108,7 +108,8 @@ class Options(dict):
             'hadronic_QGSP_BERT_muon',
             'hadronic_QGSP_BERT_HP_muon',
             'hadronic_FTFP_BERT',
-            'hadronic_FTFP_BERT_muon'
+            'hadronic_FTFP_BERT_muon',
+            'QGSP_BERT'
             ]
         if physicslist not in physicslistlist:
             raise ValueError('Unknown physicslist: '+physicslist)
