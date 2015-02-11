@@ -5,7 +5,8 @@ import pymad8.Saveline as _Saveline
 # pybdsim.Convert.Mad8Saveline2Gmad('../ebds.saveline', 'ilc.gmad', ignore_zero_length_items=False)
 
 def Mad8Saveline2Gmad(input, output_file_name, start_name=None, end_name=None, ignore_zero_length_items=True,
-    samplers='all', aperture_dict={}, collimator_dict="collimator.dat", beam_pipe_radius=0.2, verbose=False, beam=True):
+                      samplers='all', aperture_dict={}, collimator_dict="collimators.dat", beam_pipe_radius=0.2,
+                      verbose=False, beam=True, optics=True, loss=True):
     items_omitted = []  # Store any items that have been skipped over.
     fake_length = 1e-6
 
@@ -17,6 +18,11 @@ def Mad8Saveline2Gmad(input, output_file_name, start_name=None, end_name=None, i
     if type(collimator_dict) == str :
         collimator_obj = Mad8SavelineCollimatorDatabase(collimator_dict)
         collimator_dict = collimator_obj.GetDict()
+        xsize_dict = 'xsize'
+        ysize_dict = 'ysize'
+    else:  # Necessary as the dictionaries use different cases.
+        xsize_dict = 'XSIZE'
+        ysize_dict = 'YSIZE'
     
     ilc = _Builder.Machine()
 
@@ -35,7 +41,7 @@ def Mad8Saveline2Gmad(input, output_file_name, start_name=None, end_name=None, i
 
                 construct_sequence(ilc, name, sequence_element_type, sequence_element_properties, length,
                                    ignore_zero_length_items, items_omitted, zero_length, aperture_dict, collimator_dict,
-                                   beam_pipe_radius, verbose)
+                                   beam_pipe_radius, xsize_dict, ysize_dict, verbose)
 
     ilc.AddSampler(samplers)
 
@@ -53,12 +59,18 @@ def Mad8Saveline2Gmad(input, output_file_name, start_name=None, end_name=None, i
 
         ilc.AddBeam(beam)
 
+    if optics:
+        ilc.options.SetPhysicsList('QGSP_BERT')
+
+    if loss:
+        ilc.options.SetStopTracks(False)
+            
     ilc.options.SetNGenerate(1000)
     ilc.WriteLattice(output_file_name)
 
 
 def construct_sequence(ilc, element, element_type, element_properties, length, ignore_zero_length_items,
-                       items_omitted, zero_length, aperture_dict, collimator_dict, beam_pipe_radius, verbose):
+                       items_omitted, zero_length, aperture_dict, collimator_dict, beam_pipe_radius, xsize_dict, ysize_dict, verbose):
     kws = {}
     if element_type == 'DRIFT':
             ilc.AddDrift(element, length, **kws)
@@ -146,13 +158,13 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
     elif element_type == 'ECOLLIMATOR': # Need to check logic precedence here with Boog.
         if element in collimator_dict:
             kws['material'] = collimator_dict[element]['bdsim_material'] if 'bdsim_material' in collimator_dict else 'Copper'
-            xsize = collimator_dict[element]['xsize'] if 'xsize' in collimator_dict[element] else beam_pipe_radius
-            ysize = collimator_dict[element]['ysize'] if 'ysize' in collimator_dict[element] else beam_pipe_radius
+            xsize = collimator_dict[element][xsize_dict] if xsize_dict in collimator_dict[element] else beam_pipe_radius
+            ysize = collimator_dict[element][ysize_dict] if ysize_dict in collimator_dict[element] else beam_pipe_radius
 #            angle = collimator_dict[element]['ANGLE'] if 'ANGLE' in collimator_dict[element] else 0.0
         else:
             kws['material'] = 'Copper'
-            xsize = element_properties['xsize'] if 'xsize' in element_properties else beam_pipe_radius
-            ysize = element_properties['ysize'] if 'ysize' in element_properties else beam_pipe_radius
+            xsize = element_properties[xsize_dict] if xsize_dict in element_properties else beam_pipe_radius
+            ysize = element_properties[ysize_dict] if ysize_dict in element_properties else beam_pipe_radius
 #            angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
 
         ilc.AddECol(element, length, xsize, ysize, **kws)
@@ -160,13 +172,13 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
     elif element_type == 'RCOLLIMATOR':
         if element in collimator_dict:
             kws['material'] = collimator_dict[element]['bdsim_material'] if 'bdsim_material' in collimator_dict else 'Copper'
-            xsize = collimator_dict[element]['xsize'] if 'xsize' in collimator_dict[element] else beam_pipe_radius
-            ysize = collimator_dict[element]['ysize'] if 'ysize' in collimator_dict[element] else beam_pipe_radius
+            xsize = collimator_dict[element][xsize_dict] if xsize_dict in collimator_dict[element] else beam_pipe_radius
+            ysize = collimator_dict[element][ysize_dict] if ysize_dict in collimator_dict[element] else beam_pipe_radius
  #           angle = collimator_dict[element]['ANGLE'] if 'ANGLE' in collimator_dict[element] else 0.0
         else:
             kws['material'] = 'Copper'
-            xsize = element_properties['xsize'] if 'xsize' in element_properties else beam_pipe_radius
-            ysize = element_properties['ysize'] if 'ysize' in element_properties else beam_pipe_radius
+            xsize = element_properties[xsize_dict] if xsize_dict in element_properties else beam_pipe_radius
+            ysize = element_properties[ysize_dict] if ysize_dict in element_properties else beam_pipe_radius
 #            angle = element_properties['ANGLE'] if 'ANGLE' in element_properties else 0
 
         ilc.AddRCol(element, length, xsize, ysize, **kws)
