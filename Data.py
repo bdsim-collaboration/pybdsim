@@ -19,7 +19,7 @@ import _General
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
-    if "elosshist" in filepath:
+    if ("elosshist" in filepath) or (".hist" in filepath):
         return _LoadAsciiHistogram(filepath)
     elif "eloss" in filepath:
         return _LoadAscii(filepath)
@@ -73,16 +73,11 @@ def _LoadAsciiHistogram(filepath):
             names,units = _ParseHeaderLine(line)
             for name,unit in zip(names,units):
                 data._AddProperty(name,unit)
-        elif "underflow" in line:
-            print line
-            print line.strip().split()[1]
+        elif "nderflow" in line:
             data.underflow = float(line.strip().split()[1])
-        elif "overflow" in line:
-            print line
-            print line.strip().split()[1]
+        elif "verflow" in line:
             data.overflow  = float(line.strip().split()[1])
         elif i >= 4:
-            print line
             data.append(tuple(map(float,line.split())))
     f.close()
     return data
