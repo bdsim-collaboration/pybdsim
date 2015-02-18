@@ -162,3 +162,41 @@ class BDSAsciiData(list):
         a.extend([event for i,event in enumerate(self) if booleanarray[i]])
         return a
 
+    def NameFromNearestS(self,S):
+        i = self.IndexFromNearestS(S)
+        if not hasattr(self,"Name"):
+            raise ValueError("This file doesn't have the required column Name")
+        return self.Name()[i]
+    
+    def IndexFromNearestS(self,S) : 
+        """
+        IndexFromNearestS(S) 
+
+        return the index of the beamline element clostest to S 
+
+        Only works if "SStart" column exists in data
+        """
+        #check this particular instance has the required columns for this function
+        if not hasattr(self,"SStart"):
+            raise ValueError("This file doesn't have the required column SStart")
+        if not hasattr(self,"Arc_len"):
+            raise ValueError("This file doesn't have the required column Arc_len")
+        s = self.SStart()
+        l = self.Arc_len()
+
+        #iterate over beamline and record element if S is between the
+        #sposition of that element and then next one
+        #note madx S position is the end of the element by default
+        ci = [i for i in range(len(self)-1) if (S > s[i] and S < s[i]+l[i])]
+        try:
+            ci = ci[0] #return just the first match - should only be one
+        except IndexError:
+            #protect against S positions outside range of machine
+            if S > s[-1]:
+                ci =-1
+            else:
+                ci = 0
+        #check the absolute distance to each and return the closest one
+        #make robust against s positions outside machine range
+        return ci
+
