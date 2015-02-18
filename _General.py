@@ -8,6 +8,7 @@ General utilities for day to day housekeeping
 """
 
 import os
+import pybdsim.Data
 
 def CheckFileExists(filename):
     i = 1
@@ -49,3 +50,12 @@ def IsFloat(stringtotest):
         return True
     except ValueError:
         return False
+
+def _CheckItsBDSAsciiData(bfile):
+    if type(bfile) == str:
+        data = pybdsim.Data.Load(bfile)
+    elif type(bfile) == pybdsim.Data.BDSAsciiData:
+        data = bfile
+    else:
+        raise IOError("Not pybdsim.Data.BDSAsciiData file type: "+str(bfile))
+    return data
