@@ -44,13 +44,21 @@ def JoinRootHistograms(inputdir="./",outputfilename="output.root"):
     if len(files) > 1:
         for filename in files[1:]:
             f = TFile(filename)
-            eloss += TH1F(f.Get("ElossHisto"))
-            phits += TH1F(f.Get("PhitsHisto"))
-            ploss += TH1F(f.Get("PlossHisto"))
+            elosstmp = f.Get("ElossHisto")
+            phitstmp = f.Get("PhitsHisto")
+            plosstmp = f.Get("PlossHisto")
             if hasextra:
-                elosspe += TH1F(f.Get("ElossPEHisto"))
-                phitspe += TH1F(f.Get("PhitsPEHisto"))
-                plosspe += TH1F(f.Get("PlossPEHisto"))
+                elosspetmp = f.Get("ElossPEHisto")
+                phitspetmp = f.Get("PhitsPEHisto")
+                plosspetmp = f.Get("PlossPEHisto")
+
+            eloss += elosstmp
+            phits += phitstmp
+            ploss += plosstmp
+            if hasextra:
+                elosspe += elosspetmp
+                phitspe += phitspetmp
+                plosspe += plosspetmp
             f.Close()
 
     print "Analysed all files"
