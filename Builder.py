@@ -315,7 +315,7 @@ class Machine:
         #self.AddDrift(name,length)
         self.Append(Element(name,'vkick', l=length, angle=angle, **kwargs))
 
-    def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=1.0,**kwargs):
+    def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=0.2,**kwargs):
         """
         AddFodoCell(basename,magnetlength,driftlength,kabs,**kwargs)
         basename     - the basename for the fodo cell beam line elements
@@ -335,7 +335,7 @@ class Machine:
             )
         self.Append(Line(basename,items))
 
-    def AddFodoCellSplitDrift(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0,nsplits=10, **kwargs):
+    def AddFodoCellSplitDrift(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=0.2,nsplits=10, **kwargs):
         """
         AddFodoCellSplitDrift(basename,magnetlength,driftlength,kabs,nsplits,**kwargs)
         basename - the basename for the fodo cell beam line elements
@@ -363,14 +363,14 @@ class Machine:
             self.Append(Element(basename+'_d'+str(i).zfill(maxn),'drift',l=splitdriftlength))
         self.Append(Element(basename+'_qfb','quadrupole',l=magnetlength/2.0,k1=kabs,**kwargs))
 
-    def AddFodoCellMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0, ncells=2, **kwargs):
+    def AddFodoCellMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=0.2, ncells=2, **kwargs):
         ncells = int(ncells)
         maxn   = int(len(str(ncells)))
         for i in range(ncells):
             cellname = basename+'_'+str(i).zfill(maxn)
             self.AddFodoCell(cellname,magnetlength,driftlength,kabs,**kwargs)
 
-    def AddFodoCellSplitDriftMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0, nsplits=10, ncells=2, **kwargs):
+    def AddFodoCellSplitDriftMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=0.2, nsplits=10, ncells=2, **kwargs):
         ncells = int(ncells)
         maxn   = int(len(str(ncells)))
         for i in range(ncells):
