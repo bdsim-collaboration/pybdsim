@@ -26,5 +26,15 @@ class Mad8Bdsim :
         _pl.ylabel("$\\sigma_y$")
         _pl.xlabel("$S$ [m]")
     
-    def plotTwiss(self) : 
+    def plotBeta(self) : 
+        _pl.subplot(2,1,1)
+        _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Twiss.getColumn('betx'))*1e6,"+-")
+        _pl.plot(self.bdsimData.S(),_pl.sqrt(self.bdsimData.Beta_x()),"+--")
+        _pl.ylabel("$\\beta_x$")
+
+        _pl.subplot(2,1,2)
+        _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Twiss.getColumn('bety'))*1e6,"+-")
+        _pl.plot(self.bdsimData.S(),_pl.sqrt(self.bdsimData.Beta_y()),"+--")
+        _pl.ylabel("$\\beta_y$")
+        _pl.xlabel("$S$ [m]")
         pass
