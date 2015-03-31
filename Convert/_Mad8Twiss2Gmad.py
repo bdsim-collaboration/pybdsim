@@ -138,7 +138,7 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     alfx = t.data[istart][t.keys['alfx']]
     alfy = t.data[istart][t.keys['alfy']]
 
-    beam = Beam.Beam(particle,energy,'gausstwiss')
+    beam = Beam(particle,energy,'gausstwiss')
     beam.SetBetaX(betx)
     beam.SetBetaY(bety)
     beam.SetAlphaX(alfx)
