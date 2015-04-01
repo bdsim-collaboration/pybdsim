@@ -27,6 +27,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
     # create machine instance 
     a = Builder.Machine()    
 
+    # create name dictionary 
+    nameDict = {}    
+
     # create beam 
     if beam : 
         E = c.data[istart][c.keys['drif']['E']] 
@@ -45,89 +48,113 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
         # print element
 #        print i,c.name[i],c.type[i]
 
+        # check name dictionary 
+        try : 
+            eCount = nameDict[c.name[i]]
+        except KeyError : 
+            nameDict[c.name[i]] = 0
+            eCount = nameDict[c.name[i]]
+
+#        print c.name[i]+'_'+str(eCount)
+
         if c.type[i] == '' : 
-            a.AddMarker(c.name[i])
+            a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'DRIF' : 
-            a.AddDrift(c.name[i],length=c.data[i][c.keys['drif']['l']])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['drif']['l']])
         elif c.type[i] == 'MARK' : 
-            a.AddMarker(c.name[i]) 
+            a.AddMarker(c.name[i]+'_'+str(eCount)) 
         elif c.type[i] == 'SOLE' : 
-            a.AddMarker(c.name[i])
+            a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'INST' : 
-            a.AddMarker(c.name[i]) 
+            a.AddMarker(c.name[i]+'_'+str(eCount)) 
         elif c.type[i] == 'MONI' : 
-            a.AddMarker(c.name[i])
+            a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'IMON' :
-            a.AddMarker(c.name[i])
+            a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'BLMO' : 
-            a.AddMarker(c.name[i])
+            a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'WIRE' :
-            a.AddMarker(c.name[i])
+            a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'QUAD' : 
             if c.data[i][c.keys['quad']['l']] < 1e-7 : 
-                a.AddMarker(c.name[i])
+                a.AddMarker(c.name[i]+'_'+str(eCount))
             else : 
-                a.AddQuadrupole(c.name[i],
+                a.AddQuadrupole(c.name[i]+'_'+str(eCount),
                                 k1     = c.data[i][c.keys['quad']['k1']],
                                 length = c.data[i][c.keys['quad']['l']],
                                 tilt   = c.data[i][c.keys['quad']['tilt']])
+        elif c.type[i] == 'SEXT' : 
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['sextupole']['l']])
+        elif c.type[i] == 'OCTU' : 
+            if c.data[i][c.keys['octupole']['l']] > 1e-7 : 
+                a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['octupole']['l']])
+            else : 
+                a.AddMarker(c.name[i]+'_'+str(eCount))
+        elif c.type[i] == 'MULT' : 
+                a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'HKIC' : 
-            a.AddDrift(c.name[i],length=c.data[i][c.keys['hkic']['l']])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['hkic']['l']])
         elif c.type[i] == 'VKIC' : 
-            a.AddDrift(c.name[i],length=c.data[i][c.keys['vkic']['l']])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['vkic']['l']])
         elif c.type[i] == 'SBEN' : 
             if c.data[i][c.keys['sben']['l']] < 1e-7 : 
-                a.AddMarker(c.name[i])
+                a.AddMarker(c.name[i]+'_'+str(eCount))
             else : 
-                a.AddDipole(c.name[i],'sbend',
+                a.AddDipole(c.name[i]+'_'+str(eCount),'sbend',
                             length=c.data[i][c.keys['sben']['l']], 
                             angle =c.data[i][c.keys['sben']['angle']])
         elif c.type[i] == 'LCAV' : 
             length   = c.data[i][c.keys['rfcavity']['l']]
             deltaE   = (c.data[i][c.keys['rfcavity']['E']]-c.data[i-1][c.keys['rfcavity']['E']])*1000 # MeV 
             gradient = deltaE/length
-            a.AddRFCavity(c.name[i],length=length, gradient=-gradient)            
+            a.AddRFCavity(c.name[i]+'_'+str(eCount),length=length, gradient=-gradient)            
         elif c.type[i] == 'ECOL' : 
             if collimator == None : 
-                if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
-                    a.AddECol(c.name[i], 
-                              length  = c.data[i][c.keys['rcol']['l']], 
-                              xsize   = c.data[i][c.keys['rcol']['xsize']], 
-                              ysize   = c.data[i][c.keys['rcol']['ysize']],
+                if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
+                    a.AddECol(c.name[i]+'_'+str(eCount), 
+                              length  = c.data[i][c.keys['ecol']['l']], 
+                              xsize   = c.data[i][c.keys['ecol']['xsize']], 
+                              ysize   = c.data[i][c.keys['ecol']['ysize']],
                               material= 'Copper')                    
                 else : 
-                    a.AddMarker(c.name[i])
+                    a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['ecol']['l']])
             else : 
                 # make collimator from file
-                if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
-                    a.AddECol(c.name[i], 
+                if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['ecol']['ysize']]) != 0 : 
+                    a.AddECol(c.name[i]+'_'+str(eCount), 
                               length  = c.data[i][c.keys['rcol']['l']], 
                               xsize   = collimator.GetCollimator(c.name[i])['xsize'], 
                               ysize   = collimator.GetCollimator(c.name[i])['ysize'],
                               material= collimator.GetCollimator(c.name[i])['bdsim_material'])                  
                 else : 
-                    a.AddMarker(c.name[i])
+                    a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['ecol']['l']])
 
         elif c.type[i] == 'RCOL' : 
             if collimator == None : 
                 if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
-                    a.AddRCol(c.name[i], 
+                    a.AddRCol(c.name[i]+'_'+str(eCount), 
                               length  = c.data[i][c.keys['rcol']['l']], 
                               xsize   = c.data[i][c.keys['rcol']['xsize']], 
                               ysize   = c.data[i][c.keys['rcol']['ysize']],
                               material= 'Copper')            
                 else : 
-                    a.AddMarker(c.name[i])
+                    a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['rcol']['l']])
             else : 
                 # make collimator from file
                 if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
-                    a.AddRCol(c.name[i], 
+                    a.AddRCol(c.name[i]+'_'+str(eCount),
                               length  = c.data[i][c.keys['rcol']['l']], 
                               xsize   = collimator.GetCollimator(c.name[i])['xsize'], 
                               ysize   = collimator.GetCollimator(c.name[i])['ysize'],
                               material= collimator.GetCollimator(c.name[i])['bdsim_material'])           
                 else : 
-                    a.AddMarker(c.name[i])
+                    a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['rcol']['l']])
+
+        else :
+            print c.type[i]
+
+        nameDict[c.name[i]] += 1 
+
     a.AddSampler(samplers)
     a.WriteLattice(outputFileName)
 
@@ -146,14 +173,27 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     
     return beam
 
-def Mad8MakeCollimatorTemplate(inputFileName,outputFileName) : 
+def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator.dat") : 
     '''
     Read Twiss file and generate template of collimator file 
     inputFileName  = "twiss.tape"
     outputFileName = "collimator.dat"
     collimator.dat must be edited to provide types and materials, apertures will be defined from lattice   
     '''
-    pass
+    # open mad output
+    o = pymad8.Mad8.OutputReader()
+    c, t = o.readFile(inputFileName,'twiss')
+
+    # open collimator output file
+    f = open(outputFileName,"w") 
+
+    for i in range(0,len(c.name),1) : 
+        if c.type[i] == 'RCOL' :
+            f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['rcol']['l']])+"\t"+str(c.data[i][c.keys['rcol']['xsize']])+"\t"+str(c.data[i][c.keys['rcol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\n")
+        if c.type[i] == 'ECOL' : 
+            f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['ecol']['l']])+"\t"+str(c.data[i][c.keys['ecol']['xsize']])+"\t"+str(c.data[i][c.keys['ecol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\n")
+    f.close()
+        
 
 
 class Mad8CollimatorDatabase: 

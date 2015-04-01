@@ -17,23 +17,23 @@ class Mad8Bdsim :
     def plotSigma(self) : 
         _pl.subplot(2,1,1)
         _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Envel.getColumn('s11'))*1e6,"+-")
-        _pl.plot(self.bdsimData.S(),self.bdsimData.Sigma_x(),"+--")
+        _pl.plot(self.bdsimData.S(),self.bdsimData.Sigma_x(),"x--")
         _pl.ylabel("$\\sigma_x$")
 
         _pl.subplot(2,1,2)
         _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Envel.getColumn('s33'))*1e6,"+-")
-        _pl.plot(self.bdsimData.S(),self.bdsimData.Sigma_y(),"+--")
+        _pl.plot(self.bdsimData.S(),self.bdsimData.Sigma_y(),"x--")
         _pl.ylabel("$\\sigma_y$")
         _pl.xlabel("$S$ [m]")
     
     def plotBeta(self) : 
         _pl.subplot(2,1,1)
-        _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Twiss.getColumn('betx'))*1e6,"+-")
+        _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Twiss.getColumn('betx')),"+-")
         _pl.plot(self.bdsimData.S(),_pl.sqrt(self.bdsimData.Beta_x()),"+--")
         _pl.ylabel("$\\beta_x$")
 
         _pl.subplot(2,1,2)
-        _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Twiss.getColumn('bety'))*1e6,"+-")
+        _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Twiss.getColumn('bety')),"+-")
         _pl.plot(self.bdsimData.S(),_pl.sqrt(self.bdsimData.Beta_y()),"+--")
         _pl.ylabel("$\\beta_y$")
         _pl.xlabel("$S$ [m]")
