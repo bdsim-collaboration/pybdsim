@@ -474,13 +474,13 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
 def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, samplers='all',**kwargs):
     """
     Create a FODO lattice with ncells.
-
+    
     ncells       - number of fodo cells
     driftlength  - length of drift segment in between magnets
     magnetlength - length of quadrupoles
     samplers     - 'all','first' or 'last'
-    **kwargs     - kwargs to supply to quadrupole constructor
-
+    \*\*kwargs     - kwargs to supply to quadrupole constructor
+    
     """
     ncells = int(ncells)
     a      = Machine()
@@ -516,9 +516,9 @@ def WriteLattice(machine, filename, verbose=False):
     filename_options.gmad    - options (TO BE IMPLEMENTED)
     filename.gmad            - suitable main file with all sub 
                                files in correct order
-
+    
     these are prefixed with the specified filename / path
-
+    
     """
     
     if not isinstance(machine,Machine):
