@@ -24,6 +24,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
     if type(collimator) == str : 
         collimator = Mad8CollimatorDatabase(collimator) 
 
+    print collimator
     # create machine instance 
     a = Builder.Machine()    
 
@@ -108,8 +109,11 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
             deltaE   = (c.data[i][c.keys['rfcavity']['E']]-c.data[i-1][c.keys['rfcavity']['E']])*1000 # MeV 
             gradient = deltaE/length
             a.AddRFCavity(c.name[i]+'_'+str(eCount),length=length, gradient=-gradient)            
-        elif c.type[i] == 'ECOL' : 
+        elif c.type[i] == 'ECOL' :
+            print c.name[i],'ECOL' 
             if collimator == None : 
+                print 'Adding from mad8 file'
+                print c.data[i][c.keys['ecol']['xsize']],c.data[i][c.keys['ecol']['ysize']]
                 if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                     a.AddECol(c.name[i]+'_'+str(eCount), 
                               length  = c.data[i][c.keys['ecol']['l']], 
@@ -120,17 +124,21 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                     a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['ecol']['l']])
             else : 
                 # make collimator from file
-                if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['ecol']['ysize']]) != 0 : 
+                print 'Adding from collimator file'
+                if (collimator.getCollimator(c.name[i])['xsize'] != 0) and (collimator.getCollimator(c.name[i])['xsize'] != 0) : 
                     a.AddECol(c.name[i]+'_'+str(eCount), 
                               length  = c.data[i][c.keys['rcol']['l']], 
-                              xsize   = collimator.GetCollimator(c.name[i])['xsize'], 
-                              ysize   = collimator.GetCollimator(c.name[i])['ysize'],
-                              material= collimator.GetCollimator(c.name[i])['bdsim_material'])                  
+                              xsize   = collimator.getCollimator(c.name[i])['xsize'], 
+                              ysize   = collimator.getCollimator(c.name[i])['ysize'],
+                              material= collimator.getCollimator(c.name[i])['bdsim_material'])                  
                 else : 
                     a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['ecol']['l']])
 
-        elif c.type[i] == 'RCOL' : 
+        elif c.type[i] == 'RCOL' :
+            print c.name[i],'RCOL'
             if collimator == None : 
+                print 'Adding from mad8 file'
+                print c.data[i][c.keys['rcol']['xsize']],c.data[i][c.keys['rcol']['ysize']]
                 if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                     a.AddRCol(c.name[i]+'_'+str(eCount), 
                               length  = c.data[i][c.keys['rcol']['l']], 
@@ -141,12 +149,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                     a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['rcol']['l']])
             else : 
                 # make collimator from file
-                if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
+                if (collimator.getCollimator(c.name[i])['xsize'] != 0) and (collimator.getCollimator(c.name[i])['ysize'] != 0) : 
+                    print 'Adding from collimator file'
                     a.AddRCol(c.name[i]+'_'+str(eCount),
                               length  = c.data[i][c.keys['rcol']['l']], 
-                              xsize   = collimator.GetCollimator(c.name[i])['xsize'], 
-                              ysize   = collimator.GetCollimator(c.name[i])['ysize'],
-                              material= collimator.GetCollimator(c.name[i])['bdsim_material'])           
+                              xsize   = collimator.getCollimator(c.name[i])['xsize'], 
+                              ysize   = collimator.getCollimator(c.name[i])['ysize'],
+                              material= collimator.getCollimator(c.name[i])['bdsim_material'])           
                 else : 
                     a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['rcol']['l']])
 
@@ -173,7 +182,7 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     
     return beam
 
-def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator.dat") : 
+def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator_template.dat") : 
     '''
     Read Twiss file and generate template of collimator file 
     inputFileName  = "twiss.tape"
@@ -189,9 +198,9 @@ def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator.dat") :
 
     for i in range(0,len(c.name),1) : 
         if c.type[i] == 'RCOL' :
-            f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['rcol']['l']])+"\t"+str(c.data[i][c.keys['rcol']['xsize']])+"\t"+str(c.data[i][c.keys['rcol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\n")
+            f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['rcol']['l']])+"\t"+str(c.data[i][c.keys['rcol']['xsize']])+"\t"+str(c.data[i][c.keys['rcol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\t"+"SIGMA"+"\n")
         if c.type[i] == 'ECOL' : 
-            f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['ecol']['l']])+"\t"+str(c.data[i][c.keys['ecol']['xsize']])+"\t"+str(c.data[i][c.keys['ecol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\n")
+            f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['ecol']['l']])+"\t"+str(c.data[i][c.keys['ecol']['xsize']])+"\t"+str(c.data[i][c.keys['ecol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\t"+"SIGMA"+"\n")
     f.close()
         
 
@@ -208,43 +217,63 @@ class Mad8CollimatorDatabase:
 
     def __init__(self,collimatorFileName) :
         self.collimatorFileName = collimatorFileName
-        self.LoadCollimatorDb(self.collimatorFileName) 
+        self.loadCollimatorDb(self.collimatorFileName) 
         
-    def LoadCollimatorDb(self,collimatorFileName) : 
+    def loadCollimatorDb(self,collimatorFileName) : 
         f = open(collimatorFileName) 
 
         inx = 0 
 
         self._coll = {}
+        self._collNames = []
         for l in f : 
             t = l.split()
-            name     = t[0]
+            name     = t[0]            
             type     = t[1]
             length   = float(t[2])
             xsize    = float(t[3])
             ysize    = float(t[4]) 
             material = t[5]
             geom     = t[6]
+            setting = t[7]
             inx = inx + 1 
 
             d = {'index':inx, 'type':type, 'l':length, 'xsize':xsize,
-                 'ysize':ysize, 'bdsim_material':material, 'bdsim_geom':geom}
+                 'ysize':ysize, 'bdsim_material':material, 'bdsim_geom':geom, 'setting':setting}
 
             self._coll[name] = d     
-        
-    def OpenCollimators(self,openHalfSizeX=0.1, openHalfSizeY=0.1) : 
+            self._collNames.append(name)
+
+    def openCollimators(self,openHalfSizeX=0.1, openHalfSizeY=0.1) : 
         for c in self._coll.keys() :
             self._coll[c]['xsize'] = openHalfSizeX
             self._coll[c]['ysize'] = openHalfSizeY
-    
-    def GetCollimators(self) : 
-        return self._coll.keys()
 
-    def GetCollimator(self, name) : 
+    def setCollimator(self,collimator,halfSizeX,halfSizeY) : 
+        self._coll[collimator]['xsize'] = halfSizeX
+        self._coll[collimator]['ysize'] = halfSizeY
+    
+    def getCollimators(self) : 
+#        return self._coll.keys()
+        return self._collNames
+
+    def getCollimator(self, name) : 
         return self._coll[name]
 
-    def GetDict(self) : 
+    def getDict(self) : 
         return self._coll
+
+    def __str__(self) : 
+        s = ''
+        for k in self.getCollimators() : 
+            s += k+"\t"+self._coll[k]['type']+"\t"+str(self._coll[k]['l'])+"\t"+str(self._coll[k]['xsize'])+"\t"+str(self._coll[k]['ysize'])+"\t"+self._coll[k]['bdsim_material']+"\t"+self._coll[k]['bdsim_geom']+"\t"+self._coll[k]['setting']+"\n"
+        return s
+
+    def write(self,fileName) : 
+        f = open(fileName,"w")
+        
+        for k in self.getCollimators() : 
+            f.write(k+"\t"+self._coll[k]['type']+"\t"+str(self._coll[k]['l'])+"\t"+str(self._coll[k]['xsize'])+"\t"+str(self._coll[k]['ysize'])+"\t"+self._coll[k]['bdsim_material']+"\t"+self._coll[k]['bdsim_geom']+"\t"+self._coll[k]['setting']+"\n")
         
 def main() : 
     usage = "usage : %prog [inputFileName]" 
