@@ -7,7 +7,7 @@ import pymad8
 from .. import Builder
 from .. import Beam
 
-def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(1e-10,1e-10), collimator=None, samplers='all') :         
+def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(1e-10,1e-10), collimator="collimator.dat", apertures="apertures.dat",samplers='all') :         
 
     # open mad output
     o = pymad8.Mad8.OutputReader()
@@ -23,6 +23,10 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
     # load Collimator db or use instance
     if type(collimator) == str : 
         collimator = Mad8CollimatorDatabase(collimator) 
+
+    # load Aperture db or use instance
+    if type(apertures) == str : 
+        apertures = Mad8ApertureDatabase(apertures) 
 
     print collimator
     # create machine instance 
@@ -61,7 +65,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
         if c.type[i] == '' : 
             a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'DRIF' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['drif']['l']])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['drif']['l']], aper1=apertures.aper[i])
         elif c.type[i] == 'MARK' : 
             a.AddMarker(c.name[i]+'_'+str(eCount)) 
         elif c.type[i] == 'SOLE' : 
@@ -83,32 +87,34 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                 a.AddQuadrupole(c.name[i]+'_'+str(eCount),
                                 k1     = c.data[i][c.keys['quad']['k1']],
                                 length = c.data[i][c.keys['quad']['l']],
-                                tilt   = c.data[i][c.keys['quad']['tilt']])
+                                tilt   = c.data[i][c.keys['quad']['tilt']],
+                                aper1  = apertures.aper[i])
         elif c.type[i] == 'SEXT' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['sextupole']['l']])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['sextupole']['l']],aper1=apertures.aper[i])
         elif c.type[i] == 'OCTU' : 
             if c.data[i][c.keys['octupole']['l']] > 1e-7 : 
-                a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['octupole']['l']])
+                a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['octupole']['l']],aper1=apertures.aper[i])
             else : 
                 a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'MULT' : 
                 a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'HKIC' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['hkic']['l']])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['hkic']['l']],aper1=apertures.aper[i])
         elif c.type[i] == 'VKIC' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['vkic']['l']])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['vkic']['l']],aper1=apertures.aper[i])
         elif c.type[i] == 'SBEN' : 
             if c.data[i][c.keys['sben']['l']] < 1e-7 : 
                 a.AddMarker(c.name[i]+'_'+str(eCount))
             else : 
                 a.AddDipole(c.name[i]+'_'+str(eCount),'sbend',
                             length=c.data[i][c.keys['sben']['l']], 
-                            angle =c.data[i][c.keys['sben']['angle']])
+                            angle =c.data[i][c.keys['sben']['angle']],
+                            aper=apertures.aper[i])
         elif c.type[i] == 'LCAV' : 
             length   = c.data[i][c.keys['rfcavity']['l']]
             deltaE   = (c.data[i][c.keys['rfcavity']['E']]-c.data[i-1][c.keys['rfcavity']['E']])*1000 # MeV 
             gradient = deltaE/length
-            a.AddRFCavity(c.name[i]+'_'+str(eCount),length=length, gradient=-gradient)            
+            a.AddRFCavity(c.name[i]+'_'+str(eCount),length=length, gradient=-gradient,aper1=apertures.aper[i])            
         elif c.type[i] == 'ECOL' :
             print c.name[i],'ECOL' 
             if collimator == None : 
@@ -182,6 +188,19 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     
     return beam
 
+def Mad8MakeApertures(inputFileName, outputFileName="apertures.dat") : 
+    # open mad output
+    o = pymad8.Mad8.OutputReader()
+    c, t = o.readFile(inputFileName,'twiss')
+    a = c.getApertures(raw=False)
+
+    # write apertures to file
+    f = open(outputFileName,"w")     
+
+    for i in range(0,len(c.name),1) : 
+        f.write(c.name[i]+' '+str(a[i])+'\n');
+    f.close()
+
 def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator_template.dat") : 
     '''
     Read Twiss file and generate template of collimator file 
@@ -203,6 +222,22 @@ def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator_template
             f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['ecol']['l']])+"\t"+str(c.data[i][c.keys['ecol']['xsize']])+"\t"+str(c.data[i][c.keys['ecol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\t"+"SIGMA"+"\n")
     f.close()
         
+
+class Mad8ApertureDatabase: 
+    def __init__(self,apertureFileName) : 
+        self.apertureFileName = apertureFileName
+        self.loadApertures(self.apertureFileName) 
+
+    def loadApertures(self,fileName) :
+        f = open(fileName)
+        self.name = [] 
+        self.aper = [] 
+        for l in f : 
+            t = l.split() 
+            self.name.append(t[0])
+            self.aper.append(float(t[1]))
+
+            
 
 
 class Mad8CollimatorDatabase: 

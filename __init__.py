@@ -36,6 +36,7 @@ import Gmad
 import Options
 import Plot
 import ModelProcessing
+import Visualisation
 
 #import Root
 
