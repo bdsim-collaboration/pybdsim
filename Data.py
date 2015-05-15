@@ -16,7 +16,6 @@ Data - read various output files
 import numpy as _np
 import Constants as _Constants
 import _General
-from Joinhistograms import JoinRootHistograms
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
