@@ -388,7 +388,7 @@ def MadxTfs2GmadBeam(tfs,startname=None):
     elif type(startname) == int:
         startindex = startname
     else:
-        startindex = madx.IndexFromName(startname)
+        startindex = tfs.IndexFromName(startname)
     
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])
