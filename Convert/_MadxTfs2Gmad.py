@@ -169,18 +169,18 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                 aperY = madx.GetRowDict(name)['APER_2']
                 if (aperX > 1e-6) and (aperY > 1e-6):
                     #both apertures must be specified for elliptical
-                    kws['aperX'] = aperX #make sure it's non zero
-                    kws['aperY'] = aperY 
+                    kws['aper1'] = aperX #make sure it's non zero
+                    kws['aper2'] = aperY 
                 elif (aperX > 1e-6):
                     #resort to circular
-                    kws['aper'] = aperX #make sure it's non zero
+                    kws['aper1'] = aperX #make sure it's non zero
                 else:
                     pass
             elif 'APER_1' in madx.columns:
                 #circular aperture
                 aper = madx.GetRowDict(name)['APER_1']
                 if aper > 1e-6:
-                    kws['aper'] = aper #make sure it's non zero
+                    kws['aper1'] = aper #make sure it's non zero
 
         # check if aperture info in aperture dict
         if name in aperturedict:
