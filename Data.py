@@ -130,8 +130,8 @@ class BDSAsciiData(list):
         This is used to filter the instance of the class based on matching
         a parameter withing a certain tolerance.
 
-        a = pybdsim.Data.Load("myfile.txt")
-        MatchValue("S",0.3,0.0004)
+        >>> a = pybdsim.Data.Load("myfile.txt")
+        >>> a.MatchValue("S",0.3,0.0004)
         
         this will match the "S" variable in instance "a" to the value of 0.3
         within +- 0.0004.

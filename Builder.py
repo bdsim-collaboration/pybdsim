@@ -53,9 +53,11 @@ bdsimcategories = [
 
 class Element(dict):
     """
-    Element - a beam element class - inherits dict
+    Element - a beam element class that inherits dict
 
     Element(name,type,**kwargs)
+
+    >>> a = Element("drift1", "drift", "l"=1.3)
     
     A beam line element must ALWAYs have a name, and type.
     The keyword arguments are specific to the type and are up to
@@ -115,6 +117,19 @@ class Element(dict):
         return s
 
 class Line(list):
+    """
+    A class that represents a :class:`list` of :class:`Elements`
+
+    Provides ability to print out the sequence or define all 
+    the components.
+
+    Example:
+
+    >>> d1 = Element("drift1", "drift", l=1.3)
+    >>> q1 = Element("q1", "quadrupole", l=0.4, k1=4.5)
+    >>> a = Line([d1,q1])
+
+    """
     def __init__(self,name,*args):
         for item in args[0]:
             if type(item) != Element:
@@ -134,12 +149,29 @@ class Line(list):
         return s
 
     def DefineConstituentElements(self):
+        """
+        Return a string that contains the lines required
+        to define each element in the :class:`Line`.
+
+        Example using predefined Elements name 'd1' and 'q1':
+
+        >>> l = Line([d1,q1])
+        >>> f = open("file.txt", "w")
+        >>> f.write(DefineConsituentElements())
+        >>> f.write(l)
+        >>> f.close()
+        """
         s = ''
         for item in self:
             s += str(item) #uses elements __repr__ function
         return s
 
 class Sampler:
+    """
+    A sampler is unique in that it does not have a length unlike every
+    :class:`Element` hence it needs its own class to produce its 
+    representation.
+    """
     def __init__(self,name):
         self.name = name
 
@@ -147,6 +179,21 @@ class Sampler:
         return 'sample, range='+self.name+';\n'
 
 class Machine:
+    """
+    A class represents an acceleartor lattice as a sequence of 
+    components. Member functions allow various lattice components
+    to be append to the sequence of the machine. This class allows
+    the user to programatically create a lattice and write the 
+    BDSIM gmad representation of it.
+
+    Example:
+    
+    >>> a = Machine()
+    >>> a.AddDrift('mydrift', l=1.3)
+    >>> a.WriteLattice("lattice.gmad")
+    
+    
+    """
     def __init__(self,verbose=False):
         self.verbose   = verbose
         self.sequence  = []
