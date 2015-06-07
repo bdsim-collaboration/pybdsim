@@ -7,26 +7,26 @@
 """
 pybdsim - python tools for bdsim
 
-dependencies:
-package     - minimum version required
-numpy       - 1.7.1
-matplotlib  - 1.3.0
+| Dependencies:
+| package     - minimum version required
+| numpy       - 1.7.1
+| matplotlib  - 1.3.0
 
-Modules:
-Builder - create generic accelerators for bdsim
-Convert - convert other formats into gmad
-Data    - read the bdsim output formats
-Gmad    - create bdsim input files - lattices & options
-Options - methods to generate bdsim options
-Plot    - some nice plots for data
+| Modules:
+| Builder - create generic accelerators for bdsim
+| Convert - convert other formats into gmad
+| Data    - read the bdsim output formats
+| Gmad    - create bdsim input files - lattices & options
+| Options - methods to generate bdsim options
+| Plot    - some nice plots for data
 
-Classes:
-Analysis - encapsulates functions & plots for a single file
-Beam     - a beam options dictionary with methods
+| Classes:
+| Analysis - encapsulates functions & plots for a single file
+| Beam     - a beam options dictionary with methods
 
 """
 
-from Beam import Beam
+import Beam
 import Builder
 import Constants
 import Convert
