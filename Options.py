@@ -8,7 +8,7 @@ def ProtonColliderOptions():
     a = Options()
     a.SetPhysicsList('hadronic_standard')
     a.SetBeamPipeThickness(5,'mm')
-    a.SetBoxSize(1,'m')
+    a.SetOuterDiameter(1,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
     
@@ -34,7 +34,7 @@ def ElectronColliderOptions():
     a = Options()
     a.SetPhysicsList('em_standard')
     a.SetBeamPipeThickness(5,'mm')
-    a.SetBoxSize(1,'m')
+    a.SetOuterDiameter(1,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
     
@@ -60,7 +60,7 @@ def MinimumStandard():
     a = Options()
     a.SetPhysicsList('standard')
     a.SetBeamPipeThickness(5,'mm')
-    a.SetBoxSize(1,'m')
+    a.SetOuterDiameter(1,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
     a.SetBeamPipeRadius(5,'cm')
@@ -69,16 +69,7 @@ def MinimumStandard():
 class Options(dict):
     def __init__(self,*args,**kwargs):
         dict.__init__(self,*args,**kwargs)
-
-    def PrintMandatoryOptions(self):
-        print 'BDSIM Mandatory options:\n'
-        print 'ngenerate'
-        print 'physicsList'
-        print 'beampipeRadius'
-        print 'boxSize'
-        print 'tunnelRadius'
-        print '\nThese must be set to run a valid simulation'
-
+        
     def ReturnOptionsString(self):
         s = ''
         for k,v in self.iteritems():
@@ -117,8 +108,8 @@ class Options(dict):
     def SetBeamPipeRadius(self,beampiperadius=5,unitsstring='cm'):
         self['beampipeRadius'] = str(beampiperadius) + '*' +unitsstring
 
-    def SetBoxSize(self,boxsize=2,unitsstring='m'):
-        self['boxSize'] = str(boxsize) + '*' + unitsstring
+    def SetOuterDiameter(self,outerdiameter=2,unitsstring='m'):
+        self['outerDiameter'] = str(outerdiameter) + '*' + unitsstring
 
     def SetTunnelRadius(self,tunnelradius=2,unitsstring='m'):
         self['tunnelRadius'] = str(tunnelradius) + '*' + unitsstring
