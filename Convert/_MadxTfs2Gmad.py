@@ -349,7 +349,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             a.AddDrift(rname,l,**kws)
         elif t == 'VKICKER':
             kickangle = madx.data[name][vkickangleindex]
-            a.VKicker(rname,l,angle=kickangle,**kws)
+            a.AddVKicker(rname,l,angle=kickangle,**kws)
         else:
             print 'unknown element type: ',t,' for element named: ',name
             if zerolength:
