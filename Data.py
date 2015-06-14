@@ -19,7 +19,7 @@ import _General
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
-    if "elosshist" in filepath:
+    if ("elosshist" in filepath) or (".hist" in filepath):
         return _LoadAsciiHistogram(filepath)
     elif "eloss" in filepath:
         return _LoadAscii(filepath)
@@ -73,16 +73,11 @@ def _LoadAsciiHistogram(filepath):
             names,units = _ParseHeaderLine(line)
             for name,unit in zip(names,units):
                 data._AddProperty(name,unit)
-        elif "underflow" in line:
-            print line
-            print line.strip().split()[1]
+        elif "nderflow" in line:
             data.underflow = float(line.strip().split()[1])
-        elif "overflow" in line:
-            print line
-            print line.strip().split()[1]
+        elif "verflow" in line:
             data.overflow  = float(line.strip().split()[1])
         elif i >= 4:
-            print line
             data.append(tuple(map(float,line.split())))
     f.close()
     return data
@@ -135,8 +130,8 @@ class BDSAsciiData(list):
         This is used to filter the instance of the class based on matching
         a parameter withing a certain tolerance.
 
-        a = pybdsim.Data.Load("myfile.txt")
-        MatchValue("S",0.3,0.0004)
+        >>> a = pybdsim.Data.Load("myfile.txt")
+        >>> a.MatchValue("S",0.3,0.0004)
         
         this will match the "S" variable in instance "a" to the value of 0.3
         within +- 0.0004.
@@ -166,4 +161,42 @@ class BDSAsciiData(list):
         a._DuplicateNamesUnits(self)
         a.extend([event for i,event in enumerate(self) if booleanarray[i]])
         return a
+
+    def NameFromNearestS(self,S):
+        i = self.IndexFromNearestS(S)
+        if not hasattr(self,"Name"):
+            raise ValueError("This file doesn't have the required column Name")
+        return self.Name()[i]
+    
+    def IndexFromNearestS(self,S) : 
+        """
+        IndexFromNearestS(S) 
+
+        return the index of the beamline element clostest to S 
+
+        Only works if "SStart" column exists in data
+        """
+        #check this particular instance has the required columns for this function
+        if not hasattr(self,"SStart"):
+            raise ValueError("This file doesn't have the required column SStart")
+        if not hasattr(self,"Arc_len"):
+            raise ValueError("This file doesn't have the required column Arc_len")
+        s = self.SStart()
+        l = self.Arc_len()
+
+        #iterate over beamline and record element if S is between the
+        #sposition of that element and then next one
+        #note madx S position is the end of the element by default
+        ci = [i for i in range(len(self)-1) if (S > s[i] and S < s[i]+l[i])]
+        try:
+            ci = ci[0] #return just the first match - should only be one
+        except IndexError:
+            #protect against S positions outside range of machine
+            if S > s[-1]:
+                ci =-1
+            else:
+                ci = 0
+        #check the absolute distance to each and return the closest one
+        #make robust against s positions outside machine range
+        return ci
 

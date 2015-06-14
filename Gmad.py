@@ -1,6 +1,6 @@
 """
-Survey() - survey a gmad lattice, plot element coords
-Loader() - load a gmad file using the compiled bdsim parser
+| Survey() - survey a gmad lattice, plot element coords
+| Loader() - load a gmad file using the compiled bdsim parser
 
 """
 
@@ -16,9 +16,10 @@ class Survey:
     Survey - load a gmad lattice and have a look
 
     Example:
-    a = Survey()
-    a.Load('mylattice.gmad')
-    a.Plot()
+    
+    >>> a = Survey()
+    >>> a.Load('mylattice.gmad')
+    >>> a.Plot()
     
     """
     def __init__(self,filename=None) : 
@@ -165,14 +166,14 @@ class Lattice:
     and then interrogate it.  You can use this to regenerate a lattice with
     less information for example
 
-    a = Lattice("filename.gmad")
+    >>> a = Lattice("filename.gmad")
+
     or
-    a = Lattice()
-    a.Load("filename.gmad")
-
-    a  # this will tell you some basic details
-
-    print(a) # this will print out the full lattice
+    
+    >>> a = Lattice()
+    >>> a.Load("filename.gmad")
+    >>> a  # this will tell you some basic details
+    >>> print(a) # this will print out the full lattice
 
     """
     def __init__(self,filename=None):

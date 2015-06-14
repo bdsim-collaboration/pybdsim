@@ -1,41 +1,55 @@
 import numpy as _np
+import re as _re
 import pymadx as _pymadx
 from .. import Builder as _Builder
 from .. import Beam as _Beam
 
-def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampipeRadius=0.2,verbose=False, beam=False):
+def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampiperadius=0.2,verbose=False, beam=True, flipmagnets=False,usemadxaperture=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
-    inputfilename  - path to the input file
-    outputfilename - requested output file
-    startname      - the name (exact string match) of the lattice element to start the machine at
-                     this can also be an integer index of the element sequence number in madx tfs
-    stopname       - the name (exact string match) of the lattice element to stop the machine at
-                     this can also be an integer index of the element sequence number in madx tfs
-    ignorezerolengthitems -
-                   - nothing can be zero length in bdsim as real objects of course have some finite 
-                     size.  Markers, etc are acceptable but for large lattices this can slow things 
-                     down. True allows to ignore these altogether, which doesn't affect the length 
-                     of the machine.
-    samplers       - can specify where to set samplers - options are None, 'all', or list of 
-                     names of elements (normal python list of strings). Note default 'all' 
-                     will generate separate outputfilename_samplers.gmad with all the samplers
-                     which will be included in the main .gmad file - you can comment out the 
-                     include to therefore exclude all samplers and retain the samplers file.
-    aperturedict   - a dictionary of aperture information.  
-                     keys should be exact string match of element name in tfs file
-                     value should be a single number of the circular aperture (only circular just now)
-                     e.g.  aperturdict = {'TCT1Bxy2':0.15,'TCT2Bxy2:0.20}  note values in metres
-    collimatordict - a dictionary of dictionaries with collimator information keys should be exact 
-                     string match of element name in tfs file value should be dictionary with the 
-                     following keys:
-                     "bdsim_material"   - the material - exact string as in bdsim manual
-                     "angle"            - rotation angle of collimator in radians
-                     "xsize"            - x full width in metres
-                     "ysize"            - y full width in metres
-    beampipeRadius - in metres.  Default beam pipe radius and collimator setting if unspecified
-    verbose        - print out lots of information when building the model
+    inputfilename   - path to the input file
+    outputfilename  - requested output file
+    startname       - the name (exact string match) of the lattice element to start the machine at
+                      this can also be an integer index of the element sequence number in madx tfs
+    stopname        - the name (exact string match) of the lattice element to stop the machine at
+                      this can also be an integer index of the element sequence number in madx tfs
+    ignorezerolengt hitems -
+                    - nothing can be zero length in bdsim as real objects of course have some finite 
+                      size.  Markers, etc are acceptable but for large lattices this can slow things 
+                      down. True allows to ignore these altogether, which doesn't affect the length 
+                      of the machine.
+    thinmultipoles  - will convert thin multipoles to ~1um thick finite length multipoles with
+                      upscaled k values - experimental feature
+    samplers        - can specify where to set samplers - options are None, 'all', or list of 
+                      names of elements (normal python list of strings). Note default 'all' 
+                      will generate separate outputfilename_samplers.gmad with all the samplers
+                      which will be included in the main .gmad file - you can comment out the 
+                      include to therefore exclude all samplers and retain the samplers file.
+    aperturedict    - a dictionary of aperture information.  
+                      keys should be exact string match of element name in tfs file
+                      value should be a single number of the circular aperture (only circular just now)
+                      e.g.  aperturdict = {'TCT1Bxy2':0.15,'TCT2Bxy2:0.20}  note values in metres
+    collimatordict  - a dictionary of dictionaries with collimator information keys should be exact 
+                      string match of element name in tfs file value should be dictionary with the 
+                      following keys:
+                      "bdsim_material"   - the material - exact string as in bdsim manual
+                      "angle"            - rotation angle of collimator in radians
+                      "xsize"            - x full width in metres
+                      "ysize"            - y full width in metres
+    beampiperadius  - in metres.  Default beam pipe radius and collimator setting if unspecified
+    verbose         - print out lots of information when building the model
+    beam            - True | False - generate an input gauss Twiss beam based on the values
+                      of the twiss parameters at the beginning of the lattice (startname)
+                      NOTE - we thoroughly recommend checking these parameters and this functionality
+                      is only for partial convenience to have a model that works straight away.
+    flipmagnets     - Trye | False - flip the sign of all k values for magnets - MADX currently 
+                      tracks particles agnostic of the particle charge - BDISM however, follows their 
+                      manual definition strictly - positive k -> horizontal focussing for positive 
+                      partilces therefore, positive k -> vertical focussing for negative particles.  
+                      Use this flag to flip the sign of all magnets.
+    usemadxaperture - True | False - use the aperture information in the TFS file if APER_1 and APER_2
+                      columns exist.  Will only set if they're non-zero.
 
     """
     lFake  = 1e-6 # fake length for thin magnets
@@ -48,12 +62,11 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         madx   = input
     
     nitems = madx.nitems
-    opencollimatorsetting = beampipeRadius
+    opencollimatorsetting = beampiperadius
 
     if verbose:
         madx.ReportPopulations()
-        aper.ReportPopulations()
-
+    
     # data structures for checks
     angtot = 0.0
     lentot = 0.0
@@ -73,7 +86,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         startindex = startname
     else:
         startindex = madx.IndexFromName(startname)
-    if endname   == None:
+    if stopname   == None:
         stopindex = nitems #this is 1 larger, but ok as range will stop at n-step -> step=1, range function issue
     elif type(stopname) == int:
         stopindex = stopname
@@ -83,22 +96,36 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         print 'stopindex <= startindex'
         stopindex = startindex + 1
 
-    lindex     = madx.ColumnIndex('L')
-    angleindex = madx.ColumnIndex('ANGLE')
-    k1lindex   = madx.ColumnIndex('K1L')
-    k2lindex   = madx.ColumnIndex('K2L')
-    k3lindex   = madx.ColumnIndex('K3L')
-    k4lindex   = madx.ColumnIndex('K4L')
-    k5lindex   = madx.ColumnIndex('K5L')
-    k6lindex   = madx.ColumnIndex('K6L')
-    k1slindex   = madx.ColumnIndex('K1SL')
-    k2slindex   = madx.ColumnIndex('K2SL')
-    k3slindex   = madx.ColumnIndex('K3SL')
-    k4slindex   = madx.ColumnIndex('K4SL')
-    k5slindex   = madx.ColumnIndex('K5SL')
-    k6slindex   = madx.ColumnIndex('K6SL')
-    tiltindex   = madx.ColumnIndex('TILT')
-    tindex     = madx.ColumnIndex('KEYWORD')
+    try:
+        lindex          = madx.ColumnIndex('L')
+        angleindex      = madx.ColumnIndex('ANGLE')
+        ksIindex        = madx.ColumnIndex('KSI')
+        k1lindex        = madx.ColumnIndex('K1L')
+        k2lindex        = madx.ColumnIndex('K2L')
+        k3lindex        = madx.ColumnIndex('K3L')
+        k4lindex        = madx.ColumnIndex('K4L')
+        k5lindex        = madx.ColumnIndex('K5L')
+        k6lindex        = madx.ColumnIndex('K6L')
+        k1slindex       = madx.ColumnIndex('K1SL')
+        k2slindex       = madx.ColumnIndex('K2SL')
+        k3slindex       = madx.ColumnIndex('K3SL')
+        k4slindex       = madx.ColumnIndex('K4SL')
+        k5slindex       = madx.ColumnIndex('K5SL')
+        k6slindex       = madx.ColumnIndex('K6SL')
+        tiltindex       = madx.ColumnIndex('TILT')
+        tindex          = madx.ColumnIndex('KEYWORD')
+        alphaindex      = madx.ColumnIndex('ALFX')
+        betaxindex      = madx.ColumnIndex('BETX')
+        betayindex      = madx.ColumnIndex('BETY')
+        vkickangleindex = madx.ColumnIndex('VKICK')
+        hkickangleindex = madx.ColumnIndex('HKICK')
+    except ValueError:
+        print 'Missing columns from tfs file - insufficient information to convert file'
+        print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT, KEYWORD, VKICK, HKICK'
+        print 'Given columns    : '
+        print madx.columns
+        return
+        
     if verbose:
         print 'L       Column Index: ',lindex
         print 'ANGLE   Column Index: ',angleindex
@@ -111,7 +138,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
     for i in range(startindex,stopindex):
         name = madx.sequence[i]
         #remove special characters like $, % etc 'reduced' name - rname
-        rname = ''.join(e for e in name if e.isalnum()) 
+        rname = _re.sub('[^a-zA-Z0-9_]+','',name) #only allow alphanumeric characters and '_'
         t     = madx.data[name][tindex]
         l     = madx.data[name][lindex]
         ang   = madx.data[name][angleindex]
@@ -119,6 +146,11 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
             zerolength = True
         else:
             zerolength = False
+
+        if zerolength and ignorezerolengthitems:
+            itemsomitted.append(name)
+            continue #this skips the rest of the loop as we're ignoring this item
+            
         if verbose:
             print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
         lentot += l
@@ -126,10 +158,35 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
 
         #element-wise keywords
         kws = {}
+
+        # APERTURE
+        # check if aperture info in tfs file
+        # only use this if aperture info not specified in aperture dict
+        if ( usemadxaperture and (name not in aperturedict) ):
+            if 'APER_1' in madx.columns and 'APER_2' in madx.columns:
+                #elliptical aperture
+                aperX = madx.GetRowDict(name)['APER_1']
+                aperY = madx.GetRowDict(name)['APER_2']
+                if (aperX > 1e-6) and (aperY > 1e-6):
+                    #both apertures must be specified for elliptical
+                    kws['aper1'] = aperX #make sure it's non zero
+                    kws['aper2'] = aperY 
+                elif (aperX > 1e-6):
+                    #resort to circular
+                    kws['aper1'] = aperX #make sure it's non zero
+                else:
+                    pass
+            elif 'APER_1' in madx.columns:
+                #circular aperture
+                aper = madx.GetRowDict(name)['APER_1']
+                if aper > 1e-6:
+                    kws['aper1'] = aper #make sure it's non zero
+
+        # check if aperture info in aperture dict
         if name in aperturedict:
             #for now only 1 aperture - circular
             ap = (aperturedict[name],'m')
-            if ap[0] < 1e-4:
+            if ap[0] < 1e-6:
                 ap = (defaultbeampiperadius,'m')
             if t != 'RCOLLIMATOR':
                 kws['aper'] = ap
@@ -139,7 +196,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         if t == 'DRIFT':
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
-            a.AddHKicker(rname,l,**kws)
+            kickangle = madx.data[name][hkickangleindex]
+            a.AddHKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
             if izlis and zerolength:
@@ -167,19 +225,20 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
             # TBC - cludge for thin multipoles (uses lFake for a short non-zero length)
+            factor = -1 if flipmagnets else 1  #flipping magnets
             if thinmultipoles : 
-                k1  = madx.data[name][k1lindex] / lFake
-                k2  = madx.data[name][k2lindex] / lFake
-                k3  = madx.data[name][k3lindex] / lFake
-                k4  = madx.data[name][k4lindex] / lFake
-                k5  = madx.data[name][k5lindex] / lFake
-                k6  = madx.data[name][k6lindex] / lFake
-                k1s = madx.data[name][k1slindex] / lFake
-                k2s = madx.data[name][k2slindex] / lFake
-                k3s = madx.data[name][k3slindex] / lFake
-                k4s = madx.data[name][k4slindex] / lFake
-                k5s = madx.data[name][k5slindex] / lFake
-                k6s = madx.data[name][k6slindex] / lFake
+                k1  = madx.data[name][k1lindex] / lFake * factor
+                k2  = madx.data[name][k2lindex] / lFake * factor
+                k3  = madx.data[name][k3lindex] / lFake * factor
+                k4  = madx.data[name][k4lindex] / lFake * factor
+                k5  = madx.data[name][k5lindex] / lFake * factor
+                k6  = madx.data[name][k6lindex] / lFake * factor
+                k1s = madx.data[name][k1slindex] / lFake * factor
+                k2s = madx.data[name][k2slindex] / lFake * factor
+                k3s = madx.data[name][k3slindex] / lFake * factor
+                k4s = madx.data[name][k4slindex] / lFake * factor
+                k5s = madx.data[name][k5slindex] / lFake * factor
+                k6s = madx.data[name][k6slindex] / lFake * factor
                 tilt= madx.data[name][tiltindex]
                 if k1 != 0 : 
                     a.AddQuadrupole(rname,k1=k1,length=lFake,tilt=tilt) 
@@ -216,7 +275,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
                 if verbose:
                     print name,' -> marker instead of placeholder'
         elif t == 'QUADRUPOLE':
-            k1 = madx.data[name][k1lindex] / l
+            factor = -1 if flipmagnets else 1  #flipping magnets
+            k1 = madx.data[name][k1lindex] / l * factor
             a.AddQuadrupole(rname,l,k1=k1,**kws)
         elif t == 'RBEND':
             angle = madx.data[name][angleindex]
@@ -241,8 +301,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
                 else:
                     angle = 0.0
             else:
-                xsize = beampipeRadius
-                ysize = beampipeRadius
+                xsize = beampiperadius
+                ysize = beampiperadius
                 angle = 0.0
                 kws['material'] = "Copper"
             a.AddRColAngled(rname,l,xsize,ysize,angle,**kws)
@@ -265,8 +325,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
                 else:
                     angle = 0.0
             else:
-                xsize = beampipeRadius
-                ysize = beampipeRadius
+                xsize = beampiperadius
+                ysize = beampiperadius
                 angle = 0.0
                 kws['material'] = "Copper"
             a.AddEColAngled(rname,l,xsize,ysize,angle,**kws)
@@ -277,14 +337,19 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
             k1 = madx.data[name][k1lindex] / l
             a.AddDipole(rname,'sbend',l,angle=angle, k1=k1,**kws)
         elif t == 'SEXTUPOLE':
-            k2 = madx.data[name][k2lindex] / l
+            factor = -1 if flipmagnets else 1  #flipping magnets
+            k2 = madx.data[name][k2lindex] / l * factor
             a.AddSextupole(rname,l,k2=k2,**kws)
         elif t == 'SOLENOID':
+            #factor = -1 if flipmagnets else 1  #flipping magnets
+            #ksi = madx.data[name][ksiindex]
+            #a.AddSolenoid(rname,l,ks=ksi
             a.AddDrift(rname,l,**kws)
         elif t == 'TKICKER':
             a.AddDrift(rname,l,**kws)
         elif t == 'VKICKER':
-            a.AddDrift(rname,l,**kws)
+            kickangle = madx.data[name][vkickangleindex]
+            a.AddDrift(rname,l,angle=kickangle,**kws)
         else:
             print 'unknown element type: ',t,' for element named: ',name
             if zerolength:
@@ -304,7 +369,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
 
     # Make beam file 
     if beam : 
-        b = MadxTfs2GmadBeam(madx)
+        b = MadxTfs2GmadBeam(madx, startname)
         a.AddBeam(b)
 
     a.WriteLattice(outputfilename)
@@ -317,7 +382,14 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,endname=None,ignorezeroleng
         #return lldiff,dldiff,a
     return a
 
-def MadxTfs2GmadBeam(tfs) : 
+def MadxTfs2GmadBeam(tfs,startname=None):
+    if startname == None:
+        startindex = 0
+    elif type(startname) == int:
+        startindex = startname
+    else:
+        startindex = tfs.IndexFromName(startname)
+    
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])
     particle = tfs.header['PARTICLE']
@@ -326,7 +398,7 @@ def MadxTfs2GmadBeam(tfs) :
     sigmae   = float(tfs.header['SIGE'])
     sigmat   = float(tfs.header['SIGT'])
 
-    data     = tfs.GetRowDict(tfs.sequence[0])
+    data     = tfs.GetRowDict(tfs.sequence[startindex])
 
     if particle == 'ELECTRON' :
         particle = 'e-'
@@ -345,7 +417,7 @@ def MadxTfs2GmadBeam(tfs) :
     #note, in the main pybdsim.__init__.py Beam class is imported from Beam.py
     #so in this submodule when we do from .. import Beam it's actually the
     #already imported class that's being imported
-    beam   = _Beam(particle,energy,'gausstwiss')
+    beam   = _Beam.Beam(particle,energy,'gausstwiss')
     beam.SetBetaX(data['BETX'])
     beam.SetBetaY(data['BETY'])
     beam.SetAlphaX(data['ALFX'])
@@ -354,7 +426,3 @@ def MadxTfs2GmadBeam(tfs) :
     beam.SetEmittanceY(ey,'m')
     
     return beam
-
-    
-
-    

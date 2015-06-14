@@ -21,8 +21,10 @@ import Options as _Options
 import _General
 from   _General import IsFloat as _IsFloat
 from   decimal import Decimal as _Decimal
-import math
-import time
+import math as _math
+import time as _time
+import os as _os
+import numpy as _np
 
 bdsimcategories = [
     'marker',
@@ -51,9 +53,11 @@ bdsimcategories = [
 
 class Element(dict):
     """
-    Element - a beam element class - inherits dict
+    Element - a beam element class that inherits dict
 
     Element(name,type,**kwargs)
+
+    >>> a = Element("drift1", "drift", "l"=1.3)
     
     A beam line element must ALWAYs have a name, and type.
     The keyword arguments are specific to the type and are up to
@@ -113,6 +117,19 @@ class Element(dict):
         return s
 
 class Line(list):
+    """
+    A class that represents a :class:`list` of :class:`Elements`
+
+    Provides ability to print out the sequence or define all 
+    the components.
+
+    Example:
+
+    >>> d1 = Element("drift1", "drift", l=1.3)
+    >>> q1 = Element("q1", "quadrupole", l=0.4, k1=4.5)
+    >>> a = Line([d1,q1])
+
+    """
     def __init__(self,name,*args):
         for item in args[0]:
             if type(item) != Element:
@@ -132,12 +149,29 @@ class Line(list):
         return s
 
     def DefineConstituentElements(self):
+        """
+        Return a string that contains the lines required
+        to define each element in the :class:`Line`.
+
+        Example using predefined Elements name 'd1' and 'q1':
+
+        >>> l = Line([d1,q1])
+        >>> f = open("file.txt", "w")
+        >>> f.write(DefineConsituentElements())
+        >>> f.write(l)
+        >>> f.close()
+        """
         s = ''
         for item in self:
             s += str(item) #uses elements __repr__ function
         return s
 
 class Sampler:
+    """
+    A sampler is unique in that it does not have a length unlike every
+    :class:`Element` hence it needs its own class to produce its 
+    representation.
+    """
     def __init__(self,name):
         self.name = name
 
@@ -145,6 +179,21 @@ class Sampler:
         return 'sample, range='+self.name+';\n'
 
 class Machine:
+    """
+    A class represents an acceleartor lattice as a sequence of 
+    components. Member functions allow various lattice components
+    to be append to the sequence of the machine. This class allows
+    the user to programatically create a lattice and write the 
+    BDSIM gmad representation of it.
+
+    Example:
+    
+    >>> a = Machine()
+    >>> a.AddDrift('mydrift', l=1.3)
+    >>> a.WriteLattice("lattice.gmad")
+    
+    
+    """
     def __init__(self,verbose=False):
         self.verbose   = verbose
         self.sequence  = []
@@ -180,7 +229,9 @@ class Machine:
             return self.elementsd[name]
 
     def __len__(self):
-        return len(self.elementsd.keys())
+        print 'Number of unique elements:      ',len(self.elementsd.keys())
+        print 'Number of elements in sequence: ',len(self.sequence),' <- returning this'
+        return len(self.sequence)
 
     def Append(self,object):
         if type(object) not in (Element,Line):
@@ -196,6 +247,12 @@ class Machine:
             else:
                 self.elements.append(object)
                 self.elementsd[object.name] = object
+        else:
+            ws =  'WARNING: this element will not be appended to the machine as'
+            ws += '\n one with the same name already exists. Attempting to add'
+            ws += '\n object: '
+            print ws
+            print object
         #finally add it to the sequence
         self.sequence.append(object.name)
         self.length += object.length
@@ -263,6 +320,9 @@ class Machine:
         
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,material=kwargs['material']))
+
+    def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
+        self.Append(Element(name,'solenoid',l=length,ks=ks,**kwargs))
     
     def AddTransform3D(self, name='t3d', **kwargs):
         if len(kwargs.keys()) == 0:
@@ -294,15 +354,15 @@ class Machine:
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**kwargs))
         self.AddTransform3D(name+'_angle_neg', psi=-1*angle)
         
-    def AddHKicker(self, name='hk', length=0.1, **kwargs):
-        self.AddDrift(name,length)
-        #self.Append(Element(name,'hkick',l=length,**kwargs))
+    def AddHKicker(self, name='hk', length=0.1, angle=0.0, **kwargs):
+        #self.AddDrift(name,length)
+        self.Append(Element(name,'hkick', l=length, angle=angle, **kwargs))
 
-    def AddVKicker(self, name='vk', length=0.1, **kwargs):
-        self.AddDrift(name,length)
-        #self.Append(Element(name,'vkick',l=length,**kwargs))
+    def AddVKicker(self, name='vk', length=0.1, angle=0.0, **kwargs):
+        #self.AddDrift(name,length)
+        self.Append(Element(name,'vkick', l=length, angle=angle, **kwargs))
 
-    def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=1.0,**kwargs):
+    def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=0.2,**kwargs):
         """
         AddFodoCell(basename,magnetlength,driftlength,kabs,**kwargs)
         basename     - the basename for the fodo cell beam line elements
@@ -322,7 +382,7 @@ class Machine:
             )
         self.Append(Line(basename,items))
 
-    def AddFodoCellSplitDrift(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0,nsplits=10, **kwargs):
+    def AddFodoCellSplitDrift(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=0.2,nsplits=10, **kwargs):
         """
         AddFodoCellSplitDrift(basename,magnetlength,driftlength,kabs,nsplits,**kwargs)
         basename - the basename for the fodo cell beam line elements
@@ -350,14 +410,14 @@ class Machine:
             self.Append(Element(basename+'_d'+str(i).zfill(maxn),'drift',l=splitdriftlength))
         self.Append(Element(basename+'_qfb','quadrupole',l=magnetlength/2.0,k1=kabs,**kwargs))
 
-    def AddFodoCellMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0, ncells=2, **kwargs):
+    def AddFodoCellMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=0.2, ncells=2, **kwargs):
         ncells = int(ncells)
         maxn   = int(len(str(ncells)))
         for i in range(ncells):
             cellname = basename+'_'+str(i).zfill(maxn)
             self.AddFodoCell(cellname,magnetlength,driftlength,kabs,**kwargs)
 
-    def AddFodoCellSplitDriftMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=1.0, nsplits=10, ncells=2, **kwargs):
+    def AddFodoCellSplitDriftMultiple(self, basename='fodo', magnetlength=1.0, driftlength=4.0, kabs=0.2, nsplits=10, ncells=2, **kwargs):
         ncells = int(ncells)
         maxn   = int(len(str(ncells)))
         for i in range(ncells):
@@ -402,7 +462,7 @@ def CreateDipoleRing(filename, ncells=60, circumference=100.0, dfraction=0.1, sa
         raise Warning("Fraction of dipoles must be greater than 1.0 -> setting to 0.1")
         dfraction = 0.1
     a           = Machine()
-    dangle      = _Decimal(str(2.0*math.pi / ncells))
+    dangle      = _Decimal(str(2.0*_math.pi / ncells))
     clength     = _Decimal(str(float(circumference) / ncells))
     dlength     = clength * _Decimal(str(dfraction))
     driftlength = clength - dlength
@@ -430,7 +490,7 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     30% beam pipe / drift
     """
     a       = Machine()
-    cangle  = _Decimal(str(2.0*math.pi / ncells))
+    cangle  = _Decimal(str(2.0*_math.pi / ncells))
     clength = _Decimal(str(float(circumference) / ncells))
     #dipole = 0.5 of cell, quads=0.2, drift=0.3, two dipoles
     #dipole:
@@ -461,13 +521,13 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
 def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, samplers='all',**kwargs):
     """
     Create a FODO lattice with ncells.
-
+    
     ncells       - number of fodo cells
     driftlength  - length of drift segment in between magnets
     magnetlength - length of quadrupoles
     samplers     - 'all','first' or 'last'
-    **kwargs     - kwargs to supply to quadrupole constructor
-
+    \*\*kwargs     - kwargs to supply to quadrupole constructor
+    
     """
     ncells = int(ncells)
     a      = Machine()
@@ -503,9 +563,9 @@ def WriteLattice(machine, filename, verbose=False):
     filename_options.gmad    - options (TO BE IMPLEMENTED)
     filename.gmad            - suitable main file with all sub 
                                files in correct order
-
+    
     these are prefixed with the specified filename / path
-
+    
     """
     
     if not isinstance(machine,Machine):
@@ -516,12 +576,19 @@ def WriteLattice(machine, filename, verbose=False):
     #check filename
     if filename[-5:] != '.gmad':
         filename += '.gmad'
+
+    #check for directory and make it if not:
+    if '/' in filename:
+        directory = '/'.join(filename.split('/')[:-1]) #strip the filename off
+        if not _os.path.exists(directory):
+            _os.system("mkdir -p " + directory)
+    
     #check if file already exists
     ofilename = filename
     filename = _General.CheckFileExists(filename)
     if filename != ofilename:
         print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
-    basefilename = filename[:-5]#.split('/')[-1]
+    basefilename = filename[:-5] #everything before '.gmad'
 
     #prepare names
     files         = []
@@ -531,17 +598,24 @@ def WriteLattice(machine, filename, verbose=False):
     fn_samplers   = basefilename + '_samplers.gmad'
     fn_beam       = basefilename + '_beam.gmad'
     fn_options    = basefilename + '_options.gmad'
-    timestring = '! ' + time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime()) + '\n'
+    timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
     
     #write component files
-    f = open(fn_components,'w')
-    files.append(fn_components)
-    f.write(timestring)
-    f.write('! pybdsim.Builder Lattice \n')
-    f.write('! COMPONENT DEFINITION\n\n')
-    for element in machine.elements:
-        f.write(str(element))
-    f.close()
+    ncomponentfiles = int(_np.ceil(len(machine.elements)/1000.0))
+    for i in range(0,ncomponentfiles):
+        if i == 0:
+            fname = fn_components
+        else:
+            fname = fn_components[:-5]+'_'+str(i)+'.gmad'
+        f = open(fname,'w')
+        files.append(fname)
+        f.write(timestring)
+        f.write('! pybdsim.Builder Lattice \n')
+        #extra spaces added here to overcome wierd parser bug... seems to fix it
+        f.write('! COMPONENT DEFINITION                                      \n\n')
+        for element in machine.elements[i*1000:i*1000+1000]:
+            f.write(str(element))
+        f.close()
 
     #write lattice sequence
     f = open(fn_sequence,'w')

@@ -1,4 +1,2 @@
-from .. import Gmad as _Gmad
-
-from _MadxGmadComparison import *
-from _Mad8GmadComparison import *
+from _MadxBdsimComparison import *
+#from _Mad8BdsimComparison import *

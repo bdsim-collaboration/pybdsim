@@ -82,13 +82,13 @@ class Beam(dict):
         return st
 
     def SetX0(self,x0=0.0,unitsstring='m'):
-        self['X0'] = x0 + '*' + unitsstring
+        self['X0'] = str(x0) + '*' + unitsstring
 
     def SetY0(self,y0=0.0,unitsstring='m'):
-        self['Y0'] = y0 + '*' + unitsstring
+        self['Y0'] = str(y0) + '*' + unitsstring
 
     def SetZ0(self,z0=0.0,unitsstring='m'):
-        self['Z0'] = z0 + '*' + unitsstring
+        self['Z0'] = str(z0) + '*' + unitsstring
 
     def SetXP0(self,xp0=0.0):
         self['Xp0'] = xp0
@@ -100,7 +100,7 @@ class Beam(dict):
         self['Zp0'] = zp0
 
     def SetT0(self,t0=0.0,unitsstring='s'):
-        self['T0'] = t0 + '*' + unitsstring
+        self['T0'] = str(t0) + '*' + unitsstring
 
 
     def _SetSigmaX(self,sigmax=1.0,unitsstring='um'):
