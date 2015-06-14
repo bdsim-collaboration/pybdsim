@@ -100,6 +100,9 @@ class BDSAsciiData(list):
         list.__init__(self, *args, **kwargs)
         self.units = []
         self.names = []
+
+    def __getitem__(self,index):
+        return dict(zip(self.names,list.__getitem__(self,index)))
         
     def _AddMethod(self, variablename):
         """
