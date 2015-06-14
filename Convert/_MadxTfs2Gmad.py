@@ -417,7 +417,7 @@ def MadxTfs2GmadBeam(tfs,startname=None):
     #note, in the main pybdsim.__init__.py Beam class is imported from Beam.py
     #so in this submodule when we do from .. import Beam it's actually the
     #already imported class that's being imported
-    beam   = _Beam(particle,energy,'gausstwiss')
+    beam   = _Beam.Beam(particle,energy,'gausstwiss')
     beam.SetBetaX(data['BETX'])
     beam.SetBetaY(data['BETY'])
     beam.SetAlphaX(data['ALFX'])
