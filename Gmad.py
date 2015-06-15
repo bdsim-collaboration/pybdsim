@@ -1,7 +1,7 @@
 """
 | Survey() - survey a gmad lattice, plot element coords
 | Loader() - load a gmad file using the compiled bdsim parser
-
+| GmadFile() - modify a text based gmad file
 """
 
 import ctypes as _ctypes
@@ -10,6 +10,8 @@ from ctypes.util import find_library as _find_library
 import os as _os
 import numpy as _np
 import matplotlib.pyplot as _plt
+import StringIO as _StringIO
+import re as _re
 
 class Survey:
     """
@@ -357,6 +359,39 @@ class Lattice:
                 s += '\n'
         print s
     
+
+class GmadFile :
+    """
+    Class to load a gmad file to a buffer and modify the contents
+    
+    """
+    def __init__(self, fileName) : 
+        '''Load gmad file''' 
+
+        f = open(fileName)
+        self.s = f.read(-1)
+        self.sio = _StringIO.StringIO()
+        
+        self.elementRe = "\s*:\s*([,a-zA-Z0-9=.\s]+);" 
+                
+    def findElement(elementName) : 
+        '''Returns the start and end (inclusive location of the element lines as a tuble (start,end)'''
+        rem = _re.search(self.elementRe,self.s)
+        print rem.group(1)+rem.group(0)        
+        
+
+    def parseElement(elementString) : 
+        '''Create element dictionary from element''' 
+        
+        pass 
+
+    def change(element,parameter, value) : 
+        '''Edit element dictionary'''
+        pass 
+
+    def add(element,parameter, value) : 
+        pass
+
 
 
 def _GetTypeName(typeenum):

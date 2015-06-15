@@ -90,10 +90,10 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                                 tilt   = c.data[i][c.keys['quad']['tilt']],
                                 aper1  = apertures.aper[i])
         elif c.type[i] == 'SEXT' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['sextupole']['l']],aper1=apertures.aper[i])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['sext']['l']],aper1=apertures.aper[i])
         elif c.type[i] == 'OCTU' : 
             if c.data[i][c.keys['octupole']['l']] > 1e-7 : 
-                a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['octupole']['l']],aper1=apertures.aper[i])
+                a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['octu']['l']],aper1=apertures.aper[i])
             else : 
                 a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'MULT' : 
@@ -111,8 +111,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                             angle =c.data[i][c.keys['sben']['angle']],
                             aper=apertures.aper[i])
         elif c.type[i] == 'LCAV' : 
-            length   = c.data[i][c.keys['rfcavity']['l']]
-            deltaE   = (c.data[i][c.keys['rfcavity']['E']]-c.data[i-1][c.keys['rfcavity']['E']])*1000 # MeV 
+            length   = float(c.data[i][c.keys['lcav']['l']])
+            deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV 
             gradient = deltaE/length
             a.AddRFCavity(c.name[i]+'_'+str(eCount),length=length, gradient=-gradient,aper1=apertures.aper[i])            
         elif c.type[i] == 'ECOL' :
