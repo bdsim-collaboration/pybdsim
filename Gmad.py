@@ -384,20 +384,24 @@ class GmadFile :
         # For finding elements 
         self.elementNameRe = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9=.\s-]+);"
         # For finding a known element
-        self.elementRe = "\s*:\s*([,a-zA-Z0-9=.\s-]+);" 
+        self.elementRe     = "\s*:\s*([,a-zA-Z0-9=.\s-]+);" 
         # For extracting the parameters for an element
-        self.elementValRe = "([a-zA-Z0-9_-]+)=([-0-9.eE]+)"
+        self.elementValRe  = "([a-zA-Z0-9_-]+)=([-0-9.eE]+)"
+        # For extracting element type
+        self.elementNameRe1    = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9._-]+),([,a-zA-Z0-9=.\s-]+);"
                 
-
         # determine element names in file
         self.elementNames();
         
     def elementNames(self) : 
-        self.elementNameList = []     
+        '''Make a list of element names, stored in self.elementNameList'''
+        self.elementNameList = []    
+        self.elementTypeList = []
         for l in self.s.split("\n") :
-            rem = _re.search(self.elementNameRe,l)
+            rem = _re.search(self.elementNameRe1,l)
             try : 
                 self.elementNameList.append(rem.group(1))
+                self.elementTypeList.append(rem.group(2))
             except AttributeError : 
                 pass
             
@@ -409,7 +413,6 @@ class GmadFile :
 
         # Extract value
         rem = _re.search(elementName+self.elementRe,self.s)
-        print rem.group(0)        
         
         return [self.s.find(rem.group(0)), len(rem.group(0)), rem.group(0)]
         
@@ -436,8 +439,19 @@ class GmadFile :
             s+=", "+k+"="+d[k]
         s+=";"
         
+        # replace string of gmad file
         self.s = self.s.replace(e[2],s)
                 
+    def getParameter(self,element,parameter) : 
+        '''Edit element dictionary'''
+        e = self.findElement(element) 
+        d = self.parseElement(e[2])        
+        return d[parameter]
+
+    def getType(self,element) : 
+        i = self.elementNameList.index(element)
+        return self.elementTypeList[i]
+        
     def write(self,fileName) : 
         f = open(fileName,"w+")
         f.write(self.s)
