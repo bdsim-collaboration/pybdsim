@@ -1,7 +1,7 @@
 """
 | Survey() - survey a gmad lattice, plot element coords
 | Loader() - load a gmad file using the compiled bdsim parser
-
+| GmadFile() - modify a text based gmad file
 """
 
 import ctypes as _ctypes
@@ -10,6 +10,8 @@ from ctypes.util import find_library as _find_library
 import os as _os
 import numpy as _np
 import matplotlib.pyplot as _plt
+import StringIO as _StringIO
+import re as _re
 
 class Survey:
     """
@@ -358,7 +360,103 @@ class Lattice:
         print s
     
 
+class GmadFile :
+    """
+    Class to load a gmad file to a buffer and modify the contents
 
+    Example : 
+    python> g = pybdsim.Gmad.GmadFile("./atf2_components.gmad")    
+    python> g.change("KEX1A","l","10")    
+    python> g.write("./atf2_components.gmad")
+
+    """
+    def __init__(self, fileName) : 
+        '''Load gmad file''' 
+
+        # open file and read all of it
+        self.fileName = fileName
+        f = open(fileName)
+        self.s = f.read(-1)
+        f.close() 
+
+        # regular expressions used for matching
+
+        # For finding elements 
+        self.elementNameRe = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9=.\s-]+);"
+        # For finding a known element
+        self.elementRe     = "\s*:\s*([,a-zA-Z0-9=.\s-]+);" 
+        # For extracting the parameters for an element
+        self.elementValRe  = "([a-zA-Z0-9_-]+)=([-0-9.eE]+)"
+        # For extracting element type
+        self.elementNameRe1    = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9._-]+),([,a-zA-Z0-9=.\s-]+);"
+                
+        # determine element names in file
+        self.elementNames();
+        
+    def elementNames(self) : 
+        '''Make a list of element names, stored in self.elementNameList'''
+        self.elementNameList = []    
+        self.elementTypeList = []
+        for l in self.s.split("\n") :
+            rem = _re.search(self.elementNameRe1,l)
+            try : 
+                self.elementNameList.append(rem.group(1))
+                self.elementTypeList.append(rem.group(2))
+            except AttributeError : 
+                pass
+            
+    def findElement(self,elementName) : 
+        '''Returns the start and end (inclusive location of the element lines as a tuble (start,end)'''
+        
+        # See if element is in list
+        self.elementNameList.index(elementName)
+
+        # Extract value
+        rem = _re.search(elementName+self.elementRe,self.s)
+        
+        return [self.s.find(rem.group(0)), len(rem.group(0)), rem.group(0)]
+        
+    def parseElement(self,elementString) : 
+        '''Create element dictionary from element''' 
+        rem = _re.findall(self.elementValRe,elementString)
+
+        d = {} 
+        for v in rem : 
+            d[v[0]] = v[1]
+
+        return d
+
+    def change(self,element,parameter, value) : 
+        '''Edit element dictionary'''
+        e = self.findElement(element) 
+        d = self.parseElement(e[2]) 
+
+        d[parameter] = value 
+        
+        # form new string 
+        s = e[2][0:e[2].find(",")]
+        for k in d.keys() : 
+            s+=", "+k+"="+d[k]
+        s+=";"
+        
+        # replace string of gmad file
+        self.s = self.s.replace(e[2],s)
+                
+    def getParameter(self,element,parameter) : 
+        '''Edit element dictionary'''
+        e = self.findElement(element) 
+        d = self.parseElement(e[2])        
+        return d[parameter]
+
+    def getType(self,element) : 
+        i = self.elementNameList.index(element)
+        return self.elementTypeList[i]
+        
+    def write(self,fileName) : 
+        f = open(fileName,"w+")
+        f.write(self.s)
+        f.close()
+        
 def _GetTypeName(typeenum):
     """
     Convert the enum to a proper name"
