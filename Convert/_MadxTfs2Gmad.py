@@ -270,10 +270,10 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                 itemsomitted.append(name)
             elif (not izlis) and zerolength:
                 a.AddMarker(rname)
-            else:
-                a.AddDrift(rname,l,**kws)
                 if verbose:
                     print name,' -> marker instead of placeholder'
+            else:
+                a.AddDrift(rname,l,**kws)
         elif t == 'QUADRUPOLE':
             factor = -1 if flipmagnets else 1  #flipping magnets
             k1 = madx.data[name][k1lindex] / l * factor
@@ -368,7 +368,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
     a.AddSampler(samplers)
 
     # Make beam file 
-    if beam : 
+    if beam: 
         b = MadxTfs2GmadBeam(madx, startname)
         a.AddBeam(b)
 
