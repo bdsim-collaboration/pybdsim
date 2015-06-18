@@ -4,8 +4,6 @@ import matplotlib.pyplot as _plt
 import numpy as _np
 from ROOT import TH1F
 
-#h1 is histogram, later make method
-
 '''
 converts 1d ROOT histogram TH1 (https://root.cern.ch/root/html/TH1.html) to
 matplotlib.pyplot.bar or matplotlib.pyplot.hist
@@ -32,7 +30,7 @@ def GetDataFromROOTHist(hist):
 
     return binWidth, content, centres
 
-def PlotTH1Bar(hist, edgecolor='none', color='b'):
+def PlotTH1Bar(hist, edgecolor='none', color='b', label='', newFigure=True):
 
     (name, title, labelX, labelY) = GetMetaDataFromROOTHist(hist)
     (binWidth, content, centres) = GetDataFromROOTHist(hist)
@@ -41,13 +39,18 @@ def PlotTH1Bar(hist, edgecolor='none', color='b'):
     height = content
     width  = binWidth
 
+    if newFigure:
+        _plt.figure()
     _plt.figure()
-    _plt.bar(left, height, width, edgecolor=edgecolor, color=color)
+    _plt.bar(left, height, width, edgecolor=edgecolor, color=color, label=label)
     _plt.xlabel(labelX)
     _plt.ylabel(labelY)
     _plt.title(title)
 
-def PlotTH1Hist(hist, edgecolor='none', color='b'):
+    if label!='':
+        _plt.legend(loc=0)
+
+def PlotTH1Hist(hist, edgecolor='none', color='b', label='', newFigure=True):
     (name, title, labelX, labelY) = GetMetaDataFromROOTHist(hist)
     (binWidth, content, centres) = GetDataFromROOTHist(hist)
     # hist data
@@ -55,8 +58,12 @@ def PlotTH1Hist(hist, edgecolor='none', color='b'):
     bins    = centres - 0.5*_np.array(binWidth)
     weights = content
 
-    _plt.figure()
-    _plt.hist(x, bins, weights = weights, edgecolor='none', color='b')
+    if newFigure:
+        _plt.figure()
+    _plt.hist(x, bins, weights = weights, edgecolor=edgecolor, color=color, label=label)
     _plt.xlabel(labelX)
     _plt.ylabel(labelY)
     _plt.title(title)
+
+    if label!='':
+        _plt.legend(loc=0)
