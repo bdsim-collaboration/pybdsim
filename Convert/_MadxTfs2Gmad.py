@@ -114,14 +114,15 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         k6slindex       = madx.ColumnIndex('K6SL')
         tiltindex       = madx.ColumnIndex('TILT')
         tindex          = madx.ColumnIndex('KEYWORD')
-        alphaindex      = madx.ColumnIndex('ALFX')
+        alphaxindex     = madx.ColumnIndex('ALFX')
+        alphayindex     = madx.ColumnIndex('ALFY')
         betaxindex      = madx.ColumnIndex('BETX')
         betayindex      = madx.ColumnIndex('BETY')
         vkickangleindex = madx.ColumnIndex('VKICK')
         hkickangleindex = madx.ColumnIndex('HKICK')
     except ValueError:
         print 'Missing columns from tfs file - insufficient information to convert file'
-        print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT, KEYWORD, VKICK, HKICK'
+        print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT, KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
         print 'Given columns    : '
         print madx.columns
         return
@@ -382,7 +383,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         #return lldiff,dldiff,a
     return a
 
-def MadxTfs2GmadBeam(tfs,startname=None):
+def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     if startname == None:
         startindex = 0
     elif type(startname) == int:
@@ -408,8 +409,9 @@ def MadxTfs2GmadBeam(tfs,startname=None):
         particle = 'proton' 
 
     #print particle,energy,gamma,ex,ey
-    #print data['BETX'],data['ALFX'],data['MUX']
-    #print data['BETY'],data['ALFY'],data['MUY']
+    if verbose:
+        print data['BETX'],data['ALFX'],data['MUX']
+        print data['BETY'],data['ALFY'],data['MUY']
     
     gammax = (1.0+data['ALFX'])/data['BETX']
     gammay = (1.0+data['ALFY'])/data['BETY']
