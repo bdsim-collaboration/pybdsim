@@ -32,8 +32,8 @@ def GetDataFromROOTHist(hist):
 
 def PlotTH1Bar(hist, edgecolor='none', color='b', label='', newFigure=True):
 
-    (name, title, labelX, labelY) = GetMetaDataFromROOTHist(hist)
-    (binWidth, content, centres) = GetDataFromROOTHist(hist)
+    name, title, labelX, labelY = GetMetaDataFromROOTHist(hist)
+    binWidth, content, centres = GetDataFromROOTHist(hist)
     # bar data
     left   = centres - 0.5*_np.array(binWidth)
     height = content
@@ -51,8 +51,8 @@ def PlotTH1Bar(hist, edgecolor='none', color='b', label='', newFigure=True):
         _plt.legend(loc=0)
 
 def PlotTH1Hist(hist, edgecolor='none', color='b', label='', newFigure=True):
-    (name, title, labelX, labelY) = GetMetaDataFromROOTHist(hist)
-    (binWidth, content, centres) = GetDataFromROOTHist(hist)
+    name, title, labelX, labelY = GetMetaDataFromROOTHist(hist)
+    binWidth, content, centres = GetDataFromROOTHist(hist)
     # hist data
     x       = centres
     bins    = centres - 0.5*_np.array(binWidth)
