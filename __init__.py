@@ -17,8 +17,11 @@ pybdsim - python tools for bdsim
 | Convert - convert other formats into gmad
 | Data    - read the bdsim output formats
 | Gmad    - create bdsim input files - lattices & options
+| ModelProcessing - tools to process existing BDSIM models and generate other versions of them.
 | Options - methods to generate bdsim options
 | Plot    - some nice plots for data
+| Root    - functions to convert ROOT histograms into matplotlib (not explicitly imported)
+| Visualisation - help locate objects in the BDSIM visualisation, requires a BDSIM survey file
 
 | Classes:
 | Analysis - encapsulates functions & plots for a single file
@@ -38,7 +41,7 @@ import Plot
 import ModelProcessing
 import Visualisation
 
-#import Root
+#import Root - not imported since dependency on pyROOT
 
 import _General
 
@@ -46,5 +49,4 @@ import _General
 #from AnalysisRoot import AnalysisRoot
 #from AnalysisRootOptics import AnalysisRootOptics
 
-#__all__ = ['Builder','Data','Gmad','Plot']
-__all__ = ['Beam','Builder','Constants','Data','Gmad','Options','Plot']
+__all__ = ['Beam','Builder','Constants','Convert','Compare','Data','Gmad','Options','Plot','ModelProcessing','Visualisation']
