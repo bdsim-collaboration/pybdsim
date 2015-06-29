@@ -1,7 +1,28 @@
-class GDML : 
 
-    def __init__(self, fileName) : 
-        self.ReadFile(fileName)
+
+class Stl2Gdml : 
+    def __init__(self, stl) : 
+        # check for stl type 
+
+        # if file load file 
+
+        # if strucutre pas
+        pass
+
+    def GetDdml(self) : 
+        pass
+    
+class Fluka2Gdml : 
+    def __init__(self) : 
+        pass
+    
+class Step2Gdml : 
+    def __init__(self) : 
+        pass
+
+class Gdml : 
+    def __init__(self) : 
+        pass
 
     def ReadFile(self,fileName) : 
         pass
@@ -11,3 +32,5 @@ class GDML :
 
     def ListMaterials(self) : 
         pass
+    
+    
