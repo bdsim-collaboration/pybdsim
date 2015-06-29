@@ -1,5 +1,3 @@
-
-
 class Stl2Gdml : 
     def __init__(self, stl) : 
         # check for stl type 
@@ -9,18 +7,10 @@ class Stl2Gdml :
         # if strucutre pas
         pass
 
-    def GetDdml(self) : 
+    def GetGdml(self) : 
         pass
     
-class Fluka2Gdml : 
-    def __init__(self) : 
-        pass
-    
-class Step2Gdml : 
-    def __init__(self) : 
-        pass
-
-class Gdml : 
+class GdmlFile : 
     def __init__(self) : 
         pass
 
