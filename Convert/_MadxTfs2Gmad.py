@@ -390,6 +390,12 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
         startindex = startname
     else:
         startindex = tfs.IndexFromName(startname)
+
+    #MADX defines parameters at the end of elements so need to go 1 element
+    #back if we can.
+
+    if startindex > 0:
+        startindex -= 1
     
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])
