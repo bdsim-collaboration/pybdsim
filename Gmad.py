@@ -360,12 +360,38 @@ class Lattice:
         print s
     
 
-class GmadFile :
+class GmadFile : 
     """
-    Class to load a gmad file to a buffer and modify the contents
+    Class to determine parameters and gmad include structure
+    """
+    def __init__(self, fileName) :
+
+        pass
+
+
+class GmadFileBeam : 
+    """
+    Class to load a gmad options file to a buffer and modify the contents
+    """
+
+    def __init__(self, fileName) : 
+        pass 
+
+class GmadFileOptions : 
+    """
+    Class to load a gmad options file to a buffer and modify the contents
+    """
+
+    def __init__(self, fileName) : 
+        pass
+    
+
+class GmadFileComponents :
+    """
+    Class to load a gmad components file to a buffer and modify the contents
 
     Example : 
-    python> g = pybdsim.Gmad.GmadFile("./atf2_components.gmad")    
+    python> g = pybdsim.Gmad.GmadFileComponents("./atf2_components.gmad")    
     python> g.change("KEX1A","l","10")    
     python> g.write("./atf2_components.gmad")
 
