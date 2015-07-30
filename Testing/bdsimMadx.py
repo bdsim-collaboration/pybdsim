@@ -14,16 +14,19 @@ import numpy as _np
 
 class FodoTest:
     def __init__(self,filename,foldername=None):
-            self.filename=filename
-            self.foldername=foldername
-            if self.foldername != None:
-                self.usingfolder = True
-                self.filepath = self.foldername+'/'+self.filename
-                _os.system("mkdir -p " + self.foldername)
+            if filename[-5:] == '.madx':                
+                self.filename=filename[:-5]
+                self.foldername=foldername
+                if self.foldername != None:
+                    self.usingfolder = True
+                    self.filepath = self.foldername+'/'+self.filename
+                    _os.system("mkdir -p " + self.foldername)
+                else:
+                    self.usingfolder = False
+                    self.filepath=self.filename
+                    self.figureNr = 1729
             else:
-                self.usingfolder = False
-                self.filepath=self.filename
-                self.figureNr = 1729
+                print "IOError: Not a valid file format!"   ###make this standard
 
 
     def Run(self):
@@ -33,18 +36,16 @@ class FodoTest:
         if self.usingfolder:
             _os.chdir(self.foldername)
 
-        _os.system("/Users/aabramov93/physics/packages/madx-macosx64 < "+self.filename+" > madx.log")
+        _os.system("madx < "+self.filename+".madx > madx.log")
 
         pybdsim.Convert.MadxTfs2Gmad("fodo.tfs","fodo")
 
-        _os.system("/Users/aabramov93/physics/packages/bdsim-build/bdsim --file=fodo.gmad --ngenerate=50000 --batch --output=root --outfile=fodo > bdsim.log")
+        _os.system("bdsim --file=fodo.gmad --ngenerate=50000 --batch --output=root --outfile=fodo > bdsim.log")
 
         madx = pymadx.Tfs("fodo.tfs")
         Ms = madx.GetColumn('S') # convert from m to um
         Mbetx = madx.GetColumn('BETX') 
         Mbety = madx.GetColumn('BETY')
-
-        print "made it here!"
 
         bdsim = robdsim.robdsimOutput('fodo.root')
         bdsim.CalculateOpticalFunctions('fodo_optics.dat')
