@@ -4,7 +4,8 @@ import pymadx as _pymadx
 from .. import Builder as _Builder
 from .. import Beam as _Beam
 
-def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',aperturedict={},collimatordict={},beampiperadius=0.2,verbose=False, beam=True, flipmagnets=False,usemadxaperture=False):
+def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',
+                 aperturedict={},collimatordict={},beampiperadius=0.2,verbose=False, beam=True, flipmagnets=False,usemadxaperture=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
@@ -390,6 +391,12 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
         startindex = startname
     else:
         startindex = tfs.IndexFromName(startname)
+
+    #MADX defines parameters at the end of elements so need to go 1 element
+    #back if we can.
+
+    if startindex > 0:
+        startindex -= 1
     
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])

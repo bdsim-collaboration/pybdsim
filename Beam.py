@@ -26,7 +26,6 @@ class Beam(dict):
         self.SetEnergy(energy)
         self.SetDistributionType(distrtype)
         
-        
     def SetParticleType(self,particletype='e-'):
         if particletype not in BDSIMParticleTypes:
             raise ValueError("Unknown particle type: '"+str(particletype)+"'")
@@ -101,7 +100,6 @@ class Beam(dict):
 
     def SetT0(self,t0=0.0,unitsstring='s'):
         self['T0'] = str(t0) + '*' + unitsstring
-
 
     def _SetSigmaX(self,sigmax=1.0,unitsstring='um'):
         self['sigmaX'] = str(sigmax) + '*' + unitsstring

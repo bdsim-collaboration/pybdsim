@@ -358,12 +358,38 @@ class Lattice:
         print s
     
 
-class GmadFile :
+class GmadFile : 
     """
-    Class to load a gmad file to a buffer and modify the contents
+    Class to determine parameters and gmad include structure
+    """
+    def __init__(self, fileName) :
+
+        pass
+
+
+class GmadFileBeam : 
+    """
+    Class to load a gmad options file to a buffer and modify the contents
+    """
+
+    def __init__(self, fileName) : 
+        pass 
+
+class GmadFileOptions : 
+    """
+    Class to load a gmad options file to a buffer and modify the contents
+    """
+
+    def __init__(self, fileName) : 
+        pass
+    
+
+class GmadFileComponents :
+    """
+    Class to load a gmad components file to a buffer and modify the contents
 
     Example : 
-    python> g = pybdsim.Gmad.GmadFile("./atf2_components.gmad")    
+    python> g = pybdsim.Gmad.GmadFileComponents("./atf2_components.gmad")    
     python> g.change("KEX1A","l","10")    
     python> g.write("./atf2_components.gmad")
 
@@ -380,13 +406,13 @@ class GmadFile :
         # regular expressions used for matching
 
         # For finding elements 
-        self.elementNameRe = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9=.\s-]+);"
+        self.elementNameRe = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9=.\*\s-]+);"
         # For finding a known element
-        self.elementRe     = "\s*:\s*([,a-zA-Z0-9=.\s-]+);" 
+        self.elementRe     = "\s*:\s*([,a-zA-Z0-9=.\*\s-]+);" 
         # For extracting the parameters for an element
-        self.elementValRe  = "([a-zA-Z0-9_-]+)=([-0-9.eE]+)"
+        self.elementValRe  = "([a-zA-Z0-9_-]+)=([a-zA-Z-0-9.eE\*]+)"
         # For extracting element type
-        self.elementNameRe1    = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9._-]+),([,a-zA-Z0-9=.\s-]+);"
+        self.elementNameRe1    = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9._-]+),([,a-zA-Z0-9=.\*\s-]+);"
                 
         # determine element names in file
         self.elementNames();
