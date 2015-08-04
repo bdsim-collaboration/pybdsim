@@ -148,12 +148,10 @@ def _LoadLib():
         parserlib.GetLength.argtypes = [_ctypes.c_int]
         parserlib.GetAngle.restype   = _ctypes.c_double
         parserlib.GetAngle.argtypes  = [_ctypes.c_int]
-        parserlib.GetAperX.restype   = _ctypes.c_double
-        parserlib.GetAperX.argtypes  = [_ctypes.c_int]
-        parserlib.GetAperY.restype   = _ctypes.c_double
-        parserlib.GetAperY.argtypes  = [_ctypes.c_int]
-        parserlib.GetAper.restype    = _ctypes.c_double
-        parserlib.GetAper.argtypes   = [_ctypes.c_int]
+        parserlib.GetAper1.restype   = _ctypes.c_double
+        parserlib.GetAper1.argtypes  = [_ctypes.c_int]
+        parserlib.GetAper2.restype   = _ctypes.c_double
+        parserlib.GetAper2.argtypes  = [_ctypes.c_int]
         parserlib.GetBeampipeThickness.restype  = _ctypes.c_double
         parserlib.GetBeampipeThickness.argtypes = [_ctypes.c_int]
         parserlib.GetKs.restype      = _ctypes.c_double*10
@@ -259,13 +257,13 @@ class Lattice:
         return float(self._parserlib.GetAngle(index))
 
     def GetAperX(self,index):
-        return float(self._parserlib.GetAperX(index))
+        return float(self._parserlib.GetAper1(index))
 
     def GetAperY(self,index):
-        return float(self._parserlib.GetAperY(index))
+        return float(self._parserlib.GetAper2(index))
 
     def GetAper(self,index):
-        return float(self._parserlib.GetAper(index))
+        return float(self._parserlib.GetAper1(index))
     
     def GetAllNames(self):
         allnames = []
