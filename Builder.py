@@ -421,34 +421,50 @@ class Machine:
 
 # General scripts below this point
 
-def CreateDipoleRing(filename, ncells=60, circumference=100.0, dfraction=0.1, samplers='first'):
+def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first'):
     """
-    Create a ring composed solely of dipoles
+    Create a ring composed of only dipoles
     filename
     ncells        - number of cells, each containing 1 dipole and a drift
     circumference - in metres
-    dfraction     - the fraction of dipoles in each cell (0.0<dfraction<1.0)
+    samplers      - 'first', 'last' or 'all'
+    
+    """
+    ndipoles = int(ndipoles)
+    a            = Machine()
+    dangle       = 2.0*_math.pi / float(ndipoles)
+    dipolelength = circumference / float(ndipoles)
+    for i in range(ndipoles):
+        a.AddDipole(length=dipolelength, angle=dangle)
+    a.AddSampler(samplers)
+    a.WriteLattice(filename)
+
+def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfraction=0.1, samplers='first'):
+    """
+    Create a ring composed of dipoles and drifts
+    filename
+    ncells        - number of cells, each containing 1 dipole and a drift
+    circumference - in metres
+    driftfraction - the fraction of drift in each cell (0.0 < driftfraction < 1.0)
     samplers      - 'first', 'last' or 'all'
     
     """
     ncells = int(ncells)
-    if dfraction > 1.0:
-        raise Warning("Fraction of dipoles must be less than 1.0 -> setting to 0.9")
-        dfraction = 0.9
-    if dfraction < 0.0:
-        raise Warning("Fraction of dipoles must be greater than 1.0 -> setting to 0.1")
-        dfraction = 0.1
-    a           = Machine()
-    dangle      = _Decimal(str(2.0*_math.pi / ncells))
-    clength     = _Decimal(str(float(circumference) / ncells))
-    dlength     = clength * _Decimal(str(dfraction))
-    driftlength = clength - dlength
-    a.AddDipole(length=dlength/_Decimal(2), angle=dangle/_Decimal(2))
-    a.AddDrift(length=driftlength)
-    for i in range(1,ncells,1):
-        a.AddDipole(length=dlength, angle=dangle)
+    if driftfraction > 1.0:
+        raise Warning("Fraction of drift must be less than 1.0 -> setting to 0.9")
+        driftfraction = 0.9
+    if driftfraction < 0.0:
+        raise Warning("Fraction of drift must be greater than 1.0 -> setting to 0.1")
+        driftfraction = 0.1
+    a            = Machine()
+    dangle       = 2.0*_math.pi / float(ncells)
+    clength      = circumference / float(ncells)
+    driftlength  = clength * driftfraction
+    dipolelength = clength - driftlength
+    for i in range(ncells):
+        a.AddDipole(length=dipolelength*0.5, angle=dangle*0.5)
         a.AddDrift(length=driftlength)
-    a.AddDipole(length=dlength/_Decimal(2), angle=dangle/_Decimal(2))
+        a.AddDipole(length=dipolelength*0.5, angle=dangle*0.5)
     a.AddSampler(samplers)
     a.WriteLattice(filename)
 
