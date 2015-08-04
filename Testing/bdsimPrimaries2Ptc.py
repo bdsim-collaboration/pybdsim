@@ -16,8 +16,8 @@ def bdsimPrimaries2Ptc(input,outfile):
     arrchain    = _rnp.tree2rec(primchain)   #array form of the primary tree chain
 
     nparticles  = len(arrchain)
-    x           = arrchain['x']
-    y           = arrchain['y']
+    x           = arrchain['x']*1e-6    #convert from um to m
+    y           = arrchain['y']*1e-6
     xp          = arrchain['xp']
     yp          = arrchain['yp']
     t           = arrchain['t']
@@ -33,9 +33,12 @@ def bdsimPrimaries2Ptc(input,outfile):
         s += ', px=' + str(xp[n])
         s += ', y='  + str(y[n])
         s += ', py=' + str(yp[n])
-        s += ', t='  + str(t[n])
-        s += ', pt=' + str(E[n]-meanE)          # Approximated as deltaE = E_n - meanE 
+       # s += ', t='  + str(t[n])
+       # s += ', pt=' + str((E[n]-meanE)/meanE)   #FIX THESE
+        s += ', t='  + str(1e-12)
+        s += ', pt='  + str(1e-12)
         s += ';\n'
+        
         outfile.writelines(s)
 
     outfile.close()
