@@ -285,52 +285,24 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         elif t == 'RCOLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
-                if 'bdsim_material' in collimatordict[name]:
-                    kws['material'] = collimatordict[name]['bdsim_material']
-                else:
-                    kws['material'] = 'Copper'
-                if 'xsize' in collimatordict[name]:
-                    xsize = collimatordict[name]['xsize']
-                else:
-                    xsize = opencollimatorsetting
-                if 'ysize' in collimatordict[name]:
-                    ysize = collimatordict[name]['ysize']
-                else:
-                    tsize = opencollimatorsetting
-                if 'angle' in collimatordict[name]:
-                    angle = collimatordict[name]['angle']
-                else:
-                    angle = 0.0
+                kws.update(collimatordict[name]) #gets a dictionary then extends kws dict with that dictionary
             else:
+                print "Warning - using default parameters for rcol: '",name,"' x,y = beam pipe radius, 0 tilt, copper"
                 xsize = beampiperadius
                 ysize = beampiperadius
-                angle = 0.0
+                kws['tilt']     = 0.0
                 kws['material'] = "Copper"
-            a.AddRColAngled(rname,l,xsize,ysize,angle,**kws)
+            a.AddRCol(rname,l,xsize,ysize,angle,**kws)
         elif t == 'ECOLLIMATOR':
             if name in collimatordict:
-                if 'bdsim_material' in collimatordict[name]:
-                    kws['material'] = collimatordict[name]['bdsim_material']
-                else:
-                    kws['material'] = 'Copper'
-                if 'xsize' in collimatordict[name]:
-                    xsize = collimatordict[name]['xsize']
-                else:
-                    xsize = opencollimatorsetting
-                if 'ysize' in collimatordict[name]:
-                    ysize = collimatordict[name]['ysize']
-                else:
-                    tsize = opencollimatorsetting
-                if 'angle' in collimatordict[name]:
-                    angle = collimatordict[name]['angle']
-                else:
-                    angle = 0.0
+                kws.update(collimatordict[name]) #gets a dictionary then extends kws dict with that dictionary
             else:
+                print "Warning - using default parameters for ecol: '",name,"' x,y = beam pipe radius, 0 tilt, copper"
                 xsize = beampiperadius
                 ysize = beampiperadius
-                angle = 0.0
+                kws['tilt']     = 0.0
                 kws['material'] = "Copper"
-            a.AddEColAngled(rname,l,xsize,ysize,angle,**kws)
+            a.AddECol(rname,l,xsize,ysize,**kws)
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
