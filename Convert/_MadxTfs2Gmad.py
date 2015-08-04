@@ -148,13 +148,14 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             zerolength = True
         else:
             zerolength = False
+        
+        if verbose:
+            print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
 
         if zerolength and ignorezerolengthitems:
             itemsomitted.append(name)
             continue #this skips the rest of the loop as we're ignoring this item
-            
-        if verbose:
-            print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
+        
         lentot += l
         angtot += ang
 
@@ -192,9 +193,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                 ap = (defaultbeampiperadius,'m')
             if t != 'RCOLLIMATOR':
                 kws['aper'] = ap
-
-        #if l == 0 and izlis == True:
-        #    pass
+        
         if t == 'DRIFT':
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
@@ -202,24 +201,17 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             a.AddHKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
-            if izlis and zerolength:
-                itemsomitted.append(name)
-            elif (not izlis) and zerolength:
+            if zerolength:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of instrument'
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MARKER':
-            if izlis:
-                itemsomitted.append(name)
-            else:
-                a.AddMarker(rname)
+            a.AddMarker(rname)
         elif t == 'MONITOR':
             #most monitors are just markers
-            if izlis and zerolength:
-                itemsomitted.append(name)
-            elif (not izlis) and zerolength:
+            if zerolength:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of monitor'
@@ -228,7 +220,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         elif t == 'MULTIPOLE':
             # TBC - cludge for thin multipoles (uses lFake for a short non-zero length)
             factor = -1 if flipmagnets else 1  #flipping magnets
-            if thinmultipoles : 
+            if thinmultipoles:
+                print 'WARNING - conversion of thin multipoles is not finished yet!'
                 k1  = madx.data[name][k1lindex] / lFake * factor
                 k2  = madx.data[name][k2lindex] / lFake * factor
                 k3  = madx.data[name][k3lindex] / lFake * factor
@@ -248,9 +241,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                     a.AddMarker(rname)
 #                    a.AddMultipole(name,length=lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),tilt=tilt)
 
-            if izlis and zerolength:
-                itemsomitted.append(name)
-            elif (not izlis) and zerolength:
+            if zerolength:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of multipole'
@@ -258,19 +249,10 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                 a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
             #TO BE FINISHED
-            if izlis and zerolength:
-                itemsomitted.append(name)
-            elif (not izlis) and zerolength:
-                a.AddMarker(rname)
-                if verbose:
-                    print name,' -> marker instead of octupole'
-            else:
-                #NO implmentation of octupoles yet..
-                a.AddDrift(rname,l,**kws)
+            #NO implmentation of octupoles yet..
+            a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
-            if izlis and zerolength:
-                itemsomitted.append(name)
-            elif (not izlis) and zerolength:
+            if zerolength:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of placeholder'
@@ -286,52 +268,24 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         elif t == 'RCOLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
-                if 'bdsim_material' in collimatordict[name]:
-                    kws['material'] = collimatordict[name]['bdsim_material']
-                else:
-                    kws['material'] = 'Copper'
-                if 'xsize' in collimatordict[name]:
-                    xsize = collimatordict[name]['xsize']
-                else:
-                    xsize = opencollimatorsetting
-                if 'ysize' in collimatordict[name]:
-                    ysize = collimatordict[name]['ysize']
-                else:
-                    tsize = opencollimatorsetting
-                if 'angle' in collimatordict[name]:
-                    angle = collimatordict[name]['angle']
-                else:
-                    angle = 0.0
+                kws.update(collimatordict[name]) #gets a dictionary then extends kws dict with that dictionary
             else:
+                print "Warning - using default parameters for rcol: '",name,"' x,y = beam pipe radius, 0 tilt, copper"
                 xsize = beampiperadius
                 ysize = beampiperadius
-                angle = 0.0
+                kws['tilt']     = 0.0
                 kws['material'] = "Copper"
-            a.AddRColAngled(rname,l,xsize,ysize,angle,**kws)
+            a.AddRCol(rname,l,xsize,ysize,angle,**kws)
         elif t == 'ECOLLIMATOR':
             if name in collimatordict:
-                if 'bdsim_material' in collimatordict[name]:
-                    kws['material'] = collimatordict[name]['bdsim_material']
-                else:
-                    kws['material'] = 'Copper'
-                if 'xsize' in collimatordict[name]:
-                    xsize = collimatordict[name]['xsize']
-                else:
-                    xsize = opencollimatorsetting
-                if 'ysize' in collimatordict[name]:
-                    ysize = collimatordict[name]['ysize']
-                else:
-                    tsize = opencollimatorsetting
-                if 'angle' in collimatordict[name]:
-                    angle = collimatordict[name]['angle']
-                else:
-                    angle = 0.0
+                kws.update(collimatordict[name]) #gets a dictionary then extends kws dict with that dictionary
             else:
+                print "Warning - using default parameters for ecol: '",name,"' x,y = beam pipe radius, 0 tilt, copper"
                 xsize = beampiperadius
                 ysize = beampiperadius
-                angle = 0.0
+                kws['tilt']     = 0.0
                 kws['material'] = "Copper"
-            a.AddEColAngled(rname,l,xsize,ysize,angle,**kws)
+            a.AddECol(rname,l,xsize,ysize,**kws)
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
@@ -355,13 +309,10 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         else:
             print 'unknown element type: ',t,' for element named: ',name
             if zerolength:
-                if izlis :
-                    itemsomitted.append(name)
-                else:
-                    print 'putting marker in instead as its zero length'
-                    a.AddMarker(rname)
+                print 'putting marker in instead as its zero length'
+                a.AddMarker(rname)
             else:
-                print 'putting drift in instead as it has finite length'
+                print 'putting drift in instead as it has a finite length'
                 a.AddDrift(rname,l)
 
     #add a single marker at the end of the line
@@ -385,6 +336,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
     return a
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
+    print 'Warning - using automatic geneation of input beam distribution from madx tfs file - PLEASE CHECK!'
     if startname == None:
         startindex = 0
     elif type(startname) == int:
