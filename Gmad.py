@@ -148,12 +148,10 @@ def _LoadLib():
         parserlib.GetLength.argtypes = [_ctypes.c_int]
         parserlib.GetAngle.restype   = _ctypes.c_double
         parserlib.GetAngle.argtypes  = [_ctypes.c_int]
-        parserlib.GetAperX.restype   = _ctypes.c_double
-        parserlib.GetAperX.argtypes  = [_ctypes.c_int]
-        parserlib.GetAperY.restype   = _ctypes.c_double
-        parserlib.GetAperY.argtypes  = [_ctypes.c_int]
-        parserlib.GetAper.restype    = _ctypes.c_double
-        parserlib.GetAper.argtypes   = [_ctypes.c_int]
+        parserlib.GetAper1.restype   = _ctypes.c_double
+        parserlib.GetAper1.argtypes  = [_ctypes.c_int]
+        parserlib.GetAper2.restype   = _ctypes.c_double
+        parserlib.GetAper2.argtypes  = [_ctypes.c_int]
         parserlib.GetBeampipeThickness.restype  = _ctypes.c_double
         parserlib.GetBeampipeThickness.argtypes = [_ctypes.c_int]
         parserlib.GetKs.restype      = _ctypes.c_double*10
@@ -259,13 +257,13 @@ class Lattice:
         return float(self._parserlib.GetAngle(index))
 
     def GetAperX(self,index):
-        return float(self._parserlib.GetAperX(index))
+        return float(self._parserlib.GetAper1(index))
 
     def GetAperY(self,index):
-        return float(self._parserlib.GetAperY(index))
+        return float(self._parserlib.GetAper2(index))
 
     def GetAper(self,index):
-        return float(self._parserlib.GetAper(index))
+        return float(self._parserlib.GetAper1(index))
     
     def GetAllNames(self):
         allnames = []
@@ -360,12 +358,38 @@ class Lattice:
         print s
     
 
-class GmadFile :
+class GmadFile : 
     """
-    Class to load a gmad file to a buffer and modify the contents
+    Class to determine parameters and gmad include structure
+    """
+    def __init__(self, fileName) :
+
+        pass
+
+
+class GmadFileBeam : 
+    """
+    Class to load a gmad options file to a buffer and modify the contents
+    """
+
+    def __init__(self, fileName) : 
+        pass 
+
+class GmadFileOptions : 
+    """
+    Class to load a gmad options file to a buffer and modify the contents
+    """
+
+    def __init__(self, fileName) : 
+        pass
+    
+
+class GmadFileComponents :
+    """
+    Class to load a gmad components file to a buffer and modify the contents
 
     Example : 
-    python> g = pybdsim.Gmad.GmadFile("./atf2_components.gmad")    
+    python> g = pybdsim.Gmad.GmadFileComponents("./atf2_components.gmad")    
     python> g.change("KEX1A","l","10")    
     python> g.write("./atf2_components.gmad")
 
