@@ -403,7 +403,10 @@ class Machine:
             
     def AddSampler(self,*elementnames):
         if elementnames[0] == 'all':
-            for element in self.elements:
+            for element in self.elements[1:]:
+                #skip the first element as that will likely only capture
+                #half the beam due to the finite Z size of the beam - also
+                #degenerate with the primary sampler that's automatic.
                 #remember we can only have samplers on uniquely
                 #named elements (for now)
                 self.samplers.append(Sampler(element.name))
