@@ -66,7 +66,7 @@ class FodoTest:
 
 
     def Run(self):
-        print 'Test> FODO:' 
+        print 'Test> Lattice: ',self.filename 
         print 'Test> Destination filepath: ',self.filepath
 
         if self.usingfolder:
@@ -74,12 +74,26 @@ class FodoTest:
 
         _os.system("madx-macosx64 < "+self.filename+".madx > madx.log")
 
-        pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs', self.filename) 
+        """
+        a = pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs','dump',beam=False)
+        b = pybdsim.Beam.Beam('proton',10.0,'ptc')
+        b.SetDistribFileName('INRAYS.madx')
+        a.AddBeam(b)
+        a.WriteLattice(self.filename)
+        
+        """ 
+        pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs',self.filename,verbose=True)
+        
+        
+        
+        
         _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays)
 
         _os.system("bdsim --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=root --outfile="+self.filename+" > bdsim.log")
 
+        
         pybdsim.Testing.bdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
+
 
         _os.system("madx-macosx64 < "+self.ptcfilename+" > ptc_madx.log")
                 
@@ -96,8 +110,10 @@ class FodoTest:
         if self.usingfolder:
             _os.chdir(self.foldername)
 
-        rootdata  = robdsim.robdsimOutput(self.filename+".root")
-
+        rootdata  = robdsim.RobdsimOutput(self.filename+".root")
+        
+        print "robdsim.RobdsimOutput> root file loaded"
+        
         primchain = rootdata.GetSamplerChain('primaries')
         bdsimprim = _rnp.tree2rec(primchain)
         Bx0 = bdsimprim['x']
@@ -115,12 +131,12 @@ class FodoTest:
         self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp}
         
 
-        madx = pymadx.Tfs("trackone")
-        madx = madx.GetSegment(madx.nsegments) #get the last 'segment' / sampler
-        Mx = madx.GetColumn('X')*1e6 # convert from m to um
-        My = madx.GetColumn('Y')*1e6 
-        Mxp = madx.GetColumn('PX')
-        Myp = madx.GetColumn('PY')
+        madxout = pymadx.Tfs("trackone")
+        madxend = madxout.GetSegment(madxout.nsegments) #get the last 'segment' / sampler
+        Mx = madxend.GetColumn('X')
+        My = madxend.GetColumn('Y') 
+        Mxp = madxend.GetColumn('PX')
+        Myp = madxend.GetColumn('PY')
         self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
 
         fresx  = _np.nan_to_num(Mx - Bx)
@@ -180,20 +196,23 @@ class FodoTest:
         Ms = madx.GetColumn('S')
         Mbetx = madx.GetColumn('BETX') 
         Mbety = madx.GetColumn('BETY')
-
-        bdsim = robdsim.robdsimOutput(''+self.filename+'.root')
-        bdsim.CalculateOpticalFunctions(''+self.filename+'_optics.dat')
+        
+       # bdsim = robdsim.RobdsimOutput(self.filename+".root")
+       
+        print "robdsim.CalculateOpticalFunctions> processing..."
+        
+        rootdata.CalculateOpticalFunctions(''+self.filename+'_optics.dat')
         bdata = pybdsim.Data.Load(''+self.filename+'_optics.dat')
         Bs    = bdata.S()
         Bbetx = bdata.Beta_x()
         Bbety = bdata.Beta_y()
-
+        
         _plt.figure(self.figureNr)
         _plt.clf()
         _plt.plot(Ms,Mbetx,'.',color='r',linestyle='solid',label=r'$\beta_{x}$MDX')
         _plt.plot(Ms,Mbety,'.',color='b',linestyle='solid',label=r'$\beta_{y}$MDX')
-        _plt.plot(Bs,Bbetx,'.',color='r',linestyle='dashed',label=r'$\beta_{x}$BDS')
-        _plt.plot(Bs,Bbety,'.',color='b',linestyle='dashed',label=r'$\beta_{y}$BDS')
+        _plt.plot(Bs,Bbetx,'.',color='r',linestyle='dashed',linewidth=3,label=r'$\beta_{x}$BDS')
+        _plt.plot(Bs,Bbety,'.',color='b',linestyle='dashed',linewidth=3,label=r'$\beta_{y}$BDS')
         _plt.title(r'Plot of $\beta_{x,y}$ vs $S$')
         _plt.xlabel(r'$S (m)$')
         _plt.ylabel(r'$\beta_{x,y}(m)$')
