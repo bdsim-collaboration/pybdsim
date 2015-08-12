@@ -322,7 +322,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
 
     # Make beam file 
     if beam: 
-        b = MadxTfs2GmadBeam(madx, startname)
+        b = MadxTfs2GmadBeam(madx, startname, verbose)
         a.AddBeam(b)
 
     a.WriteLattice(outputfilename)
