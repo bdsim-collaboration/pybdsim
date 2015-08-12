@@ -11,16 +11,16 @@ def bdsimPrimaries2Ptc(input,outfile):
     a PTC inrays file from the primary particle tree. Outfile should be .madx
     """    
     
-    rootin      = _rbs.robdsimOutput(input)
+    rootin      = _rbs.RobdsimOutput(input)
     primchain   = rootin.GetSamplerChain('primaries')
     arrchain    = _rnp.tree2rec(primchain)   #array form of the primary tree chain
 
     nparticles  = len(arrchain)
-    x           = arrchain['x']*1e-6    #convert from um to m
-    y           = arrchain['y']*1e-6
+    x           = arrchain['x']
+    y           = arrchain['y']
     xp          = arrchain['xp']
     yp          = arrchain['yp']
-    t           = arrchain['t']
+    t           = arrchain['z0']
     E           = arrchain['E']
     meanE       = _np.mean(E)
     
@@ -33,10 +33,8 @@ def bdsimPrimaries2Ptc(input,outfile):
         s += ', px=' + str(xp[n])
         s += ', y='  + str(y[n])
         s += ', py=' + str(yp[n])
-       # s += ', t='  + str(t[n])
-       # s += ', pt=' + str((E[n]-meanE)/meanE)   #FIX THESE
-        s += ', t='  + str(1e-12)
-        s += ', pt='  + str(1e-12)
+        s += ', t='  + str(t[n])
+        s += ', pt=' + str((E[n]-meanE)/meanE)   
         s += ';\n'
         
         outfile.writelines(s)
