@@ -74,7 +74,7 @@ class LatticeTest:
         if self.usingfolder:
             _os.chdir(self.foldername)
 
-        _os.system("madx-macosx64 < "+self.filename+".madx > madx.log")
+        _os.system("madx < "+self.filename+".madx > madx.log")
 
         """
         a = pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs','dump',beam=False)
@@ -94,7 +94,7 @@ class LatticeTest:
         pybdsim.Testing.bdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
 
-        _os.system("madx-macosx64 < "+self.ptcfilename+" > ptc_madx.log")
+        _os.system("madx < "+self.ptcfilename+" > ptc_madx.log")
                 
         if self.usingfolder:
             _os.chdir("../")
