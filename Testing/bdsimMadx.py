@@ -13,16 +13,17 @@ import matplotlib.pyplot as _plt
 import robdsim
 import numpy as _np
 import root_numpy as _rnp
+import time
 
-
-class FodoTest:
-    def __init__(self,filename, nparticles = 1000, foldername=None):        
+class LatticeTest:
+    def __init__(self,filename, nparticles = 1000, foldername=None, verbose=False):        
         """
         Takes a .madx file containing description of a lattice and generates
         BDSIM and MadX PTC jobs from it as well as MadX optical functions 
         propagation plots.
 
-        nparticles - specifies the number of particles to be used for BDSIM/PTC runs
+        nparticles: specifies the number of particles to be used for BDSIM/PTC runs. Default = 1000
+        verbose   : prints additional information
         """
         if filename[-5:] == ".madx":                
             self.filename    = filename[:-5]
@@ -39,12 +40,13 @@ class FodoTest:
             else:
                 self.usingfolder = False
                 self.filepath    = self.filename+".madx"
+                self.verbose     = verbose
                 self.figureNr    = 1729
         else:
             print "IOError: Not a valid file format!"   ###make this standard
-            quit()
 
     def Clean(self):
+        #delete all files produced
         _os.system("rm -rf "+self.filename+"/")
         _os.system("rm -rf fodo*")
         _os.system("rm -rf *.log")
@@ -66,8 +68,8 @@ class FodoTest:
 
 
     def Run(self):
-        print 'Test> Lattice: ',self.filename 
-        print 'Test> Destination filepath: ',self.filepath
+        print 'Test> Lattice: ', self.filename 
+        print 'Test> Destination filepath: ', self.filepath
 
         if self.usingfolder:
             _os.chdir(self.foldername)
@@ -76,16 +78,13 @@ class FodoTest:
 
         """
         a = pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs','dump',beam=False)
-        b = pybdsim.Beam.Beam('proton',10.0,'ptc')
-        b.SetDistribFileName('INRAYS.madx')
+        b = pybdsim.Beam.Beam('proton',10.0,'ptc')    #beam parameters need to be set manually
+        b.SetDistribFileName('INRAYS.madx')           #This is for testing BDSIM 'ptc' beam distribution
         a.AddBeam(b)
         a.WriteLattice(self.filename)
         
         """ 
-        pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs',self.filename,verbose=True)
-        
-        
-        
+        pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)                        
         
         _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays)
 
@@ -103,13 +102,16 @@ class FodoTest:
 
     def Compare(self, addPrimaries=True):
         """
-        This function is adapted from trackingTester,in the future it will be
-        further altered and upgraded to suit the needs of this tester
+        Performs analysis and comparison of BDSIM, MADX and MADX-PTC output. 
+       
+        addPrimaries - True adds BDSIM primaries to histos. Default is False
         """
 
         if self.usingfolder:
             _os.chdir(self.foldername)
 
+        #Load data
+        
         rootdata  = robdsim.RobdsimOutput(self.filename+".root")
         
         print "robdsim.RobdsimOutput> root file loaded"
@@ -138,7 +140,8 @@ class FodoTest:
         Mxp = madxend.GetColumn('PX')
         Myp = madxend.GetColumn('PY')
         self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
-
+        
+        #fractional errors
         fresx  = _np.nan_to_num(Mx - Bx)
         fresy  = _np.nan_to_num(My - By)
         fresx  = _np.nan_to_num(fresx / Mx) #protect against nans for 0 diff
@@ -160,6 +163,7 @@ class FodoTest:
         stdBxp = _np.std(Bxp)
         stdByp = _np.std(Byp)
 
+        #standard devation fractional errors
         frestdx  = _np.nan_to_num(stdMx - stdBx)
         frestdy  = _np.nan_to_num(stdMy - stdBy)
         frestdx  = _np.nan_to_num(frestdx / stdMx) #protect against nans for 0 diff
@@ -169,35 +173,32 @@ class FodoTest:
         frestdxp = _np.nan_to_num(frestdxp / stdMxp)
         frestdyp = _np.nan_to_num(frestdyp / stdMyp)
 
-        print 'stdFracErrX= ',frestdx,' stdFracErrY= ', frestdy, 'stdFracErrXP= ', frestdxp, 'stdFracErrX= ', frestdyp
-
         # write standard deviations to file
         with open(''+self.filename+'_stdev.txt', 'w') as stdout:
-            h = self.filename+' stdev'
-            h += '\t BDS_X \t MDX_x \t BDS_Y \t MDX_Y \t BDS_XP \t MDX_XP \t BDS_YP \t MDX_YP \t FRCERR_X \t FRCERR_Y \t FRCERR_XP \t FRCERR_YP\n'
-            s  = '\t' +  str(stdBx)
-            s += '\t' +  str(stdMx)
-            s += '\t' +  str(stdBy)              
-            s += '\t' +  str(stdMy)
-            s += '\t' +  str(stdBxp)
-            s += '\t' +  str(stdMxp)
-            s += '\t' +  str(stdByp)
-            s += '\t' +  str(stdMyp)
-            s += '\t' +  str(frestdx)
-            s += '\t' +  str(frestdy)
-            s += '\t' +  str(frestdxp)
-            s += '\t' +  str(frestdyp) + '\n'
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            t = timestamp+' '+self.filename+' Standard Deviations (particles = '+str(self.nparticles)+'): \n'
+            h = 'BDSIM_X \t MX-PTC_X \t BDSIM_Y \t MX-PTC_Y \t BDSIM_XP \t MX-PTC_XP \t BDSIM_YP \t MX-PTC_YP \t FRCERR_X \t FRCERR_Y \t FRCERR_XP \t FRCERR_YP \n'
+            s  = "{0:.4e}".format(stdBx)
+            s += '\t' +  "{0:.4e}".format(stdMx)
+            s += '\t' +  "{0:.4e}".format(stdBy)              
+            s += '\t' +  "{0:.4e}".format(stdMy)
+            s += '\t' +  "{0:.4e}".format(stdBxp)
+            s += '\t' +  "{0:.4e}".format(stdMxp)
+            s += '\t' +  "{0:.4e}".format(stdByp)
+            s += '\t' +  "{0:.4e}".format(stdMyp)
+            s += '\t' +  "{0:.4e}".format(frestdx)
+            s += '\t' +  "{0:.4e}".format(frestdy)
+            s += '\t' +  "{0:.4e}".format(frestdxp)
+            s += '\t' +  "{0:.4e}".format(frestdyp) + '\n'
+            stdout.writelines(t)
             stdout.writelines(h)
             stdout.writelines(s)
-        stdout.close()
 
         #Optical function beta plot
         madx = pymadx.Tfs(''+self.tfsfilename+'.tfs')
         Ms = madx.GetColumn('S')
         Mbetx = madx.GetColumn('BETX') 
         Mbety = madx.GetColumn('BETY')
-        
-       # bdsim = robdsim.RobdsimOutput(self.filename+".root")
        
         print "robdsim.CalculateOpticalFunctions> processing..."
         
@@ -207,13 +208,13 @@ class FodoTest:
         Bbetx = bdata.Beta_x()
         Bbety = bdata.Beta_y()
         
-        _plt.figure(self.figureNr)
+        _plt.figure(self.figureNr, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
         _plt.plot(Ms,Mbetx,'.',color='r',linestyle='solid',label=r'$\beta_{x}$MDX')
         _plt.plot(Ms,Mbety,'.',color='b',linestyle='solid',label=r'$\beta_{y}$MDX')
-        _plt.plot(Bs,Bbetx,'.',color='r',linestyle='dashed',linewidth=3,label=r'$\beta_{x}$BDS')
-        _plt.plot(Bs,Bbety,'.',color='b',linestyle='dashed',linewidth=3,label=r'$\beta_{y}$BDS')
-        _plt.title(r'Plot of $\beta_{x,y}$ vs $S$')
+        _plt.plot(Bs,Bbetx,'.',color='r',linestyle='dashed',linewidth=1.2,label=r'$\beta_{x}$BDS')
+        _plt.plot(Bs,Bbety,'.',color='b',linestyle='dashed',linewidth=1.2,label=r'$\beta_{y}$BDS')
+        _plt.title(self.filename+r' Plot of $\beta_{x,y}$ vs $S$')
         _plt.xlabel(r'$S (m)$')
         _plt.ylabel(r'$\beta_{x,y}(m)$')
         _plt.legend(numpoints=1,loc=7)
@@ -223,7 +224,7 @@ class FodoTest:
         
         # 2d plots
         #X vs Y
-        _plt.figure(self.figureNr+1)
+        _plt.figure(self.figureNr+1, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
         _plt.plot(Mx,My,'b.',label='PTC')
         _plt.plot(Bx,By,'g.',label='BDSIM')
@@ -237,7 +238,7 @@ class FodoTest:
         _plt.savefig(self.filename+'_xy.png')
 
         #XP vs YP
-        _plt.figure(self.figureNr+2)
+        _plt.figure(self.figureNr+2, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
         _plt.plot(Mxp,Myp,'b.',label='PTC')
         _plt.plot(Bxp,Byp,'g.',label='BDSIM')
@@ -251,7 +252,7 @@ class FodoTest:
         _plt.savefig(self.filename+'_xpyp.png')
 
         #X vs XP
-        _plt.figure(self.figureNr+3)
+        _plt.figure(self.figureNr+3, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
         _plt.plot(Mx,Mxp,'b.',label='PTC')
         _plt.plot(Bx,Bxp,'g.',label='BDSIM')
@@ -265,7 +266,7 @@ class FodoTest:
         _plt.savefig(self.filename+'_xxp.png')
 
         #Y vs YP
-        _plt.figure(self.figureNr+4)
+        _plt.figure(self.figureNr+4, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
         _plt.plot(My,Myp,'b.',label='PTC')
         _plt.plot(By,Byp,'g.',label='BDSIM')
@@ -280,7 +281,7 @@ class FodoTest:
 
         # 1d plots
         # x comparison
-        f = _plt.figure(self.figureNr+5)
+        f = _plt.figure(self.figureNr+5, figsize=(15, 8), dpi=80, facecolor='w', edgecolor='k')
         f.suptitle(self.filename)
         _plt.clf()
 
@@ -318,13 +319,14 @@ class FodoTest:
             ax4.hist(Byp0,color='r',label='BDSIM prim',histtype='step')
         ax4.legend(fontsize='x-small',loc=0)
         ax4.set_xlabel(r"y' (rad)")
-        
+
+        _plt.subplots_adjust(left=0.1,right=0.9,top=0.95, bottom=0.15, wspace=0.1, hspace=0.15)
         _plt.savefig(self.filename+'_hist.pdf')
         _plt.savefig(self.filename+'_hist.png')
 
         # residuals in one plot
-        f = _plt.figure(self.figureNr+9)
-        _plt.clf()
+        f = _plt.figure(self.figureNr+9, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
+        _plt.clf()      
         
         axX = f.add_subplot(221)
         axX.hist(Mx,weights=fresx,bins=100,ec='b')
@@ -346,7 +348,7 @@ class FodoTest:
         axYp.set_xlabel('Yp (mrad)')
         axYp.set_ylabel('Fractional Diffrence')
 
-        _plt.subplots_adjust(left=0.15,right=0.95,top=0.95,wspace=0.39,hspace=0.25)
+        _plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15, wspace=0.39, hspace=0.25)
         _plt.savefig(self.filename+'_residuals.pdf')
         _plt.savefig(self.filename+'_residuals.png')
         
