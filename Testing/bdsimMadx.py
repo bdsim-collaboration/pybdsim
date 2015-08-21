@@ -42,8 +42,8 @@ class LatticeTest:
             else:
                 self.usingfolder = False
                 self.filepath    = self.filename+".madx"
-                self.verbose     = verbose
-                self.figureNr    = 1729
+            self.verbose     = verbose
+            self.figureNr    = 1729
         else:
             print "IOError: Not a valid file format!"   ###make this standard
 
@@ -54,6 +54,9 @@ class LatticeTest:
 
     def Clean(self):
         #delete all files produced
+        if self.usingfolder:
+            _os.chdir(self.foldername)
+            
         _os.system("rm -rf "+self.filename+"/")
         _os.system("rm -rf fodo*")
         _os.system("rm -rf *.log")
@@ -68,6 +71,9 @@ class LatticeTest:
         _os.system("rm -rf *.png")
         _os.system("rm -rf *.pdf")
         _os.system("rm trackone")
+
+        if self.usingfolder:
+            _os.chdir("../")
 
         # clean and close figures (10 figures in total)
         for i in range(11):
