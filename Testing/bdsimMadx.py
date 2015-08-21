@@ -15,6 +15,8 @@ import numpy as _np
 import root_numpy as _rnp
 import time
 
+
+
 class LatticeTest:
     def __init__(self,filename, nparticles = 1000, foldername=None, verbose=False):        
         """
@@ -45,6 +47,11 @@ class LatticeTest:
         else:
             print "IOError: Not a valid file format!"   ###make this standard
 
+    def CleanRunCompare(self):
+        self.Clean()
+        self.Run()
+        self.Compare(addPrimaries=False)
+
     def Clean(self):
         #delete all files produced
         _os.system("rm -rf "+self.filename+"/")
@@ -62,8 +69,8 @@ class LatticeTest:
         _os.system("rm -rf *.pdf")
         _os.system("rm trackone")
 
-        # clean and close figures (9 figures in total)
-        for i in range(10):
+        # clean and close figures (10 figures in total)
+        for i in range(11):
             _plt.close(self.figureNr+i)
 
 
@@ -74,7 +81,7 @@ class LatticeTest:
         if self.usingfolder:
             _os.chdir(self.foldername)
 
-        _os.system("madx < "+self.filename+".madx > madx.log")
+        _os.system("madx-macosx64 < "+self.filename+".madx > madx.log")
 
         """
         a = pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs','dump',beam=False)
@@ -90,11 +97,9 @@ class LatticeTest:
 
         _os.system("bdsim --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=root --outfile="+self.filename+" > bdsim.log")
 
-        
         pybdsim.Testing.bdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
-
-        _os.system("madx < "+self.ptcfilename+" > ptc_madx.log")
+        _os.system("madx-macosx64 < "+self.ptcfilename+" > ptc_madx.log")
                 
         if self.usingfolder:
             _os.chdir("../")
@@ -140,18 +145,20 @@ class LatticeTest:
         Mxp = madxend.GetColumn('PX')
         Myp = madxend.GetColumn('PY')
         self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
+
+        #Check all particles make it through
+        print "Input particles: ",self.nparticles," BDS_out particles: ", len(Bx)," PTC_out particles: ", len(Mx)
         
         #fractional errors
-        fresx  = _np.nan_to_num(Mx - Bx)
-        fresy  = _np.nan_to_num(My - By)
-        fresx  = _np.nan_to_num(fresx / Mx) #protect against nans for 0 diff
-        fresy  = _np.nan_to_num(fresy / My)
-        fresxp = _np.nan_to_num(Mxp - Bxp)
-        fresyp = _np.nan_to_num(Myp - Byp)
-        fresxp = _np.nan_to_num(fresxp / Mxp)
-        fresyp = _np.nan_to_num(fresyp / Myp)
+        fresx  = Mx - Bx
+        fresy  = My - By
+        fresxp = Mxp - Bxp
+        fresyp = Myp - Byp
         self.residuals = {'x':fresx,'y':fresy,'xp':fresxp,'yp':fresyp}
-
+        
+        print "Average residuals:"," x(m): ",_np.mean(fresx)," y(m): ",_np.mean(fresy)
+        print " xp(rad): ",_np.mean(fresxp)," yp(rad): ",_np.mean(fresyp)
+        
         #standard deviation
         stdMx  = _np.std(Mx)
         stdMy  = _np.std(My)
@@ -177,7 +184,8 @@ class LatticeTest:
         with open(''+self.filename+'_stdev.txt', 'w') as stdout:
             timestamp = time.strftime("%Y%m%d-%H%M%S")
             t = timestamp+' '+self.filename+' Standard Deviations (particles = '+str(self.nparticles)+'): \n'
-            h = 'BDSIM_X \t MX-PTC_X \t BDSIM_Y \t MX-PTC_Y \t BDSIM_XP \t MX-PTC_XP \t BDSIM_YP \t MX-PTC_YP \t FRCERR_X \t FRCERR_Y \t FRCERR_XP \t FRCERR_YP \n'
+            h = 'BDSIM_X \t MX-PTC_X \t BDSIM_Y \t MX-PTC_Y'
+            h+= ' \t MX-PTC_XP \t BDSIM_YP \t MX-PTC_YP \t FRCERR_X \t FRCERR_Y \t FRCERR_XP \t FRCERR_YP \n'
             s  = "{0:.4e}".format(stdBx)
             s += '\t' +  "{0:.4e}".format(stdMx)
             s += '\t' +  "{0:.4e}".format(stdBy)              
@@ -203,10 +211,18 @@ class LatticeTest:
         print "robdsim.CalculateOpticalFunctions> processing..."
         
         rootdata.CalculateOpticalFunctions(''+self.filename+'_optics.dat')
-        bdata = pybdsim.Data.Load(''+self.filename+'_optics.dat')
-        Bs    = bdata.S()
-        Bbetx = bdata.Beta_x()
-        Bbety = bdata.Beta_y()
+        bdata  = pybdsim.Data.Load(''+self.filename+'_optics.dat')
+        Bs     = bdata.S()
+        Bbetx  = bdata.Beta_x()
+        Bbety  = bdata.Beta_y()
+      #  btxerr = bdata.Sigma_beta_x()  #These are not implemented in robdsim.CalculateOpticalFunctions yet
+      #  btyerr = bdata.Sigma_beta_y()
+
+        Ms    = Ms[:len(Bs)]
+        Mbetx = Mbetx[:len(Bbetx)]    #Madx arrays need to be sliced because they contain
+        Mbety = Mbety[:len(Bbety)]    #one too many columns. No information is lost in the slicing
+                                      #as the last Madx segment is default end of the line info and is
+                                      #degenerate with the last element segment
         
         _plt.figure(self.figureNr, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
@@ -221,137 +237,226 @@ class LatticeTest:
         _plt.savefig(self.filename+'_beta.pdf')
         _plt.savefig(self.filename+'_beta.png')
 
+        #beta functions residuals
+
+        resbetx = Mbetx-Bbetx        
+        resbety = Mbety-Bbety
+        #rbtxerr = btxerr
+        #rbtyerr = btyerr
         
-        # 2d plots
-        #X vs Y
         _plt.figure(self.figureNr+1, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
+        _plt.plot(Ms,resbetx,'*',color='r',linestyle='solid',label=r'$\beta_{x}$Res')
+        _plt.plot(Ms,resbety,'*',color='b',linestyle='solid',label=r'$\beta_{y}$Res')
+        _plt.title(self.filename+r' Plot of $\beta_{x,y}$ Residuals vs $S$')
+        _plt.xlabel(r'$S (m)$')
+        _plt.ylabel(r'$\beta_{x,y} Residuals(m)$')
+        _plt.legend(numpoints=1,loc=7)
+        _plt.savefig(self.filename+'_beta_residuals.pdf')
+        _plt.savefig(self.filename+'_beta_residuals.png')        
+               
+        
+        # 2d plots
+
+        arrow_width_scale = 1e-3  #Factor used to multiply minimum residual between BDSIM and PTC data in order to
+                                  #heuristicaly obtain a width for the quiver plot arrows connecting the two data sets
+                                  #Very crude, fix in the future
+        
+        #X vs Y
+        
+        arrow_width = abs(_np.min(fresy))*arrow_width_scale
+        _plt.figure(self.figureNr+2, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
+        _plt.clf()
+        _plt.quiver(Mx,My,-fresx,-fresy,angles='xy',scale_units='xy',scale=1,color='r',units='x',width=arrow_width,headwidth=3)
         _plt.plot(Mx,My,'b.',label='PTC')
         _plt.plot(Bx,By,'g.',label='BDSIM')
         if addPrimaries:
             _plt.plot(Bx0,By0,'r.',label='BDSIM prim')
         _plt.legend()
-        _plt.xlabel(r"x ($\mu$m)")
-        _plt.ylabel(r"y ($\mu$m)")
+        _plt.xlabel(r"x (m)")
+        _plt.ylabel(r"y (m)")
         _plt.title(self.filename)
         _plt.savefig(self.filename+'_xy.pdf')
         _plt.savefig(self.filename+'_xy.png')
 
         #XP vs YP
-        _plt.figure(self.figureNr+2, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
+        
+        arrow_width = abs(_np.min(fresyp))*arrow_width_scale
+        _plt.figure(self.figureNr+3, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
+        _plt.quiver(Mxp,Myp,-fresxp,-fresyp,angles='xy',scale_units='xy',scale=1,color='r',units='x',width=arrow_width,headwidth=3)
         _plt.plot(Mxp,Myp,'b.',label='PTC')
         _plt.plot(Bxp,Byp,'g.',label='BDSIM')
         if addPrimaries:
             _plt.plot(Bxp0,Byp0,'r.',label='BDSIM prim')
         _plt.legend()
-        _plt.xlabel(r"x' ($\mu$m)")
-        _plt.ylabel(r"y' ($\mu$m)")
+        _plt.xlabel(r"x' (m)")
+        _plt.ylabel(r"y' (m)")
         _plt.title(self.filename)
         _plt.savefig(self.filename+'_xpyp.pdf')
         _plt.savefig(self.filename+'_xpyp.png')
 
         #X vs XP
-        _plt.figure(self.figureNr+3, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
+        arrow_width = abs(_np.min(fresxp))*arrow_width_scale
+        _plt.figure(self.figureNr+4, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
+        _plt.quiver(Mx,Mxp,-fresx,-fresxp,angles='xy',scale_units='xy',scale=1,color='r',units='x',width=arrow_width,headwidth=3)
         _plt.plot(Mx,Mxp,'b.',label='PTC')
         _plt.plot(Bx,Bxp,'g.',label='BDSIM')
         if addPrimaries:
             _plt.plot(Bx0,Bxp0,'r.',label='BDSIM prim')
         _plt.legend()
-        _plt.xlabel(r"x ($\mu$m)")
+        _plt.xlabel(r"x (m)")
         _plt.ylabel(r"x' (rad)")
         _plt.title(self.filename)
         _plt.savefig(self.filename+'_xxp.pdf')
         _plt.savefig(self.filename+'_xxp.png')
 
         #Y vs YP
-        _plt.figure(self.figureNr+4, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
+        arrow_width = abs(_np.min(fresyp))*arrow_width_scale
+        _plt.figure(self.figureNr+5, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
+        _plt.quiver(My,Myp,-fresy,-fresyp,angles='xy',scale_units='xy',scale=1,color='r',units='x',width=arrow_width,headwidth=3)
         _plt.plot(My,Myp,'b.',label='PTC')
         _plt.plot(By,Byp,'g.',label='BDSIM')
         if addPrimaries:
             _plt.plot(By0,Byp,'r.',label='BDSIM prim')
         _plt.legend()
-        _plt.xlabel(r"y ($\mu$m)")
+        _plt.xlabel(r"y (m)")
         _plt.ylabel(r"y' (rad)")
         _plt.title(self.filename)
         _plt.savefig(self.filename+'_yyp.pdf')
         _plt.savefig(self.filename+'_yyp.png')
-
+        
         # 1d plots
         # x comparison
-        f = _plt.figure(self.figureNr+5, figsize=(15, 8), dpi=80, facecolor='w', edgecolor='k')
+        f = _plt.figure(self.figureNr+6, figsize=(15, 8), dpi=80, facecolor='w', edgecolor='k')
         f.suptitle(self.filename)
         _plt.clf()
 
+        nbinsx = _np.linspace(min(Mx),max(Mx),10)    #fix bins to avoid underflow/overflow
+        nbinsy = _np.linspace(min(My),max(My),10)
+        nbinsxp = _np.linspace(min(Mxp),max(Mxp),10)
+        nbinsyp = _np.linspace(min(Myp),max(Myp),10)
+
         ax1 = f.add_subplot(221)
-        ax1.hist(Mx,color='b',label='PTC',histtype='step')
-        ax1.hist(Bx,color='g',label='BDSIM',histtype='step')
+        ax1.hist(Mx,nbinsx,color='b',label='PTC',histtype='step')
+        ax1.hist(Bx,nbinsx,color='g',label='BDSIM',histtype='step')
         if addPrimaries:
-            ax1.hist(Bx0,color='r',label='BDSIM prim',histtype='step')
+            ax1.hist(Bx0,nbinsx,color='r',label='BDSIM prim',histtype='step')
         ax1.legend(fontsize='x-small',loc=0)
-        ax1.set_xlabel(r"x ($\mu$m)")
+        ax1.set_xlabel(r"x (m)")
         
         # y comparison
         ax2 = f.add_subplot(222)
-        ax2.hist(My,color='b',label='PTC',histtype='step')
-        ax2.hist(By,color='g',label='BDSIM',histtype='step')
+        ax2.hist(My,nbinsy,color='b',label='PTC',histtype='step')
+        ax2.hist(By,nbinsy,color='g',label='BDSIM',histtype='step')
         if addPrimaries:
-            ax2.hist(By0,color='r',label='BDSIM prim',histtype='step')
+            ax2.hist(By0,nbinsy,color='r',label='BDSIM prim',histtype='step')
         ax2.legend(fontsize='x-small',loc=0)
-        ax2.set_xlabel(r"y ($\mu$m)")
+        ax2.set_xlabel(r"y (m)")
 
         # xp comparison
         ax3 = f.add_subplot(223)
-        ax3.hist(Mxp,color='b',label='PTC',histtype='step')
-        ax3.hist(Bxp,color='g',label='BDSIM',histtype='step')
+        ax3.hist(Mxp,nbinsxp,color='b',label='PTC',histtype='step')
+        ax3.hist(Bxp,nbinsxp,color='g',label='BDSIM',histtype='step')
         if addPrimaries:
-            ax3.hist(Bxp0,color='r',label='BDSIM prim',histtype='step')
+            ax3.hist(Bxp0,nbinsxp,color='r',label='BDSIM prim',histtype='step')
         ax3.legend(fontsize='x-small',loc=0)
         ax3.set_xlabel(r"x' (rad)")
 
         # yp comparison
         ax4 = f.add_subplot(224)
-        ax4.hist(Myp,color='b',label='PTC',histtype='step')
-        ax4.hist(Byp,color='g',label='BDSIM',histtype='step')
+        ax4.hist(Myp,nbinsyp,color='b',label='PTC',histtype='step')
+        ax4.hist(Byp,nbinsyp,color='g',label='BDSIM',histtype='step')
         if addPrimaries:
-            ax4.hist(Byp0,color='r',label='BDSIM prim',histtype='step')
+            ax4.hist(Byp0,nbinsyp,color='r',label='BDSIM prim',histtype='step')
         ax4.legend(fontsize='x-small',loc=0)
         ax4.set_xlabel(r"y' (rad)")
 
         _plt.subplots_adjust(left=0.1,right=0.9,top=0.95, bottom=0.15, wspace=0.1, hspace=0.15)
         _plt.savefig(self.filename+'_hist.pdf')
         _plt.savefig(self.filename+'_hist.png')
-
+        
+        
         # residuals in one plot
-        f = _plt.figure(self.figureNr+9, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
-        _plt.clf()      
+    
+        nbins=50
         
+        f = _plt.figure(self.figureNr+10, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
+        _plt.clf()
+
         axX = f.add_subplot(221)
-        axX.hist(Mx,weights=fresx,bins=100,ec='b')
-        axX.set_xlabel(r'X ($\mu$m)')
-        axX.set_ylabel('Fractional Difference')
-        
-        axY = f.add_subplot(222)
-        axY.hist(My,weights=fresy,bins=100,ec='b')
-        axY.set_xlabel(r'Y ($\mu$m)')
-        axY.set_ylabel('Fractional Difference')
-        
-        axXp = f.add_subplot(223)
-        axXp.hist(Mxp*1e3,weights=fresxp,bins=100,ec='b')
-        axXp.set_xlabel('Xp (mrad)')
-        axXp.set_ylabel('Fractional Difference')
+        hist, xedges, yedges = _np.histogram2d(Mx,fresx,bins=nbins)
+        hist = _np.rot90(hist)                         #flip and rotate the plots to display them properly
+        hist = _np.flipud(hist)
+        histmasked = _np.ma.masked_where(hist==0,hist) # Mask pixels with a value of zero
 
-        axYp = f.add_subplot(224)
-        axYp.hist(Myp*1e3,weights=fresyp,bins=100,ec='b')
-        axYp.set_xlabel('Yp (mrad)')
-        axYp.set_ylabel('Fractional Diffrence')
+        
+        _plt.pcolormesh(xedges,yedges,histmasked)
+        axX.set_xlabel('x(m)')
+        axX.set_ylabel('Residuals_x(m)')
+        cbar = _plt.colorbar()
+        cbar.ax.set_ylabel('Counts')
+        startx, endx = axX.get_xlim()
+        starty, endy = axX.get_ylim()
+        axX.xaxis.set_ticks([startx,0,endx])
+        axX.yaxis.set_ticks([starty,0,endy])
 
+        
+        axX = f.add_subplot(222)
+        hist, xedges, yedges = _np.histogram2d(My,fresy,bins=nbins)
+        hist = _np.rot90(hist)
+        hist = _np.flipud(hist)
+        histmasked = _np.ma.masked_where(hist==0,hist)
+        
+        _plt.pcolormesh(xedges,yedges,histmasked)
+        axX.set_xlabel('y(m)')
+        axX.set_ylabel('Residuals_y(m)')
+        cbar = _plt.colorbar()
+        cbar.ax.set_ylabel('Counts')
+        startx, endx = axX.get_xlim()
+        starty, endy = axX.get_ylim()
+        axX.xaxis.set_ticks([startx,0,endx])
+        axX.yaxis.set_ticks([starty,0,endy])
+        
+        axX = f.add_subplot(223)
+        hist, xedges, yedges = _np.histogram2d(Mxp,fresxp,bins=nbins)
+        hist = _np.rot90(hist)
+        hist = _np.flipud(hist)
+        histmasked = _np.ma.masked_where(hist==0,hist)
+        
+        _plt.pcolormesh(xedges,yedges,histmasked)
+        axX.set_xlabel('xp(rad)')
+        axX.set_ylabel('Residuals_xp(rad)')
+        cbar = _plt.colorbar()
+        cbar.ax.set_ylabel('Counts')
+        startx, endx = axX.get_xlim()
+        starty, endy = axX.get_ylim()
+        axX.xaxis.set_ticks([startx,0,endx])
+        axX.yaxis.set_ticks([starty,0,endy])
+
+        
+        axX = f.add_subplot(224)
+        hist, xedges, yedges = _np.histogram2d(Myp,fresyp,bins=nbins)
+        hist = _np.rot90(hist)
+        hist = _np.flipud(hist)
+        histmasked = _np.ma.masked_where(hist==0,hist)
+        
+        _plt.pcolormesh(xedges,yedges,histmasked)
+        axX.set_xlabel('yp(rad)')
+        axX.set_ylabel('Residuals_yp(rad)')
+        cbar = _plt.colorbar()
+        cbar.ax.set_ylabel('Counts')
+        startx, endx = axX.get_xlim()
+        starty, endy = axX.get_ylim()
+        axX.xaxis.set_ticks([startx,0,endx])
+        axX.yaxis.set_ticks([starty,0,endy])
+
+        
         _plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15, wspace=0.39, hspace=0.25)
         _plt.savefig(self.filename+'_residuals.pdf')
         _plt.savefig(self.filename+'_residuals.png')
-        
 
         #print emittance
         print 'Horizontal emittance bdsim (before,after) ',bdata.Emitt_x()
@@ -364,8 +469,7 @@ class LatticeTest:
         if self.usingfolder:
             _os.chdir("../")
 
-        
-
+       
 
         
 
