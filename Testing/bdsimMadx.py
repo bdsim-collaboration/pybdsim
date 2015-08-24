@@ -46,6 +46,7 @@ class LatticeTest:
             self.figureNr    = 1729
         else:
             print "IOError: Not a valid file format!"   ###make this standard
+            raise SystemExit(0)
 
     def CleanRunCompare(self):
         self.Clean()
@@ -122,38 +123,55 @@ class LatticeTest:
             _os.chdir(self.foldername)
 
         #Load data
+        isValid  = False
+        attempts = 0
         
-        rootdata  = robdsim.RobdsimOutput(self.filename+".root")
+        while(isValid==False and attempts<=5):
         
-        print "robdsim.RobdsimOutput> root file loaded"
+            rootdata  = robdsim.RobdsimOutput(self.filename+".root")
         
-        primchain = rootdata.GetSamplerChain('primaries')
-        bdsimprim = _rnp.tree2rec(primchain)
-        Bx0 = bdsimprim['x']
-        By0 = bdsimprim['y']
-        Bxp0 = bdsimprim['xp']
-        Byp0 = bdsimprim['yp']
-        self.bdsimprimaries = {'x':Bx0,'y':By0,'xp':Bxp0,'yp':Byp0}
+            print "robdsim.RobdsimOutput> root file loaded"
+        
+            primchain = rootdata.GetSamplerChain('primaries')
+            bdsimprim = _rnp.tree2rec(primchain)
+            Bx0 = bdsimprim['x']
+            By0 = bdsimprim['y']
+            Bxp0 = bdsimprim['xp']
+            Byp0 = bdsimprim['yp']
+            self.bdsimprimaries = {'x':Bx0,'y':By0,'xp':Bxp0,'yp':Byp0}
+            
+            endchain = rootdata.GetSamplerChain('Sampler_theendoftheline')
+            bdsim = _rnp.tree2rec(endchain)
+            Bx = bdsim['x']
+            By = bdsim['y']
+            Bxp = bdsim['xp']
+            Byp = bdsim['yp']
+            self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp}
+            
+            
+            madxout = pymadx.Tfs("trackone")
+            madxend = madxout.GetSegment(madxout.nsegments) #get the last 'segment' / sampler
+            Mx = madxend.GetColumn('X')
+            My = madxend.GetColumn('Y') 
+            Mxp = madxend.GetColumn('PX')
+            Myp = madxend.GetColumn('PY')
+            self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
 
-        endchain = rootdata.GetSamplerChain('Sampler_theendoftheline')
-        bdsim = _rnp.tree2rec(endchain)
-        Bx = bdsim['x']
-        By = bdsim['y']
-        Bxp = bdsim['xp']
-        Byp = bdsim['yp']
-        self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp}
+            #Check all particles make it through
+            if(len(Bx)!=len(Mx)):
+                    print "Input particles: ",self.nparticles," BDS_out particles: ", len(Bx)," PTC_out particles: ", len(Mx)       
+                    print "Warning:  Unequal number of output particles! Attempting again..."
+                    attempts += 1
+                    print "Attempt: ", attempts
+                    self.Clean()
+                    self.Run()                  
+            else:
+                isValid = True
+
+            if(attempts==5):
+                print "Run unsuccessful, please check parameters and try again"
+                return
         
-
-        madxout = pymadx.Tfs("trackone")
-        madxend = madxout.GetSegment(madxout.nsegments) #get the last 'segment' / sampler
-        Mx = madxend.GetColumn('X')
-        My = madxend.GetColumn('Y') 
-        Mxp = madxend.GetColumn('PX')
-        Myp = madxend.GetColumn('PY')
-        self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
-
-        #Check all particles make it through
-        print "Input particles: ",self.nparticles," BDS_out particles: ", len(Bx)," PTC_out particles: ", len(Mx)
         
         #fractional errors
         fresx  = Mx - Bx
@@ -474,6 +492,7 @@ class LatticeTest:
 
         if self.usingfolder:
             _os.chdir("../")
+
 
        
 
