@@ -237,8 +237,8 @@ class LatticeTest:
         ptc.CalculateOpticalFunctions('ptc_'+self.filename+'_opticalfns.dat')
         ptcdata  = pybdsim.Data.Load('ptc_'+self.filename+'_opticalfns.dat')
         PTCs     = ptcdata.S()
-        PTCbetx  = ptcdata.BETX()
-        PTCbety  = ptcdata.BETY()
+        PTCbetx  = ptcdata.Beta_x()
+        PTCbety  = ptcdata.Beta_y()
        
         print "robdsim.CalculateOpticalFunctions> processing..."
         
