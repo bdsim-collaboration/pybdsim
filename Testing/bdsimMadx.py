@@ -45,8 +45,7 @@ class LatticeTest:
             self.verbose     = verbose
             self.figureNr    = 1729
         else:
-            print "IOError: Not a valid file format!"   ###make this standard
-            raise SystemExit(0)
+            raise IOError('Invalid file format')
 
     def CleanRunCompare(self):
         self.Clean()
@@ -206,9 +205,9 @@ class LatticeTest:
 
         # write standard deviations to file
         with open(''+self.filename+'_stdev.txt', 'w') as stdout:
-            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            timestamp = time.strftime("%Y/%m/%d-%H:%M:%S")
             t = timestamp+' '+self.filename+' Standard Deviations (particles = '+str(self.nparticles)+'): \n'
-            h = 'BDSIM_X \t MX-PTC_X \t BDSIM_Y \t MX-PTC_Y'
+            h = 'BDSIM_X \t MX-PTC_X \t BDSIM_Y \t MX-PTC_Y \t BDSIM_XP'
             h+= ' \t MX-PTC_XP \t BDSIM_YP \t MX-PTC_YP \t FRCERR_X \t FRCERR_Y \t FRCERR_XP \t FRCERR_YP \n'
             s  = "{0:.4e}".format(stdBx)
             s += '\t' +  "{0:.4e}".format(stdMx)
@@ -231,6 +230,15 @@ class LatticeTest:
         Ms = madx.GetColumn('S')
         Mbetx = madx.GetColumn('BETX') 
         Mbety = madx.GetColumn('BETY')
+
+        print "ptcCaluclateOpticalFunctions> processing..."
+
+        ptc      = _pymadx.PtcAnalysis(ptcOutput="trackone") 
+        ptc.CalculateOpticalFunctions('ptc_'+self.filename+'_opticalfns.dat')
+        ptcdata  = pybdsim.Data.Load('ptc_'+self.filename+'_opticalfns.dat')
+        PTCs     = ptcdata.S()
+        PTCbetx  = ptcdata.BETX()
+        PTCbety  = ptcdata.BETY()
        
         print "robdsim.CalculateOpticalFunctions> processing..."
         
@@ -247,11 +255,16 @@ class LatticeTest:
         Mbety = Mbety[:len(Bbety)]    #one too many columns. No information is lost in the slicing
                                       #as the last Madx segment is default end of the line info and is
                                       #degenerate with the last element segment
+        PTCs    = PTCs[:len(Bs)]
+        PTCbetx = PTCbetx[:len(Bbetx)]
+        PTCbety = PTCbety[:len(Bbety)]
         
         _plt.figure(self.figureNr, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
         _plt.plot(Ms,Mbetx,'.',color='r',linestyle='solid',label=r'$\beta_{x}$MDX')
         _plt.plot(Ms,Mbety,'.',color='b',linestyle='solid',label=r'$\beta_{y}$MDX')
+        _plt.plot(PTCs,PTCbetx,'*',color='r',linestyle=':',linewidth=1.2,label=r'$\beta_{x}$PTC')
+        _plt.plot(PTCs,PTCbety,'*',color='b',linestyle=':',linewidth=1.2,label=r'$\beta_{y}$PTC')
         _plt.plot(Bs,Bbetx,'.',color='r',linestyle='dashed',linewidth=1.2,label=r'$\beta_{x}$BDS')
         _plt.plot(Bs,Bbety,'.',color='b',linestyle='dashed',linewidth=1.2,label=r'$\beta_{y}$BDS')
         _plt.title(self.filename+r' Plot of $\beta_{x,y}$ vs $S$')
@@ -481,6 +494,8 @@ class LatticeTest:
         _plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15, wspace=0.39, hspace=0.25)
         _plt.savefig(self.filename+'_residuals.pdf')
         _plt.savefig(self.filename+'_residuals.png')
+
+        _plt.show()
 
         #print emittance
         print 'Horizontal emittance bdsim (before,after) ',bdata.Emitt_x()
