@@ -42,10 +42,10 @@ class LatticeTest:
             else:
                 self.usingfolder = False
                 self.filepath    = self.filename+".madx"
-                self.verbose     = verbose
-                self.figureNr    = 1729
+            self.verbose     = verbose
+            self.figureNr    = 1729
         else:
-            print "IOError: Not a valid file format!"   ###make this standard
+            raise IOError('Invalid file format')
 
     def CleanRunCompare(self):
         self.Clean()
@@ -54,6 +54,9 @@ class LatticeTest:
 
     def Clean(self):
         #delete all files produced
+        if self.usingfolder:
+            _os.chdir(self.foldername)
+            
         _os.system("rm -rf "+self.filename+"/")
         _os.system("rm -rf fodo*")
         _os.system("rm -rf *.log")
@@ -68,6 +71,9 @@ class LatticeTest:
         _os.system("rm -rf *.png")
         _os.system("rm -rf *.pdf")
         _os.system("rm trackone")
+
+        if self.usingfolder:
+            _os.chdir("../")
 
         # clean and close figures (10 figures in total)
         for i in range(11):
@@ -116,38 +122,55 @@ class LatticeTest:
             _os.chdir(self.foldername)
 
         #Load data
+        isValid  = False
+        attempts = 0
         
-        rootdata  = robdsim.RobdsimOutput(self.filename+".root")
+        while(isValid==False and attempts<=5):
         
-        print "robdsim.RobdsimOutput> root file loaded"
+            rootdata  = robdsim.RobdsimOutput(self.filename+".root")
         
-        primchain = rootdata.GetSamplerChain('primaries')
-        bdsimprim = _rnp.tree2rec(primchain)
-        Bx0 = bdsimprim['x']
-        By0 = bdsimprim['y']
-        Bxp0 = bdsimprim['xp']
-        Byp0 = bdsimprim['yp']
-        self.bdsimprimaries = {'x':Bx0,'y':By0,'xp':Bxp0,'yp':Byp0}
+            print "robdsim.RobdsimOutput> root file loaded"
+        
+            primchain = rootdata.GetSamplerChain('primaries')
+            bdsimprim = _rnp.tree2rec(primchain)
+            Bx0 = bdsimprim['x']
+            By0 = bdsimprim['y']
+            Bxp0 = bdsimprim['xp']
+            Byp0 = bdsimprim['yp']
+            self.bdsimprimaries = {'x':Bx0,'y':By0,'xp':Bxp0,'yp':Byp0}
+            
+            endchain = rootdata.GetSamplerChain('Sampler_theendoftheline')
+            bdsim = _rnp.tree2rec(endchain)
+            Bx = bdsim['x']
+            By = bdsim['y']
+            Bxp = bdsim['xp']
+            Byp = bdsim['yp']
+            self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp}
+            
+            
+            madxout = pymadx.Tfs("trackone")
+            madxend = madxout.GetSegment(madxout.nsegments) #get the last 'segment' / sampler
+            Mx = madxend.GetColumn('X')
+            My = madxend.GetColumn('Y') 
+            Mxp = madxend.GetColumn('PX')
+            Myp = madxend.GetColumn('PY')
+            self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
 
-        endchain = rootdata.GetSamplerChain('Sampler_theendoftheline')
-        bdsim = _rnp.tree2rec(endchain)
-        Bx = bdsim['x']
-        By = bdsim['y']
-        Bxp = bdsim['xp']
-        Byp = bdsim['yp']
-        self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp}
+            #Check all particles make it through
+            if(len(Bx)!=len(Mx)):
+                    print "Input particles: ",self.nparticles," BDS_out particles: ", len(Bx)," PTC_out particles: ", len(Mx)       
+                    print "Warning:  Unequal number of output particles! Attempting again..."
+                    attempts += 1
+                    print "Attempt: ", attempts
+                    self.Clean()
+                    self.Run()                  
+            else:
+                isValid = True
+
+            if(attempts==5):
+                print "Run unsuccessful, please check parameters and try again"
+                return
         
-
-        madxout = pymadx.Tfs("trackone")
-        madxend = madxout.GetSegment(madxout.nsegments) #get the last 'segment' / sampler
-        Mx = madxend.GetColumn('X')
-        My = madxend.GetColumn('Y') 
-        Mxp = madxend.GetColumn('PX')
-        Myp = madxend.GetColumn('PY')
-        self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
-
-        #Check all particles make it through
-        print "Input particles: ",self.nparticles," BDS_out particles: ", len(Bx)," PTC_out particles: ", len(Mx)
         
         #fractional errors
         fresx  = Mx - Bx
@@ -182,9 +205,9 @@ class LatticeTest:
 
         # write standard deviations to file
         with open(''+self.filename+'_stdev.txt', 'w') as stdout:
-            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            timestamp = time.strftime("%Y/%m/%d-%H:%M:%S")
             t = timestamp+' '+self.filename+' Standard Deviations (particles = '+str(self.nparticles)+'): \n'
-            h = 'BDSIM_X \t MX-PTC_X \t BDSIM_Y \t MX-PTC_Y'
+            h = 'BDSIM_X \t MX-PTC_X \t BDSIM_Y \t MX-PTC_Y \t BDSIM_XP'
             h+= ' \t MX-PTC_XP \t BDSIM_YP \t MX-PTC_YP \t FRCERR_X \t FRCERR_Y \t FRCERR_XP \t FRCERR_YP \n'
             s  = "{0:.4e}".format(stdBx)
             s += '\t' +  "{0:.4e}".format(stdMx)
@@ -207,6 +230,15 @@ class LatticeTest:
         Ms = madx.GetColumn('S')
         Mbetx = madx.GetColumn('BETX') 
         Mbety = madx.GetColumn('BETY')
+
+        print "ptcCaluclateOpticalFunctions> processing..."
+
+        ptc      = _pymadx.PtcAnalysis(ptcOutput="trackone") 
+        ptc.CalculateOpticalFunctions('ptc_'+self.filename+'_opticalfns.dat')
+        ptcdata  = pybdsim.Data.Load('ptc_'+self.filename+'_opticalfns.dat')
+        PTCs     = ptcdata.S()
+        PTCbetx  = ptcdata.Beta_x()
+        PTCbety  = ptcdata.Beta_y()
        
         print "robdsim.CalculateOpticalFunctions> processing..."
         
@@ -223,11 +255,16 @@ class LatticeTest:
         Mbety = Mbety[:len(Bbety)]    #one too many columns. No information is lost in the slicing
                                       #as the last Madx segment is default end of the line info and is
                                       #degenerate with the last element segment
+        PTCs    = PTCs[:len(Bs)]
+        PTCbetx = PTCbetx[:len(Bbetx)]
+        PTCbety = PTCbety[:len(Bbety)]
         
         _plt.figure(self.figureNr, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
         _plt.plot(Ms,Mbetx,'.',color='r',linestyle='solid',label=r'$\beta_{x}$MDX')
         _plt.plot(Ms,Mbety,'.',color='b',linestyle='solid',label=r'$\beta_{y}$MDX')
+        _plt.plot(PTCs,PTCbetx,'*',color='r',linestyle=':',linewidth=1.2,label=r'$\beta_{x}$PTC')
+        _plt.plot(PTCs,PTCbety,'*',color='b',linestyle=':',linewidth=1.2,label=r'$\beta_{y}$PTC')
         _plt.plot(Bs,Bbetx,'.',color='r',linestyle='dashed',linewidth=1.2,label=r'$\beta_{x}$BDS')
         _plt.plot(Bs,Bbety,'.',color='b',linestyle='dashed',linewidth=1.2,label=r'$\beta_{y}$BDS')
         _plt.title(self.filename+r' Plot of $\beta_{x,y}$ vs $S$')
@@ -458,6 +495,8 @@ class LatticeTest:
         _plt.savefig(self.filename+'_residuals.pdf')
         _plt.savefig(self.filename+'_residuals.png')
 
+        _plt.show()
+
         #print emittance
         print 'Horizontal emittance bdsim (before,after) ',bdata.Emitt_x()
         print 'Vertical emittance bdsim (before,after) ',bdata.Emitt_y()
@@ -468,6 +507,7 @@ class LatticeTest:
 
         if self.usingfolder:
             _os.chdir("../")
+
 
        
 
