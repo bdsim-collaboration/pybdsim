@@ -58,11 +58,13 @@ class LatticeTest:
         self.Compare(addPrimaries=False)
 
     def Clean(self):
-        #delete all files produced
+        """
+        Delete all files produced during the testing, including
+        .log .dat .tfs. .ps ptc* .txt .root .gmad inrays .png .pdf
+        """
         _os.chdir(self.folderpath)
             
         _os.system("rm -rf "+self.filename+"/")
-        _os.system("rm -rf fodo*")
         _os.system("rm -rf *.log")
         _os.system("rm -rf *.dat")
         _os.system("rm -rf *.tfs")
@@ -97,7 +99,7 @@ class LatticeTest:
         a.WriteLattice(self.filename)
         
         """ 
-        pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)                        
+        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)                        
         
         _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays)
 

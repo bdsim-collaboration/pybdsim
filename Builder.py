@@ -293,6 +293,9 @@ class Machine:
         category - 'sbend' or 'rbend' - sector or rectangular bend
 
         """
+        if category not in ['sbend','rbend']:
+            s = 'Invalid category ' + category
+            raise ValueError(s)
         if (angle==None) and (b==None):
             raise TypeError('angle or b must be specified for an sbend')
         elif angle != None:
