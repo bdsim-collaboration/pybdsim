@@ -52,25 +52,25 @@ class LatticeTest:
         self.Run()
         self.Compare(addPrimaries=False)
 
-    def Clean(self):
-        #delete all files produced
-        if self.usingfolder:
-            _os.chdir(self.foldername)
-            
-        _os.system("rm -rf "+self.filename+"/")
-        _os.system("rm -rf fodo*")
-        _os.system("rm -rf *.log")
-        _os.system("rm -rf *.dat")
-        _os.system("rm -rf *.tfs")
-        _os.system("rm -rf *.ps")
-        _os.system("rm -rf ptc*")
-        _os.system("rm -rf *.txt")
-        _os.system("rm -rf *.root")
-        _os.system("rm -rf *.gmad")
-        _os.system("rm -rf *_inrays.madx")
-        _os.system("rm -rf *.png")
-        _os.system("rm -rf *.pdf")
-        _os.system("rm trackone")
+    def Clean(self, directory="./"):
+        """
+        Delete all files produced during the testing, including
+        .log .dat .tfs. .ps ptc* .txt .root .gmad inrays .png .pdf
+        """
+        d = directory # handy shortcut
+        _os.system("rm -rf " + d + self.filename)
+        _os.system("rm -rf " + d + "*.log")
+        _os.system("rm -rf " + d + "*.dat")
+        _os.system("rm -rf " + d + "*.tfs")
+        _os.system("rm -rf " + d + "*.ps")
+        _os.system("rm -rf " + d + "ptc*")
+        _os.system("rm -rf " + d + "*.txt")
+        _os.system("rm -rf " + d + "*.root")
+        _os.system("rm -rf " + d + "*.gmad")
+        _os.system("rm -rf " + d + "*_inrays.madx")
+        _os.system("rm -rf " + d + "*.png")
+        _os.system("rm -rf " + d + "*.pdf")
+        _os.system("rm "     + d + "trackone")
 
         if self.usingfolder:
             _os.chdir("../")
@@ -97,7 +97,7 @@ class LatticeTest:
         a.WriteLattice(self.filename)
         
         """ 
-        pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)                        
+        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)                        
         
         _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays)
 
