@@ -119,7 +119,7 @@ class Beam(dict):
     def _SetSigmaYP(self,sigmayp=1.0):
         self['sigmaYp'] = sigmayp
 
-    def _SetSigmaT(self,sigmat=1.0,unitsstring='um'):
+    def _SetSigmaT(self,sigmat=1.0,unitsstring='s'):
         self['sigmaT'] = sigmat
 
     def _SetBetaX(self,betx=1.0,unitsstring='m'):
