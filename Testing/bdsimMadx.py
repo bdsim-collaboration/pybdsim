@@ -18,7 +18,7 @@ import time
 
 
 class LatticeTest:
-    def __init__(self,filename, nparticles = 1000, foldername=None, verbose=False):        
+    def __init__(self,filepath, nparticles = 1000, verbose=False):        
         """
         Takes a .madx file containing description of a lattice and generates
         BDSIM and MadX PTC jobs from it as well as MadX optical functions 
@@ -27,21 +27,26 @@ class LatticeTest:
         nparticles: specifies the number of particles to be used for BDSIM/PTC runs. Default = 1000
         verbose   : prints additional information
         """
+        cwd        = _os.getcwd()
+        path       = filepath.split("/")
+        filename   = path[-1]                         #last element is the filename
+        
+        if(path[0]=="/"):                             #when absolute filepath is given
+            folderpath = path[:-1]
+        else:
+            folderpath = cwd+"/"+"/".join(path[:-1])  #when relative filepath is given
+
+        print "Filename: ",filename
+        print "Folderpath: ",folderpath
+        
         if filename[-5:] == ".madx":                
             self.filename    = filename[:-5]
             self.tfsfilename = str.lower(self.filename)
-            self.foldername  = foldername
+            self.filepath    = filepath
+            self.folderpath  = folderpath
             self.ptcinrays   = self.filename+"_inrays.madx"
             self.ptcfilename = "ptc_"+self.filename+".madx"
             self.nparticles  = nparticles
-            if self.foldername != None:
-                self.usingfolder = True
-                self.filepath    = self.foldername+'/'+self.filename
-                _os.system("mkdir -p " + self.foldername)
-                self.filepath    = self.foldername+self.filename+".madx"
-            else:
-                self.usingfolder = False
-                self.filepath    = self.filename+".madx"
             self.verbose     = verbose
             self.figureNr    = 1729
         else:
@@ -54,8 +59,7 @@ class LatticeTest:
 
     def Clean(self):
         #delete all files produced
-        if self.usingfolder:
-            _os.chdir(self.foldername)
+        _os.chdir(self.folderpath)
             
         _os.system("rm -rf "+self.filename+"/")
         _os.system("rm -rf fodo*")
@@ -72,9 +76,6 @@ class LatticeTest:
         _os.system("rm -rf *.pdf")
         _os.system("rm trackone")
 
-        if self.usingfolder:
-            _os.chdir("../")
-
         # clean and close figures (10 figures in total)
         for i in range(11):
             _plt.close(self.figureNr+i)
@@ -84,8 +85,7 @@ class LatticeTest:
         print 'Test> Lattice: ', self.filename 
         print 'Test> Destination filepath: ', self.filepath
 
-        if self.usingfolder:
-            _os.chdir(self.foldername)
+        _os.chdir(self.folderpath)
 
         _os.system("madx-macosx64 < "+self.filename+".madx > madx.log")
 
@@ -103,35 +103,31 @@ class LatticeTest:
 
         _os.system("bdsim --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=root --outfile="+self.filename+" > bdsim.log")
 
-        pybdsim.Testing.bdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
+
+        pybdsim.Testing.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
         _os.system("madx-macosx64 < "+self.ptcfilename+" > ptc_madx.log")
-                
-        if self.usingfolder:
-            _os.chdir("../")
 
 
-    def Compare(self, addPrimaries=True):
+    def Compare(self, addPrimaries=True, plot='beta'):
         """
         Performs analysis and comparison of BDSIM, MADX and MADX-PTC output. 
        
         addPrimaries - True adds BDSIM primaries to histos. Default is False
         """
 
-        if self.usingfolder:
-            _os.chdir(self.foldername)
+        _os.chdir(self.folderpath)
 
         #Load data
         isValid  = False
         attempts = 0
         
         while(isValid==False and attempts<=5):
-        
             rootdata  = robdsim.RobdsimOutput(self.filename+".root")
         
             print "robdsim.RobdsimOutput> root file loaded"
         
-            primchain = rootdata.GetSamplerChain('primaries')
+            primchain = rootdata.GetSamplerChain('Primaries')
             bdsimprim = _rnp.tree2rec(primchain)
             Bx0 = bdsimprim['x']
             By0 = bdsimprim['y']
@@ -225,72 +221,112 @@ class LatticeTest:
             stdout.writelines(h)
             stdout.writelines(s)
 
-        #Optical function beta plot
+        #Loading output and processing optical functions
         madx = pymadx.Tfs(''+self.tfsfilename+'.tfs')
-        Ms = madx.GetColumn('S')
-        Mbetx = madx.GetColumn('BETX') 
-        Mbety = madx.GetColumn('BETY')
+
+        print "robdsim.CalculateOpticalFunctions> processing..."        
+        rootdata.CalculateOpticalFunctions(''+self.filename+'_optics.dat')
+        bdata  = pybdsim.Data.Load(''+self.filename+'_optics.dat')
 
         print "ptcCaluclateOpticalFunctions> processing..."
-
         ptc      = _pymadx.PtcAnalysis(ptcOutput="trackone") 
         ptc.CalculateOpticalFunctions('ptc_'+self.filename+'_opticalfns.dat')
         ptcdata  = pybdsim.Data.Load('ptc_'+self.filename+'_opticalfns.dat')
-        PTCs     = ptcdata.S()
-        PTCbetx  = ptcdata.Beta_x()
-        PTCbety  = ptcdata.Beta_y()
-       
-        print "robdsim.CalculateOpticalFunctions> processing..."
-        
-        rootdata.CalculateOpticalFunctions(''+self.filename+'_optics.dat')
-        bdata  = pybdsim.Data.Load(''+self.filename+'_optics.dat')
-        Bs     = bdata.S()
-        Bbetx  = bdata.Beta_x()
-        Bbety  = bdata.Beta_y()
-      #  btxerr = bdata.Sigma_beta_x()  #These are not implemented in robdsim.CalculateOpticalFunctions yet
-      #  btyerr = bdata.Sigma_beta_y()
 
-        Ms    = Ms[:len(Bs)]
-        Mbetx = Mbetx[:len(Bbetx)]    #Madx arrays need to be sliced because they contain
-        Mbety = Mbety[:len(Bbety)]    #one too many columns. No information is lost in the slicing
-                                      #as the last Madx segment is default end of the line info and is
-                                      #degenerate with the last element segment
-        PTCs    = PTCs[:len(Bs)]
-        PTCbetx = PTCbetx[:len(Bbetx)]
-        PTCbety = PTCbety[:len(Bbety)]
+        #Get the S coordinate from all outputs
+        M_s       = madx.GetColumn('S')
+        B_s       = bdata.S()
+        PTC_s     = ptcdata.S()
+
+        #optfn denotes the selected optical function to plot
+
+        in_Tfs = True       #some of the calculated optical functions are not present in the tfs file (e.g emittance,sigmas)
+                            #and hence plots and residuals between BDSIM and MADX cannot be obtained
+        if (plot=='beta'):
+            fn_name    = r'\beta' #this is a raw string for Latex labels and titles
+            fn_rname   = 'beta'   #this is reduced name for filename of saved figure
+            
+            M_optfn_x  = madx.GetColumn('BETX') 
+            M_optfn_y  = madx.GetColumn('BETY')
+
+            B_optfn_x  = bdata.Beta_x()
+            B_optfn_y  = bdata.Beta_y()
+
+            PTC_optfn_x = ptcdata.Beta_x()
+            PTC_optfn_y = ptcdata.Beta_y()
+
+        elif (plot=='alpha'):
+            fn_name    = r'\alpha'
+            fn_rname   = 'alpha'
+            
+            M_optfn_x  = madx.GetColumn('ALFX') 
+            M_optfn_y  = madx.GetColumn('ALFY')
+
+            B_optfn_x  = bdata.Alph_x()
+            B_optfn_y  = bdata.Alph_y()
+
+            PTC_optfn_x = ptcdata.Alph_x()
+            PTC_optfn_y = ptcdata.Alph_y()
+
+        elif (plot=='emittance'):
+            fn_name    = r'\epsilon'
+            fn_rname   = 'emittance'
+
+            print "WARNING: Emittance not present in MADX tfs file, plotting only MADX-PTC and BDSIM results "
+            in_Tfs     = False
+            
+            B_optfn_x  = bdata.Emitt_x()
+            B_optfn_y  = bdata.Emitt_y()
+
+            PTC_optfn_x = ptcdata.Emitt_x()
+            PTC_optfn_y = ptcdata.Emitt_y()
+            
+        else:
+            print "Error: Unrecognised plotting option:",option
+            return
+            
+        if(in_Tfs):
+            M_s    = M_s[:len(B_s)]
+            M_optfn_x = M_optfn_x[:len(B_optfn_x)]    #Madx arrays need to be sliced because they contain
+            M_optfn_y = M_optfn_y[:len(B_optfn_y)]    #one too many columns. No information is lost in the slicing
+                                                      #as the last Madx segment is default end of the line info and is
+                                                      #degenerate with the last element segment
+        PTC_s    = PTC_s[:len(B_s)]
+        PTC_optfn_x = PTC_optfn_x[:len(B_optfn_x)]
+        PTC_optfn_y = PTC_optfn_y[:len(B_optfn_y)]
         
         _plt.figure(self.figureNr, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
-        _plt.plot(Ms,Mbetx,'.',color='r',linestyle='solid',label=r'$\beta_{x}$MDX')
-        _plt.plot(Ms,Mbety,'.',color='b',linestyle='solid',label=r'$\beta_{y}$MDX')
-        _plt.plot(PTCs,PTCbetx,'*',color='r',linestyle=':',linewidth=1.2,label=r'$\beta_{x}$PTC')
-        _plt.plot(PTCs,PTCbety,'*',color='b',linestyle=':',linewidth=1.2,label=r'$\beta_{y}$PTC')
-        _plt.plot(Bs,Bbetx,'.',color='r',linestyle='dashed',linewidth=1.2,label=r'$\beta_{x}$BDS')
-        _plt.plot(Bs,Bbety,'.',color='b',linestyle='dashed',linewidth=1.2,label=r'$\beta_{y}$BDS')
-        _plt.title(self.filename+r' Plot of $\beta_{x,y}$ vs $S$')
+        if(in_Tfs):
+            _plt.plot(M_s,M_optfn_x,'.',color='r',linestyle='solid',label=r'$'+fn_name+r'_{x}$MDX')
+            _plt.plot(M_s,M_optfn_y,'.',color='b',linestyle='solid',label=r'$'+fn_name+r'_{y}$MDX')
+        _plt.plot(PTC_s,PTC_optfn_x,'*',color='r',linestyle=':',linewidth=1.2,label=r'$'+fn_name+r'_{x}$PTC')
+        _plt.plot(PTC_s,PTC_optfn_y,'*',color='b',linestyle=':',linewidth=1.2,label=r'$'+fn_name+r'_{y}$PTC')
+        _plt.plot(B_s,B_optfn_x,'.',color='r',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{x}$BDS')
+        _plt.plot(B_s,B_optfn_y,'.',color='b',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{y}$BDS')
+        _plt.title(self.filename+r' Plot of $'+fn_name+r'_{x,y}$ vs $S$')
         _plt.xlabel(r'$S (m)$')
-        _plt.ylabel(r'$\beta_{x,y}(m)$')
+        _plt.ylabel(r'$'+fn_name+r'_{x,y}(m)$')
         _plt.legend(numpoints=1,loc=7)
-        _plt.savefig(self.filename+'_beta.pdf')
-        _plt.savefig(self.filename+'_beta.png')
+        _plt.savefig(self.filename+'_'+fn_rname+'.pdf')
+        _plt.savefig(self.filename+'_'+fn_rname+'.png')
 
-        #beta functions residuals
+        #optical function residuals
 
-        resbetx = Mbetx-Bbetx        
-        resbety = Mbety-Bbety
-        #rbtxerr = btxerr
-        #rbtyerr = btyerr
+        if(in_Tfs):
+            res_optfn_x = M_optfn_x-B_optfn_x        
+            res_optfn_y = M_optfn_y-B_optfn_y
         
-        _plt.figure(self.figureNr+1, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
-        _plt.clf()
-        _plt.plot(Ms,resbetx,'*',color='r',linestyle='solid',label=r'$\beta_{x}$Res')
-        _plt.plot(Ms,resbety,'*',color='b',linestyle='solid',label=r'$\beta_{y}$Res')
-        _plt.title(self.filename+r' Plot of $\beta_{x,y}$ Residuals vs $S$')
-        _plt.xlabel(r'$S (m)$')
-        _plt.ylabel(r'$\beta_{x,y} Residuals(m)$')
-        _plt.legend(numpoints=1,loc=7)
-        _plt.savefig(self.filename+'_beta_residuals.pdf')
-        _plt.savefig(self.filename+'_beta_residuals.png')        
+            _plt.figure(self.figureNr+1, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
+            _plt.clf()
+            _plt.plot(M_s,res_optfn_x,'*',color='r',linestyle='solid',label=r'$\beta_{x}$Res')
+            _plt.plot(M_s,res_optfn_y,'*',color='b',linestyle='solid',label=r'$\beta_{y}$Res')
+            _plt.title(self.filename+r' Plot of $'+fn_name+r'_{x,y}$ Residuals vs $S$')
+            _plt.xlabel(r'$S (m)$')
+            _plt.ylabel(r'$'+fn_name+r'_{x,y} Residuals(m)$')
+            _plt.legend(numpoints=1,loc=7)
+            _plt.savefig(self.filename+'_'+fn_rname+'_residuals.pdf')
+            _plt.savefig(self.filename+'_'+fn_rname+'_residuals.png')        
                
         
         # 2d plots
@@ -504,9 +540,6 @@ class LatticeTest:
         #print stdev fractional errors
         print 'stdFracErrX= ',frestdx,' stdFracErrY= ', frestdy, 'stdFracErrXP= ', frestdxp, 'stdFracErrX= ', frestdyp
         
-
-        if self.usingfolder:
-            _os.chdir("../")
 
 
        
