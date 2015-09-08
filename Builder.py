@@ -327,11 +327,11 @@ class Machine:
     def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
         self.Append(Element(name,'solenoid',l=length,ks=ks,**kwargs))
     
-    def AddTransform3D(self, name='t3d', **kwargs):
+    def AddTransform3D(self, name='t3d',phi=0.0,theta=0.0,psi=0.0 **kwargs):
         if len(kwargs.keys()) == 0:
             pass
         else:
-            self.Append(Element(name,'transform3d',**kwargs))
+            self.Append(Element(name,'transform3d',phi,theta,psi,**kwargs))
 
     def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**kwargs))
