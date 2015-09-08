@@ -89,7 +89,7 @@ class LatticeTest:
 
         _os.chdir(self.folderpath)
 
-        _os.system("madx-macosx64 < "+self.filename+".madx > madx.log")
+        _os.system("madx < "+self.filename+".madx > madx.log")
 
         """
         a = pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs','dump',beam=False)
@@ -108,7 +108,7 @@ class LatticeTest:
 
         pybdsim.Testing.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
-        _os.system("madx-macosx64 < "+self.ptcfilename+" > ptc_madx.log")
+        _os.system("madx < "+self.ptcfilename+" > ptc_madx.log")
 
 
     def Compare(self, addPrimaries=True, plot='beta'):
@@ -323,7 +323,7 @@ class LatticeTest:
             _plt.clf()
             _plt.plot(M_s,res_optfn_x,'*',color='r',linestyle='solid',label=r'$\beta_{x}$Res')
             _plt.plot(M_s,res_optfn_y,'*',color='b',linestyle='solid',label=r'$\beta_{y}$Res')
-            _plt.title(self.filename+r' Plot of $'+fn_name+r'_{x,y}$ Residuals vs $S$')
+#            _plt.title(self.filename+r' Plot of $'+fn_name+r'_{x,y}$ Residuals vs $S$')
             _plt.xlabel(r'$S (m)$')
             _plt.ylabel(r'$'+fn_name+r'_{x,y} Residuals(m)$')
             _plt.legend(numpoints=1,loc=7)
