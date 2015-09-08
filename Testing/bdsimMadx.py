@@ -88,7 +88,7 @@ class LatticeTest:
 
         _os.chdir(self.folderpath)
 
-        _os.system("madx-macosx64 < "+self.filename+".madx > madx.log")
+        _os.system("madx < "+self.filename+".madx > madx.log")
 
         """
         a = pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs','dump',beam=False)
@@ -106,7 +106,7 @@ class LatticeTest:
 
         pybdsim.Testing.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
-        _os.system("madx-macosx64 < "+self.ptcfilename+" > ptc_madx.log")
+        _os.system("madx < "+self.ptcfilename+" > ptc_madx.log")
 
 
     def Compare(self, plot='beta', addPrimaries=False, showPlots=False):
@@ -219,13 +219,22 @@ class LatticeTest:
             s += '\t' +  "{0:.4e}".format(frestdyp) + '\n'
             stdout.writelines(t)
             stdout.writelines(h)
-            stdout.writelines(s)
+            stdout.writelines(s)            
         
         #Loading output and processing optical functions
         madx = pymadx.Tfs(''+self.tfsfilename+'.tfs')
 
-        print "robdsim.CalculateOpticalFunctions> processing..."        
-        rootdata.CalculateOpticalFunctions(''+self.filename+'_optics.dat')
+        #Writes the text file for RobdsimAnalysis
+        with open(''+self.filename+'_robds_anal.txt', 'w') as outfile:
+            outfile.writelines("{:<40s}".format('Debug')+'\t 0\n')
+            outfile.writelines("{:<40s}".format('InputFilePath')+'\t ./'+self.filename+'.root \n')
+            outfile.writelines("{:<40s}".format('OutputFileName')+'\t ./'+self.filename+'_optics.root \n')
+            outfile.writelines("{:<40s}".format('CalculateOpticalFunctions')+'\t 1 \n')
+            outfile.writelines("{:<40s}".format('CalculateOpticalFunctionsFileName')+'\t ./'+self.filename+'_optics.dat \n')
+
+        #Calculates optical functions and produces .root and .dat files for analysis 
+        _os.system("robdsimAnal "+self.filename+"_robds_anal.txt")
+        
         bdata  = pybdsim.Data.Load(''+self.filename+'_optics.dat')
 
         print "ptcCaluclateOpticalFunctions> processing..."
@@ -247,10 +256,8 @@ class LatticeTest:
             
             M_optfn_x  = madx.GetColumn('BETX') 
             M_optfn_y  = madx.GetColumn('BETY')
-
             B_optfn_x  = bdata.Beta_x()
             B_optfn_y  = bdata.Beta_y()
-
             PTC_optfn_x = ptcdata.Beta_x()
             PTC_optfn_y = ptcdata.Beta_y()
 
@@ -260,10 +267,8 @@ class LatticeTest:
             
             M_optfn_x  = madx.GetColumn('ALFX') 
             M_optfn_y  = madx.GetColumn('ALFY')
-
             B_optfn_x  = bdata.Alph_x()
             B_optfn_y  = bdata.Alph_y()
-
             PTC_optfn_x = ptcdata.Alph_x()
             PTC_optfn_y = ptcdata.Alph_y()
 
@@ -273,10 +278,8 @@ class LatticeTest:
 
             print "WARNING: Emittance not present in MADX tfs file, plotting only MADX-PTC and BDSIM results "
             in_Tfs     = False
-            
             B_optfn_x  = bdata.Emitt_x()
             B_optfn_y  = bdata.Emitt_y()
-
             PTC_optfn_x = ptcdata.Emitt_x()
             PTC_optfn_y = ptcdata.Emitt_y()
             
@@ -305,7 +308,8 @@ class LatticeTest:
         _plt.plot(B_s,B_optfn_y,'.',color='b',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{y}$BDS')
         _plt.xlabel(r'$S (m)$')
         _plt.ylabel(r'$'+fn_name+r'_{x,y}(m)$')
-        _plt.legend(numpoints=1,loc=7)
+        _plt.legend(numpoints=1,loc=7,prop={'size':15})
+        _plt.grid(True)
 
         #optical function residuals
         if(in_Tfs):
@@ -317,8 +321,9 @@ class LatticeTest:
             _plt.plot(M_s,res_optfn_x,'*',color='r',linestyle='solid',label=r'$\beta_{x}$Res')
             _plt.plot(M_s,res_optfn_y,'*',color='b',linestyle='solid',label=r'$\beta_{y}$Res')
             _plt.xlabel(r'$S (m)$')
-            _plt.ylabel(r'$'+fn_name+r'_{x,y} Residuals(m)$')
-            _plt.legend(numpoints=1,loc=7)
+            _plt.ylabel(r'$'+fn_name+r'_{x,y}$ Residuals(m)')
+            _plt.legend(numpoints=1,loc=7,prop={'size':15})
+            _plt.grid(True)
                
         # 2d plots
         arrow_width_scale = 1e-3  #Factor used to multiply minimum residual between BDSIM and PTC data in order to
@@ -337,7 +342,7 @@ class LatticeTest:
         _plt.plot(Bx,By,'g.',label='BDSIM')
         if addPrimaries:
             _plt.plot(Bx0,By0,'r.',label='BDSIM prim')
-        _plt.legend()
+        _plt.legend(prop={'size':10})
         _plt.xlabel(r"x (m)")
         _plt.ylabel(r"y (m)")
         startx, endx = ax1.get_xlim()
@@ -353,7 +358,7 @@ class LatticeTest:
         _plt.plot(Bxp,Byp,'g.',label='BDSIM')
         if addPrimaries:
             _plt.plot(Bxp0,Byp0,'r.',label='BDSIM prim')
-        _plt.legend()
+        _plt.legend(prop={'size':10})
         _plt.xlabel(r"x' (m)")
         _plt.ylabel(r"y' (m)")
         startx, endx = ax2.get_xlim()
@@ -369,7 +374,7 @@ class LatticeTest:
         _plt.plot(Bx,Bxp,'g.',label='BDSIM')
         if addPrimaries:
             _plt.plot(Bx0,Bxp0,'r.',label='BDSIM prim')
-        _plt.legend()
+        _plt.legend(prop={'size':10})
         _plt.xlabel(r"x (m)")
         _plt.ylabel(r"x' (rad)")
         startx, endx = ax3.get_xlim()
@@ -385,7 +390,7 @@ class LatticeTest:
         _plt.plot(By,Byp,'g.',label='BDSIM')
         if addPrimaries:
             _plt.plot(By0,Byp,'r.',label='BDSIM prim')
-        _plt.legend()
+        _plt.legend(prop={'size':10})
         _plt.xlabel(r"y (m)")
         _plt.ylabel(r"y' (rad)")
         startx, endx = ax4.get_xlim()
@@ -393,7 +398,7 @@ class LatticeTest:
         ax4.xaxis.set_ticks([startx,0,endx])
         ax4.yaxis.set_ticks([starty,0,endy])
 
-        _plt.subplots_adjust(left=0.1,right=0.9,top=0.95, bottom=0.15, wspace=0.35, hspace=0.2)
+        _plt.subplots_adjust(left=0.1,right=0.9,top=0.95, bottom=0.15, wspace=0.35, hspace=0.3)
         
         # 1d plots
         # x comparison
@@ -473,7 +478,7 @@ class LatticeTest:
         
         _plt.pcolormesh(xedges,yedges,histmasked)
         axX.set_xlabel('x(m)')
-        axX.set_ylabel('Residuals_x(m)')
+        axX.set_ylabel('$Residuals_{x}$(m)')
         cbar = _plt.colorbar()
         cbar.ax.set_ylabel('Counts')
         startx, endx = axX.get_xlim()
@@ -489,7 +494,7 @@ class LatticeTest:
         
         _plt.pcolormesh(xedges,yedges,histmasked)
         axX.set_xlabel('y(m)')
-        axX.set_ylabel('Residuals_y(m)')
+        axX.set_ylabel('$Residuals_{y}$(m)')
         cbar = _plt.colorbar()
         cbar.ax.set_ylabel('Counts')
         startx, endx = axX.get_xlim()
@@ -505,7 +510,7 @@ class LatticeTest:
         
         _plt.pcolormesh(xedges,yedges,histmasked)
         axX.set_xlabel('xp(rad)')
-        axX.set_ylabel('Residuals_xp(rad)')
+        axX.set_ylabel('$Residuals_{xp}$(rad)')
         cbar = _plt.colorbar()
         cbar.ax.set_ylabel('Counts')
         startx, endx = axX.get_xlim()
@@ -521,7 +526,7 @@ class LatticeTest:
         
         _plt.pcolormesh(xedges,yedges,histmasked)
         axX.set_xlabel('yp(rad)')
-        axX.set_ylabel('Residuals_yp(rad)')
+        axX.set_ylabel('$Residuals_{yp}$(rad)')
         cbar = _plt.colorbar()
         cbar.ax.set_ylabel('Counts')
         startx, endx = axX.get_xlim()
@@ -529,7 +534,7 @@ class LatticeTest:
         axX.xaxis.set_ticks([startx,0,endx])
         axX.yaxis.set_ticks([starty,0,endy])
 
-        _plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15, wspace=0.39, hspace=0.25)
+        _plt.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15, wspace=0.39, hspace=0.3)
 
         #Open pdf output file and save all plots to it
         pdf = matplotlib.backends.backend_pdf.PdfPages(self.filename+"_plots.pdf")
