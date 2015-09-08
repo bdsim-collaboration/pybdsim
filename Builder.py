@@ -327,7 +327,7 @@ class Machine:
     def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
         self.Append(Element(name,'solenoid',l=length,ks=ks,**kwargs))
     
-    def AddTransform3D(self, name='t3d',phi=0.0,theta=0.0,psi=0.0 **kwargs):
+    def AddTransform3D(self, name='t3d',phi=0.0,theta=0.0,psi=0.0, **kwargs):
         if len(kwargs.keys()) == 0:
             pass
         else:
