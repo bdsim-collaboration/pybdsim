@@ -320,6 +320,7 @@ class LatticeTest:
             _plt.clf()
             _plt.plot(M_s,res_optfn_x,'*',color='r',linestyle='solid',label=r'$\beta_{x}$Res')
             _plt.plot(M_s,res_optfn_y,'*',color='b',linestyle='solid',label=r'$\beta_{y}$Res')
+            _plt.title(self.filename+r' Plot of $'+fn_name+r'_{x,y}$ Residuals vs $S$')
             _plt.xlabel(r'$S (m)$')
             _plt.ylabel(r'$'+fn_name+r'_{x,y}$ Residuals(m)')
             _plt.legend(numpoints=1,loc=7,prop={'size':15})
