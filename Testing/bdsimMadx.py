@@ -33,6 +33,9 @@ class LatticeTest:
         
         if(path[0]=="/"):                             #when absolute filepath is given
             folderpath = path[:-1]
+        elif(path[0]=="." and path[1]=="/"):          #when ./ is used to specify current folder
+            path=path[1:]
+            folderpath = cwd+"/".join(path[:-1])      #when relative filepath is given
         else:
             folderpath = cwd+"/"+"/".join(path[:-1])  #when relative filepath is given
 
