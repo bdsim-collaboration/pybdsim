@@ -240,10 +240,11 @@ class LatticeTest:
         
         bdata  = pybdsim.Data.Load(''+self.filename+'_optics.dat')
 
-        print "ptcCaluclateOpticalFunctions> processing..."
+        ptcfile  = 'ptc_'+self.filename+'_opticalfns.dat'
+        print "ptcCalculateOpticalFunctions> processing... " , ptcfile 
         ptc      = _pymadx.PtcAnalysis(ptcOutput="trackone") 
-        ptc.CalculateOpticalFunctions('ptc_'+self.filename+'_opticalfns.dat')
-        ptcdata  = pybdsim.Data.Load('ptc_'+self.filename+'_opticalfns.dat')
+        ptc.CalculateOpticalFunctions(ptcfile)
+        ptcdata  = pybdsim.Data.Load(ptcfile)
 
         #Get the S coordinate from all outputs
         M_s       = madx.GetColumn('S')
