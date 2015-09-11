@@ -338,7 +338,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
     return a
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
-    print 'Warning - using automatic geneation of input beam distribution from madx tfs file - PLEASE CHECK!'
+    print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
     if startname == None:
         startindex = 0
     elif type(startname) == int:

@@ -11,7 +11,7 @@ def BdsimPrimaries2Ptc(input,outfile):
     a PTC inrays file from the primary particle tree. Outfile should be .madx
     """    
 
-    print "BdsimPrimaries2Ptc processing..."
+    print "BdsimPrimaries2Ptc processing... ", input
     rootin      = _rbs.RobdsimOutput(input)
     primchain   = rootin.GetSamplerChain('Primaries')
     arrchain    = _rnp.tree2rec(primchain)   #array form of the primary tree chain
