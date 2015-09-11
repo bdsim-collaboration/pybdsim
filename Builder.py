@@ -263,7 +263,13 @@ class Machine:
         WriteMachine(self,filename,verboseresult)
 
     def AddBeam(self, beam=None):
-        if type(beam) != _Beam.Beam:
+        """
+        Assign a beam instance to this machine. If no Beam instance is provided,
+        a reference distribution is used.
+        """
+        if beam == None:
+            self.beam = _Beam.Beam()
+        elif type(beam) != _Beam.Beam:
             raise TypeError("Incorrect type - please provide pybdsim.Beam.Beam instance")
         self.beam = beam
 
