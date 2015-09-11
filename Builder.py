@@ -274,16 +274,25 @@ class Machine:
         self.beam = beam
 
     def AddOptions(self, options=None):
+        """
+        Assign an options instance to this machine. 
+        """
         if type(options) != _Options.Options:
             raise TypeError("Incorrect type - please provide pybdsim.Options.Options instance")
         self.options = options
         
     def AddMarker(self, name='mk'):
+        """ 
+        Add a marker to the beam line.
+        """
         if self.verbose:
             print 'AddMarker> ',name
         self.Append(Element(name,'marker'))
     
     def AddDrift(self, name='dr', length=0.1, **kwargs):
+        """
+        Add a drift to the beam line
+        """
         if self.verbose:
             print 'AddDrift>  ',name,' ',length,' ',kwargs
         if length < 1e-12:
