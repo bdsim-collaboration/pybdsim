@@ -240,23 +240,17 @@ class Machine:
     def Append(self,object):
         if type(object) not in (Element,Line):
             raise TypeError("Only Elements or Lines can be added to the machine")
-        elif object.name not in self.sequence:
+        elif object.name not in self.elementsd.keys():
             #hasn't been used before - define it
             if type(object) is Line:
                 for element in object:
-                    self.elements.append(element)
-                    self.elementsd[element.name] = element
-                self.elements.append(object)
-                self.elementsd[object.name] = object
+                    self.Append(object)
             else:
                 self.elements.append(object)
                 self.elementsd[object.name] = object
         else:
-            ws =  'WARNING: this element will not be appended to the machine as'
-            ws += '\n one with the same name already exists. Attempting to add'
-            ws += '\n object: '
-            print ws
-            print object
+            if self.verbose:
+                print "Element of name: ",object.name," already defined, simply adding to sequence"
         #finally add it to the sequence
         self.sequence.append(object.name)
         self.length += object.length
