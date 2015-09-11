@@ -190,8 +190,12 @@ class Machine:
     
     >>> a = Machine()
     >>> a.AddDrift('mydrift', l=1.3)
-    >>> a.WriteLattice("lattice.gmad")
-    
+    >>> a.Write("lattice.gmad")
+
+    Caution: adding an element of the same name twice will result the 
+    element being added only to the sequence again and not being
+    redefined - irrespective of if the parameters are different. If
+    verbose is used (True), then a warning will be issued.    
     
     """
     def __init__(self,verbose=False):
@@ -257,11 +261,12 @@ class Machine:
         self.sequence.append(object.name)
         self.length += object.length
 
-    def WriteLattice(self,filename,verbose=False):
-        if self.verbose or verbose:
-            WriteLattice(self,filename,True)
-        else:
-            WriteLattice(self,filename,False)
+    def Write(self,filename,verbose=False):
+        """
+        Write the machine to a series of gmad files.
+        """
+        verboseresult = verbose or self.verbose
+        WriteMachine(self,filename,verboseresult)
 
     def AddBeam(self, beam=None):
         if type(beam) != _Beam.Beam:
@@ -443,7 +448,7 @@ def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first
     for i in range(ndipoles):
         a.AddDipole(length=dipolelength, angle=dangle)
     a.AddSampler(samplers)
-    a.WriteLattice(filename)
+    a.WriteMachine(filename)
 
 def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfraction=0.1, samplers='first'):
     """
@@ -472,7 +477,7 @@ def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfractio
         a.AddDrift(length=driftlength)
         a.AddDipole(length=dipolelength*0.5, angle=dangle*0.5)
     a.AddSampler(samplers)
-    a.WriteLattice(filename)
+    a.WriteMachine(filename)
 
 def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='first'):
     """
@@ -515,7 +520,7 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
         a.AddDrift(cellname+'_dr_d',drl)
         a.AddQuadrupole(cellname+'_qd_c',ql/_Decimal('2.0'),k1)
     a.AddSampler(samplers)
-    a.WriteLattice(filename)
+    a.WriteMachine(filename)
     
 def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, samplers='all',**kwargs):
     """
@@ -533,7 +538,7 @@ def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, sampl
     k1     = SuggestFodoK(magnetlength,driftlength)
     a.AddFodoCellSplitDriftMultiple(magnetlength=magnetlength,driftlength=driftlength,kabs=k1,nsplits=10,ncells=ncells,**kwargs)
     a.AddSampler(samplers)
-    a.WriteLattice(filename)
+    a.WriteMachine(filename)
 
 def SuggestFodoK(magnetlength,driftlength):
     """
@@ -549,11 +554,11 @@ def SuggestFodoK(magnetlength,driftlength):
     """
     return 1.0 / (float(magnetlength)*(float(magnetlength) + float(driftlength)))
 
-def WriteLattice(machine, filename, verbose=False):
+def WriteMachine(machine, filename, verbose=False):
     """
-    WriteLattice(machine(machine),filename(string),verbose(bool))
+    WriteMachine(machine(machine),filename(string),verbose(bool))
 
-    Write a lattice to disk. This writes several files to make the
+    Write a machine to disk. This writes several files to make the
     machine, namely:
     
     filename_components.gmad - component files (max 10k per file)

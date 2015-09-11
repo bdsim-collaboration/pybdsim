@@ -327,7 +327,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         b = MadxTfs2GmadBeam(madx, startname, verbose)
         a.AddBeam(b)
 
-    a.WriteLattice(outputfilename)
+    a.Write(outputfilename)
 
     if verbose:
         print 'lentot ',lentot
