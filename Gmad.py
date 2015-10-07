@@ -119,7 +119,7 @@ def _LoadLib():
         parserlib = _ctypes.cdll.LoadLibrary(libpath1+'.so')
         test1 = True
         
-    #test2 - try /opt/local/lib/libgmadShared.so
+    #test2 - try /usr/local/lib/libgmadShared.so
     try:
         fulllibname = 'lib'+libname+'.so'
         parserlib   = _ctypes.cdll.LoadLibrary('/usr/local/lib/'+fulllibname)
@@ -127,7 +127,7 @@ def _LoadLib():
     except OSError:
         pass
         
-    #test3 - try /opt/local/lib/libgmadShared.dylib
+    #test3 - try /usr/local/lib/libgmadShared.dylib
     try:
         fulllibname = 'lib'+libname+'.dylib'
         parserlib   = _ctypes.cdll.LoadLibrary('/usr/local/lib/'+fulllibname)
@@ -142,7 +142,7 @@ def _LoadLib():
     else:
         parserlib.GetName.restype    = _ctypes.c_char_p
         parserlib.GetName.argtypes   = [_ctypes.c_int]
-        parserlib.GetType.restype    = _ctypes.c_short
+        parserlib.GetType.restype    = _ctypes.c_int
         parserlib.GetType.argtypes   = [_ctypes.c_int]    
         parserlib.GetLength.restype  = _ctypes.c_double
         parserlib.GetLength.argtypes = [_ctypes.c_int]

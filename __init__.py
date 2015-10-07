@@ -27,6 +27,14 @@ pybdsim - python tools for bdsim
 | Analysis - encapsulates functions & plots for a single file
 | Beam     - a beam options dictionary with methods
 
+Examples
+========
+
+.. toctree::
+   :maxdepth: 1
+   
+   examples/examples
+
 """
 
 import Beam

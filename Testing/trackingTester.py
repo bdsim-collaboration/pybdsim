@@ -126,8 +126,8 @@ class Test:
         bm.AddSampler('theend')
         xm.AddSampler('all')
 
-        bm.WriteLattice(self.filepath)
-        xm.WriteLattice(self.filepath)
+        bm.Write(self.filepath)
+        xm.Write(self.filepath)
             
     def Execute(self):
         if self.usingfolder:

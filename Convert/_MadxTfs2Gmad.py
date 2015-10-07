@@ -268,17 +268,19 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         elif t == 'RCOLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
-                kws.update(collimatordict[name]) #gets a dictionary then extends kws dict with that dictionary
+                #gets a dictionary then extends kws dict with that dictionary
+                kws.update(collimatordict[name]) 
             else:
                 print "Warning - using default parameters for rcol: '",name,"' x,y = beam pipe radius, 0 tilt, copper"
                 xsize = beampiperadius
                 ysize = beampiperadius
                 kws['tilt']     = 0.0
                 kws['material'] = "Copper"
-            a.AddRCol(rname,l,xsize,ysize,angle,**kws)
+            a.AddRCol(rname,l,xsize,ysize,**kws)
         elif t == 'ECOLLIMATOR':
             if name in collimatordict:
-                kws.update(collimatordict[name]) #gets a dictionary then extends kws dict with that dictionary
+                #gets a dictionary then extends kws dict with that dictionary
+                kws.update(collimatordict[name]) 
             else:
                 print "Warning - using default parameters for ecol: '",name,"' x,y = beam pipe radius, 0 tilt, copper"
                 xsize = beampiperadius
@@ -325,7 +327,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         b = MadxTfs2GmadBeam(madx, startname, verbose)
         a.AddBeam(b)
 
-    a.WriteLattice(outputfilename)
+    a.Write(outputfilename)
 
     if verbose:
         print 'lentot ',lentot

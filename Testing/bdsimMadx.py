@@ -99,7 +99,7 @@ class LatticeTest:
         b = pybdsim.Beam.Beam('proton',10.0,'ptc')    #beam parameters need to be set manually
         b.SetDistribFileName('INRAYS.madx')           #This is for testing BDSIM 'ptc' beam distribution
         a.AddBeam(b)
-        a.WriteLattice(self.filename)
+        a.Write(self.filename)
         
         """ 
         pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)                        
