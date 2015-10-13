@@ -113,11 +113,11 @@ class Beam(dict):
         """
         self['sigmaE'] = sigmae
 
-    def _SetSigmaXP(self,sigmaxp=1.0):
-        self['sigmaXp'] = sigmaxp
+    def _SetSigmaXP(self,sigmaxp=1.0,unitsstring='mrad'):
+        self['sigmaXp'] = str(sigmaxp) + '*' + unitsstring
 
-    def _SetSigmaYP(self,sigmayp=1.0):
-        self['sigmaYp'] = sigmayp
+    def _SetSigmaYP(self,sigmayp=1.0,unitsstring='mrad'):
+        self['sigmaYp'] = str(sigmayp) + '*' + unitsstring
 
     def _SetSigmaT(self,sigmat=1.0,unitsstring='s'):
         self['sigmaT'] = sigmat
