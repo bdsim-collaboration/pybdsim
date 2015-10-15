@@ -54,7 +54,7 @@ class LatticeTest:
             self.verbose     = verbose
             self.figureNr    = 1729
         else:
-            raise IOError('Invalid file format')
+            raise IOError('Invalid file format, MadX file (.madx) required')
 
     def CleanRunCompare(self):
         self.Clean()
@@ -86,13 +86,13 @@ class LatticeTest:
             _plt.close(self.figureNr+i)
 
 
-    def Run(self):
+    def Run(self, bdsim='bdsim', madx='madx'):
         print 'Test> Lattice: ', self.filename 
         print 'Test> Destination filepath: ', self.filepath
 
         _os.chdir(self.folderpath)
 
-        _os.system("madx < "+self.filename+".madx > madx.log")
+        _os.system(madx + " < "+self.filename+".madx > madx.log")
 
         """
         a = pybdsim.Convert.MadxTfs2Gmad(''+self.tfsfilename+'.tfs','dump',beam=False)
@@ -102,15 +102,15 @@ class LatticeTest:
         a.Write(self.filename)
         
         """ 
-        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)                        
+        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)
         
         _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays)
 
-        _os.system("bdsim --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=root --outfile="+self.filename+" > bdsim.log")
+        _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=root --outfile="+self.filename+" > bdsim.log")
 
         pybdsim.Testing.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
-        _os.system("madx < "+self.ptcfilename+" > ptc_madx.log")
+        _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
     def Compare(self, plot='beta', addPrimaries=False, showPlots=False):
