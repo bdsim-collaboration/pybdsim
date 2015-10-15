@@ -66,7 +66,7 @@ def Mad8Saveline2Gmad(input, output_file_name, start_name=None, end_name=None, i
         ilc.options.SetStopTracks(False)
             
     ilc.options.SetNGenerate(1000)
-    ilc.WriteLattice(output_file_name)
+    ilc.Write(output_file_name)
 
 
 def construct_sequence(ilc, element, element_type, element_properties, length, ignore_zero_length_items,

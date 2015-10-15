@@ -171,7 +171,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
         nameDict[c.name[i]] += 1 
 
     a.AddSampler(samplers)
-    a.WriteLattice(outputFileName)
+    a.Write(outputFileName)
 
 def Mad8Twiss2Beam(t, istart, particle, energy) :            
     

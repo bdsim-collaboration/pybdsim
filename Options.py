@@ -59,11 +59,10 @@ def ElectronColliderOptions():
 def MinimumStandard():
     a = Options()
     a.SetPhysicsList('standard')
-    a.SetBeamPipeThickness(5,'mm')
-    a.SetOuterDiameter(1,'m')
-    a.SetTunnelRadius(2,'m')
+    a.SetBeamPipeThickness(3,'mm')
+    a.SetOuterDiameter(0.5,'m')
     a.SetNGenerate(100)
-    a.SetBeamPipeRadius(5,'cm')
+    a.SetBeamPipeRadius(3,'cm')
     return a
 
 class Options(dict):

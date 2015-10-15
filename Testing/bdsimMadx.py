@@ -7,6 +7,7 @@ import pybdsim.Builder
 import pybdsim.Data
 import pybdsim.Convert
 import pybdsim.Testing
+import pybdsim.Plot
 import pymadx as _pymadx
 import os as _os
 import matplotlib.pyplot as _plt
@@ -98,7 +99,7 @@ class LatticeTest:
         b = pybdsim.Beam.Beam('proton',10.0,'ptc')    #beam parameters need to be set manually
         b.SetDistribFileName('INRAYS.madx')           #This is for testing BDSIM 'ptc' beam distribution
         a.AddBeam(b)
-        a.WriteLattice(self.filename)
+        a.Write(self.filename)
         
         """ 
         pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)
@@ -265,6 +266,8 @@ class LatticeTest:
             PTC_optfn_x = ptcdata.Beta_x()
             PTC_optfn_y = ptcdata.Beta_y()
 
+            print 'LenMopt ',len(M_optfn_x),' LenMs ',len(M_s),' LenBs ',len(B_s),' LenBopt ',len(B_optfn_x)
+
         elif (plot=='alpha'):
             fn_name    = r'\alpha'
             fn_rname   = 'alpha'
@@ -291,15 +294,15 @@ class LatticeTest:
             print "Error: Unrecognised plotting option:",option
             return
             
-        if(in_Tfs):
-            M_s    = M_s[:len(B_s)]
-            M_optfn_x = M_optfn_x[:len(B_optfn_x)]    #Madx arrays need to be sliced because they contain
-            M_optfn_y = M_optfn_y[:len(B_optfn_y)]    #one too many columns. No information is lost in the slicing
+     #   if(in_Tfs):  
+     #       M_s    = M_s[:len(B_s)]
+     #       M_optfn_x = M_optfn_x[:len(B_optfn_x)]    #Madx arrays need to be sliced because they contain
+     #       M_optfn_y = M_optfn_y[:len(B_optfn_y)]    #one too many columns. No information is lost in the slicing
                                                       #as the last Madx segment is default end of the line info and is
                                                       #degenerate with the last element segment
-        PTC_s    = PTC_s[:len(B_s)]
-        PTC_optfn_x = PTC_optfn_x[:len(B_optfn_x)]
-        PTC_optfn_y = PTC_optfn_y[:len(B_optfn_y)]
+      #  PTC_s    = PTC_s[:len(B_s)]
+      #  PTC_optfn_x = PTC_optfn_x[:len(B_optfn_x)]
+      #  PTC_optfn_y = PTC_optfn_y[:len(B_optfn_y)]
         
         _plt.figure(self.figureNr, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
@@ -314,8 +317,10 @@ class LatticeTest:
         _plt.ylabel(r'$'+fn_name+r'_{x,y}(m)$')
         _plt.legend(numpoints=1,loc=7,prop={'size':15})
         _plt.grid(True)
+        pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(),''+self.tfsfilename+'.tfs')
 
         #optical function residuals
+        """
         if(in_Tfs):
             res_optfn_x = M_optfn_x-B_optfn_x        
             res_optfn_y = M_optfn_y-B_optfn_y
@@ -329,6 +334,7 @@ class LatticeTest:
             _plt.ylabel(r'$'+fn_name+r'_{x,y}$ Residuals(m)')
             _plt.legend(numpoints=1,loc=7,prop={'size':15})
             _plt.grid(True)
+        """
                
         # 2d plots
         arrow_width_scale = 1e-3  #Factor used to multiply minimum residual between BDSIM and PTC data in order to
