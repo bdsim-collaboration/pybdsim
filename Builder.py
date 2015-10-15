@@ -57,15 +57,23 @@ class Element(dict):
 
     Element(name,type,**kwargs)
 
-    >>> a = Element("drift1", "drift", "l"=1.3)
+    >>> a = Element("d1", "drift", l=1.3)
+    >>> b = Element("qx1f", "quadrupole", l=(0.4,'m'), k1=0.2, aper1=(0.223,'m'))
+    >>> print(b)
+        qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m;
     
     A beam line element must ALWAYs have a name, and type.
     The keyword arguments are specific to the type and are up to
-    the user to specify.
+    the user to specify - these should match BDSIM GMAD syntax.
 
-    Numbers are converted to a python Decimal type to provide 
-    higher accuracy in the representation of numbers - 15 
-    decimal places are used. 
+    The value can be either a single string or number or a python tuple
+    where the second entry must be a string (shown in second example).
+    Without specified units, the parser assumes S.I. units.
+
+    An element may also be multiplied or divided.  This will scale the 
+    length and angle appropriately.
+
+    >>> c = Element('sb1', 'sbend', l=(0.4,'m'), angle=
     """
     def __init__(self, name, category, **kwargs):
         if category not in bdsimcategories:
