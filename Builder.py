@@ -24,6 +24,7 @@ import math as _math
 import time as _time
 import os as _os
 import numpy as _np
+import copy as _copy
 
 bdsimcategories = [
     'marker',
@@ -114,6 +115,17 @@ class Element(dict):
                     s += ', ' + key + '=' + str(self[key])
         s += ';\n'
         return s
+
+    def __mul__(self, factor):
+        newElement = _copy.copy(self)
+        newElement.length *= factor
+        newElement['l'] = factor * float(self['l'])
+        if 'angle' in self:
+            newElement['angle'] = factor * float(self['angle'])
+        return newElement
+
+    def __div__(self, factor):
+        return self.__mul__(float(1./factor))
 
 class Line(list):
     """
