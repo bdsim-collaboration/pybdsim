@@ -185,6 +185,40 @@ class Line(list):
             s += str(item) #uses elements __repr__ function
         return s
 
+class ApertureModel(object):
+    """
+    A class that produces the aperture representation of an element. Only non-zero
+    values are written for the aperture parameters. Includes parameter checking.
+    """
+    def __init__(self, apertureType='circular', aper1=0.1, aper2=0, aper3=0, aper4=0):
+        allowedTypes = [
+            'circular',
+            'elliptical',
+            'rectangular',
+            'lhc',
+            'lhcdetailed',
+            'rectellipse'
+        ]
+        if apertureType not in allowedTypes:
+            print 'Allowed aperture types are: ', allowedTypes
+            raise ValueError("Invalid aperture type: "+str(apertureType))
+        else:
+            self.apertureType = apertureType
+        
+        self.aper1 = aper1
+        self.aper2 = aper2
+        self.aper3 = aper3
+        self.aper4 = aper4
+
+    def __repr__(self):
+        s =  'apertureType="' + str(self.apertureType) + '"'
+        s += ', aper1=' + str(self.aper1)
+        for i in (2,3,4):
+            value = getattr(self,'aper'+str(i))
+            if value > 0:
+                s += ', aper' + str(i) + '=' + str(value)
+        return s
+
 class Sampler:
     """
     A sampler is unique in that it does not have a length unlike every
@@ -459,6 +493,26 @@ class Machine:
 
 
 # General scripts below this point
+
+def PrepareApertureModel(rowDictionary):
+    rd = rowDictionary # shortcut
+    a1 = rd['APER_1']
+    a2 = rd['APER_2']
+    a3 = rd['APER_3']
+    a4 = rd['APER_4']
+    if 'APERTYPE' in rd.keys():
+        aType = str.lower(rd['APERTYPE'])
+        if aType == 'rectellipse':
+            aType = 'lhcdetailed' # replace for bdsim
+    else:
+        # no type given - let's guess :(
+        if a1 == a2 == a3 == a4:
+            aType = 'circular'
+            a2 = a3 = a4 = 0 # set 0 to save writing needlessly
+        else:
+            aType = 'rectellipse'
+    a = ApertureModel(aType,a1,a2,a3,a4)
+    return a
 
 def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first'):
     """
