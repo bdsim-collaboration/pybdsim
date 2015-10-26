@@ -198,12 +198,33 @@ class ApertureModel(object):
             'lhc',
             'lhcdetailed',
             'rectellipse'
-        ]
-        if str.lower(apertureType) not in allowedTypes:
-            print 'Allowed aperture types are: ', allowedTypes
+        ] # maintain order for tests further down!
+        madxTypes = {
+            'circle'      : 'circular',
+            'ellipse'     : 'elliptical',
+            'rectangle'   : 'rectangular',
+            'lhcscreen'   : 'lhcdetailed',
+            'marguerite'  : None,
+            'rectellipse' : 'rectellipse',
+            'racetrack'   : None,
+            'filename'    : None
+            }
+        atL = str.lower(apertureType)
+        if atL not in allowedTypes and atL not in madxTypes.keys():
+            print 'Allowed aperture types are: ', allowedTypes, madxTypes.keys()
             raise ValueError("Invalid aperture type: "+str(apertureType))
+
+        if atL in madxTypes.keys():
+            self.apertureType = madxTypes[atL]
+            if self.apertureType == None:
+                print 'Unsupported type: :',self.apertureType,'" - replacing with elliptical'
+                self.apertureType = 'elliptical'
         else:
             self.apertureType = apertureType
+
+        if self.apertureType in allowedTypes[1:] and aper2 == 0:
+            print 'For aperture type "',self.apertureType,'" at least aper1 and aper2 must be specified'
+            raise ValueError("Too few aperture parameters supplied")
         
         self.aper1 = aper1
         self.aper2 = aper2
