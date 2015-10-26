@@ -199,7 +199,7 @@ class ApertureModel(object):
             'lhcdetailed',
             'rectellipse'
         ]
-        if apertureType not in allowedTypes:
+        if str.lower(apertureType) not in allowedTypes:
             print 'Allowed aperture types are: ', allowedTypes
             raise ValueError("Invalid aperture type: "+str(apertureType))
         else:
