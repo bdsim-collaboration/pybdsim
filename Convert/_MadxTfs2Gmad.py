@@ -248,8 +248,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
-            #TO BE FINISHED
-            #NO implmentation of octupoles yet..
+            factor = -1 if flipmagnets else 1  #flipping magnets
+            k3 = madx.data[name][k3lindex] / l * factor
             a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
             if zerolength:
