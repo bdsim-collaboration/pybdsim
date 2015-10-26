@@ -229,7 +229,10 @@ class Sampler:
         self.name = name
 
     def __repr__(self):
-        return 'sample, range='+self.name+';\n'
+        if self.name == 'all':
+            return 'sample, all;\n'
+        else:
+            return 'sample, range='+self.name+';\n'
 
 class Machine:
     """
@@ -473,13 +476,7 @@ class Machine:
             
     def AddSampler(self,*elementnames):
         if elementnames[0] == 'all':
-            for element in self.elements[1:]:
-                #skip the first element as that will likely only capture
-                #half the beam due to the finite Z size of the beam - also
-                #degenerate with the primary sampler that's automatic.
-                #remember we can only have samplers on uniquely
-                #named elements (for now)
-                self.samplers.append(Sampler(element.name))
+            self.samplers.append(Sampler('all'))
         elif elementnames[0] == 'first':
             self.samplers.append(Sampler(self.elements[0].name))
         elif elementnames[0] == 'last':
@@ -722,7 +719,8 @@ def WriteMachine(machine, filename, verbose=False):
     f.close()
 
     #write samplers
-    if len(machine.samplers) > 0:
+    # if less than 10 samplers, just put in main file
+    if len(machine.samplers) > 10:
         f = open(fn_samplers,'w')
         files.append(fn_samplers)
         f.write(timestring)
@@ -760,6 +758,9 @@ def WriteMachine(machine, filename, verbose=False):
     for fn in files:
         fn = fn.split('/')[-1]
         f.write('include '+fn+';\n')
+    if len(machine.samplers) <= 10:
+        for sampler in machine.samplers:
+            f.write(str(sampler))
     f.close()
 
     #user feedback
