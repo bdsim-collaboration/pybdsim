@@ -52,6 +52,7 @@ class LatticeTest:
             self.ptcfilename = "ptc_"+self.filename+".madx"
             self.nparticles  = nparticles
             self.verbose     = verbose
+            self.flipmagnets = False
             self.figureNr    = 1729
         else:
             raise IOError('Invalid file format')
@@ -101,8 +102,14 @@ class LatticeTest:
         a.AddBeam(b)
         a.Write(self.filename)
         
-        """ 
-        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, verbose=self.verbose)                        
+        """
+        #Load Tfs file to check particle type and flip BDSIM magnet polarities as needed
+        tfs  = _pymadx.Tfs(self.tfsfilename+'.tfs')
+        particle = tfs.header['PARTICLE']
+        if particle == 'ELECTRON' :
+            self.flipmagnets = True
+        
+        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets ,verbose=self.verbose)                        
         
         _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays)
 
@@ -263,8 +270,12 @@ class LatticeTest:
             M_optfn_y  = madx.GetColumn('BETY')
             B_optfn_x  = bdata.Beta_x()
             B_optfn_y  = bdata.Beta_y()
+            B_opterr_x = bdata.Sigma_beta_x()
+            B_opterr_y = bdata.Sigma_beta_y()
             PTC_optfn_x = ptcdata.Beta_x()
             PTC_optfn_y = ptcdata.Beta_y()
+            PTC_opterr_x = ptcdata.Sigma_beta_x()
+            PTC_opterr_y = ptcdata.Sigma_beta_y()
 
             print 'LenMopt ',len(M_optfn_x),' LenMs ',len(M_s),' LenBs ',len(B_s),' LenBopt ',len(B_optfn_x)
 
@@ -272,12 +283,14 @@ class LatticeTest:
             fn_name    = r'\alpha'
             fn_rname   = 'alpha'
             
-            M_optfn_x  = madx.GetColumn('ALFX') 
-            M_optfn_y  = madx.GetColumn('ALFY')
-            B_optfn_x  = bdata.Alph_x()
-            B_optfn_y  = bdata.Alph_y()
-            PTC_optfn_x = ptcdata.Alph_x()
-            PTC_optfn_y = ptcdata.Alph_y()
+            M_optfn_x    = madx.GetColumn('ALFX') 
+            M_optfn_y    = madx.GetColumn('ALFY')
+            B_optfn_x    = bdata.Alph_x()
+            B_optfn_y    = bdata.Alph_y()
+            PTC_optfn_x  = ptcdata.Alph_x()
+            PTC_optfn_y  = ptcdata.Alph_y()
+            PTC_opterr_x = ptcdata.Sigma_alph_x()
+            PTC_opterr_y = ptcdata.Sigma_alph_y()
 
         elif (plot=='emittance'):
             fn_name    = r'\epsilon'
@@ -289,28 +302,29 @@ class LatticeTest:
             B_optfn_y  = bdata.Emitt_y()
             PTC_optfn_x = ptcdata.Emitt_x()
             PTC_optfn_y = ptcdata.Emitt_y()
-            
+            PTC_opterr_x = ptcdata.Sigma_emitt_x()
+            PTC_opterr_y = ptcdata.Sigma_emitt_y()
         else:
             print "Error: Unrecognised plotting option:",option
             return
             
-     #   if(in_Tfs):  
-     #       M_s    = M_s[:len(B_s)]
-     #       M_optfn_x = M_optfn_x[:len(B_optfn_x)]    #Madx arrays need to be sliced because they contain
-     #       M_optfn_y = M_optfn_y[:len(B_optfn_y)]    #one too many columns. No information is lost in the slicing
-                                                      #as the last Madx segment is default end of the line info and is
-                                                      #degenerate with the last element segment
-      #  PTC_s    = PTC_s[:len(B_s)]
-      #  PTC_optfn_x = PTC_optfn_x[:len(B_optfn_x)]
-      #  PTC_optfn_y = PTC_optfn_y[:len(B_optfn_y)]
+        #   if(in_Tfs):  
+        #       M_s    = M_s[:len(B_s)]
+        #       M_optfn_x = M_optfn_x[:len(B_optfn_x)]    #Madx arrays need to be sliced because they contain
+        #       M_optfn_y = M_optfn_y[:len(B_optfn_y)]    #one too many columns. No information is lost in the slicing
+        #as the last Madx segment is default end of the line info and is
+        #degenerate with the last element segment
+        #  PTC_s    = PTC_s[:len(B_s)]
+        #  PTC_optfn_x = PTC_optfn_x[:len(B_optfn_x)]
+        #  PTC_optfn_y = PTC_optfn_y[:len(B_optfn_y)]
         
         _plt.figure(self.figureNr, figsize=(11, 8), dpi=80, facecolor='w', edgecolor='k')
         _plt.clf()
         if(in_Tfs):
             _plt.plot(M_s,M_optfn_x,'.',color='r',linestyle='solid',label=r'$'+fn_name+r'_{x}$MDX')
             _plt.plot(M_s,M_optfn_y,'.',color='b',linestyle='solid',label=r'$'+fn_name+r'_{y}$MDX')
-        _plt.plot(PTC_s,PTC_optfn_x,'*',color='r',linestyle=':',linewidth=1.2,label=r'$'+fn_name+r'_{x}$PTC')
-        _plt.plot(PTC_s,PTC_optfn_y,'*',color='b',linestyle=':',linewidth=1.2,label=r'$'+fn_name+r'_{y}$PTC')
+        _plt.errorbar(PTC_s,PTC_optfn_x, yerr=PTC_opterr_x,fmt='*',color='r',linestyle=':',linewidth=1.2,label=r'$'+fn_name+r'_{x}$PTC')
+        _plt.errorbar(PTC_s,PTC_optfn_y, yerr=PTC_opterr_y,fmt='*',color='b',linestyle=':',linewidth=1.2,label=r'$'+fn_name+r'_{y}$PTC')
         _plt.plot(B_s,B_optfn_x,'.',color='r',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{x}$BDS')
         _plt.plot(B_s,B_optfn_y,'.',color='b',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{y}$BDS')
         _plt.xlabel(r'$S (m)$')
