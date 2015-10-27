@@ -185,12 +185,13 @@ class Line(list):
             s += str(item) #uses elements __repr__ function
         return s
 
-class ApertureModel(object):
+class ApertureModel(dict):
     """
     A class that produces the aperture representation of an element. Only non-zero
     values are written for the aperture parameters. Includes parameter checking.
     """
     def __init__(self, apertureType='circular', aper1=0.1, aper2=0, aper3=0, aper4=0):
+        dict.__init__(self)
         allowedTypes = [
             'circular',
             'elliptical',
@@ -215,27 +216,27 @@ class ApertureModel(object):
             raise ValueError("Invalid aperture type: "+str(apertureType))
 
         if atL in madxTypes.keys():
-            self.apertureType = madxTypes[atL]
-            if self.apertureType == None:
+            self['apertureType'] = madxTypes[atL]
+            if self['apertureType'] == None:
                 print 'Unsupported type: :',self.apertureType,'" - replacing with elliptical'
-                self.apertureType = 'elliptical'
+                self['apertureType'] = 'elliptical'
         else:
-            self.apertureType = apertureType
+            self['apertureType'] = apertureType
 
-        if self.apertureType in allowedTypes[1:] and aper2 == 0:
-            print 'For aperture type "',self.apertureType,'" at least aper1 and aper2 must be specified'
+        if self['apertureType'] in allowedTypes[1:] and aper2 == 0:
+            print 'For aperture type "',self['apertureType'],'" at least aper1 and aper2 must be specified'
             raise ValueError("Too few aperture parameters supplied")
         
-        self.aper1 = aper1
-        self.aper2 = aper2
-        self.aper3 = aper3
-        self.aper4 = aper4
+        self['aper1'] = aper1
+        self['aper2'] = aper2
+        self['aper3'] = aper3
+        self['aper4'] = aper4
 
     def __repr__(self):
-        s =  'apertureType="' + str(self.apertureType) + '"'
-        s += ', aper1=' + str(self.aper1)
+        s =  'apertureType="' + self['apertureType'] + '"'
+        s += ', aper1=' + str(self['aper1'])
         for i in (2,3,4):
-            value = getattr(self,'aper'+str(i))
+            value = self['aper'+str(i)]
             if value > 0:
                 s += ', aper' + str(i) + '=' + str(value)
         return s
