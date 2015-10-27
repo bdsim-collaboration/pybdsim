@@ -345,6 +345,12 @@ class Machine:
         #finally add it to the sequence
         self.sequence.append(object.name)
         self.length += object.length
+        if 'angle' in object:
+            ang = object['angle']
+            if type(ang) == tuple:
+                self.angint += ang[0]
+            else:
+                self.angint += ang
 
     def Write(self,filename,verbose=False):
         """
