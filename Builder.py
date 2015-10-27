@@ -512,7 +512,7 @@ class Machine:
 
 # General scripts below this point
 
-def PrepareApertureModel(rowDictionary):
+def PrepareApertureModel(rowDictionary, default='circular):
     rd = rowDictionary # shortcut
     a1 = rd['APER_1']
     a2 = rd['APER_2']
@@ -520,15 +520,13 @@ def PrepareApertureModel(rowDictionary):
     a4 = rd['APER_4']
     if 'APERTYPE' in rd.keys():
         aType = str.lower(rd['APERTYPE'])
-        if aType == 'rectellipse':
-            aType = 'lhcdetailed' # replace for bdsim
     else:
         # no type given - let's guess :(
         if a1 == a2 == a3 == a4:
             aType = 'circular'
             a2 = a3 = a4 = 0 # set 0 to save writing needlessly
         else:
-            aType = 'rectellipse'
+            aType = default
     a = ApertureModel(aType,a1,a2,a3,a4)
     return a
 
