@@ -58,6 +58,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     """
     lFake  = 1e-6 # fake length for thin magnets
     izlis  = ignorezerolengthitems
+    factor = -1 if flipmagnets else 1  #flipping magnets
     if type(input) == str :
         print 'MadxTfs2Gmad> Loading file using pymadx'
         madx   = _pymadx.Tfs(input)
