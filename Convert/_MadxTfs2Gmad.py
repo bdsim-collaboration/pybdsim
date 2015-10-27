@@ -30,10 +30,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                       will generate separate outputfilename_samplers.gmad with all the samplers
                       which will be included in the main .gmad file - you can comment out the 
                       include to therefore exclude all samplers and retain the samplers file.
-    aperturedict    - a dictionary of aperture information.  
-                      keys should be exact string match of element name in tfs file
-                      value should be a single number of the circular aperture (only circular just now)
-                      e.g.  aperturdict = {'TCT1Bxy2':0.15,'TCT2Bxy2:0.20}  note values in metres
+    apertureinfo    - aperture information. Can either be a dictionary of dictionaries with the 
+                      the first key the exact name of the element and the daughter dictionary 
+                      containing the relevant bdsim parameters as keys (must be valid bdsim syntax).
+                      Alternatively, this can be a pymadx.Aperture instance that will be queried.
     collimatordict  - a dictionary of dictionaries with collimator information keys should be exact 
                       string match of element name in tfs file value should be dictionary with the 
                       following keys:
@@ -65,12 +65,12 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     else :
         print 'Already a pymadx instance - proceeding'
         madx   = input
-    
-    nitems = madx.nitems
-    opencollimatorsetting = beampiperadius
 
     if verbose:
         madx.ReportPopulations()
+        
+    nitems = madx.nitems
+    opencollimatorsetting = beampiperadius
     
     # data structures for checks
     angtot = 0.0
@@ -79,7 +79,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     dldiff = {}
     itemsomitted = []
 
-    kws = {} #extra parameters TO BE FINISHED
+    kws = {} #extra parameters
     
     #iterate through items in tfs and construct machine
     a = _Builder.Machine()
