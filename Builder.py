@@ -314,6 +314,20 @@ class Machine:
         print 'Number of elements in sequence: ',len(self.sequence),' <- returning this'
         return len(self.sequence)
 
+    def GetIntegratedAngle(self):
+        """
+        Get the cumulative angle of all the bends in the machine. This is therefore the difference
+        in angle between the entrance and exit vectors. All angles are assumed to be in the horizontal
+        plane so this will not be correct for rotated dipoles.
+        """
+        return self.angint
+
+    def GetIntegratedLength(self):
+        """
+        Get the integrated length of all the components.
+        """
+        return self.length
+
     def Append(self,object):
         if type(object) not in (Element,Line):
             raise TypeError("Only Elements or Lines can be added to the machine")
