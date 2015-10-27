@@ -532,7 +532,7 @@ class Machine:
 
 # General scripts below this point
 
-def PrepareApertureModel(rowDictionary, default='circular):
+def PrepareApertureModel(rowDictionary, default='circular'):
     rd = rowDictionary # shortcut
     a1 = rd['APER_1']
     a2 = rd['APER_2']
