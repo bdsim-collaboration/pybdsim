@@ -225,7 +225,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         elif t == 'RBEND':
             angle = item['ANGLE']
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
-        elif t == 'RCOLLIMATOR':
+        elif t == 'RCOLLIMATOR' or t == 'ECOLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
                 #gets a dictionary then extends kws dict with that dictionary
@@ -233,17 +233,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['tilt']     = collimatordict[name]['tilt']
                 xsize           = collimatordict['xsize']
                 ysize           = collimatordict['ysize']
-                a.AddRCol(rname,l,xsize,ysize,**kws)
-            else:
-                a.AddDrift(rname,l)
-        elif t == 'ECOLLIMATOR':
-            if name in collimatordict:
-                #gets a dictionary then extends kws dict with that dictionary
-                kws['material'] = collimatordict[name]['material']
-                kws['tilt']     = collimatordict[name]['tilt']
-                xsize           = collimatordict['xsize']
-                ysize           = collimatordict['ysize']
-                a.AddECol(rname,l,xsize,ysize,**kws)
+                if t == 'RCOLLIMATOR':
+                    a.AddRCol(rname,l,xsize,ysize,**kws)
+                else:
+                    a.AddECol(rname,l,xsize,ysize,**kws)
             else:
                 a.AddDrift(rname,l)
         elif t == 'RFCAVITY':
