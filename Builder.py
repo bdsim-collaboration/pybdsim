@@ -97,12 +97,15 @@ class Element(dict):
                 self[key] = value
             elif isinstance(value, (float, int)):
                 #must be a number
-                self[key] = value
+                if 'aper' in str.lower(key) and value < 1e-6:
+                    continue
+                else:
+                    self[key] = value
             else:
                 #must be a string
                 self[key] = '"'+value+'"'
             self._keysextra.append(str(key)) #order preserving
-        if 'l' in self:
+        if 'l' in d:
             if type(self['l']) == tuple:
                 ll = self['l'][0]
             else:
