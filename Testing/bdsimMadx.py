@@ -304,6 +304,19 @@ class LatticeTest:
             PTC_optfn_y = ptcdata.Emitt_y()
             PTC_opterr_x = ptcdata.Sigma_emitt_x()
             PTC_opterr_y = ptcdata.Sigma_emitt_y()
+
+        elif (plot=='dispersion_xy'):
+            fn_name = r'D'
+            fn_rname= 'dispersion'
+
+            M_optfn_x    = madx.GetColumn('DX') 
+            M_optfn_y    = madx.GetColumn('DY')
+            B_optfn_x    = bdata.Disp_x()
+            B_optfn_y    = bdata.Disp_y()
+            PTC_optfn_x  = ptcdata.Disp_x()
+            PTC_optfn_y  = ptcdata.Disp_y()
+            PTC_opterr_x = 0 #error calculations for dispersion not implemented yet
+            PTC_opterr_y = 0
         else:
             print "Error: Unrecognised plotting option:",option
             return
@@ -325,8 +338,8 @@ class LatticeTest:
             _plt.plot(M_s,M_optfn_y,'.',color='b',linestyle='solid',label=r'$'+fn_name+r'_{y}$MDX')
         _plt.errorbar(PTC_s,PTC_optfn_x, yerr=PTC_opterr_x,fmt='*',color='r',linestyle=':',linewidth=1.2,label=r'$'+fn_name+r'_{x}$PTC')
         _plt.errorbar(PTC_s,PTC_optfn_y, yerr=PTC_opterr_y,fmt='*',color='b',linestyle=':',linewidth=1.2,label=r'$'+fn_name+r'_{y}$PTC')
-        _plt.plot(B_s,B_optfn_x,'.',color='r',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{x}$BDS')
-        _plt.plot(B_s,B_optfn_y,'.',color='b',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{y}$BDS')
+        _plt.errorbar(B_s,B_optfn_x, yerr=B_opterr_x,fmt='.',color='r',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{x}$BDS')
+        _plt.errorbar(B_s,B_optfn_y, yerr=B_opterr_y,fmt='.',color='b',linestyle='dashed',linewidth=1.2,label=r'$'+fn_name+r'_{y}$BDS')
         _plt.xlabel(r'$S (m)$')
         _plt.ylabel(r'$'+fn_name+r'_{x,y}(m)$')
         _plt.legend(numpoints=1,loc=7,prop={'size':15})
