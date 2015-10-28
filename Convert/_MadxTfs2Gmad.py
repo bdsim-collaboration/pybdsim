@@ -65,93 +65,30 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     lFake  = 1e-6 # fake length for thin magnets
     izlis  = ignorezerolengthitems
     factor = -1 if flipmagnets else 1  #flipping magnets
-    if type(input) == str :
-        print 'MadxTfs2Gmad> Loading file using pymadx'
-        madx   = _pymadx.Tfs(input)
-    else :
-        print 'Already a pymadx instance - proceeding'
-        madx   = input
 
+    # define utility function that does conversion
+    def AddSingleElement(item, a, aperModel=None):
+        # if it's already a prepared element, just append it
+        if type(item) == _Builder.Element:
+            a.Append(item)
+            return
 
-    kws = {} #extra parameters
-    
-    #iterate through items in tfs and construct machine
-    a = _Builder.Machine()
+        kws = {} # element-wise keywords
+        
+        if aperModel != None:
+            kws.update(aperModel)
+        
+        # a is a pybdsim.Builder.Machine instance
 
-    requiredKeys = [
-        'L', 'ANGLE',
-        'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
-        'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
-        'TILT', 'KEYWORD',
-        'ALFX', 'ALFY', 'BETX', 'BETY',
-        'VKICK', 'HKICK'
-        ]
-    for key in requiredKeys:
-        if key not in madx.columns:
-            print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT, KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
-            print 'Given columns    : '
-            print madx.columns
-            raise KeyError("Required key '"+str(key)+"' missing from tfs file")
-     
-    # iterate through input file and construct machine
-    for item in madx[startname:stopname:stepsize]:
         name = item['NAME']
         #remove special characters like $, % etc 'reduced' name - rname
         rname = _re.sub('[^a-zA-Z0-9_]+','',name) #only allow alphanumeric characters and '_'
-        t = item['KEYWORD']
-        l = item['L']
+        t   = item['KEYWORD']
+        l   = item['L']
         ang = item['ANGLE']
-        if l <1e-9:
-            zerolength = True
-        else:
-            zerolength = False
-        
-        if verbose:
-            print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
-
-        if zerolength and ignorezerolengthitems:
-            itemsomitted.append(name)
-            continue #this skips the rest of the loop as we're ignoring this item
-        
-        lentot += l
-        angtot += ang
-
-        #element-wise keywords
-        kws = {}
-
-        # APERTURE
-        # check if aperture info in tfs file
-        # only use this if aperture info not specified in aperture dict
-        if ( usemadxaperture and (name not in aperturedict) ):
-            if 'APER_1' in madx.columns and 'APER_2' in madx.columns:
-                #elliptical aperture
-                aperX = madx.GetRowDict(name)['APER_1']
-                aperY = madx.GetRowDict(name)['APER_2']
-                if (aperX > 1e-6) and (aperY > 1e-6):
-                    #both apertures must be specified for elliptical
-                    kws['aper1'] = aperX #make sure it's non zero
-                    kws['aper2'] = aperY 
-                elif (aperX > 1e-6):
-                    #resort to circular
-                    kws['aper1'] = aperX #make sure it's non zero
-                else:
-                    pass
-            elif 'APER_1' in madx.columns:
-                #circular aperture
-                aper = madx.GetRowDict(name)['APER_1']
-                if aper > 1e-6:
-                    kws['aper1'] = aper #make sure it's non zero
-
-        # check if aperture info in aperture dict
-        if name in aperturedict:
-            #for now only 1 aperture - circular
-            ap = (aperturedict[name],'m')
-            if ap[0] < 1e-6:
-                ap = (defaultbeampiperadius,'m')
-            if t != 'RCOLLIMATOR':
-                kws['aper'] = ap
         
         if t == 'DRIFT':
+            #print 'AddDrift'
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
             kickangle = item['HKICK'] * factor
@@ -222,10 +159,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             #only use xsize as only have half gap
             if name in collimatordict:
                 #gets a dictionary then extends kws dict with that dictionary
-                kws['material'] = collimatordict[name]['material']
-                kws['tilt']     = collimatordict[name]['tilt']
-                xsize           = collimatordict['xsize']
-                ysize           = collimatordict['ysize']
+                colld = collimatordict[name]
+                kws['material'] = colld['material']
+                kws['tilt']     = colld['tilt']
+                xsize           = colld['xsize']
+                ysize           = colld['ysize']
+                if xsize > 0.1 or ysize > 0.1:
+                    kws['outerDiameter'] = max(xsize,ysize)*1.5
                 if t == 'RCOLLIMATOR':
                     a.AddRCol(rname,l,xsize,ysize,**kws)
                 else:
@@ -261,19 +201,126 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             else:
                 print 'putting drift in instead as it has a finite length'
                 a.AddDrift(rname,l)
+    # end of utility conversion function
 
+    # test whether filpath or tfs instance supplied
+    if type(input) == str :
+        print 'MadxTfs2Gmad> Loading file using pymadx'
+        madx   = _pymadx.Tfs(input)
+    else :
+        print 'Already a pymadx instance - proceeding'
+        madx   = input
+
+    # test the tfs file to check it has everything we need
+    requiredKeys = [
+        'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
+        'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
+        'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
+        'VKICK', 'HKICK'
+        ]
+    test = _np.array([not (key in madx.columns) for key in requiredKeys])
+    if test.any():
+        print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT,' 
+        print '                   KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
+        print 'Missing column(s): ',requiredKeys[test==True]
+        raise KeyError("Required column missing from tfs file")
+
+    if verbose:
+        madx.ReportPopulations()
+
+    # check aperture information if supplied
+    useTfsAperture = False
+    print 'TYPE of aperdict: ',type(aperturedict)
+    if type(aperturedict) == _pymadx.Aperture:
+        useTfsAperture = True
+        if verbose:
+            aperturedict.ReportPopulations()
+    if verbose:
+        print 'Using pymadx.Apeture instance? --> ',useTfsAperture
+    
+    # keep list of omitted zero length items
+    itemsomitted = []
+
+    # machine instance that will be added to
+    a = _Builder.Machine() # raw converted machine
+    b = _Builder.Machine() # final machine, split with aperture
+    
+    # iterate through input file and construct machine
+    for item in madx[startname:stopname:stepsize]:
+        name = item['NAME']
+        t    = item['KEYWORD']
+        l    = item['L']
+        zerolength = True if item['L'] < 1e-9 else False
+        if verbose:
+            print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
+        if zerolength and ignorezerolengthitems:
+            itemsomitted.append(name)
+            if verbose:
+                print 'skipping this item'
+            continue # skip this item in the for loop
+
+        # now deal with aperture
+        if useTfsAperture:
+            apermodel = aperturedict.GetApetureForElementNamed(name)
+            #print 'Using aperture instance'
+            should,lengths,apers = aperturedict.ShouldSplit(item)
+            should = False
+            if should:
+                if verbose:
+                    print 'Splitting item based on aperture'
+                ls = _np.array(lengths)
+                if abs(_np.array(lengths).sum() - l) > 1e-6 or (ls < 0).any():
+                    print 'OH NO!!!'
+                    print l
+                    print lengths
+                    print apers
+                    return
+                # we should split this item up
+                # add it first to the raw machine
+                AddSingleElement(item, a)
+                # now get the last element - the one that's just been added
+                lastelement = a[-1]
+                for splitLength,aper in zip(lengths,apers):
+                    # append the right fraction with the appropriate aperture
+                    # to the 'b' machine
+                    apermodel = _Builder.PrepareApertureModel(aper, defaultAperture)
+                    print apermodel
+                    AddSingleElement(lastelement*(splitLength/l), b, apermodel)
+            else:
+                apermodel = _Builder.PrepareApertureModel(apers[0],defaultAperture)
+                print apermodel
+                print len(b)
+                AddSingleElement(item, a, apermodel)
+                AddSingleElement(item, b, apermodel)
+                print len(b)
+        elif usemadxaperture and name not in aperturedict:
+            print 'Using aperture in madx tfs file'
+            apermodel = _Builder.PrepareApertureModel(item, defaultAperture)
+            AddSingleElement(item, a, apermodel)
+            AddSingleElement(item, b, apermodel)
+        elif item['NAME'] in aperturedict:
+            apermodel = _Build.PrepareApertureModel(aperturedict[name], defaultAperture)
+            AddSingleElement(item, a, apermodel)
+            AddSingleElement(item, b, apermodel)
+        else:
+            AddSingleElement(item, a)
+            AddSingleElement(item, b)
+    # end of for loop
+                
     #add a single marker at the end of the line
     a.AddMarker('theendoftheline')
+    b.AddMarker('theendoftheline')
     
     a.AddSampler(samplers)
+    b.AddSampler(samplers)
 
     # Make beam file 
     if beam: 
-        b = MadxTfs2GmadBeam(madx, startname, verbose)
-        a.AddBeam(b)
+        bm = MadxTfs2GmadBeam(madx, startname, verbose)
+        a.AddBeam(bm)
+        b.AddBeam(bm)
 
-    a.Write(outputfilename)
-
+    b.Write(outputfilename)
     if verbose:
         a.Write(outputfilename+"_raw")
         print 'Total length: ',a.GetIntegratedLength()
