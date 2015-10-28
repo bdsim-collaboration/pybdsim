@@ -72,18 +72,6 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         print 'Already a pymadx instance - proceeding'
         madx   = input
 
-    if verbose:
-        madx.ReportPopulations()
-        
-    nitems = madx.nitems
-    opencollimatorsetting = beampiperadius
-    
-    # data structures for checks
-    angtot = 0.0
-    lentot = 0.0
-    lldiff = []
-    dldiff = {}
-    itemsomitted = []
 
     kws = {} #extra parameters
     
@@ -287,12 +275,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     a.Write(outputfilename)
 
     if verbose:
-        print 'lentot ',lentot
-        print 'angtot ',angtot
+        a.Write(outputfilename+"_raw")
+        print 'Total length: ',a.GetIntegratedLength()
+        print 'Total angle:  ',a.GetIntegratedAngle()
         print 'items omitted: '
         print itemsomitted
-        #return lldiff,dldiff,a
-    return a
         print 'number of omitted items: ',len(itemsomitted)
 
     return b,a,itemsomitted
