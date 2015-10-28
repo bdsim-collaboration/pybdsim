@@ -85,7 +85,11 @@ class Element(dict):
         self['name']     = self.name
         self['category'] = self.category
         self._keysextra = []
-        for key,value in kwargs.iteritems():
+        self.update(kwargs)
+
+    def update(self,d):
+        dict.update(d)
+        for key,value in d.iteritems():
             if type(value) == tuple and category != 'multipole':
                 #use a tuple for (value,units)
                 self[key] = (float(value[0]),value[1])
