@@ -250,8 +250,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
             angle = item['ANGLE']
-            k1 = item['K1L'] / l * factor
-            a.AddDipole(rname,'sbend',l,angle=angle, k1=k1, **kws)
+            k1l = item['K1L']
+            if k1l != 0:
+                k1 = k1l / l * factor
+                kws['k1'] = k1
+            a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t == 'SEXTUPOLE':
             k2 = item['K2L'] / l * factor
             a.AddSextupole(rname,l,k2=k2,**kws)
