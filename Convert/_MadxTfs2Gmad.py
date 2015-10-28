@@ -381,5 +381,6 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetAlphaY(data['ALFY'])
     beam.SetEmittanceX(ex,'m') 
     beam.SetEmittanceY(ey,'m')
+    beam.SetSigmaE(sigmae)
     
     return beam
