@@ -200,10 +200,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 tilt= item['TILT']
                 if k1 != 0 : 
                     a.AddQuadrupole(rname,k1=k1,length=lFake,tilt=tilt) 
-                else : 
+                else:
                     a.AddMarker(rname)
-#                    a.AddMultipole(name,length=lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),tilt=tilt)
-            if zerolength:
+                    #a.AddMultipole(name,length=lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),tilt=tilt)
+            elif zerolength:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of multipole'
