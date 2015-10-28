@@ -4,8 +4,10 @@ import pymadx as _pymadx
 from .. import Builder as _Builder
 from .. import Beam as _Beam
 
-def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolengthitems=True,thinmultipoles=False,samplers='all',
-                 aperturedict={},collimatordict={},beampiperadius=0.2,verbose=False, beam=True, flipmagnets=False,usemadxaperture=False):
+def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
+                 ignorezerolengthitems=True, thinmultipoles=False, samplers='all',
+                 aperturedict={}, collimatordict={}, beampiperadius=0.2,
+                 verbose=False, beam=True, flipmagnets=False, usemadxaperture=False):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
@@ -15,7 +17,8 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                       this can also be an integer index of the element sequence number in madx tfs
     stopname        - the name (exact string match) of the lattice element to stop the machine at
                       this can also be an integer index of the element sequence number in madx tfs
-    ignorezerolengt hitems -
+    stepsize        - the slice step size. Default is 1, but -1 also useful for reversed line
+    ignorezerolengthitems -
                     - nothing can be zero length in bdsim as real objects of course have some finite 
                       size.  Markers, etc are acceptable but for large lattices this can slow things 
                       down. True allows to ignore these altogether, which doesn't affect the length 
@@ -27,10 +30,10 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                       will generate separate outputfilename_samplers.gmad with all the samplers
                       which will be included in the main .gmad file - you can comment out the 
                       include to therefore exclude all samplers and retain the samplers file.
-    aperturedict    - a dictionary of aperture information.  
-                      keys should be exact string match of element name in tfs file
-                      value should be a single number of the circular aperture (only circular just now)
-                      e.g.  aperturdict = {'TCT1Bxy2':0.15,'TCT2Bxy2:0.20}  note values in metres
+    apertureinfo    - aperture information. Can either be a dictionary of dictionaries with the 
+                      the first key the exact name of the element and the daughter dictionary 
+                      containing the relevant bdsim parameters as keys (must be valid bdsim syntax).
+                      Alternatively, this can be a pymadx.Aperture instance that will be queried.
     collimatordict  - a dictionary of dictionaries with collimator information keys should be exact 
                       string match of element name in tfs file value should be dictionary with the 
                       following keys:
@@ -55,18 +58,19 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
     """
     lFake  = 1e-6 # fake length for thin magnets
     izlis  = ignorezerolengthitems
+    factor = -1 if flipmagnets else 1  #flipping magnets
     if type(input) == str :
         print 'MadxTfs2Gmad> Loading file using pymadx'
         madx   = _pymadx.Tfs(input)
     else :
         print 'Already a pymadx instance - proceeding'
         madx   = input
-    
-    nitems = madx.nitems
-    opencollimatorsetting = beampiperadius
 
     if verbose:
         madx.ReportPopulations()
+        
+    nitems = madx.nitems
+    opencollimatorsetting = beampiperadius
     
     # data structures for checks
     angtot = 0.0
@@ -75,75 +79,34 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
     dldiff = {}
     itemsomitted = []
 
-    kws = {} #extra parameters TO BE FINISHED
+    kws = {} #extra parameters
     
     #iterate through items in tfs and construct machine
     a = _Builder.Machine()
-    
-    #prepare index for iteration:
-    if startname == None:
-        startindex = 0
-    elif type(startname) == int:
-        startindex = startname
-    else:
-        startindex = madx.IndexFromName(startname)
-    if stopname   == None:
-        stopindex = nitems #this is 1 larger, but ok as range will stop at n-step -> step=1, range function issue
-    elif type(stopname) == int:
-        stopindex = stopname
-    else:
-        stopindex  = madx.IndexFromName(stopname)
-    if stopindex <= startindex:
-        print 'stopindex <= startindex'
-        stopindex = startindex + 1
 
-    try:
-        lindex          = madx.ColumnIndex('L')
-        angleindex      = madx.ColumnIndex('ANGLE')
-        ksIindex        = madx.ColumnIndex('KSI')
-        k1lindex        = madx.ColumnIndex('K1L')
-        k2lindex        = madx.ColumnIndex('K2L')
-        k3lindex        = madx.ColumnIndex('K3L')
-        k4lindex        = madx.ColumnIndex('K4L')
-        k5lindex        = madx.ColumnIndex('K5L')
-        k6lindex        = madx.ColumnIndex('K6L')
-        k1slindex       = madx.ColumnIndex('K1SL')
-        k2slindex       = madx.ColumnIndex('K2SL')
-        k3slindex       = madx.ColumnIndex('K3SL')
-        k4slindex       = madx.ColumnIndex('K4SL')
-        k5slindex       = madx.ColumnIndex('K5SL')
-        k6slindex       = madx.ColumnIndex('K6SL')
-        tiltindex       = madx.ColumnIndex('TILT')
-        tindex          = madx.ColumnIndex('KEYWORD')
-        alphaxindex     = madx.ColumnIndex('ALFX')
-        alphayindex     = madx.ColumnIndex('ALFY')
-        betaxindex      = madx.ColumnIndex('BETX')
-        betayindex      = madx.ColumnIndex('BETY')
-        vkickangleindex = madx.ColumnIndex('VKICK')
-        hkickangleindex = madx.ColumnIndex('HKICK')
-    except ValueError:
-        print 'Missing columns from tfs file - insufficient information to convert file'
-        print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT, KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
-        print 'Given columns    : '
-        print madx.columns
-        return
-        
-    if verbose:
-        print 'L       Column Index: ',lindex
-        print 'ANGLE   Column Index: ',angleindex
-        print 'K1L     Column Index: ',k1lindex
-        print 'K2L     Column Index: ',k2lindex
-        print 'K3L     Column Index: ',k3lindex
-        print 'KEYWORD Column Index: ',tindex
+    requiredKeys = [
+        'L', 'ANGLE',
+        'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
+        'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
+        'TILT', 'KEYWORD',
+        'ALFX', 'ALFY', 'BETX', 'BETY',
+        'VKICK', 'HKICK'
+        ]
+    for key in requiredKeys:
+        if key not in madx.columns:
+            print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT, KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
+            print 'Given columns    : '
+            print madx.columns
+            raise KeyError("Required key '"+str(key)+"' missing from tfs file")
      
     # iterate through input file and construct machine
-    for i in range(startindex,stopindex):
-        name = madx.sequence[i]
+    for item in madx[startname:stopname:stepsize]:
+        name = item['NAME']
         #remove special characters like $, % etc 'reduced' name - rname
         rname = _re.sub('[^a-zA-Z0-9_]+','',name) #only allow alphanumeric characters and '_'
-        t     = madx.data[name][tindex]
-        l     = madx.data[name][lindex]
-        ang   = madx.data[name][angleindex]
+        t = item['KEYWORD']
+        l = item['L']
+        ang = item['ANGLE']
         if l <1e-9:
             zerolength = True
         else:
@@ -197,7 +160,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
         if t == 'DRIFT':
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
-            kickangle = madx.data[name][hkickangleindex]
+            kickangle = item['HKICK'] * factor
             a.AddHKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
@@ -219,28 +182,26 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
             # TBC - cludge for thin multipoles (uses lFake for a short non-zero length)
-            factor = -1 if flipmagnets else 1  #flipping magnets
             if thinmultipoles:
                 print 'WARNING - conversion of thin multipoles is not finished yet!'
-                k1  = madx.data[name][k1lindex] / lFake * factor
-                k2  = madx.data[name][k2lindex] / lFake * factor
-                k3  = madx.data[name][k3lindex] / lFake * factor
-                k4  = madx.data[name][k4lindex] / lFake * factor
-                k5  = madx.data[name][k5lindex] / lFake * factor
-                k6  = madx.data[name][k6lindex] / lFake * factor
-                k1s = madx.data[name][k1slindex] / lFake * factor
-                k2s = madx.data[name][k2slindex] / lFake * factor
-                k3s = madx.data[name][k3slindex] / lFake * factor
-                k4s = madx.data[name][k4slindex] / lFake * factor
-                k5s = madx.data[name][k5slindex] / lFake * factor
-                k6s = madx.data[name][k6slindex] / lFake * factor
-                tilt= madx.data[name][tiltindex]
+                k1  = item['K1L']  / lFake * factor
+                k2  = item['K2L']  / lFake * factor
+                k3  = item['K3L']  / lFake * factor
+                k4  = item['K4L']  / lFake * factor
+                k5  = item['K5L']  / lFake * factor
+                k6  = item['K6L']  / lFake * factor
+                k1s = item['K1SL'] / lFake * factor
+                k2s = item['K2SL'] / lFake * factor
+                k3s = item['K3SL'] / lFake * factor
+                k4s = item['K4SL'] / lFake * factor
+                k5s = item['K5SL'] / lFake * factor
+                k6s = item['K6SL'] / lFake * factor
+                tilt= item['TILT']
                 if k1 != 0 : 
                     a.AddQuadrupole(rname,k1=k1,length=lFake,tilt=tilt) 
                 else : 
                     a.AddMarker(rname)
 #                    a.AddMultipole(name,length=lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),tilt=tilt)
-
             if zerolength:
                 a.AddMarker(rname)
                 if verbose:
@@ -248,8 +209,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
-            #TO BE FINISHED
-            #NO implmentation of octupoles yet..
+            k3 = item['K3L'] / l * factor
             a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
             if zerolength:
@@ -259,54 +219,49 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'QUADRUPOLE':
-            factor = -1 if flipmagnets else 1  #flipping magnets
-            k1 = madx.data[name][k1lindex] / l * factor
+            k1 = item['K1L'] / l * factor
             a.AddQuadrupole(rname,l,k1=k1,**kws)
         elif t == 'RBEND':
-            angle = madx.data[name][angleindex]
+            angle = item['ANGLE']
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
         elif t == 'RCOLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
                 #gets a dictionary then extends kws dict with that dictionary
-                kws.update(collimatordict[name]) 
+                kws['material'] = collimatordict[name]['material']
+                kws['tilt']     = collimatordict[name]['tilt']
+                xsize           = collimatordict['xsize']
+                ysize           = collimatordict['ysize']
+                a.AddRCol(rname,l,xsize,ysize,**kws)
             else:
-                print "Warning - using default parameters for rcol: '",name,"' x,y = beam pipe radius, 0 tilt, copper"
-                xsize = beampiperadius
-                ysize = beampiperadius
-                kws['tilt']     = 0.0
-                kws['material'] = "Copper"
-            a.AddRCol(rname,l,xsize,ysize,**kws)
+                a.AddDrift(rname,l)
         elif t == 'ECOLLIMATOR':
             if name in collimatordict:
                 #gets a dictionary then extends kws dict with that dictionary
-                kws.update(collimatordict[name]) 
+                kws['material'] = collimatordict[name]['material']
+                kws['tilt']     = collimatordict[name]['tilt']
+                xsize           = collimatordict['xsize']
+                ysize           = collimatordict['ysize']
+                a.AddECol(rname,l,xsize,ysize,**kws)
             else:
-                print "Warning - using default parameters for ecol: '",name,"' x,y = beam pipe radius, 0 tilt, copper"
-                xsize = beampiperadius
-                ysize = beampiperadius
-                kws['tilt']     = 0.0
-                kws['material'] = "Copper"
-            a.AddECol(rname,l,xsize,ysize,**kws)
+                a.AddDrift(rname,l)
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
-            angle = madx.data[name][angleindex]
-            k1 = madx.data[name][k1lindex] / l
-            a.AddDipole(rname,'sbend',l,angle=angle, k1=k1,**kws)
+            angle = item['ANGLE']
+            k1 = item['K1L'] / l * factor
+            a.AddDipole(rname,'sbend',l,angle=angle, k1=k1, **kws)
         elif t == 'SEXTUPOLE':
-            factor = -1 if flipmagnets else 1  #flipping magnets
-            k2 = madx.data[name][k2lindex] / l * factor
+            k2 = item['K2L'] / l * factor
             a.AddSextupole(rname,l,k2=k2,**kws)
         elif t == 'SOLENOID':
-            #factor = -1 if flipmagnets else 1  #flipping magnets
-            #ksi = madx.data[name][ksiindex]
-            #a.AddSolenoid(rname,l,ks=ksi
+            #ks = item['KSI'] / l
+            #a.AddSolenoid(rname,l,ks=ks
             a.AddDrift(rname,l,**kws)
         elif t == 'TKICKER':
             a.AddDrift(rname,l,**kws)
         elif t == 'VKICKER':
-            kickangle = madx.data[name][vkickangleindex]
+            kickangle = item['VKICK'] * factor
             a.AddVKicker(rname,l,angle=kickangle,**kws)
         else:
             print 'unknown element type: ',t,' for element named: ',name

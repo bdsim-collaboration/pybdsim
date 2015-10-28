@@ -20,11 +20,11 @@ import Beam as _Beam
 import Options as _Options
 import _General
 from   _General import IsFloat as _IsFloat
-from   decimal import Decimal as _Decimal
 import math as _math
 import time as _time
 import os as _os
 import numpy as _np
+import copy as _copy
 
 bdsimcategories = [
     'marker',
@@ -57,15 +57,23 @@ class Element(dict):
 
     Element(name,type,**kwargs)
 
-    >>> a = Element("drift1", "drift", "l"=1.3)
+    >>> a = Element("d1", "drift", l=1.3)
+    >>> b = Element("qx1f", "quadrupole", l=(0.4,'m'), k1=0.2, aper1=(0.223,'m'))
+    >>> print(b)
+        qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m;
     
     A beam line element must ALWAYs have a name, and type.
     The keyword arguments are specific to the type and are up to
-    the user to specify.
+    the user to specify - these should match BDSIM GMAD syntax.
 
-    Numbers are converted to a python Decimal type to provide 
-    higher accuracy in the representation of numbers - 15 
-    decimal places are used. 
+    The value can be either a single string or number or a python tuple
+    where the second entry must be a string (shown in second example).
+    Without specified units, the parser assumes S.I. units.
+
+    An element may also be multiplied or divided.  This will scale the 
+    length and angle appropriately.
+
+    >>> c = Element('sb1', 'sbend', l=(0.4,'m'), angle=
     """
     def __init__(self, name, category, **kwargs):
         if category not in bdsimcategories:
@@ -80,12 +88,12 @@ class Element(dict):
         for key,value in kwargs.iteritems():
             if type(value) == tuple and category != 'multipole':
                 #use a tuple for (value,units)
-                self[key] = (_Decimal(str(value[0])),value[1])
+                self[key] = (float(value[0]),value[1])
             elif type(value) == tuple and category == 'multipole' : 
                 self[key] = value
-            elif _IsFloat(value):
-                #just a number
-                self[key] = _Decimal(str(value))
+            elif isinstance(value, (float, int)):
+                #must be a number
+                self[key] = value
             else:
                 #must be a string
                 self[key] = '"'+value+'"'
@@ -115,6 +123,17 @@ class Element(dict):
                     s += ', ' + key + '=' + str(self[key])
         s += ';\n'
         return s
+
+    def __mul__(self, factor):
+        newElement = _copy.copy(self)
+        newElement.length *= factor
+        newElement['l'] = factor * float(self['l'])
+        if 'angle' in self:
+            newElement['angle'] = factor * float(self['angle'])
+        return newElement
+
+    def __div__(self, factor):
+        return self.__mul__(float(1./factor))
 
 class Line(list):
     """
@@ -166,6 +185,61 @@ class Line(list):
             s += str(item) #uses elements __repr__ function
         return s
 
+class ApertureModel(object):
+    """
+    A class that produces the aperture representation of an element. Only non-zero
+    values are written for the aperture parameters. Includes parameter checking.
+    """
+    def __init__(self, apertureType='circular', aper1=0.1, aper2=0, aper3=0, aper4=0):
+        allowedTypes = [
+            'circular',
+            'elliptical',
+            'rectangular',
+            'lhc',
+            'lhcdetailed',
+            'rectellipse'
+        ] # maintain order for tests further down!
+        madxTypes = {
+            'circle'      : 'circular',
+            'ellipse'     : 'elliptical',
+            'rectangle'   : 'rectangular',
+            'lhcscreen'   : 'lhcdetailed',
+            'marguerite'  : None,
+            'rectellipse' : 'rectellipse',
+            'racetrack'   : None,
+            'filename'    : None
+            }
+        atL = str.lower(apertureType)
+        if atL not in allowedTypes and atL not in madxTypes.keys():
+            print 'Allowed aperture types are: ', allowedTypes, madxTypes.keys()
+            raise ValueError("Invalid aperture type: "+str(apertureType))
+
+        if atL in madxTypes.keys():
+            self.apertureType = madxTypes[atL]
+            if self.apertureType == None:
+                print 'Unsupported type: :',self.apertureType,'" - replacing with elliptical'
+                self.apertureType = 'elliptical'
+        else:
+            self.apertureType = apertureType
+
+        if self.apertureType in allowedTypes[1:] and aper2 == 0:
+            print 'For aperture type "',self.apertureType,'" at least aper1 and aper2 must be specified'
+            raise ValueError("Too few aperture parameters supplied")
+        
+        self.aper1 = aper1
+        self.aper2 = aper2
+        self.aper3 = aper3
+        self.aper4 = aper4
+
+    def __repr__(self):
+        s =  'apertureType="' + str(self.apertureType) + '"'
+        s += ', aper1=' + str(self.aper1)
+        for i in (2,3,4):
+            value = getattr(self,'aper'+str(i))
+            if value > 0:
+                s += ', aper' + str(i) + '=' + str(value)
+        return s
+
 class Sampler:
     """
     A sampler is unique in that it does not have a length unlike every
@@ -176,7 +250,10 @@ class Sampler:
         self.name = name
 
     def __repr__(self):
-        return 'sample, range='+self.name+';\n'
+        if self.name == 'all':
+            return 'sample, all;\n'
+        else:
+            return 'sample, range='+self.name+';\n'
 
 class Machine:
     """
@@ -420,13 +497,7 @@ class Machine:
             
     def AddSampler(self,*elementnames):
         if elementnames[0] == 'all':
-            for element in self.elements[1:]:
-                #skip the first element as that will likely only capture
-                #half the beam due to the finite Z size of the beam - also
-                #degenerate with the primary sampler that's automatic.
-                #remember we can only have samplers on uniquely
-                #named elements (for now)
-                self.samplers.append(Sampler(element.name))
+            self.samplers.append(Sampler('all'))
         elif elementnames[0] == 'first':
             self.samplers.append(Sampler(self.elements[0].name))
         elif elementnames[0] == 'last':
@@ -440,6 +511,26 @@ class Machine:
 
 
 # General scripts below this point
+
+def PrepareApertureModel(rowDictionary):
+    rd = rowDictionary # shortcut
+    a1 = rd['APER_1']
+    a2 = rd['APER_2']
+    a3 = rd['APER_3']
+    a4 = rd['APER_4']
+    if 'APERTYPE' in rd.keys():
+        aType = str.lower(rd['APERTYPE'])
+        if aType == 'rectellipse':
+            aType = 'lhcdetailed' # replace for bdsim
+    else:
+        # no type given - let's guess :(
+        if a1 == a2 == a3 == a4:
+            aType = 'circular'
+            a2 = a3 = a4 = 0 # set 0 to save writing needlessly
+        else:
+            aType = 'rectellipse'
+    a = ApertureModel(aType,a1,a2,a3,a4)
+    return a
 
 def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first'):
     """
@@ -503,31 +594,31 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     30% beam pipe / drift
     """
     a       = Machine()
-    cangle  = _Decimal(str(2.0*_math.pi / ncells))
-    clength = _Decimal(str(float(circumference) / ncells))
+    cangle  = 2.0*_math.pi / ncells
+    clength = float(circumference) / ncells
     #dipole = 0.5 of cell, quads=0.2, drift=0.3, two dipoles
     #dipole:
-    dl  = clength * _Decimal(str(0.5)) * _Decimal(str(0.5))
-    da  = cangle/_Decimal(2.0)
+    dl  = clength * 0.25
+    da  = cangle * 0.5
     #quadrupole:
-    ql  = clength * _Decimal('0.2') * _Decimal('0.5')
-    k1  = _Decimal(str(SuggestFodoK(ql,dl)))
+    ql  = clength * 0.2 * 0.5
+    k1  = SuggestFodoK(ql,dl)
     #drift:
-    drl = clength * _Decimal('0.3') * _Decimal('0.25')
+    drl = clength * 0.3 * 0.25
     #naming
     nplaces  = len(str(ncells))
     basename = 'dfodo_'
     for i in range(ncells):
         cellname = basename + str(i).zfill(nplaces)
-        a.AddQuadrupole(cellname+'_qd_a',ql/_Decimal('2.0'),k1)
+        a.AddQuadrupole(cellname+'_qd_a',ql*0.5,k1)
         a.AddDrift(cellname+'_dr_a',drl)
         a.AddDipole(cellname+'_dp_a','sbend',dl,da)
         a.AddDrift(cellname+'_dr_b',drl)
-        a.AddQuadrupole(cellname+'_qf_b',ql,k1*_Decimal('-1.0'))
+        a.AddQuadrupole(cellname+'_qf_b',ql,k1*-1.0)
         a.AddDrift(cellname+'_dr_c',drl)
         a.AddDipole(cellname+'_dp_b','sbend',dl,da)
         a.AddDrift(cellname+'_dr_d',drl)
-        a.AddQuadrupole(cellname+'_qd_c',ql/_Decimal('2.0'),k1)
+        a.AddQuadrupole(cellname+'_qd_c',ql*0.5,k1)
     a.AddSampler(samplers)
     a.WriteMachine(filename)
     
@@ -649,7 +740,8 @@ def WriteMachine(machine, filename, verbose=False):
     f.close()
 
     #write samplers
-    if len(machine.samplers) > 0:
+    # if less than 10 samplers, just put in main file
+    if len(machine.samplers) > 10:
         f = open(fn_samplers,'w')
         files.append(fn_samplers)
         f.write(timestring)
@@ -687,6 +779,9 @@ def WriteMachine(machine, filename, verbose=False):
     for fn in files:
         fn = fn.split('/')[-1]
         f.write('include '+fn+';\n')
+    if len(machine.samplers) <= 10:
+        for sampler in machine.samplers:
+            f.write(str(sampler))
     f.close()
 
     #user feedback
