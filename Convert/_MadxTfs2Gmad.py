@@ -56,6 +56,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     usemadxaperture - True | False - use the aperture information in the TFS file if APER_1 and APER_2
                       columns exist.  Will only set if they're non-zero.
 
+    Returns Machine, Machine, [omittedItems]
+    
+    Returns two pybdsim.Builder.Machine instances. The first desired full conversion.  The second is 
+    the raw conversion that's not split by aperture. Thirdly, a list of the names of the omitted items
+    is returned.
     """
     lFake  = 1e-6 # fake length for thin magnets
     izlis  = ignorezerolengthitems
@@ -288,6 +293,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         print itemsomitted
         #return lldiff,dldiff,a
     return a
+        print 'number of omitted items: ',len(itemsomitted)
+
+    return b,a,itemsomitted
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
