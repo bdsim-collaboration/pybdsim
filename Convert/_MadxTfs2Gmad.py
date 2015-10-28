@@ -7,7 +7,8 @@ from .. import Beam as _Beam
 def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
                  ignorezerolengthitems=True, thinmultipoles=False, samplers='all',
                  aperturedict={}, collimatordict={}, beampiperadius=0.2,
-                 verbose=False, beam=True, flipmagnets=False, usemadxaperture=False):
+                 verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
+                 defaultAperture='circular'):
     """
     MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
