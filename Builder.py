@@ -441,7 +441,11 @@ class Machine:
         self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
         
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
-        self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,material=kwargs['material']))
+        d = {}
+        for k,v in kwargs.iteritems():
+            if 'aper' not in str(k).lower():
+                d[k] = v
+        self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
 
     def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
         self.Append(Element(name,'solenoid',l=length,ks=ks,**kwargs))
