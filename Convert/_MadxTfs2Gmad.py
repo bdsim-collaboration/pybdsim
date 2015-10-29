@@ -164,8 +164,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['tilt']     = colld['tilt']
                 xsize           = colld['xsize']
                 ysize           = colld['ysize']
-                if xsize > 0.1 or ysize > 0.1:
-                    kws['outerDiameter'] = max(xsize,ysize)*1.5
+                print xsize
+                #if xsize > 0.1 or ysize > 0.1:
+                kws['outerDiameter'] = max(xsize,ysize)*2.5
+                print kws
                 if t == 'RCOLLIMATOR':
                     a.AddRCol(rname,l,xsize,ysize,**kws)
                 else:
@@ -261,7 +263,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
         # now deal with aperture
         if useTfsAperture:
-            apermodel = aperturedict.GetApetureForElementNamed(name)
+            sMid = (item['S']*2 - item['L'] ) * 0.5
+            apermodel = _Builder.PrepareApertureModel(aperturedict.GetApertureAtS(sMid), defaultAperture)
+            #apermodel = aperturedict.GetApertureForElementNamed(name)
             #print 'Using aperture instance'
             should,lengths,apers = aperturedict.ShouldSplit(item)
             should = False
@@ -286,13 +290,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                     apermodel = _Builder.PrepareApertureModel(aper, defaultAperture)
                     print apermodel
                     AddSingleElement(lastelement*(splitLength/l), b, apermodel)
-            else:
-                apermodel = _Builder.PrepareApertureModel(apers[0],defaultAperture)
-                print apermodel
-                print len(b)
-                AddSingleElement(item, a, apermodel)
-                AddSingleElement(item, b, apermodel)
-                print len(b)
+            #else:
+                #apermodel = _Builder.PrepareApertureModel(apers[0],defaultAperture)
+                #print apermodel
+                #print len(b)
+            AddSingleElement(item, a, apermodel)
+            AddSingleElement(item, b, apermodel)
+            #    print len(b)
         elif usemadxaperture and name not in aperturedict:
             print 'Using aperture in madx tfs file'
             apermodel = _Builder.PrepareApertureModel(item, defaultAperture)
