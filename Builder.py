@@ -457,7 +457,11 @@ class Machine:
             self.Append(Element(name,'transform3d',phi,theta,psi,**kwargs))
 
     def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
-        self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**kwargs))
+        d = {}
+        for k,v in kwargs.iteritems():
+            if 'aper' not in str(k).lower():
+                d[k] = v
+        self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
         
     def AddHKicker(self, name='hk', length=0.1, angle=0.0, **kwargs):
         self.Append(Element(name,'hkick', l=length, angle=angle, **kwargs))
