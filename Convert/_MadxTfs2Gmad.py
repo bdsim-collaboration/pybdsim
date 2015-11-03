@@ -15,7 +15,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                       this can also be an integer index of the element sequence number in madx tfs
     stopname        - the name (exact string match) of the lattice element to stop the machine at
                       this can also be an integer index of the element sequence number in madx tfs
-    ignorezerolengt hitems -
+    ignorezerolength items -
                     - nothing can be zero length in bdsim as real objects of course have some finite 
                       size.  Markers, etc are acceptable but for large lattices this can slow things 
                       down. True allows to ignore these altogether, which doesn't affect the length 
@@ -44,7 +44,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
                       of the twiss parameters at the beginning of the lattice (startname)
                       NOTE - we thoroughly recommend checking these parameters and this functionality
                       is only for partial convenience to have a model that works straight away.
-    flipmagnets     - Trye | False - flip the sign of all k values for magnets - MADX currently 
+    flipmagnets     - True | False - flip the sign of all k values for magnets - MADX currently 
                       tracks particles agnostic of the particle charge - BDISM however, follows their 
                       manual definition strictly - positive k -> horizontal focussing for positive 
                       partilces therefore, positive k -> vertical focussing for negative particles.  
@@ -309,7 +309,7 @@ def MadxTfs2Gmad(input,outputfilename,startname=None,stopname=None,ignorezerolen
             kickangle = madx.data[name][vkickangleindex]
             a.AddVKicker(rname,l,angle=kickangle,**kws)
         else:
-            print 'unknown element type: ',t,' for element named: ',name
+            print 'unknown element type:', t, 'for element named: ', name
             if zerolength:
                 print 'putting marker in instead as its zero length'
                 a.AddMarker(rname)
