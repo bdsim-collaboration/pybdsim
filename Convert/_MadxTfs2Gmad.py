@@ -6,7 +6,10 @@ from .. import Beam as _Beam
 
 def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
                  ignorezerolengthitems=True, thinmultipoles=False, samplers='all',
-                 aperturedict={}, collimatordict={}, beampiperadius=0.2,
+                 aperturedict={},
+                 collimatordict={},
+                 userdict={},
+                 beampiperadius=0.2,
                  verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
                  defaultAperture='circular'):
     """
@@ -42,6 +45,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                       "angle"            - rotation angle of collimator in radians
                       "xsize"            - x full width in metres
                       "ysize"            - y full width in metres
+    userdict        - a python dictionary the user can supply with any additional information for that
+                      particular element. The dictionary should have keys matching the exact element name
+                      in the Tfs file and contain a dictionary itself with key, value pairs of parameters
+                      and values to be added to that particular element.
     beampiperadius  - in metres.  Default beam pipe radius and collimator setting if unspecified
     verbose         - print out lots of information when building the model
     beam            - True | False - generate an input gauss Twiss beam based on the values
@@ -86,6 +93,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         t   = item['KEYWORD']
         l   = item['L']
         ang = item['ANGLE']
+
+        # append any user defined parameters for this element into the kws dictionary
+        if name in userdict:
+            kws.update(userdict[name])
         
         if t == 'DRIFT':
             #print 'AddDrift'
