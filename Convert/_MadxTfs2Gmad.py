@@ -75,6 +75,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
     # define utility function that does conversion
     def AddSingleElement(item, a, aperModel=None):
+        # a is a pybdsim.Builder.Machine instance
         # if it's already a prepared element, just append it
         if type(item) == _Builder.Element:
             a.Append(item)
@@ -84,8 +85,6 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         
         if aperModel != None:
             kws.update(aperModel)
-        
-        # a is a pybdsim.Builder.Machine instance
 
         name = item['NAME']
         #remove special characters like $, % etc 'reduced' name - rname
