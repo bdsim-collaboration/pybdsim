@@ -51,43 +51,44 @@ bdsimcategories = [
     'spec'
     ]
 
-class Element(dict):
+class ElementModifier(dict):
     """
-    Element - a beam element class that inherits dict
+    A class that represents an element / item in an accelerator beamline.
+    Printing or string conversion produces the BDSIM syntax to MODIFY an
+    already defined element. Using this alone in BDSIM will result in an 
+    undefined type error. This class is particularly useful for creating
+    a strength file.
 
-    Element(name,type,**kwargs)
+    # define an element
+    >>> a = Element('qf1', 'quadrupole', l=0.3, k1=0.00345)
+    >>> b = ElementModifier('qf1',k1=0.0245)
+    >>> f = open('mylattice.gmad', 'w')
+    >>> f.write(str(a))
+    >>> f.write(str(b))
+    >>> f.close()
 
-    >>> a = Element("d1", "drift", l=1.3)
-    >>> b = Element("qx1f", "quadrupole", l=(0.4,'m'), k1=0.2, aper1=(0.223,'m'))
-    >>> print(b)
-        qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m;
-    
-    A beam line element must ALWAYs have a name, and type.
-    The keyword arguments are specific to the type and are up to
-    the user to specify - these should match BDSIM GMAD syntax.
+    cat mylattice.gmad
+    qf1, quadrupole, l=0.3, k1=0.00345;
+    qf1, k1=0.0245
 
-    The value can be either a single string or number or a python tuple
-    where the second entry must be a string (shown in second example).
-    Without specified units, the parser assumes S.I. units.
+    This results in the quadrupole strength k1 in this example being 
+    changed to 0.0245.
 
-    An element may also be multiplied or divided.  This will scale the 
-    length and angle appropriately.
+    This class provides the basic dict(ionary) inheritance and functionality 
+    and the representation that allows modification of existing parameters
+    of an already declared item.
 
-    >>> c = Element('sb1', 'sbend', l=(0.4,'m'), angle=
     """
-    def __init__(self, name, category, **kwargs):
-        if category not in bdsimcategories:
-            raise ValueError("Not a valid BDSIM element type")
+    def __init__(self, name, **kwargs):
         dict.__init__(self)
-        self.name        = str(name)
-        self.category    = str(category)
-        self.length      = 0.0 #for bookeeping only
-        self['name']     = self.name
-        self['category'] = self.category
+        if len(kwargs) == 0:
+            raise ValueError("Error: must specify at least 1 keyword argument")
+        self['name']    = name
+        self.name       = name
         self._keysextra = []
-        self.update(kwargs)
+        self.__Update(kwargs)
 
-    def update(self,d):
+    def __Update(self,d):
         dict.update(d)
         for key,value in d.iteritems():
             if type(value) == tuple and category != 'multipole':
@@ -105,16 +106,82 @@ class Element(dict):
                 #must be a string
                 self[key] = '"'+value+'"'
             self._keysextra.append(str(key)) #order preserving
-        if 'l' in d:
+
+    def keysextra(self):
+        #so behaviour is similar to dict.keys()
+        return self._keysextra
+
+    def __repr__(self):
+        s = ''
+        s += self.name + ': '
+        for i,key in enumerate(self._keysextra):
+            if i > 0:
+                s += ", "
+            if type(self[key]) == tuple and self.category != 'multipole':
+                s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            elif type(self[key]) == tuple and self.category == 'multipole' : 
+                s += key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
+            else:
+                s += key + '=' + str(self[key])
+        s += ';\n'
+        return s
+
+class Element(ElementModifier):
+    """
+    Element - an element / item in an accelerator beamline. Very similar to a
+    python dict(ionary) and has the advantage that built in printing or string
+    conversion provides BDSIM syntax.
+
+    Element(name,type,**kwargs)
+
+    >>> a = Element("d1", "drift", l=1.3)
+    >>> b = Element("qx1f", "quadrupole", l=(0.4,'m'), k1=0.2, aper1=(0.223,'m'))
+    >>> print(b)
+        qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m;
+    >>> str(c)
+        qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m\n;
+    
+    A beam line element must ALWAYs have a name, and type.
+    The keyword arguments are specific to the type and are up to
+    the user to specify - these should match BDSIM GMAD syntax.
+
+    The value can be either a single string or number or a python tuple
+    where the second entry must be a string (shown in second example).
+    Without specified units, the parser assumes S.I. units.
+
+    An element may also be multiplied or divided.  This will scale the 
+    length and angle appropriately.
+
+    >>> c = Element('sb1', 'sbend', l=(0.4,'m'), angle=0.2)
+    >>> d = c/2
+    >>> print(d)
+        sb1: sbend, l=0.2*m, angle=0.1;
+
+    This inherits and extends ElementModifier that provides the basic dictionary
+    capabilities.  It adds the requirement of type / category (because 'type' is
+    a protected keyword in python) as well as checking for valid BDSIM types.
+    """
+    def __init__(self, name, category, **kwargs):
+        if category not in bdsimcategories:
+            raise ValueError("Not a valid BDSIM element type")
+        ElementModifier.__init__(self,name,**kwargs)
+        self['category'] = category
+        self.category    = category
+        self.length      = 0.0 #for bookeeping only
+        self.__Update()
+        self._UpdateLength()
+        
+    def __Update(self, d=None):
+        if d != None:
+            ElementModifier.__update(self,d)
+
+    def _UpdateLength(self):
+        if 'l' in self:
             if type(self['l']) == tuple:
                 ll = self['l'][0]
             else:
                 ll = self['l']
             self.length += float(ll)
-    
-    def keysextra(self):
-        #so behaviour is similar to dict.keys()
-        return self._keysextra
 
     def __repr__(self):
         s = ''
