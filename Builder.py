@@ -79,23 +79,24 @@ class ElementModifier(dict):
     of an already declared item.
 
     """
-    def __init__(self, name, **kwargs):
+    def __init__(self, name, isMultipole=False, **kwargs):
         dict.__init__(self)
         if len(kwargs) == 0:
             raise ValueError("Error: must specify at least 1 keyword argument")
-        self['name']    = name
-        self.name       = name
-        self._keysextra = []
+        self['name']      = name
+        self.name         = name
+        self._isMultipole = isMultipole
+        self._keysextra   = []
         self.__Update(kwargs)
 
     def __Update(self,d):
         dict.update(d)
         for key,value in d.iteritems():
-            if type(value) == tuple and category != 'multipole':
+            if type(value) == tuple and self._isMultipole:
+                self[key] = value
+            elif type(value) == tuple:
                 #use a tuple for (value,units)
                 self[key] = (float(value[0]),value[1])
-            elif type(value) == tuple and category == 'multipole' : 
-                self[key] = value
             elif isinstance(value, (float, int)):
                 #must be a number
                 if 'aper' in str.lower(key) and value < 1e-6:
@@ -117,10 +118,10 @@ class ElementModifier(dict):
         for i,key in enumerate(self._keysextra):
             if i > 0:
                 s += ", "
-            if type(self[key]) == tuple and self.category != 'multipole':
-                s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
-            elif type(self[key]) == tuple and self.category == 'multipole' : 
+            if type(self[key]) == tuple and self._isMultipole:
                 s += key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
+            elif type(self[key]) == tuple:
+                s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
             else:
                 s += key + '=' + str(self[key])
         s += ';\n'
