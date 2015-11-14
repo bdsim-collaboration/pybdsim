@@ -4,6 +4,45 @@ import pymadx as _pymadx
 from .. import Builder as _Builder
 from .. import Beam as _Beam
 
+_requiredKeys = [
+    'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
+    'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
+    'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
+    'VKICK', 'HKICK'
+]
+
+_lFake = 1e-6 # fake length for thin magnets
+
+def TfsHasRequiredColumns(tfsinstance):
+    """
+    Test the tfs file to check it has everything we need.
+    """
+    test = _np.array([not (key in tfsinstance.columns) for key in _requiredKeys])
+    if test.any():
+        print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT,' 
+        print '                   KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
+        print 'Missing column(s): ',_requiredKeys[test==True]
+        raise KeyError("Required column missing from tfs file")
+
+def EnsureItsTfsInstance(input):
+    """
+    Test whether input is a filepath or tfs instance and if it's a filepath
+    open and return the tfs instance.
+    """
+    if type(input) == str :
+        print 'Loading file using pymadx'
+        madx   = _pymadx.Tfs(input)
+    else :
+        print 'Already a pymadx instance - proceeding'
+        madx   = input
+    return madx
+
+def PrepareReducedName(elementname):
+    """
+    Only allow alphanumeric characters and '_'
+    """
+    rname = _re.sub('[^a-zA-Z0-9_]+','',elementname)
+
 def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
                  ignorezerolengthitems=True, thinmultipoles=False, samplers='all',
                  aperturedict={},
@@ -69,7 +108,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     the raw conversion that's not split by aperture. Thirdly, a list of the names of the omitted items
     is returned.
     """
-    lFake  = 1e-6 # fake length for thin magnets
+   
     izlis  = ignorezerolengthitems
     factor = -1 if flipmagnets else 1  #flipping magnets
 
@@ -86,12 +125,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         if aperModel != None:
             kws.update(aperModel)
 
-        name = item['NAME']
-        #remove special characters like $, % etc 'reduced' name - rname
-        rname = _re.sub('[^a-zA-Z0-9_]+','',name) #only allow alphanumeric characters and '_'
-        t   = item['KEYWORD']
-        l   = item['L']
-        ang = item['ANGLE']
+        name  = item['NAME']
+        rname = PrepareReducedName(name) #remove special characters like $, % etc 'reduced' name - rname
+        t     = item['KEYWORD']
+        l     = item['L']
+        ang   = item['ANGLE']
 
         # append any user defined parameters for this element into the kws dictionary
         if name in userdict:
@@ -122,27 +160,27 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
-            # TBC - cludge for thin multipoles (uses lFake for a short non-zero length)
+            # TBC - cludge for thin multipoles (uses _lFake for a short non-zero length)
             if thinmultipoles:
                 print 'WARNING - conversion of thin multipoles is not finished yet!'
-                k1  = item['K1L']  / lFake * factor
-                k2  = item['K2L']  / lFake * factor
-                k3  = item['K3L']  / lFake * factor
-                k4  = item['K4L']  / lFake * factor
-                k5  = item['K5L']  / lFake * factor
-                k6  = item['K6L']  / lFake * factor
-                k1s = item['K1SL'] / lFake * factor
-                k2s = item['K2SL'] / lFake * factor
-                k3s = item['K3SL'] / lFake * factor
-                k4s = item['K4SL'] / lFake * factor
-                k5s = item['K5SL'] / lFake * factor
-                k6s = item['K6SL'] / lFake * factor
+                k1  = item['K1L']  / _lFake * factor
+                k2  = item['K2L']  / _lFake * factor
+                k3  = item['K3L']  / _lFake * factor
+                k4  = item['K4L']  / _lFake * factor
+                k5  = item['K5L']  / _lFake * factor
+                k6  = item['K6L']  / _lFake * factor
+                k1s = item['K1SL'] / _lFake * factor
+                k2s = item['K2SL'] / _lFake * factor
+                k3s = item['K3SL'] / _lFake * factor
+                k4s = item['K4SL'] / _lFake * factor
+                k5s = item['K5SL'] / _lFake * factor
+                k6s = item['K6SL'] / _lFake * factor
                 tilt= item['TILT']
                 if k1 != 0 : 
-                    a.AddQuadrupole(rname,k1=k1,length=lFake,tilt=tilt) 
+                    a.AddQuadrupole(rname,k1=k1,length=_lFake,**kws) 
                 else:
                     a.AddMarker(rname)
-                    #a.AddMultipole(name,length=lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),tilt=tilt)
+                    #a.AddMultipole(name,length=_lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),**kws)
             elif zerolength:
                 a.AddMarker(rname)
                 if verbose:
@@ -216,26 +254,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     # end of utility conversion function
 
     # test whether filpath or tfs instance supplied
-    if type(input) == str :
-        print 'MadxTfs2Gmad> Loading file using pymadx'
-        madx   = _pymadx.Tfs(input)
-    else :
-        print 'Already a pymadx instance - proceeding'
-        madx   = input
+    madx = EnsureItsTfsInstance(input)
 
-    # test the tfs file to check it has everything we need
-    requiredKeys = [
-        'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
-        'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
-        'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
-        'VKICK', 'HKICK'
-        ]
-    test = _np.array([not (key in madx.columns) for key in requiredKeys])
-    if test.any():
-        print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT,' 
-        print '                   KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
-        print 'Missing column(s): ',requiredKeys[test==True]
-        raise KeyError("Required column missing from tfs file")
+    # check it has all the required columns
+    TfsHasRequiredColumns(madx)
 
     if verbose:
         madx.ReportPopulations()
