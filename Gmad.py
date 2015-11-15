@@ -140,22 +140,25 @@ def _LoadLib():
         print 'LoadLib - cannot find libgmadShared - check paths'
         raise OSError('LoadLib - cannot find libgmadShared - check paths')
     else:
-        parserlib.GetName.restype    = _ctypes.c_char_p
-        parserlib.GetName.argtypes   = [_ctypes.c_int]
-        parserlib.GetType.restype    = _ctypes.c_int
-        parserlib.GetType.argtypes   = [_ctypes.c_int]    
-        parserlib.GetLength.restype  = _ctypes.c_double
-        parserlib.GetLength.argtypes = [_ctypes.c_int]
-        parserlib.GetAngle.restype   = _ctypes.c_double
-        parserlib.GetAngle.argtypes  = [_ctypes.c_int]
-        parserlib.GetAper1.restype   = _ctypes.c_double
-        parserlib.GetAper1.argtypes  = [_ctypes.c_int]
-        parserlib.GetAper2.restype   = _ctypes.c_double
-        parserlib.GetAper2.argtypes  = [_ctypes.c_int]
+        parserlib.GetNElements.restype   = _ctypes.c_int
+        parserlib.GetNElements.argstypes = []
+        parserlib.GetType.restype        = _ctypes.c_int
+        parserlib.GetType.argtypes       = [_ctypes.c_int] 
+        parserlib.GetName.restype        = _ctypes.c_char_p
+        parserlib.GetName.argtypes       = [_ctypes.c_int]
+        parserlib.GetLength.restype      = _ctypes.c_double
+        parserlib.GetLength.argtypes     = [_ctypes.c_int]
+        parserlib.GetAngle.restype       = _ctypes.c_double
+        parserlib.GetAngle.argtypes      = [_ctypes.c_int]
+        parserlib.GetKs.restype          = _ctypes.c_double*10
+        parserlib.GetKs.argtypes         = [_ctypes.c_int]
+        parserlib.GetAper1.restype       = _ctypes.c_double
+        parserlib.GetAper1.argtypes      = [_ctypes.c_int]
+        parserlib.GetAper2.restype       = _ctypes.c_double
+        parserlib.GetAper2.argtypes      = [_ctypes.c_int]
         parserlib.GetBeampipeThickness.restype  = _ctypes.c_double
         parserlib.GetBeampipeThickness.argtypes = [_ctypes.c_int]
-        parserlib.GetKs.restype      = _ctypes.c_double*10
-        parserlib.GetKs.argtypes     = [_ctypes.c_int]
+
         return parserlib
 
 class Lattice:
