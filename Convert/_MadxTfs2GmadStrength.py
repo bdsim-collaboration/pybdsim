@@ -1,7 +1,7 @@
 from .. import Builder as _Builder
-#from Builder import ElementModifier as _ElementModifier
-
+from .. import _General
 import _MadxTfs2Gmad
+import pymadx as _pymadx
 
 _ElementModifier = _Builder.ElementModifier
 _lFake           = _MadxTfs2Gmad._lFake
@@ -13,7 +13,7 @@ def MadxTfs2GmadStrength(input, outputfilename, existingmachine=None, verbose=Fa
 
     """
     # ensure it's tfs instance and if not open the filepath provided
-    madx = _MadxTfs2Gmad.EnsureItsTfsInstance(input)
+    madx = _pymadx.CheckItsTfs(input)
 
     # check it has the required columns
     _MadxTfs2Gmad.TfsHasRequiredColumns(madx)
@@ -33,7 +33,7 @@ def MadxTfs2GmadStrength(input, outputfilename, existingmachine=None, verbose=Fa
     
     for item in madx:
         name  = item['NAME']
-        rname = _MadxTfs2Gmad.PrepareReducedName(name)
+        rname = _General.PrepareReducedName(name)
         
         # generate elementmodifier with approprate name to match one
         # already used in existing machine

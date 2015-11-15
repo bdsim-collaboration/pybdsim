@@ -61,3 +61,9 @@ def CheckItsBDSAsciiData(bfile):
     else:
         raise IOError("Not pybdsim.Data.BDSAsciiData file type: "+str(bfile))
     return data
+
+def PrepareReducedName(elementname):
+    """
+    Only allow alphanumeric characters and '_'
+    """
+    rname = _re.sub('[^a-zA-Z0-9_]+','',elementname)

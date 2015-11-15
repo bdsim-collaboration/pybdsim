@@ -3,6 +3,7 @@ import re as _re
 import pymadx as _pymadx
 from .. import Builder as _Builder
 from .. import Beam as _Beam
+from .. import _General
 
 _requiredKeys = [
     'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
@@ -23,25 +24,6 @@ def TfsHasRequiredColumns(tfsinstance):
         print '                   KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
         print 'Missing column(s): ',_requiredKeys[test==True]
         raise KeyError("Required column missing from tfs file")
-
-def EnsureItsTfsInstance(input):
-    """
-    Test whether input is a filepath or tfs instance and if it's a filepath
-    open and return the tfs instance.
-    """
-    if type(input) == str :
-        print 'Loading file using pymadx'
-        madx   = _pymadx.Tfs(input)
-    else :
-        print 'Already a pymadx instance - proceeding'
-        madx   = input
-    return madx
-
-def PrepareReducedName(elementname):
-    """
-    Only allow alphanumeric characters and '_'
-    """
-    rname = _re.sub('[^a-zA-Z0-9_]+','',elementname)
 
 def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
                  ignorezerolengthitems=True, thinmultipoles=False, samplers='all',
@@ -126,7 +108,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             kws.update(aperModel)
 
         name  = item['NAME']
-        rname = PrepareReducedName(name) #remove special characters like $, % etc 'reduced' name - rname
+        rname = _General.PrepareReducedName(name) #remove special characters like $, % etc 'reduced' name - rname
         t     = item['KEYWORD']
         l     = item['L']
         ang   = item['ANGLE']
@@ -254,7 +236,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     # end of utility conversion function
 
     # test whether filpath or tfs instance supplied
-    madx = EnsureItsTfsInstance(input)
+    madx = _pymadx.CheckItsTfs(input)
 
     # check it has all the required columns
     TfsHasRequiredColumns(madx)
