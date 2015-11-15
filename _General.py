@@ -53,7 +53,7 @@ def IsFloat(stringtotest):
     except ValueError:
         return False
 
-def _CheckItsBDSAsciiData(bfile):
+def CheckItsBDSAsciiData(bfile):
     if type(bfile) == str:
         data = pybdsim.Data.Load(bfile)
     elif type(bfile) == pybdsim.Data.BDSAsciiData:

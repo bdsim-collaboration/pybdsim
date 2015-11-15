@@ -16,7 +16,7 @@ import matplotlib.pyplot as _plt
 import matplotlib.patches as _patches
 import numpy as _np
 
-from _General import _CheckItsBDSAsciiData
+from _General import CheckItsBDSAsciiData
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
@@ -84,7 +84,7 @@ def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=Non
     
 
 def AddMachineLatticeFromSurveyToFigure(figure,surveyfile):
-    sf  = _CheckItsBDSAsciiData(surveyfile) #load the machine description
+    sf  = CheckItsBDSAsciiData(surveyfile) #load the machine description
 
     axs = figure.get_axes() #get the existing graph
     axoptics = axs[0]  #get the only presumed axes from the figure
