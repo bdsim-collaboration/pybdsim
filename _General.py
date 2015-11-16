@@ -9,6 +9,7 @@ General utilities for day to day housekeeping
 
 import os
 import pybdsim.Data
+import re as _re
 
 def CheckFileExists(filename):
     i = 1
@@ -67,3 +68,4 @@ def PrepareReducedName(elementname):
     Only allow alphanumeric characters and '_'
     """
     rname = _re.sub('[^a-zA-Z0-9_]+','',elementname)
+    return rname
