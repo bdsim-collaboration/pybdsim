@@ -51,28 +51,10 @@ bdsimcategories = [
     'spec'
     ]
 
-class ElementModifier(dict):
+class ElementBase(dict):
     """
     A class that represents an element / item in an accelerator beamline.
-    Printing or string conversion produces the BDSIM syntax to MODIFY an
-    already defined element. Using this alone in BDSIM will result in an 
-    undefined type error. This class is particularly useful for creating
-    a strength file.
-
-    # define an element
-    >>> a = Element('qf1', 'quadrupole', l=0.3, k1=0.00345)
-    >>> b = ElementModifier('qf1',k1=0.0245)
-    >>> f = open('mylattice.gmad', 'w')
-    >>> f.write(str(a))
-    >>> f.write(str(b))
-    >>> f.close()
-
-    cat mylattice.gmad
-    qf1, quadrupole, l=0.3, k1=0.00345;
-    qf1, k1=0.0245
-
-    This results in the quadrupole strength k1 in this example being 
-    changed to 0.0245.
+    Printing or string conversion produces the BDSIM syntax.
 
     This class provides the basic dict(ionary) inheritance and functionality 
     and the representation that allows modification of existing parameters
@@ -81,8 +63,6 @@ class ElementModifier(dict):
     """
     def __init__(self, name, isMultipole=False, **kwargs):
         dict.__init__(self)
-        if len(kwargs) == 0:
-            raise ValueError("Error: must specify at least 1 keyword argument")
         self['name']      = name
         self.name         = name
         self._isMultipole = isMultipole
@@ -127,7 +107,7 @@ class ElementModifier(dict):
         s += ';\n'
         return s
 
-class Element(ElementModifier):
+class Element(ElementBase):
     """
     Element - an element / item in an accelerator beamline. Very similar to a
     python dict(ionary) and has the advantage that built in printing or string
@@ -158,14 +138,14 @@ class Element(ElementModifier):
     >>> print(d)
         sb1: sbend, l=0.2*m, angle=0.1;
 
-    This inherits and extends ElementModifier that provides the basic dictionary
+    This inherits and extends ElementBase that provides the basic dictionary
     capabilities.  It adds the requirement of type / category (because 'type' is
     a protected keyword in python) as well as checking for valid BDSIM types.
     """
     def __init__(self, name, category, **kwargs):
         if category not in bdsimcategories:
             raise ValueError("Not a valid BDSIM element type")
-        ElementModifier.__init__(self,name,**kwargs)
+        ElementBase.__init__(self,name,**kwargs)
         self['category'] = category
         self.category    = category
         self.length      = 0.0 #for bookeeping only
@@ -209,6 +189,33 @@ class Element(ElementModifier):
 
     def __div__(self, factor):
         return self.__mul__(float(1./factor))
+
+class ElementModifier(ElementBase):
+    """
+    A class  to MODIFY an already defined element in a gmad file by appending an
+    updated definition. Using this alone in BDSIM will result in an 
+    undefined type error. This class is particularly useful for creating
+    a strength file.
+
+    # define an element
+    >>> a = Element('qf1', 'quadrupole', l=0.3, k1=0.00345)
+    >>> b = ElementModifier('qf1',k1=0.0245)
+    >>> f = open('mylattice.gmad', 'w')
+    >>> f.write(str(a))
+    >>> f.write(str(b))
+    >>> f.close()
+
+    cat mylattice.gmad
+    qf1, quadrupole, l=0.3, k1=0.00345;
+    qf1, k1=0.0245
+
+    This results in the quadrupole strength k1 in this example being 
+    changed to 0.0245.
+    """
+    def __init__(self, name, isMultipole=False, **kwargs):
+        if len(kwargs) == 0:
+            raise ValueError("Error: must specify at least 1 keyword argument")
+        ElementBase.__init__(self, name, isMultipole, **kwargs)
 
 class Line(list):
     """
