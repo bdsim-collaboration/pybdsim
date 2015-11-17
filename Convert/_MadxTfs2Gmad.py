@@ -34,55 +34,85 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
                  defaultAperture='circular'):
     """
-    MadxTfs2Gmad - convert a madx twiss output file (.tfs) into a gmad input file for bdsim
+    **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
-    inputfilename   - path to the input file
-    outputfilename  - requested output file
-    startname       - the name (exact string match) of the lattice element to start the machine at
-                      this can also be an integer index of the element sequence number in madx tfs
-    stopname        - the name (exact string match) of the lattice element to stop the machine at
-                      this can also be an integer index of the element sequence number in madx tfs
-    stepsize        - the slice step size. Default is 1, but -1 also useful for reversed line
-    ignorezerolengthitems -
-                    - nothing can be zero length in bdsim as real objects of course have some finite 
-                      size.  Markers, etc are acceptable but for large lattices this can slow things 
-                      down. True allows to ignore these altogether, which doesn't affect the length 
-                      of the machine.
-    thinmultipoles  - will convert thin multipoles to ~1um thick finite length multipoles with
-                      upscaled k values - experimental feature
-    samplers        - can specify where to set samplers - options are None, 'all', or list of 
-                      names of elements (normal python list of strings). Note default 'all' 
-                      will generate separate outputfilename_samplers.gmad with all the samplers
-                      which will be included in the main .gmad file - you can comment out the 
-                      include to therefore exclude all samplers and retain the samplers file.
-    apertureinfo    - aperture information. Can either be a dictionary of dictionaries with the 
-                      the first key the exact name of the element and the daughter dictionary 
-                      containing the relevant bdsim parameters as keys (must be valid bdsim syntax).
-                      Alternatively, this can be a pymadx.Aperture instance that will be queried.
-    collimatordict  - a dictionary of dictionaries with collimator information keys should be exact 
-                      string match of element name in tfs file value should be dictionary with the 
-                      following keys:
-                      "bdsim_material"   - the material - exact string as in bdsim manual
-                      "angle"            - rotation angle of collimator in radians
-                      "xsize"            - x full width in metres
-                      "ysize"            - y full width in metres
-    userdict        - a python dictionary the user can supply with any additional information for that
-                      particular element. The dictionary should have keys matching the exact element name
-                      in the Tfs file and contain a dictionary itself with key, value pairs of parameters
-                      and values to be added to that particular element.
-    beampiperadius  - in metres.  Default beam pipe radius and collimator setting if unspecified
-    verbose         - print out lots of information when building the model
-    beam            - True | False - generate an input gauss Twiss beam based on the values
-                      of the twiss parameters at the beginning of the lattice (startname)
-                      NOTE - we thoroughly recommend checking these parameters and this functionality
-                      is only for partial convenience to have a model that works straight away.
-    flipmagnets     - True | False - flip the sign of all k values for magnets - MADX currently 
-                      tracks particles agnostic of the particle charge - BDISM however, follows their 
-                      manual definition strictly - positive k -> horizontal focussing for positive 
-                      partilces therefore, positive k -> vertical focussing for negative particles.  
-                      Use this flag to flip the sign of all magnets.
-    usemadxaperture - True | False - use the aperture information in the TFS file if APER_1 and APER_2
-                      columns exist.  Will only set if they're non-zero.
+    +---------------------------+-------------------------------------------------------------------+
+    | **inputfilename**         | path to the input file                                            |
+    +---------------------------+-------------------------------------------------------------------+
+    | **outputfilename**        | requested output file                                             |
+    +---------------------------+-------------------------------------------------------------------+
+    | **startname**             | the name (exact string match) of the lattice element to start the |
+    |                           | machine at this can also be an integer index of the element       |
+    |                           | sequence number in madx tfs.                                      |
+    +---------------------------+-------------------------------------------------------------------+
+    | **stopname**              | the name (exact string match) of the lattice element to stop the  |
+    |                           | machine at this can also be an integer index of the element       |
+    |                           | sequence number in madx tfs.                                      |
+    +---------------------------+-------------------------------------------------------------------+
+    | **stepsize**              | the slice step size. Default is 1, but -1 also useful for         |
+    |                           | reversed line.                                                    |
+    +---------------------------+-------------------------------------------------------------------+
+    | **ignorezerolengthitems** | nothing can be zero length in bdsim as real objects of course     |
+    |                           | have some finite size.  Markers, etc are acceptable but for large |
+    |                           | lattices this can slow things down. True allows to ignore these   |
+    |                           | altogether, which doesn't affect the length of the machine.       |
+    +---------------------------+-------------------------------------------------------------------+
+    | **thinmultipoles**        | will convert thin multipoles to ~1um thick finite length          |
+    |                           | multipoles with upscaled k values - experimental feature          |
+    +---------------------------+-------------------------------------------------------------------+
+    | **samplers**              | can specify where to set samplers - options are None, 'all', or a |
+    |                           | list of names of elements (normal python list of strings). Note   |
+    |                           | default 'all' will generate separate outputfilename_samplers.gmad |
+    |                           | with all the samplers which will be included in the main .gmad    |
+    |                           | file - you can comment out the include to therefore exclude all   |
+    |                           | samplers and retain the samplers file.                            |
+    +---------------------------+-------------------------------------------------------------------+
+    | **apertureinfo**          | aperture information. Can either be a dictionary of dictionaries  |
+    |                           | with the the first key the exact name of the element and the      |
+    |                           | daughter dictionary containing the relevant bdsim parameters as   |
+    |                           | keys (must be valid bdsim syntax). Alternatively, this can be a   |
+    |                           | pymadx.Aperture instance that will be queried.                    |
+    +---------------------------+-------------------------------------------------------------------+
+    | **collimatordict**        | a dictionary of dictionaries with collimator information keys     |
+    |                           | should be exact string match of element name in tfs file value    |
+    |                           | should be dictionary with the following keys:                     |
+    |                           | "bdsim_material"   - the material                                 |
+    |                           | "angle"            - rotation angle of collimator in radians      |
+    |                           | "xsize"            - x full width in metres                       |
+    |                           | "ysize"            - y full width in metres                       |
+    +---------------------------+-------------------------------------------------------------------+
+    | **userdict**              | A python dictionary the user can supply with any additional       |
+    |                           | information for that particular element. The dictionary should    |
+    |                           | have keys matching the exact element name in the Tfs file and     |
+    |                           | contain a dictionary itself with key, value pairs of parameters   |
+    |                           | and values to be added to that particular element.                |
+    +---------------------------+-------------------------------------------------------------------+
+    | **beampiperadius**        | In metres.  Default beam pipe radius and collimator setting if    |
+    |                           | unspecified.                                                      |
+    +---------------------------+-------------------------------------------------------------------+
+    | **verbose**               | Print out lots of information when building the model.            |
+    +---------------------------+-------------------------------------------------------------------+    
+    | **beam**                  | True \| False - generate an input gauss Twiss beam based on the   |
+    |                           | values of the twiss parameters at the beginning of the lattice    |
+    |                           | (startname) NOTE - we thoroughly recommend checking these         |
+    |                           | parameters and this functionality is only for partial convenience |
+    |                           | to have a model that works straight away.                         |
+    +---------------------------+-------------------------------------------------------------------+
+    | **flipmagnets**           | True \| False - flip the sign of all k values for magnets - MADX  |
+    |                           | currently tracks particles agnostic of the particle charge -      |
+    |                           | BDISM however, follows their manual definition strictly -         |
+    |                           | positive k -> horizontal focussing for positive partilces         |
+    |                           | therefore, positive k -> vertical focussing for negative          |
+    |                           | particles. Use this flag to flip the sign of all magnets.         |
+    +---------------------------+-------------------------------------------------------------------+
+    | **usemadxaperture**       | True \| False - use the aperture information in the TFS file if   |
+    |                           | APER_1 and APER_2 columns exist.  Will only set if they're        |
+    |                           | non-zero.                                                         |
+    +---------------------------+-------------------------------------------------------------------+
+
+    Example:
+    
+    >>> a,o = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
 
     In normal mode:
     Returns Machine, [omittedItems]
