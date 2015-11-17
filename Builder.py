@@ -118,9 +118,9 @@ class Element(ElementBase):
     >>> a = Element("d1", "drift", l=1.3)
     >>> b = Element("qx1f", "quadrupole", l=(0.4,'m'), k1=0.2, aper1=(0.223,'m'))
     >>> print(b)
-        qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m;
+    qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m;
     >>> str(c)
-        qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m\n;
+    qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m\\n;
     
     A beam line element must ALWAYs have a name, and type.
     The keyword arguments are specific to the type and are up to
@@ -136,7 +136,7 @@ class Element(ElementBase):
     >>> c = Element('sb1', 'sbend', l=(0.4,'m'), angle=0.2)
     >>> d = c/2
     >>> print(d)
-        sb1: sbend, l=0.2*m, angle=0.1;
+    sb1: sbend, l=0.2*m, angle=0.1;
 
     This inherits and extends ElementBase that provides the basic dictionary
     capabilities.  It adds the requirement of type / category (because 'type' is
