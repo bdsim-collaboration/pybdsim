@@ -84,6 +84,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     usemadxaperture - True | False - use the aperture information in the TFS file if APER_1 and APER_2
                       columns exist.  Will only set if they're non-zero.
 
+    In normal mode:
+    Returns Machine, [omittedItems]
+
+    In verbose mode:
     Returns Machine, Machine, [omittedItems]
     
     Returns two pybdsim.Builder.Machine instances. The first desired full conversion.  The second is 
@@ -383,11 +387,11 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
 
     #print particle,energy,gamma,ex,ey
     if verbose:
-        print data['BETX'],data['ALFX'],data['MUX']
-        print data['BETY'],data['ALFY'],data['MUY']
+        print 'beta_x: ',data['BETX'],'alpha_x: ',data['ALFX'],'mu_x: ',data['MUX']
+        print 'beta_y: ',data['BETY'],'alpha_y: ',data['ALFY'],'mu_y: ',data['MUY']
     
-    gammax = (1.0+data['ALFX'])/data['BETX']
-    gammay = (1.0+data['ALFY'])/data['BETY']
+    #gammax = (1.0+data['ALFX'])/data['BETX']
+    #gammay = (1.0+data['ALFY'])/data['BETY']
 
     #note, in the main pybdsim.__init__.py Beam class is imported from Beam.py
     #so in this submodule when we do from .. import Beam it's actually the
