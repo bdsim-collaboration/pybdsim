@@ -367,7 +367,7 @@ class Machine:
         self.length    = 0.0
         self.angint    = 0.0
         self.beam      = _Beam.Beam()
-        self.options   = _Options.MinimumStandard()
+        self.options   = None
 
     def __repr__(self):
         s = ''
@@ -869,14 +869,15 @@ def WriteMachine(machine, filename, verbose=False):
     f.write(machine.beam.ReturnBeamString())
     f.close()
 
-    # write options
-    f = open(fn_options,'w')
-    files.append(fn_options)
-    f.write(timestring) 
-    f.write('! pybdsim.Builder \n')
-    f.write('! OPTIONS DEFINITION \n\n')
-    f.write(machine.options.ReturnOptionsString())
-    f.close()
+    # write options - only if specified
+    if machine.options != None:
+        f = open(fn_options,'w')
+        files.append(fn_options)
+        f.write(timestring) 
+        f.write('! pybdsim.Builder \n')
+        f.write('! OPTIONS DEFINITION \n\n')
+        f.write(machine.options.ReturnOptionsString())
+        f.close()
 
     # write main file
     f = open(fn_main,'w')
