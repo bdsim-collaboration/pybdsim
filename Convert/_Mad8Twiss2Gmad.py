@@ -65,7 +65,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
         if c.type[i] == '' : 
             a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'DRIF' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['drif']['l']], aper1=apertures.aper[i])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['drif']['l']]), aper1=float(apertures.aper[i]))
         elif c.type[i] == 'MARK' : 
             a.AddMarker(c.name[i]+'_'+str(eCount)) 
         elif c.type[i] == 'SOLE' : 
@@ -85,31 +85,31 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                 a.AddMarker(c.name[i]+'_'+str(eCount))
             else : 
                 a.AddQuadrupole(c.name[i]+'_'+str(eCount),
-                                k1     = c.data[i][c.keys['quad']['k1']],
-                                length = c.data[i][c.keys['quad']['l']],
-                                tilt   = c.data[i][c.keys['quad']['tilt']],
-                                aper1  = apertures.aper[i])
+                                k1     = float(c.data[i][c.keys['quad']['k1']]),
+                                length = float(c.data[i][c.keys['quad']['l']]),
+                                tilt   = float(c.data[i][c.keys['quad']['tilt']]),
+                                aper1  = float(apertures.aper[i]))
         elif c.type[i] == 'SEXT' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['sext']['l']],aper1=apertures.aper[i])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['sext']['l']],aper1=apertures.aper[i]))
         elif c.type[i] == 'OCTU' : 
             if c.data[i][c.keys['octupole']['l']] > 1e-7 : 
-                a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['octu']['l']],aper1=apertures.aper[i])
+                a.AddDrift(c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['octu']['l']],aper1=apertures.aper[i]))
             else : 
                 a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'MULT' : 
                 a.AddMarker(c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'HKIC' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['hkic']['l']],aper1=apertures.aper[i])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['hkic']['l']]),aper1=float(apertures.aper[i]))
         elif c.type[i] == 'VKIC' : 
-            a.AddDrift(c.name[i]+'_'+str(eCount),length=c.data[i][c.keys['vkic']['l']],aper1=apertures.aper[i])
+            a.AddDrift(c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['vkic']['l']]),aper1=float(apertures.aper[i]))
         elif c.type[i] == 'SBEN' : 
             if c.data[i][c.keys['sben']['l']] < 1e-7 : 
                 a.AddMarker(c.name[i]+'_'+str(eCount))
             else : 
                 a.AddDipole(c.name[i]+'_'+str(eCount),'sbend',
-                            length=c.data[i][c.keys['sben']['l']], 
-                            angle =c.data[i][c.keys['sben']['angle']],
-                            aper=apertures.aper[i])
+                            length=float(c.data[i][c.keys['sben']['l']]), 
+                            angle =float(c.data[i][c.keys['sben']['angle']]),
+                            aper  =float(apertures.aper[i]))
         elif c.type[i] == 'LCAV' : 
             length   = float(c.data[i][c.keys['lcav']['l']])
             deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV 
@@ -122,9 +122,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                 print c.data[i][c.keys['ecol']['xsize']],c.data[i][c.keys['ecol']['ysize']]
                 if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                     a.AddECol(c.name[i]+'_'+str(eCount), 
-                              length  = c.data[i][c.keys['ecol']['l']], 
-                              xsize   = c.data[i][c.keys['ecol']['xsize']], 
-                              ysize   = c.data[i][c.keys['ecol']['ysize']],
+                              length  = float(c.data[i][c.keys['ecol']['l']]), 
+                              xsize   = float(c.data[i][c.keys['ecol']['xsize']]), 
+                              ysize   = float(c.data[i][c.keys['ecol']['ysize']]),
                               material= 'Copper')                    
                 else : 
                     a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['ecol']['l']])
@@ -133,12 +133,12 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                 print 'Adding from collimator file'
                 if (collimator.getCollimator(c.name[i])['xsize'] != 0) and (collimator.getCollimator(c.name[i])['xsize'] != 0) : 
                     a.AddECol(c.name[i]+'_'+str(eCount), 
-                              length  = c.data[i][c.keys['rcol']['l']], 
-                              xsize   = collimator.getCollimator(c.name[i])['xsize'], 
-                              ysize   = collimator.getCollimator(c.name[i])['ysize'],
+                              length  = float(c.data[i][c.keys['rcol']['l']]), 
+                              xsize   = float(collimator.getCollimator(c.name[i])['xsize']), 
+                              ysize   = float(collimator.getCollimator(c.name[i])['ysize']),
                               material= collimator.getCollimator(c.name[i])['bdsim_material'])                  
                 else : 
-                    a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['ecol']['l']])
+                    a.AddDrift(c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['ecol']['l']]))
 
         elif c.type[i] == 'RCOL' :
             print c.name[i],'RCOL'
@@ -147,9 +147,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                 print c.data[i][c.keys['rcol']['xsize']],c.data[i][c.keys['rcol']['ysize']]
                 if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                     a.AddRCol(c.name[i]+'_'+str(eCount), 
-                              length  = c.data[i][c.keys['rcol']['l']], 
-                              xsize   = c.data[i][c.keys['rcol']['xsize']], 
-                              ysize   = c.data[i][c.keys['rcol']['ysize']],
+                              length  = float(c.data[i][c.keys['rcol']['l']]), 
+                              xsize   = float(c.data[i][c.keys['rcol']['xsize']]), 
+                              ysize   = float(c.data[i][c.keys['rcol']['ysize']]),
                               material= 'Copper')            
                 else : 
                     a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['rcol']['l']])
@@ -158,12 +158,12 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                 if (collimator.getCollimator(c.name[i])['xsize'] != 0) and (collimator.getCollimator(c.name[i])['ysize'] != 0) : 
                     print 'Adding from collimator file'
                     a.AddRCol(c.name[i]+'_'+str(eCount),
-                              length  = c.data[i][c.keys['rcol']['l']], 
-                              xsize   = collimator.getCollimator(c.name[i])['xsize'], 
-                              ysize   = collimator.getCollimator(c.name[i])['ysize'],
-                              material= collimator.getCollimator(c.name[i])['bdsim_material'])           
+                              length  = float(c.data[i][c.keys['rcol']['l']]), 
+                              xsize   = float(collimator.getCollimator(c.name[i])['xsize']), 
+                              ysize   = float(collimator.getCollimator(c.name[i])['ysize']),
+                              material= float(collimator.getCollimator(c.name[i])['bdsim_material']))           
                 else : 
-                    a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['rcol']['l']])
+                    a.AddDrift(c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['rcol']['l']]))
 
         else :
             print c.type[i]
@@ -180,7 +180,7 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     alfx = t.data[istart][t.keys['alfx']]
     alfy = t.data[istart][t.keys['alfy']]
 
-    beam = Beam(particle,energy,'gausstwiss')
+    beam = Beam.Beam(particle,energy,'gausstwiss')
     beam.SetBetaX(betx)
     beam.SetBetaY(bety)
     beam.SetAlphaX(alfx)
