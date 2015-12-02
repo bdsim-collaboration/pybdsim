@@ -11,8 +11,11 @@ versions of them.
 
 """
 
+import _General
 import Gmad as _Gmad
 import Builder as _Builder
+
+import time as _time
 
 def GenerateFullListOfSamplers(inputfile, outputfile):
     """
@@ -54,4 +57,44 @@ def _WriteSamplerToGmadFile(samplerlist, outputfile):
     f.close()
                            
 
-                           
+def WrapLatticeAboutItem(maingmadfile, itemname, outputfilename):
+    elementsperline = 100
+    
+    a = _Gmad.Lattice(maingmadfile)
+
+    seq = a.sequence
+
+    # remove 'lattice' from list
+    try:
+        seq.remove('lattice')
+    except ValueError:
+        pass
+
+    # remove samplers from list
+    seq = [name for name in seq if 'ampler' not in name]
+
+    try:
+        ind = seq.index(itemname)
+    except ValueError:
+        print 'Error - ',itemname,'is not in the supplied lattice'
+        return
+
+    newseq = seq[ind:] + seq[:ind]
+
+    # write lattice definition
+    f = open(outputfilename,'w')
+    timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
+    f.write(timestring)
+    f.write('! pybdsim.ModelProcessing Wrapped Lattice about '+str(itemname) +'\n')
+    f.write('! LATTICE SEQUENCE DEFINITION\n\n')
+    sequencechunks = _General.Chunks(newseq,elementsperline)
+    linelist = []
+    ti = 0
+    for line in sequencechunks:
+        f.write('l'+str(ti)+': line = ('+', '.join(line)+');\n')
+        linelist.append('l'+str(ti))
+        ti += 1
+    # need to define the period before making sampler planes
+    f.write('lattice: line = ('+', '.join(linelist)+');\n')
+    f.write('use, lattice;\n')
+    f.close()
