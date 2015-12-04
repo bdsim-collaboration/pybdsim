@@ -137,4 +137,3 @@ def _PlotHistogram(hist,normalised,title=''):
     ax.grid()
     ax.set_title(title)
     _plt.subplots_adjust(left=0.08,right=0.97)
-    
