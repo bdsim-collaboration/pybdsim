@@ -224,7 +224,7 @@ class Lattice:
         if ".gmad" not in filename:
             raise IOError("Not .gmad file - incorrect file type")
         self._parserlib.GmadParser_c(filename)
-        self.nelements        = self._parserlib.GetNelements()
+        self.nelements        = self._parserlib.GetNElements()
         self.sequence         = self.GetAllNames()
         self.names            = list(set(self.sequence))
         self.nelements_unique = len(self.names)
