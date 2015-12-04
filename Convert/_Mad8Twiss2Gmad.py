@@ -7,7 +7,7 @@ import pymad8
 from .. import Builder
 from .. import Beam
 
-def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(1e-10,1e-10), collimator="collimator.dat", apertures="apertures.dat",samplers='all') :         
+def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(1e-10,1e-10), collimator="collimator.dat", apertures="apertures.dat",samplers='all', options=True) :         
 
     # open mad output
     o = pymad8.Mad8.OutputReader()
@@ -42,6 +42,10 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
         b.SetEmittanceX(gemit[0],'m')
         b.SetEmittanceY(gemit[1],'m')
         a.AddBeam(b)
+
+    # create options 
+    if options : 
+        pass
 
     # iterate through objects and build machine 
     for i in range(istart,len(c.name),1) : 
