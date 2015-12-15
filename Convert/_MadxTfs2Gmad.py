@@ -9,7 +9,7 @@ _requiredKeys = [
     'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
     'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
-    'VKICK', 'HKICK'
+    'VKICK', 'HKICK', 'E1', 'E2'
 ]
 
 _lFake = 1e-6 # fake length for thin magnets
@@ -218,7 +218,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddQuadrupole(rname,l,k1=k1,**kws)
         elif t == 'RBEND':
             angle = item['ANGLE']
-            a.AddDipole(rname,'rbend',l,angle=angle,**kws)
+            e1 = item['E1']
+            e2 = item['E2']
+            a.AddDipole(rname,'rbend',l,angle=angle,e1=e1,e2=e2,**kws)
         elif t == 'RCOLLIMATOR' or t == 'ECOLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
@@ -242,11 +244,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
             angle = item['ANGLE']
+            e1 = item['E1']
+            e2 = item['E2']
             k1l = item['K1L']
             if k1l != 0:
                 k1 = k1l / l * factor
                 kws['k1'] = k1
-            a.AddDipole(rname,'sbend',l,angle=angle,**kws)
+            a.AddDipole(rname,'sbend',l,angle=angle,e1=e1,e2=e2,**kws)
         elif t == 'SEXTUPOLE':
             k2 = item['K2L'] / l * factor
             a.AddSextupole(rname,l,k2=k2,**kws)
