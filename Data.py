@@ -16,9 +16,12 @@ Data - read various output files
 import numpy as _np
 import Constants as _Constants
 import _General
+import os as _os
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
+    if not _os.path.isfile(filepath):
+        raise IOError("File does not exist")
     if ("elosshist" in filepath) or (".hist" in filepath):
         return _LoadAsciiHistogram(filepath)
     elif "eloss" in filepath:
@@ -29,11 +32,15 @@ def Load(filepath):
         print 'Root loader not implemented yet...'
     elif extension == 'dat':
         print '.dat file - trying general loader'
-        try:
-            return _LoadAscii(filepath)
-        except:
+        if _os.path.isfile(filepath):
+            try:
+                return _LoadAscii(filepath)
+            except:
+                print "Didn't work"
+                raise IOError("Unknown file type - not BDSIM data")
+        else:
             print "Didn't work"
-            raise IOError("Unknown file type - not BDSIM data")
+            raise IOError("File does not exist")
     else:
         raise IOError("Unknown file type - not BDSIM data")
 
