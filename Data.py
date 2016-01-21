@@ -32,15 +32,11 @@ def Load(filepath):
         print 'Root loader not implemented yet...'
     elif extension == 'dat':
         print '.dat file - trying general loader'
-        if _os.path.isfile(filepath):
-            try:
-                return _LoadAscii(filepath)
-            except:
-                print "Didn't work"
-                raise IOError("Unknown file type - not BDSIM data")
-        else:
+        try:
+            return _LoadAscii(filepath)
+        except:
             print "Didn't work"
-            raise IOError("File does not exist")
+            raise IOError("Unknown file type - not BDSIM data")
     else:
         raise IOError("Unknown file type - not BDSIM data")
 
