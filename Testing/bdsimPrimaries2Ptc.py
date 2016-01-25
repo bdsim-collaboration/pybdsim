@@ -21,7 +21,7 @@ def BdsimPrimaries2Ptc(input,outfile):
     y           = arrchain['y']
     xp          = arrchain['xp']
     yp          = arrchain['yp']
-    t           = arrchain['z0']
+    t           = arrchain['z']
     E           = arrchain['E']
     meanE       = _np.mean(E)
     
