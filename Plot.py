@@ -16,7 +16,7 @@ import matplotlib.pyplot as _plt
 import matplotlib.patches as _patches
 import numpy as _np
 
-from _General import _CheckItsBDSAsciiData
+from _General import CheckItsBDSAsciiData
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
@@ -84,7 +84,7 @@ def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=Non
     
 
 def AddMachineLatticeFromSurveyToFigure(figure,surveyfile):
-    sf  = _CheckItsBDSAsciiData(surveyfile) #load the machine description
+    sf  = CheckItsBDSAsciiData(surveyfile) #load the machine description
 
     axs = figure.get_axes() #get the existing graph
     axoptics = axs[0]  #get the only presumed axes from the figure
@@ -138,6 +138,12 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     def DrawBend(start,length,color='b',alpha=1.0):
         br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
         ax.add_patch(br)
+    def DrawHKicker(start, length, color='purple', alpha=1.0):
+        br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
+        ax.add_patch(br)
+    def DrawVKicker(start, length, color='magenta', alpha=1.0):
+        br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
+        ax.add_patch(br)
     def DrawQuad(start,length,k1l,color='r',alpha=1.0):
         #survey file doesn't have k values
         if k1l > 0 :
@@ -186,6 +192,10 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawHex(starts[i],lengths[i],'#ffcf17') #yellow
         elif kw == 'octupole':
             DrawHex(starts[i],lengths[i],'g')
+        elif kw == 'hkick':
+            DrawHKicker(starts[i],lengths[i])
+        elif kw == 'vkick':
+            DrawVKicker(starts[i],lengths[i])
         elif kw == 'drift':
             pass
         elif kw == 'multipole':

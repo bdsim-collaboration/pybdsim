@@ -9,6 +9,7 @@ General utilities for day to day housekeeping
 
 import os
 import pybdsim.Data
+import re as _re
 
 def CheckFileExists(filename):
     i = 1
@@ -24,7 +25,9 @@ def CheckFileExists(filename):
     return filename
 
 def Chunks(l, n):
-    """ Yield successive n-sized chunks from l.    """
+    """
+    Yield successive n-sized chunks from l.
+    """
     return [l[i:i+n] for i in range(0,len(l),n)]
 
 def NearestEvenInteger(number):
@@ -51,7 +54,7 @@ def IsFloat(stringtotest):
     except ValueError:
         return False
 
-def _CheckItsBDSAsciiData(bfile):
+def CheckItsBDSAsciiData(bfile):
     if type(bfile) == str:
         data = pybdsim.Data.Load(bfile)
     elif type(bfile) == pybdsim.Data.BDSAsciiData:
@@ -59,3 +62,10 @@ def _CheckItsBDSAsciiData(bfile):
     else:
         raise IOError("Not pybdsim.Data.BDSAsciiData file type: "+str(bfile))
     return data
+
+def PrepareReducedName(elementname):
+    """
+    Only allow alphanumeric characters and '_'
+    """
+    rname = _re.sub('[^a-zA-Z0-9_]+','',elementname)
+    return rname

@@ -6,20 +6,14 @@
 
 def ProtonColliderOptions():
     a = Options()
-    a.SetPhysicsList('hadronic_standard')
+    a.SetPhysicsList('QGSP_BERT')
     a.SetBeamPipeThickness(5,'mm')
-    a.SetOuterDiameter(1,'m')
+    a.SetOuterDiameter(0.5,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
     
     #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
-    a.SetChordStepMinimum(0.1,'nm')
-    a.SetDeltaIntersection(10,'nm')
-    a.SetDeltaChord(1,'mm')
-    a.SetLengthSafety(10,'um')
-    a.SetThresholdCutCharged(100,'MeV')
-    a.SetThresholdCutPhotons(100,'MeV')
 
     #Tunnel
     a.SetBuildTunnel(True)
@@ -40,13 +34,7 @@ def ElectronColliderOptions():
     
     #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
-    a.SetChordStepMinimum(0.1,'nm')
-    a.SetDeltaIntersection(10,'nm')
-    a.SetDeltaChord(1,'mm')
-    a.SetLengthSafety(10,'um')
-    a.SetThresholdCutCharged(100,'MeV')
-    a.SetThresholdCutPhotons(100,'MeV')
-
+    
     #Tunnel
     a.SetBuildTunnel(True)
     a.SetBuildTunnelFloor(True)
@@ -59,7 +47,7 @@ def ElectronColliderOptions():
 def MinimumStandard():
     a = Options()
     a.SetPhysicsList('standard')
-    a.SetBeamPipeThickness(3,'mm')
+    a.SetBeamPipeThickness(1,'mm')
     a.SetOuterDiameter(0.5,'m')
     a.SetNGenerate(100)
     a.SetBeamPipeRadius(3,'cm')
@@ -80,7 +68,6 @@ class Options(dict):
         st = s3+s4
         return st
     
-    #MANDATORY OPTIONS
     def SetNGenerate(self,nparticles=1):
         self['ngenerate'] = nparticles
     
@@ -110,10 +97,9 @@ class Options(dict):
 
     def SetOuterDiameter(self,outerdiameter=2,unitsstring='m'):
         self['outerDiameter'] = str(outerdiameter) + '*' + unitsstring
-
+        
     def SetTunnelRadius(self,tunnelradius=2,unitsstring='m'):
         self['tunnelRadius'] = str(tunnelradius) + '*' + unitsstring
-    #END OF MANDATORY OPTIONS
 
     def SetBeamPipeThickness(self,bpt,unitsstring='mm'):
         self['beampipeThickness'] = str(bpt) + '*' + unitsstring
