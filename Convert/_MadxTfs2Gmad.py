@@ -274,7 +274,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     # end of utility conversion function
 
     # test whether filpath or tfs instance supplied
-    madx = _pymadx.CheckItsTfs(input)
+    madx = _pymadx._General.CheckItsTfs(input)
 
     # check it has all the required columns
     TfsHasRequiredColumns(madx)
