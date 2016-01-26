@@ -188,6 +188,8 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'ecol': 
             DrawRect(starts[i],lengths[i],'k')
+        elif kw == 'degrader': 
+            DrawRect(starts[i],lengths[i],'k')
         elif kw == 'sextupole':
             DrawHex(starts[i],lengths[i],'#ffcf17') #yellow
         elif kw == 'octupole':
