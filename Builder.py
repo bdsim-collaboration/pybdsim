@@ -148,7 +148,7 @@ class Element(ElementBase):
         ElementBase.__init__(self,name,**kwargs)
         self['category'] = category
         self.category    = category
-        self.length      = 0.0 #for bookeeping only
+        self.length      = 0.0 #for book keeping only
         self.__Update()
         self._UpdateLength()
         
@@ -366,6 +366,7 @@ class Machine:
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0
+        self.bias      = None
         self.beam      = _Beam.Beam()
         self.options   = None
 
@@ -441,6 +442,9 @@ class Machine:
         """
         verboseresult = verbose or self.verbose
         WriteMachine(self,filename,verboseresult)
+
+    def AddBias(self, biasobject):
+        self.bias = biasobject
 
     def AddBeam(self, beam=None):
         """
@@ -811,7 +815,15 @@ def WriteMachine(machine, filename, verbose=False):
     fn_samplers   = basefilename + '_samplers.gmad'
     fn_beam       = basefilename + '_beam.gmad'
     fn_options    = basefilename + '_options.gmad'
+    fn_bias       = basefilename + '_bias.gmad'
     timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
+
+    #write bias if it exists
+    if machine.bias != None:
+        f = open(fn_bias,'w')
+        file.append(fn_bias)
+        f.write(str(machine.bias))
+        f.close()
     
     #write component files
     ncomponentfiles = int(_np.ceil(len(machine.elements)/1000.0))

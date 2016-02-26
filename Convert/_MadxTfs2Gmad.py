@@ -4,6 +4,7 @@ import pymadx as _pymadx
 from .. import Builder as _Builder
 from .. import Beam as _Beam
 from .. import _General
+from .. import XSecBias
 
 _requiredKeys = [
     'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
@@ -32,7 +33,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  userdict={},
                  beampiperadius=0.2,
                  verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
-                 defaultAperture='circular'):
+                 defaultAperture='circular',
+                 xsecBias=None):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
@@ -124,10 +126,25 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     the raw conversion that's not split by aperture. Thirdly, a list of the names of the omitted items
     is returned.
     """
+
+    # machine instance that will be added to
+    a = _Builder.Machine() # raw converted machine
+    b = _Builder.Machine() # final machine, split with aperture
    
     izlis  = ignorezerolengthitems
     factor = -1 if flipmagnets else 1  #flipping magnets
-
+    
+    biasNames = []
+    if type(xsecBias) == XSecBias.XSecBias:
+        biasNames.append(xsecBias.name)
+        a.AddBias(xsecBias.name)
+        b.AddBias(xsecBias.name)
+    elif type(xsecBias) == list:
+        biasNames.append(bias.name for bias in xsecBias)
+        [a.AddBias(bias.name) for bias in xsecBias]
+        [b.AddBias(bias.name) for bias in xsecBias]
+        
+    
     # define utility function that does conversion
     def AddSingleElement(item, a, aperModel=None):
         # a is a pybdsim.Builder.Machine instance
@@ -137,9 +154,12 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             return
 
         kws = {} # element-wise keywords
+        if len(biasNames) > 0:
+            kws['xsecbias'] = ' '.join(biasNames)
         
         if aperModel != None:
             kws.update(aperModel)
+
 
         name  = item['NAME']
         rname = _General.PrepareReducedName(name) #remove special characters like $, % etc 'reduced' name - rname
@@ -156,7 +176,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
             kickangle = item['HKICK'] * factor
-            a.AddHKicker(rname,l,angle=kickangle,**kws)
+c            a.AddHKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
             if zerolength:
@@ -294,10 +314,6 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     
     # keep list of omitted zero length items
     itemsomitted = []
-
-    # machine instance that will be added to
-    a = _Builder.Machine() # raw converted machine
-    b = _Builder.Machine() # final machine, split with aperture
     
     # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
