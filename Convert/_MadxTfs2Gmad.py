@@ -111,6 +111,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     |                           | APER_1 and APER_2 columns exist.  Will only set if they're        |
     |                           | non-zero.                                                         |
     +---------------------------+-------------------------------------------------------------------+
+    | **defaultAperture**       | The default aperture model to assume if none is specified.        |
+    +---------------------------+-------------------------------------------------------------------+
+    | **xsecBias**              | Optional list of bias objects to written into each component      |
+    |                           | definition.                                                       |
+    +---------------------------+-------------------------------------------------------------------+
 
     Example:
     
