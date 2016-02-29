@@ -181,7 +181,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
             kickangle = item['HKICK'] * factor
-c            a.AddHKicker(rname,l,angle=kickangle,**kws)
+            a.AddHKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
             if zerolength:
