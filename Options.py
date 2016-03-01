@@ -26,7 +26,7 @@ def ProtonColliderOptions():
 
 def ElectronColliderOptions():
     a = Options()
-    a.SetPhysicsList('em_standard')
+    a.SetPhysicsList('em')
     a.SetBeamPipeThickness(5,'mm')
     a.SetOuterDiameter(1,'m')
     a.SetTunnelRadius(2,'m')
@@ -46,7 +46,6 @@ def ElectronColliderOptions():
 
 def MinimumStandard():
     a = Options()
-    a.SetPhysicsList('standard')
     a.SetBeamPipeThickness(1,'mm')
     a.SetOuterDiameter(0.5,'m')
     a.SetNGenerate(100)
@@ -71,22 +70,21 @@ class Options(dict):
     def SetNGenerate(self,nparticles=1):
         self['ngenerate'] = nparticles
     
-    def SetPhysicsList(self,physicslist='standard'):
+    def SetPhysicsList(self,physicslist=''):
         physicslistlist = [
-            'standard',
-            'em_standard',
+            'em',
             'em_low',
-            'em_muon',
-            'lw',
-            'merlin',
-            'hadronic_standard',
-            'hadronic_muon',
-            'hadronic_QGSP_BERT',
-            'hadronic_QGSP_BERT_muon',
-            'hadronic_QGSP_BERT_HP_muon',
-            'hadronic_FTFP_BERT',
-            'hadronic_FTFP_BERT_muon',
-            'QGSP_BERT'
+            'synchrad',
+            'optical',
+            'hadronic',
+            'hadronichp',
+            'qgsp_bert',
+            'qgsp_bert_hp',
+            'qgsp_bic',
+            'qgsp_bic_hp',
+            'ftfp_bert',
+            'ftfp_bert_hp',
+            'decay'
             ]
         if physicslist not in physicslistlist:
             raise ValueError('Unknown physicslist: '+physicslist)
