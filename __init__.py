@@ -1,7 +1,6 @@
 # pybdsim - python tools for bdsim
 # Version 1.0
 # L. Nevay, S.T.Boogert
-# laurie.nevay@rhul.ac.uk
 
 
 """
@@ -26,6 +25,7 @@ pybdsim - python tools for bdsim
 | Classes:
 | Analysis - encapsulates functions & plots for a single file
 | Beam     - a beam options dictionary with methods
+| XSecBias - a cross-section biasing object
 
 """
 
@@ -40,6 +40,7 @@ import Options
 import Plot
 import ModelProcessing
 import Visualisation
+import XSecBias
 #import Testing
 
 #import Root - not imported since dependency on pyROOT
@@ -50,4 +51,15 @@ import _General
 #from AnalysisRoot import AnalysisRoot
 #from AnalysisRootOptics import AnalysisRootOptics
 
-__all__ = ['Beam','Builder','Constants','Convert','Compare','Data','Gmad','Options','Plot','ModelProcessing','Visualisation']
+__all__ = ['Beam',
+           'Builder',
+           'Constants',
+           'Convert',
+           'Compare',
+           'Data',
+           'Gmad',
+           'Options',
+           'Plot',
+           'ModelProcessing',
+           'Visualisation',
+           'XSecBias']
