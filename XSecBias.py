@@ -5,7 +5,8 @@ _allowedprocesses = [
     'eBrem',
     'eIoni',
     'msc',
-    'all'
+    'all',
+    'protonInelastic'
 ]
 
 _allowedlvs = [
@@ -32,13 +33,12 @@ class XSecBias(object):
     A class for containing all information regarding cross section definitions.
     """
     def __init__(self, name, particle, processes, xsecfactors,flags, logicalvolume):
-        
-        self.name = self.SetName(name)
-        self.particle =  self.SetParticle(particle)
+        self.name        = self.SetName(name)
+        self.particle    = self.SetParticle(particle)
         self.processlist = self.SetProcessList(processes)
-        self.flaglist = self.SetFlagList(flags)
-        self.xseclist = self.SetXSecFactorList(xsecfactors)
-        self.lvlist = self.SetLogicalVolume(logicalvolume)
+        self.flaglist    = self.SetFlagList(flags)
+        self.xseclist    = self.SetXSecFactorList(xsecfactors)
+        self.lvlist      = self.SetLogicalVolume(logicalvolume)
         self.CheckBiasedProcesses()
     
     def SetName(self, name):
@@ -67,20 +67,20 @@ class XSecBias(object):
 
     
     def SetFlagList(self, flag):
+        flag = self._MapToString(flag)
         flaglist = _split(', |,| ',flag)
         for number in flaglist:
             if number not in _allowedflags:
                 raise ValueError("Unknown Flag type: " + str(number))
         return flaglist
-
     
     def SetXSecFactorList(self, xsec):
+        xsec = self._MapToString(xsec)
         xseclist = _split(', |,| ', xsec)
         for factor in xsec:
             if factor < 0:
                 raise ValueError("Negative cross section factor: " +str(factor))
         return xseclist
-
     
     def SetLogicalVolume(self, lv):
         if lv not  in _allowedlvs:
@@ -90,9 +90,13 @@ class XSecBias(object):
     def CheckBiasedProcesses(self):
         if (len(self.xseclist) != len(self.flaglist)) or (len(self.xseclist) != len(self.processlist)):
             raise Warning("There must be a uniquely defined flag and xsecfactor to go  with every listed process.")
-    
 
-  
+    def _MapToString(self, argument):
+        if (type(argument) == list) or (type(argument) == tuple):
+            return map(str, argument)
+        else:
+            return str(argument)
+        
     def __repr__(self):
         
         name = self.name + ': '
