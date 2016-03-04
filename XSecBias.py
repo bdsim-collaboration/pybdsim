@@ -55,6 +55,9 @@ class XSecBias(object):
     def SetProcessList(self, processes):
         processlist = _split(', |,| ', processes)
 
+        # as we don't have a complete list just now, prevent this checking.
+        return processlist
+
         if ('all' in processlist) and (len(processlist) > 1):
             raise Warning("You cannot have both all and another process to be biased.")
         for process in processlist:
