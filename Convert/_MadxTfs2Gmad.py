@@ -34,7 +34,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  beampiperadius=0.2,
                  verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
                  defaultAperture='circular',
-                 xsecBias=None):
+                 biasVacuum=None,
+                 biasMaterial=None):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
@@ -113,8 +114,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     +---------------------------+-------------------------------------------------------------------+
     | **defaultAperture**       | The default aperture model to assume if none is specified.        |
     +---------------------------+-------------------------------------------------------------------+
-    | **xsecBias**              | Optional list of bias objects to written into each component      |
-    |                           | definition.                                                       |
+    | **biasVacuum**            | Optional list of bias objects to written into each component      |
+    |                           | definition that are attached to the vacuum volume.                |
+    +---------------------------+-------------------------------------------------------------------+
+    | **biasMaterial**          | Optional list of bias objects to written into each component      |
+    |                           | definition that are attached to volumes outside the vacuum.       |
     +---------------------------+-------------------------------------------------------------------+
 
     Example:
@@ -139,16 +143,25 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     izlis  = ignorezerolengthitems
     factor = -1 if flipmagnets else 1  #flipping magnets
     
-    biasNames = []
-    if type(xsecBias) == XSecBias.XSecBias:
-        biasNames.append(xsecBias.name)
-        a.AddBias(xsecBias.name)
-        b.AddBias(xsecBias.name)
-    elif type(xsecBias) == list:
-        biasNames.append(bias.name for bias in xsecBias)
-        [a.AddBias(bias.name) for bias in xsecBias]
-        [b.AddBias(bias.name) for bias in xsecBias]
-        
+    biasVacuumNames = []
+    if type(biasVacuum) == XSecBias.XSecBias:
+        biasVacuumNames.append(biasVacuum.name)
+        a.AddBias(biasVacuum)
+        b.AddBias(biasVacuum)
+    elif type(biasVacuum) == list:
+        biasVacuumNames = [bias.name for bias in biasVacuum]
+        [a.AddBias(bias) for bias in biasVacuum]
+        [b.AddBias(bias) for bias in biasVacuum]
+    
+    biasMaterialNames = []
+    if type(biasMaterial) == XSecBias.XSecBias:
+        biasMaterialNames.append(biasMaterial.name)
+        a.AddBias(biasMaterial)
+        b.AddBias(biasMaterial)
+    elif type(biasMaterial) == list:
+        biasMaterialNames = [bias.name for bias in biasMaterial]
+        [a.AddBias(bias) for bias in biasMaterial]
+        [b.AddBias(bias) for bias in biasMaterial]
     
     # define utility function that does conversion
     def AddSingleElement(item, a, aperModel=None):
@@ -159,12 +172,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             return
 
         kws = {} # element-wise keywords
-        if len(biasNames) > 0:
-            kws['xsecbias'] = ' '.join(biasNames)
+        if len(biasVacuumNames) > 0:
+            kws['biasVacuum'] = ' '.join(biasVacuumNames)
+        if len(biasMaterialNames) > 0:
+            kws['biasMaterial'] = ' '.join(biasMaterialNames)
         
         if aperModel != None:
             kws.update(aperModel)
-
 
         name  = item['NAME']
         rname = _General.PrepareReducedName(name) #remove special characters like $, % etc 'reduced' name - rname
@@ -175,6 +189,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         # append any user defined parameters for this element into the kws dictionary
         if name in userdict:
             kws.update(userdict[name])
+
+        if verbose:
+            print kws
         
         if t == 'DRIFT':
             #print 'AddDrift'
@@ -184,17 +201,18 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddHKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
-            if zerolength:
+            if zerolength and not izlis:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of instrument'
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MARKER':
-            a.AddMarker(rname)
+            if not izlis:
+                a.AddMarker(rname)
         elif t == 'MONITOR':
             #most monitors are just markers
-            if zerolength:
+            if zerolength and not izlis:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of monitor'
@@ -222,7 +240,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 else:
                     a.AddMarker(rname)
                     #a.AddMultipole(name,length=_lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),**kws)
-            elif zerolength:
+            elif zerolength and izlis:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of multipole'
@@ -245,7 +263,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             angle = item['ANGLE']
             e1 = item['E1']
             e2 = item['E2']
-            a.AddDipole(rname,'rbend',l,angle=angle,e1=e1,e2=e2,**kws)
+            if (e1 != 0):
+                kws['e1'] = e1
+            if (e1 != 0):
+                kws['e2'] = e2
+            a.AddDipole(rname,'rbend',l,angle=angle,**kws)
         elif t == 'RCOLLIMATOR' or t == 'ECOLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
@@ -271,11 +293,15 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             angle = item['ANGLE']
             e1 = item['E1']
             e2 = item['E2']
+            if (e1 != 0):
+                kws['e1'] = e1
+            if (e1 != 0):
+                kws['e2'] = e2
             k1l = item['K1L']
             if k1l != 0:
                 k1 = k1l / l * factor
                 kws['k1'] = k1
-            a.AddDipole(rname,'sbend',l,angle=angle,e1=e1,e2=e2,**kws)
+            a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t == 'SEXTUPOLE':
             k2 = item['K2L'] / l * factor
             a.AddSextupole(rname,l,k2=k2,**kws)
@@ -290,7 +316,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddVKicker(rname,l,angle=kickangle,**kws)
         else:
             print 'unknown element type:', t, 'for element named: ', name
-            if zerolength:
+            if zerolength and not izlis:
                 print 'putting marker in instead as its zero length'
                 a.AddMarker(rname)
             else:
