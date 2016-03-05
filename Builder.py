@@ -366,7 +366,7 @@ class Machine:
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0
-        self.bias      = None
+        self.bias      = []
         self.beam      = _Beam.Beam()
         self.options   = None
 
@@ -444,7 +444,7 @@ class Machine:
         WriteMachine(self,filename,verboseresult)
 
     def AddBias(self, biasobject):
-        self.bias = biasobject
+        self.bias.append(biasobject)
 
     def AddBeam(self, beam=None):
         """
@@ -819,10 +819,11 @@ def WriteMachine(machine, filename, verbose=False):
     timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
 
     #write bias if it exists
-    if machine.bias != None:
+    if len(machine.bias) > 0:
         f = open(fn_bias,'w')
-        file.append(fn_bias)
-        f.write(str(machine.bias))
+        files.append(fn_bias)
+        for bias in machine.bias:
+            f.write(str(bias))
         f.close()
     
     #write component files
