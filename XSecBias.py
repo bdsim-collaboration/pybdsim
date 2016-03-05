@@ -9,11 +9,6 @@ _allowedprocesses = [
     'protonInelastic'
 ]
 
-_allowedlvs = [
-    'acceleratorVacuum',
-    'acceleratorMaterial'
-]
-
 _allowedparticles = [
     'e-',
     'e+',
@@ -32,13 +27,12 @@ class XSecBias(object):
     """ 
     A class for containing all information regarding cross section definitions.
     """
-    def __init__(self, name, particle, processes, xsecfactors,flags, logicalvolume):
+    def __init__(self, name, particle, processes, xsecfactors, flags):
         self.name        = self.SetName(name)
         self.particle    = self.SetParticle(particle)
         self.processlist = self.SetProcessList(processes)
         self.flaglist    = self.SetFlagList(flags)
         self.xseclist    = self.SetXSecFactorList(xsecfactors)
-        self.lvlist      = self.SetLogicalVolume(logicalvolume)
         self.CheckBiasedProcesses()
     
     def SetName(self, name):
@@ -82,11 +76,6 @@ class XSecBias(object):
                 raise ValueError("Negative cross section factor: " +str(factor))
         return xseclist
     
-    def SetLogicalVolume(self, lv):
-        if lv not  in _allowedlvs:
-            raise ValueError("Unknown logical volume: " +str(lv))
-        return lv
-    
     def CheckBiasedProcesses(self):
         if (len(self.xseclist) != len(self.flaglist)) or (len(self.xseclist) != len(self.processlist)):
             raise Warning("There must be a uniquely defined flag and xsecfactor to go  with every listed process.")
@@ -98,57 +87,13 @@ class XSecBias(object):
             return str(argument)
         
     def __repr__(self):
-        
-        name = self.name + ': '
+        particle = 'particle="' + self.particle + '"'
+        proc     = 'proc="' + ' '.join(map(str, self.processlist)) + '"'
+        xsec     = 'xsecfact={' + ','.join(map(str, self.xseclist)) + '}'
+        flag     = 'flag={' + ','.join(map(str,self.flaglist)) + '}'
 
-        particle = 'particle="' + self.particle + '", '
-
-        #proc
-        for index in _arange(len(self.processlist)):
-            if len(self.processlist) == 1:
-                proc = 'proc="' + str(self.processlist[0]) + '", '
-            elif index == 0:
-                proc = 'proc="' + str(self.processlist[index]) + ' '
-            elif index == len(self.processlist) - 1:
-                proc += self.processlist[index] + '", '
-            else:
-                proc += self.processlist[index] + ' '
-
-        #xsec
-        for index in _arange(len(self.xseclist)):
-            if len(self.xseclist) == 1:
-                xsec = 'xsecfact=' + str(self.xseclist[0]) + ', '
-                break
-            elif index == 0:
-                xsec = 'xsecfact={' + str(self.xseclist[0]) + ','
-            elif index == len(self.xseclist) - 1:
-                xsec += str(self.xseclist[index]) + '}, '
-            else:
-                xsec += str(self.xseclist[index]) + ','
-                
-        #flag
-        for index in _arange(len(self.flaglist)):
-            if len(self.flaglist) == 1:
-                flag = 'flag=' + str(self.flaglist[0]) + ', '
-                break
-            if index == 0:
-                flag = 'flag={' +str(self.flaglist[index]) +','
-            elif index == len(self.flaglist) - 1:
-                flag += str(self.flaglist[index]) + '}, '
-            else:
-                flag += str(self.flaglist[index]) + ','
-        
-        #logicalvolume
-        logicalvolume = 'logicalVolumes="'
-        for lv in self.lvlist:
-            logicalvolume += str(lv)
-        logicalvolume += '"'
-
-        s = name + "xsecBias, " + particle + proc + xsec + flag + logicalvolume + ';'
+        s = self.name + ": xsecBias, " + ', '.join([particle,proc,xsec,flag]) + ';'
         
         return s
-
-                             
-#builder.py at the bottom writes the components.
 
 
