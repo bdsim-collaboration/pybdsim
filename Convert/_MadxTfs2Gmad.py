@@ -2,6 +2,7 @@ import numpy as _np
 import re as _re
 import pymadx as _pymadx
 from .. import Builder as _Builder
+from .. import Options as _Options
 from .. import Beam as _Beam
 from .. import _General
 from .. import XSecBias
@@ -31,7 +32,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  aperturedict={},
                  collimatordict={},
                  userdict={},
-                 beampiperadius=0.2,
+                 beampiperadius=5.0,
                  verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
                  defaultAperture='circular',
                  biasVacuum=None,
@@ -422,6 +423,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         bm = MadxTfs2GmadBeam(madx, startname, verbose)
         a.AddBeam(bm)
         b.AddBeam(bm)
+
+    options = _Options.Options()
+    options.SetBeamPipeRadius(beampiperadius,unitsstring='cm')
+    a.AddOptions(options)
+    b.AddOptions(options)
 
     b.Write(outputfilename)
     if verbose:
