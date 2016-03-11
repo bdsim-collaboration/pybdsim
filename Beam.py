@@ -129,10 +129,10 @@ class Beam(dict):
         self['bety'] = str(bety) + '*' + unitsstring
 
     def _SetAlphaX(self,alphax=1.0,unitsstring='m'):
-        self['alfx'] = str(alphax) + '*' + unitsstring
+        self['alfx'] = str(alphax)
 
     def _SetAlphaY(self,alphay=1.0,unitsstring='m'):
-        self['alfy'] = str(alphay) + '*' + unitsstring
+        self['alfy'] = str(alphay)
 
     def _SetEmittanceX(self,emitx=1.0,unitsstring='um'):
         self['emitx'] = str(emitx) + '*' + unitsstring
