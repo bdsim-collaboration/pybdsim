@@ -58,11 +58,17 @@ class Options(dict):
         
     def ReturnOptionsString(self):
         s = ''
+        numOptions=0
         for k,v in self.iteritems():
             s += ', \n\t'+str(k)+'='+str(v)
+            numOptions += 1
         s += ';'
         s2 = s.split('\n')
-        s3 = 'option,\t'+s2[1].replace('\t','').replace('\n','').replace(',','').strip()+',\n'
+        s3 = 'option,\t'+s2[1].replace('\t','').replace('\n','').replace(',','').strip()
+        if numOptions == 1:
+            s3 += '\n'
+        else:
+            s3 += ',\n'
         s4 = '\n'.join(s2[2:])
         st = s3+s4
         return st
