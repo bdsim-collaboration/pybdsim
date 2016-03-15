@@ -175,11 +175,11 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     types   = bds.Type()
     lengths = bds.Arc_len()
     starts  = bds.SStart()
-    #k1      = bds.K1()
+    k1      = bds.K1()
     for i in range(len(bds)):
         kw = types[i]
         if kw == 'quadrupole': 
-            DrawQuad(starts[i],lengths[i],1)
+            DrawQuad(starts[i],lengths[i],k1[i])
         elif kw == 'rbend': 
             DrawBend(starts[i],lengths[i])
         elif kw == 'sbend': 
