@@ -280,8 +280,6 @@ class Lattice(object):
     def GetAper4(self,index):
         return float(self._parserlib.GetAper4(index))
 
-    def GetAper(self,index):
-        return float(self._parserlib.GetAper1(index))
     def GetApertureType(self, index):
         return str(self._parserlib.GetApertureType(index))
 
@@ -318,7 +316,6 @@ class Lattice(object):
         d['Aper2']  = self.GetAper2(i)
         d['Aper3']  = self.GetAper3(i)
         d['Aper4']  = self.GetAper4(i)
-        d['Aper']   = self.GetAper(i)
         d['ApertureType'] = self.GetApertureType(i)
         d['Ks']     = self.GetKs(i)
         return d
