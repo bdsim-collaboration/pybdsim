@@ -207,6 +207,9 @@ class Lattice:
             raise IOError("No gmad file loaded - cannot iterate")
         return self
 
+    def __len__(self):
+        return self.nelements
+
     def next(self):
         if self._iterindex == len(self.sequence)-1:
             raise StopIteration
