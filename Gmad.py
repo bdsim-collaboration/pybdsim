@@ -13,7 +13,7 @@ import matplotlib.pyplot as _plt
 import StringIO as _StringIO
 import re as _re
 
-class Survey:
+class Survey(object):
     """
     Survey - load a gmad lattice and have a look
 
@@ -165,7 +165,7 @@ def _LoadLib():
 
         return parserlib
 
-class Lattice:
+class Lattice(object):
     """
     BDSIM Gmad parser lattice.
 
@@ -376,7 +376,7 @@ class Lattice:
         print s
 
 
-class GmadFile :
+class GmadFile(object) :
     """
     Class to determine parameters and gmad include structure
     """
@@ -385,7 +385,7 @@ class GmadFile :
         pass
 
 
-class GmadFileBeam :
+class GmadFileBeam(object) :
     """
     Class to load a gmad options file to a buffer and modify the contents
     """
@@ -393,7 +393,7 @@ class GmadFileBeam :
     def __init__(self, fileName) :
         pass
 
-class GmadFileOptions :
+class GmadFileOptions(object) :
     """
     Class to load a gmad options file to a buffer and modify the contents
     """
@@ -402,7 +402,7 @@ class GmadFileOptions :
         pass
 
 
-class GmadFileComponents :
+class GmadFileComponents(object) :
     """
     Class to load a gmad components file to a buffer and modify the contents
 
