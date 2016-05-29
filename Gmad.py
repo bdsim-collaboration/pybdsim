@@ -160,6 +160,8 @@ def _LoadLib():
         parserlib.GetAper3.argtypes      = [_ctypes.c_int]
         parserlib.GetAper4.restype       = _ctypes.c_double
         parserlib.GetAper4.argtypes      = [_ctypes.c_int]
+        parserlib.GetApertureType.restype      = _ctypes.c_char_p
+        parserlib.GetApertureType.argtypes     = [_ctypes.c_int]
         parserlib.GetBeampipeThickness.restype  = _ctypes.c_double
         parserlib.GetBeampipeThickness.argtypes = [_ctypes.c_int]
 
@@ -280,6 +282,8 @@ class Lattice(object):
 
     def GetAper(self,index):
         return float(self._parserlib.GetAper1(index))
+    def GetApertureType(self, index):
+        return str(self._parserlib.GetApertureType(index))
 
     def GetAllNames(self):
         allnames = []
@@ -315,6 +319,7 @@ class Lattice(object):
         d['Aper3']  = self.GetAper3(i)
         d['Aper4']  = self.GetAper4(i)
         d['Aper']   = self.GetAper(i)
+        d['ApertureType'] = self.GetApertureType(i)
         d['Ks']     = self.GetKs(i)
         return d
 
