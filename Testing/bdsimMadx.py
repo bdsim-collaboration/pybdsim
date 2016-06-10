@@ -32,6 +32,7 @@ class LatticeTest:
         verbose   : prints additional information
         """
         cwd        = _os.getcwd()
+        self.existingfiles = _os.listdir(cwd)
         path       = filepath.split("/")
         filename   = path[-1]                         #last element is the filename
         
@@ -67,24 +68,20 @@ class LatticeTest:
 
     def Clean(self):
         """
-        Delete all files produced during the testing, including
-        .log .dat .tfs. .ps ptc* .txt .root .gmad inrays .png .pdf
+        Delete all files produced during the testing, but 
+        leaving all existing files in place.
         """
         _os.chdir(self.folderpath)
+        newfiles = _os.listdir(_os.getcwd())
         
-        _os.system("rm -rf *.log")
-        _os.system("rm -rf *.dat")
-        _os.system("rm -rf *.tfs")
-        _os.system("rm -rf *.ps")
-        _os.system("rm -rf ptc*")
-        _os.system("rm -rf *.txt")
-        _os.system("rm -rf *.root")
-        _os.system("rm -rf *.gmad")
-        _os.system("rm -rf *_inrays.madx")
-        _os.system("rm -rf *.png")
-        _os.system("rm -rf *.pdf")
-        _os.system("rm trackone")
-
+        for oldfile in self.existingfiles:
+            for newfile in newfiles:
+                if newfile == oldfile:
+                    newfiles.remove(newfile)
+        
+        for file in newfiles:
+            _os.remove(file)
+        
         # clean and close figures (10 figures in total)
         for i in range(11):
             _plt.close(self.figureNr+i)
@@ -95,13 +92,16 @@ class LatticeTest:
         preserving lattice definitions. Useful for beam parameter testing.
         Deleted files include .dat .txt .root inrays .png .pdf
         """
-        _os.chdir(self.folderpath)      
-        _os.system("rm -rf *.dat")
-        _os.system("rm -rf *.root")
-        _os.system("rm -rf *.txt")
-        _os.system("rm -rf *.png")
-        _os.system("rm -rf *.pdf")
-        _os.system("rm trackone")
+        _os.chdir(self.folderpath)
+        newfiles = _os.listdir(_os.getcwd())
+        
+        for oldfile in self.existingfiles:
+            for newfile in newfiles:
+                if newfile == oldfile:
+                    newfiles.remove(newfile)
+        
+        for file in newfiles:
+            _os.remove(file)
 
         # clean and close figures (10 figures in total)
         for i in range(11):
