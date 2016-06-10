@@ -1,12 +1,12 @@
 # pybdsim._General - general python scripts / tools
 # Version 1.0
-# L. Nevay, S.T.Boogert
-# laurie.nevay@rhul.ac.uk
+# L. Nevay, S.T.Boogert, J.Snuverink
 
 """
 General utilities for day to day housekeeping
 """
 
+import glob
 import os
 import pybdsim.Data
 import re as _re
@@ -69,3 +69,6 @@ def PrepareReducedName(elementname):
     """
     rname = _re.sub('[^a-zA-Z0-9_]+','',elementname)
     return rname
+
+def GetLatestFileFromDir(dirpath='', extension='*'):
+    return max(glob.iglob(dirpath+extension), key=os.path.getctime)
