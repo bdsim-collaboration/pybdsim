@@ -168,7 +168,7 @@ class LatticeTest:
         attempts = 0
         
         while(isValid==False and attempts<=5):
-            rootdata  = robdsim.RobdsimOutput(self.filename+".root")
+            rootdata  = robdsim.RobdsimOutput(self.filename+".root",'none')
             print "robdsim.RobdsimOutput> root file loaded"
         
             primchain = rootdata.GetSamplerChain('Primaries')
