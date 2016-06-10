@@ -42,6 +42,59 @@ def MadxGmadComparison(tfsfile, gmadfile, title='', outputfilename=None):
 def AddMachineLatticeToFigure(figure,tfsfile):
     _pymadx.Plot.AddMachineLatticeToFigure(figure,tfsfile)
 
+def ProvidedWraooedS(sArray, index):
+    s = sArray #shortcut
+    smax = s[-1]
+    sind = s[index]
+    snewa = s[index:]
+    snewa = snewa - sind
+    snewb = s[:index]
+    snewb = snewb + (smax - sind)
+    snew  = _np.concatentate((snewa,snewb))
+    return snew
+    
+
+def CompareBDSIMWithMadXSigma(tfsfile, bdsfile, emittance, title='', outputfilename=None):
+    """
+    This currently does not take into account the dispersion contribution to the beam size.
+
+    """
+    bds  = _Data.Load(bdsfile)
+    tfs  = _pymadx._General.CheckItsTfs(tfsfile)
+    tfsd = _pymadx.Plot._GetOpticalDataFromTfs(tfs)
+    tfsd['sigmax'] = _np.sqrt(tfsd['betx']*emittance)
+    tfsd['sigmay'] = _np.sqrt(tfsd['bety']*emittance)
+    smax = tfs.smax
+
+    f = _plt.figure(figsize=(7,6))
+    ax = f.add_subplot(211)
+    ax.errorbar(bds.S(), bds.Sigma_x()*1000.0, yerr=bds.Sigma_sigma_x()*1000.0, fmt='b.', label='BDSIM x')
+    ax.errorbar(bds.S(), bds.Sigma_y()*1000.0, yerr=bds.Sigma_sigma_y()*1000.0, fmt='g.', label='BDSIM y')
+    ax.plot(tfsd['s'], tfsd['sigmax']*1000.0, 'b-', label='MADX x')
+    ax.plot(tfsd['s'], tfsd['sigmay']*1000.0, 'g-', label='MADX y')
+    ax.axes.get_xaxis().set_visible(False)
+    ax.set_ylabel('$\sigma_{\mathrm{x,y}}$ (mm)', fontsize='large')
+    _plt.legend(numpoints=1,fontsize='small')
+
+    ax2 = f.add_subplot(212)
+    #ax2.errorbar(bds.S(), bds.Mean_x(), yerr=bds.Sigma_mean_x(), fmt='b.', label='BDSIM $\mu_x$')
+    ax2.plot(bds.S(), bds.Mean_x()*1000.0, 'b.', label='BDSIM x')
+    #ax2.errorbar(bds.S(), bds.Mean_y(), yerr=bds.Sigma_mean_y(), fmt='g.', label='BDSIM $\mu_y$')
+    ax2.plot(bds.S(), bds.Mean_y()*1000.0, 'g.', label='BDSIM y')
+    ax2.plot(tfsd['s'], tfsd['x']*1000.0, 'b-', label='MADX x')
+    ax2.plot(tfsd['s'], tfsd['y']*1000.0, 'g-', label='MADX y')
+    ax2.set_ylim(-7,7)
+
+    ax2.set_xlabel('S Position from IP1 (ATLAS) (m)', fontsize='large')
+    ax2.set_ylabel('$\mu_{\mathrm{x,y}}$ (mm)',fontsize='large')
+
+    #_plt.legend(numpoints=1,fontsize='small')
+    _plt.subplots_adjust(left=0.12,right=0.95,top=0.98,bottom=0.12,hspace=0.06)
+
+    AddMachineLatticeToFigure(f,tfsfile)
+
+    _plt.xlim(12980,13700)
+    
 def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=None):
     bds  = _Data.Load(bdsfile)
     tfs  = _pymadx._General.CheckItsTfs(tfsfile)
