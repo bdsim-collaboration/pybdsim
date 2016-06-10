@@ -20,11 +20,14 @@ pybdsim - python tools for bdsim
 | Options - methods to generate bdsim options
 | Plot    - some nice plots for data
 | Root    - functions to convert ROOT histograms into matplotlib (not explicitly imported)
+| Run     - run BDSIM programatically
 | Visualisation - help locate objects in the BDSIM visualisation, requires a BDSIM survey file
 
 | Classes:
 | Analysis - encapsulates functions & plots for a single file
 | Beam     - a beam options dictionary with methods
+| ExecOptions - all the executable options for BDSIM for a particular run
+| Study       - a holder for the output of runs
 | XSecBias - a cross-section biasing object
 
 """
@@ -38,6 +41,7 @@ import Data
 import Gmad
 import Options
 import Plot
+import Run
 import ModelProcessing
 import Visualisation
 import XSecBias
