@@ -98,6 +98,8 @@ class Study:
         command += ' > ' + outfilename + '.log'
         
         # execute process
+        if debug:
+            print 'BDSIM Run'
         try:
             subprocess.check_call(command, shell=True)
         except subprocess.CalledProcessError:
