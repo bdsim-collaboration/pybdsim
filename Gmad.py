@@ -106,7 +106,7 @@ def _LoadLib():
     #test0 - try general find function
     libpath0 = _find_library(libname)
     if libpath0 != None:
-        parserlib = _ctype.cdll.LoadLibrary(libpath0)
+        parserlib = _ctypes.cdll.LoadLibrary(libpath0)
         test0 = True
 
     #test1 - pybdsim is being used from bdsim build dir
