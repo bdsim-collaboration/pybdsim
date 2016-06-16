@@ -42,6 +42,59 @@ def MadxGmadComparison(tfsfile, gmadfile, title='', outputfilename=None):
 def AddMachineLatticeToFigure(figure,tfsfile):
     _pymadx.Plot.AddMachineLatticeToFigure(figure,tfsfile)
 
+def ProvidedWraooedS(sArray, index):
+    s = sArray #shortcut
+    smax = s[-1]
+    sind = s[index]
+    snewa = s[index:]
+    snewa = snewa - sind
+    snewb = s[:index]
+    snewb = snewb + (smax - sind)
+    snew  = _np.concatentate((snewa,snewb))
+    return snew
+    
+
+def CompareBDSIMWithMadXSigma(tfsfile, bdsfile, emittance, title='', outputfilename=None):
+    """
+    This currently does not take into account the dispersion contribution to the beam size.
+
+    """
+    bds  = _Data.Load(bdsfile)
+    tfs  = _pymadx._General.CheckItsTfs(tfsfile)
+    tfsd = _pymadx.Plot._GetOpticalDataFromTfs(tfs)
+    tfsd['sigmax'] = _np.sqrt(tfsd['betx']*emittance)
+    tfsd['sigmay'] = _np.sqrt(tfsd['bety']*emittance)
+    smax = tfs.smax
+
+    f = _plt.figure(figsize=(7,6))
+    ax = f.add_subplot(211)
+    ax.errorbar(bds.S(), bds.Sigma_x()*1000.0, yerr=bds.Sigma_sigma_x()*1000.0, fmt='b.', label='BDSIM x')
+    ax.errorbar(bds.S(), bds.Sigma_y()*1000.0, yerr=bds.Sigma_sigma_y()*1000.0, fmt='g.', label='BDSIM y')
+    ax.plot(tfsd['s'], tfsd['sigmax']*1000.0, 'b-', label='MADX x')
+    ax.plot(tfsd['s'], tfsd['sigmay']*1000.0, 'g-', label='MADX y')
+    ax.axes.get_xaxis().set_visible(False)
+    ax.set_ylabel('$\sigma_{\mathrm{x,y}}$ (mm)', fontsize='large')
+    _plt.legend(numpoints=1,fontsize='small')
+
+    ax2 = f.add_subplot(212)
+    #ax2.errorbar(bds.S(), bds.Mean_x(), yerr=bds.Sigma_mean_x(), fmt='b.', label='BDSIM $\mu_x$')
+    ax2.plot(bds.S(), bds.Mean_x()*1000.0, 'b.', label='BDSIM x')
+    #ax2.errorbar(bds.S(), bds.Mean_y(), yerr=bds.Sigma_mean_y(), fmt='g.', label='BDSIM $\mu_y$')
+    ax2.plot(bds.S(), bds.Mean_y()*1000.0, 'g.', label='BDSIM y')
+    ax2.plot(tfsd['s'], tfsd['x']*1000.0, 'b-', label='MADX x')
+    ax2.plot(tfsd['s'], tfsd['y']*1000.0, 'g-', label='MADX y')
+    ax2.set_ylim(-7,7)
+
+    ax2.set_xlabel('S Position from IP1 (ATLAS) (m)', fontsize='large')
+    ax2.set_ylabel('$\mu_{\mathrm{x,y}}$ (mm)',fontsize='large')
+
+    #_plt.legend(numpoints=1,fontsize='small')
+    _plt.subplots_adjust(left=0.12,right=0.95,top=0.98,bottom=0.12,hspace=0.06)
+
+    AddMachineLatticeToFigure(f,tfsfile)
+
+    _plt.xlim(12980,13700)
+    
 def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=None):
     bds  = _Data.Load(bdsfile)
     tfs  = _pymadx._General.CheckItsTfs(tfsfile)
@@ -83,9 +136,7 @@ def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=Non
         _plt.savefig(outputfilename+'.png')
     
 
-def AddMachineLatticeFromSurveyToFigure(figure,surveyfile):
-    sf  = CheckItsBDSAsciiData(surveyfile) #load the machine description
-
+def AddMachineLatticeFromSurveyToFigure(figure,*args):
     axs = figure.get_axes() #get the existing graph
     axoptics = axs[0]  #get the only presumed axes from the figure
 
@@ -107,9 +158,56 @@ def AddMachineLatticeFromSurveyToFigure(figure,surveyfile):
     figure.set_facecolor('white')
     _plt.subplots_adjust(hspace=0.01,top=0.94,left=0.1,right=0.92)
 
-    #generate the machine lattice plot
-    _DrawMachineLattice(axmachine,sf)
-    xl = axmachine.get_xlim()
+    #As the data apparently cannot be amended in a BDSAsciiData instance, each machines data will be concatenated into a
+    #dictionary, which is then converted back into BDSAsciiData format.
+
+    if len(args) == 1:
+        finaldata = CheckItsBDSAsciiData(args[0])
+    else:
+        finalpos = 0
+        num_elements = 0
+        totdata = {}   # Container for the final concatenated parameters prior to conversion to BDSAsciiData type
+        finaldata = _Data.BDSAsciiData()
+    
+        #Loop over each part and concatenate the data into a dictionary
+        for inputnum,surveyfile in enumerate(args):
+            partnum = 'part'+_np.str(inputnum+1)
+            
+            part  = CheckItsBDSAsciiData(surveyfile)    #This is the parts data
+            num_elements += len(part)
+
+            names = part.names
+            for name in names:                          #Loop over each name in the data
+                if inputnum == 0:                       #If it's the first part then add the names to the final data types
+                    finaldata._AddProperty(name)
+                    totdata[name] = []
+                ind = part.names.index(name)
+                if (name == 'SStart') or (name == 'SMid') or (name == 'SEnd'):          #If its a position,
+                    paramdata = _np.array([event[ind] for event in part]) + finalpos    #add the final position from the previous part
+                else:
+                    paramdata = _np.array([event[ind] for event in part])               #Otherwise it's just an array of the data
+
+                if isinstance(paramdata[0],_np.str):    # If the parameter is an array of strings, loop over and append individually
+                    for i in paramdata:
+                        totdata[name].append(i)
+                else:
+                    totdata[name] += list(paramdata)    # otherwise simply append all to the appropriate key in the final dictionary
+            finalpos += part.SEnd()[-1]                 #Update the final position
+
+        # Now convert the dict back into a BDSAsciiData instance.
+        for index in range(num_elements):
+            elementlist=[]
+            for name in names:
+                elementlist.append(totdata[name][index])
+            finaldata.append(elementlist)
+
+    _DrawMachineLattice(axmachine,finaldata)
+    xl1 = axmachine.get_xlim()
+    xl2 = axoptics.get_xlim()
+    if xl1 > xl2:
+        xl = xl1
+    else:
+        xl = xl2
     xr = xl[1] - xl[0]
     axoptics.set_xlim(xl[0]-0.02*xr,xl[1]+0.02*xr)
     axmachine.set_xlim(xl[0]-0.02*xr,xl[1]+0.02*xr)
@@ -121,7 +219,7 @@ def AddMachineLatticeFromSurveyToFigure(figure,surveyfile):
 
     def Click(a) : 
         if a.button == 3 : 
-            print 'Closest element: ',sf.NameFromNearestS(a.xdata)
+            print 'Closest element: ',finaldata.NameFromNearestS(a.xdata)
 
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
