@@ -118,6 +118,51 @@ class BDSAsciiData(list):
             return _np.array([event[ind] for event in self])
         setattr(self,variablename,GetAttribute)
 
+    def ConcatenateMachine(self,*args):
+        """
+        This is used to concatenate machines.
+        """
+        #Get final position of the machine (different param for survey)
+        if _General.IsSurvey(self):
+            lastSpos = self.SEnd()[-1]
+        else:
+            lastSpos = self.S()[-1]
+        
+        for machine in args:
+            if isinstance(machine,_np.str):
+                machine = Load(machine)
+        
+            #surveys have multiple s positions per element
+            if _General.IsSurvey(machine):
+                sstartind = self.names.index('SStart')
+                smidind = self.names.index('SMid')
+                sendind = self.names.index('SEnd')
+            elif self.names.count('S') != 0:
+                sind = self.names.index('S')
+            else:
+                raise KeyError("S is not a variable in this data")
+        
+            #Have to convert each element to a list as tuples can't be modified
+            for index,element in enumerate(machine):
+                elementlist = list(element)
+                
+                #update the elements S position
+                if _General.IsSurvey(machine):
+                    elementlist[sstartind] += lastSpos
+                    elementlist[smidind] += lastSpos
+                    elementlist[sendind] += lastSpos
+                else:
+                    elementlist[sind] += lastSpos
+                
+                self.append(tuple(elementlist))
+                
+            #update the total S position.
+            if _General.IsSurvey(machine):
+                lastSpos += machine.SEnd()[-1]
+            else:
+                lastSpos += machine.S()[-1]
+
+
     def _AddProperty(self,variablename,variableunit='NA'):
         """
         This is used to add a new variable and hence new getter function
