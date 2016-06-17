@@ -158,50 +158,13 @@ def AddMachineLatticeFromSurveyToFigure(figure,*args):
     figure.set_facecolor('white')
     _plt.subplots_adjust(hspace=0.01,top=0.94,left=0.1,right=0.92)
 
-    #As the data apparently cannot be amended in a BDSAsciiData instance, each machines data will be concatenated into a
-    #dictionary, which is then converted back into BDSAsciiData format.
+    #concat machine lattices
+    sf = CheckItsBDSAsciiData(args[0])
+    if len(args) > 1:
+        for machine in args[1:]:
+            sf.ConcatenateMachine(machine)
 
-    if len(args) == 1:
-        finaldata = CheckItsBDSAsciiData(args[0])
-    else:
-        finalpos = 0
-        num_elements = 0
-        totdata = {}   # Container for the final concatenated parameters prior to conversion to BDSAsciiData type
-        finaldata = _Data.BDSAsciiData()
-    
-        #Loop over each part and concatenate the data into a dictionary
-        for inputnum,surveyfile in enumerate(args):
-            partnum = 'part'+_np.str(inputnum+1)
-            
-            part  = CheckItsBDSAsciiData(surveyfile)    #This is the parts data
-            num_elements += len(part)
-
-            names = part.names
-            for name in names:                          #Loop over each name in the data
-                if inputnum == 0:                       #If it's the first part then add the names to the final data types
-                    finaldata._AddProperty(name)
-                    totdata[name] = []
-                ind = part.names.index(name)
-                if (name == 'SStart') or (name == 'SMid') or (name == 'SEnd'):          #If its a position,
-                    paramdata = _np.array([event[ind] for event in part]) + finalpos    #add the final position from the previous part
-                else:
-                    paramdata = _np.array([event[ind] for event in part])               #Otherwise it's just an array of the data
-
-                if isinstance(paramdata[0],_np.str):    # If the parameter is an array of strings, loop over and append individually
-                    for i in paramdata:
-                        totdata[name].append(i)
-                else:
-                    totdata[name] += list(paramdata)    # otherwise simply append all to the appropriate key in the final dictionary
-            finalpos += part.SEnd()[-1]                 #Update the final position
-
-        # Now convert the dict back into a BDSAsciiData instance.
-        for index in range(num_elements):
-            elementlist=[]
-            for name in names:
-                elementlist.append(totdata[name][index])
-            finaldata.append(elementlist)
-
-    _DrawMachineLattice(axmachine,finaldata)
+    _DrawMachineLattice(axmachine,sf)
     xl1 = axmachine.get_xlim()
     xl2 = axoptics.get_xlim()
     if xl1 > xl2:
@@ -219,7 +182,7 @@ def AddMachineLatticeFromSurveyToFigure(figure,*args):
 
     def Click(a) : 
         if a.button == 3 : 
-            print 'Closest element: ',finaldata.NameFromNearestS(a.xdata)
+            print 'Closest element: ',sf.NameFromNearestS(a.xdata)
 
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
