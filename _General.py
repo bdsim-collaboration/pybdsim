@@ -10,6 +10,7 @@ import glob
 import os
 import pybdsim.Data
 import re as _re
+import numpy as _np
 
 def CheckFileExists(filename):
     i = 1
@@ -72,3 +73,19 @@ def PrepareReducedName(elementname):
 
 def GetLatestFileFromDir(dirpath='', extension='*'):
     return max(glob.iglob(dirpath+extension), key=os.path.getctime)
+
+def IsSurvey(file):
+    """
+    Checks if input is a BDSIM generated survey
+    """
+    if isinstance(file,_np.str):
+        machine = pybdsim.Data.Load(file)
+    elif isinstance(file,pybdsim.Data.BDSAsciiData):
+        machine = file
+    else:
+        raise IOError("Unknown input type - not BDSIM data")
+
+    if machine.names.count('SStart') != 0:
+        return True
+    else:
+        return False
