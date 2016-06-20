@@ -99,6 +99,11 @@ def _ParseHeaderLine(line):
                 
 
 class BDSAsciiData(list):
+    """
+    General class representing simple 2 column data.
+
+    Inherits python list.  It's a list of tuples with extra columns of 'name' and 'units'.
+    """
     def __init__(self, *args, **kwargs):
         list.__init__(self, *args, **kwargs)
         self.units = []
@@ -106,6 +111,12 @@ class BDSAsciiData(list):
 
     def __getitem__(self,index):
         return dict(zip(self.names,list.__getitem__(self,index)))
+
+    def GetItemTuple(self,index):
+        """
+        Get a specific entry in the data as a tuple of values rather than a dictionary.
+        """
+        return list.__getitem__(self,index)
         
     def _AddMethod(self, variablename):
         """
@@ -143,7 +154,8 @@ class BDSAsciiData(list):
                 raise KeyError("S is not a variable in this data")
         
             #Have to convert each element to a list as tuples can't be modified
-            for index,element in enumerate(machine):
+            for index in range(len(machine)):
+                element = machine.GetItemTuple(index)
                 elementlist = list(element)
                 
                 #update the elements S position
