@@ -143,6 +143,10 @@ class BDSAsciiData(list):
             if isinstance(machine,_np.str):
                 machine = Load(machine)
         
+            #check names sets are equal
+            if len(set(self.names).difference(set(machine.names))) != 0:
+                raise AttributeError("Cannot concatenate machine, variable names do not match")
+        
             #surveys have multiple s positions per element
             if _General.IsSurvey(machine):
                 sstartind = self.names.index('SStart')
