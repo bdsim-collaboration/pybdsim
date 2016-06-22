@@ -135,9 +135,9 @@ class BDSAsciiData(list):
         """
         #Get final position of the machine (different param for survey)
         if _General.IsSurvey(self):
-            lastSpos = self.SEnd()[-1]
+            lastSpos = self.GetColumn('SEnd')[-1]
         else:
-            lastSpos = self.S()[-1]
+            lastSpos = self.GetColumn('S')[-1]
         
         for machine in args:
             if isinstance(machine,_np.str):
@@ -174,9 +174,9 @@ class BDSAsciiData(list):
                 
             #update the total S position.
             if _General.IsSurvey(machine):
-                lastSpos += machine.SEnd()[-1]
+                lastSpos += machine.GetColumn('SEnd')[-1]
             else:
-                lastSpos += machine.S()[-1]
+                lastSpos += machine.GetColumn('S')[-1]
 
 
     def _AddProperty(self,variablename,variableunit='NA'):
