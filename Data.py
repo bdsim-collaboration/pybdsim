@@ -267,3 +267,10 @@ class BDSAsciiData(list):
         #make robust against s positions outside machine range
         return ci
 
+    def GetColumn(self,columnstring):
+        """
+        Return a numpy array of the values in columnstring in order
+        as they appear in the beamline
+        """
+        ind = self.names.index(columnstring)
+        return _np.array([element[ind] for element in self])
