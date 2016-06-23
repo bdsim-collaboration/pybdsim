@@ -106,8 +106,9 @@ class BDSAsciiData(list):
     """
     def __init__(self, *args, **kwargs):
         list.__init__(self, *args, **kwargs)
-        self.units = []
-        self.names = []
+        self.units   = []
+        self.names   = []
+        self.columns = self.names
 
     def __getitem__(self,index):
         return dict(zip(self.names,list.__getitem__(self,index)))
@@ -272,5 +273,7 @@ class BDSAsciiData(list):
         Return a numpy array of the values in columnstring in order
         as they appear in the beamline
         """
+        if columnstring not in self.columns:
+            raise ValueError("Invalid column name")
         ind = self.names.index(columnstring)
         return _np.array([element[ind] for element in self])
