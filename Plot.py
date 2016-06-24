@@ -15,6 +15,7 @@ import matplotlib as _matplotlib
 import matplotlib.pyplot as _plt
 import matplotlib.patches as _patches
 import numpy as _np
+import string as _string
 
 from _General import CheckItsBDSAsciiData
 
@@ -270,3 +271,72 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             else:
                 #relatively short element - just draw a line
                 DrawLine(starts[i],'#cccccc',alpha=0.1)
+
+def CompareBDSIMWithTfs(parameter, bdsfile, tfsfile, scaling=1, lattice=None, ylabel=None, outputfilename=None):
+    #bdsim parameter names and equivalent tfs names
+    okParams = {'Sigma_x'   : 'SIGMAX',
+                'Sigma_y'   : 'SIGMAY',
+                'Sigma_xp'  : 'SIGMAXP',
+                'Sigma_yp'  : 'SIGMAYP',
+                'Beta_x'    : 'BETX',
+                'Beta_y'    : 'BETY',
+                'Disp_x'    : 'DX',
+                'Disp_y'    : 'DY',
+                'Alph_x'    : 'ALFX',
+                'Alph_y'    : 'ALFY'}
+
+    #check inputs and load data
+    if  isinstance(bdsfile,_Data.BDSAsciiData):
+        bds = bdsfile
+    else:
+        bds = _Data.Load(bdsfile)
+    if isinstance(tfsfile,_pymadx.Tfs):
+        tfs  = tfsfile
+    else:
+        tfs  = _pymadx._General.CheckItsTfs(tfsfile)
+
+    if parameter not in okParams.keys():
+        raise ValueError(parameter +' is not a plottable parameter.')
+    tfsparam = okParams[parameter]
+
+    #name of parameter error
+    errorparam = 'Sigma_' + _string.lower(parameter)
+
+    maxes = []
+    mins  = []
+    #set plot minimum to 0 for any parameter which can't be negative.
+    if parameter[:4] != ('Disp' or 'Alph'):
+            mins.append(0)
+
+    _plt.figure()
+    if bds.names.__contains__(parameter):
+        data   = bds.GetColumn(parameter) * scaling
+        bdsimlabel = 'BDSIM, NPrimaries = %1.0e' %bds.GetColumn('Npart')[0]
+        #Check if errors exist
+        if bds.names.__contains__(errorparam):
+            errors = bds.GetColumn(errorparam)*scaling
+            _plt.errorbar(bds.GetColumn('S'), data, yerr=errors, label=bdsimlabel)
+        else:
+            _plt.plot(bds.GetColumn('S'), data,label=bdsimlabel)
+        maxes.append(_np.max(data + errors))
+        mins.append(_np.max(data - errors))
+    if tfs.names.__contains__(tfsparam):
+        data = tfs.GetColumn(tfsparam)
+        _plt.plot(tfs.GetColumn('S'), data, label='MADX')
+        maxes.append(_np.max(data))
+        mins.append(_np.min(data))
+
+    _plt.xlabel('S (m)')
+    if ylabel != None:
+        _plt.ylabel(ylabel)
+    _plt.legend(loc=0)
+    _plt.ylim(1.1*_np.min(mins), 1.1*_np.max(maxes))
+    if lattice != None:
+        AddMachineLatticeFromSurveyToFigure(_plt.gcf(),lattice)
+    if outputfilename != None:
+        if '.' in outputfilename:
+            outputfilename = outputfilename.split('.')[0]
+        _plt.savefig(outputfilename+'.pdf')
+        _plt.savefig(outputfilename+'.png')
+
+
