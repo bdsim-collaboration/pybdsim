@@ -321,7 +321,7 @@ def CompareBDSIMWithTfs(parameter, bdsfile, tfsfile, scaling=1, lattice=None, yl
         maxes.append(_np.max(data + errors))
         mins.append(_np.max(data - errors))
     if tfs.names.__contains__(tfsparam):
-        data = tfs.GetColumn(tfsparam)
+        data = tfs.GetColumn(tfsparam)*scaling
         _plt.plot(tfs.GetColumn('S'), data, label='MADX')
         maxes.append(_np.max(data))
         mins.append(_np.min(data))
