@@ -17,6 +17,10 @@ import numpy as _np
 import Constants as _Constants
 import _General
 import os as _os
+try:
+    import root_numpy as _rnp
+except ImportError:
+    print 'root_numpy not found, Root loader not available.'
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
@@ -29,7 +33,11 @@ def Load(filepath):
     elif extension == 'txt':
         return _LoadAscii(filepath)
     elif extension == 'root':
-        print 'Root loader not implemented yet...'
+        try:
+            return _LoadRoot(filepath)
+        except NameError:
+            #raise error rather than return None, saves later scripting errors.
+            raise IOError('Root loader not available.')
     elif extension == 'dat':
         print '.dat file - trying general loader'
         try:
@@ -39,16 +47,6 @@ def Load(filepath):
             raise IOError("Unknown file type - not BDSIM data")
     else:
         raise IOError("Unknown file type - not BDSIM data")
-
-def _LoadRoot(filepath):
-    data = RootData()
-    units = []
-    keys  = []
-    dataarray = _np.array([])
-    f = open(filepath,'r')
-    #stuff here
-    f.close()
-    return data,dataarray,keys,units
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
@@ -83,6 +81,24 @@ def _LoadAsciiHistogram(filepath):
         elif i >= 4:
             data.append(tuple(map(float,line.split())))
     f.close()
+    return data
+
+def _LoadRoot(filepath):
+    data = BDSAsciiData()
+    trees = _rnp.list_trees(filepath)
+
+    if trees.__contains__('optics'):
+        branches = _rnp.list_branches(filepath,'optics')
+        treedata = _rnp.root2array(filepath,'optics')
+    else:
+        raise IOError("This file doesn't have the required tree 'optics'.")
+    for element in range(len(treedata[branches[0]])):
+        elementlist=[]
+        for branch in branches:
+            if element == 0:
+                data._AddProperty(branch)
+            elementlist.append(treedata[branch][element])
+        data.append(elementlist)
     return data
 
 def _ParseHeaderLine(line):
