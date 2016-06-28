@@ -17,6 +17,10 @@ import numpy as _np
 import Constants as _Constants
 import _General
 import os as _os
+try:
+    import root_numpy as _rnp
+except ImportError:
+    print 'root_numpy not found, Root loader not available.'
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
@@ -29,7 +33,11 @@ def Load(filepath):
     elif extension == 'txt':
         return _LoadAscii(filepath)
     elif extension == 'root':
-        print 'Root loader not implemented yet...'
+        try:
+            return _LoadRoot(filepath)
+        except NameError:
+            #raise error rather than return None, saves later scripting errors.
+            raise IOError('Root loader not available.')
     elif extension == 'dat':
         print '.dat file - trying general loader'
         try:
@@ -39,16 +47,6 @@ def Load(filepath):
             raise IOError("Unknown file type - not BDSIM data")
     else:
         raise IOError("Unknown file type - not BDSIM data")
-
-def _LoadRoot(filepath):
-    data = RootData()
-    units = []
-    keys  = []
-    dataarray = _np.array([])
-    f = open(filepath,'r')
-    #stuff here
-    f.close()
-    return data,dataarray,keys,units
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
@@ -85,6 +83,24 @@ def _LoadAsciiHistogram(filepath):
     f.close()
     return data
 
+def _LoadRoot(filepath):
+    data = BDSAsciiData()
+    trees = _rnp.list_trees(filepath)
+
+    if trees.__contains__('optics'):
+        branches = _rnp.list_branches(filepath,'optics')
+        treedata = _rnp.root2array(filepath,'optics')
+    else:
+        raise IOError("This file doesn't have the required tree 'optics'.")
+    for element in range(len(treedata[branches[0]])):
+        elementlist=[]
+        for branch in branches:
+            if element == 0:
+                data._AddProperty(branch)
+            elementlist.append(treedata[branch][element])
+        data.append(elementlist)
+    return data
+
 def _ParseHeaderLine(line):
     names = []
     units = []
@@ -99,13 +115,25 @@ def _ParseHeaderLine(line):
                 
 
 class BDSAsciiData(list):
+    """
+    General class representing simple 2 column data.
+
+    Inherits python list.  It's a list of tuples with extra columns of 'name' and 'units'.
+    """
     def __init__(self, *args, **kwargs):
         list.__init__(self, *args, **kwargs)
-        self.units = []
-        self.names = []
+        self.units   = []
+        self.names   = []
+        self.columns = self.names
 
     def __getitem__(self,index):
         return dict(zip(self.names,list.__getitem__(self,index)))
+
+    def GetItemTuple(self,index):
+        """
+        Get a specific entry in the data as a tuple of values rather than a dictionary.
+        """
+        return list.__getitem__(self,index)
         
     def _AddMethod(self, variablename):
         """
@@ -117,6 +145,56 @@ class BDSAsciiData(list):
             ind = self.names.index(variablename)
             return _np.array([event[ind] for event in self])
         setattr(self,variablename,GetAttribute)
+
+    def ConcatenateMachine(self,*args):
+        """
+        This is used to concatenate machines.
+        """
+        #Get final position of the machine (different param for survey)
+        if _General.IsSurvey(self):
+            lastSpos = self.GetColumn('SEnd')[-1]
+        else:
+            lastSpos = self.GetColumn('S')[-1]
+        
+        for machine in args:
+            if isinstance(machine,_np.str):
+                machine = Load(machine)
+        
+            #check names sets are equal
+            if len(set(self.names).difference(set(machine.names))) != 0:
+                raise AttributeError("Cannot concatenate machine, variable names do not match")
+        
+            #surveys have multiple s positions per element
+            if _General.IsSurvey(machine):
+                sstartind = self.names.index('SStart')
+                smidind = self.names.index('SMid')
+                sendind = self.names.index('SEnd')
+            elif self.names.count('S') != 0:
+                sind = self.names.index('S')
+            else:
+                raise KeyError("S is not a variable in this data")
+        
+            #Have to convert each element to a list as tuples can't be modified
+            for index in range(len(machine)):
+                element = machine.GetItemTuple(index)
+                elementlist = list(element)
+                
+                #update the elements S position
+                if _General.IsSurvey(machine):
+                    elementlist[sstartind] += lastSpos
+                    elementlist[smidind] += lastSpos
+                    elementlist[sendind] += lastSpos
+                else:
+                    elementlist[sind] += lastSpos
+                
+                self.append(tuple(elementlist))
+                
+            #update the total S position.
+            if _General.IsSurvey(machine):
+                lastSpos += machine.GetColumn('SEnd')[-1]
+            else:
+                lastSpos += machine.GetColumn('S')[-1]
+
 
     def _AddProperty(self,variablename,variableunit='NA'):
         """
@@ -206,3 +284,12 @@ class BDSAsciiData(list):
         #make robust against s positions outside machine range
         return ci
 
+    def GetColumn(self,columnstring):
+        """
+        Return a numpy array of the values in columnstring in order
+        as they appear in the beamline
+        """
+        if columnstring not in self.columns:
+            raise ValueError("Invalid column name")
+        ind = self.names.index(columnstring)
+        return _np.array([element[ind] for element in self])
