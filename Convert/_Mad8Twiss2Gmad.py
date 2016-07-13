@@ -99,10 +99,10 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                                 tilt   = float(c.data[i][c.keys['quad']['tilt']]),
                                 aper1  = float(apertures.aper[i]))
         elif c.type[i] == 'SEXT' : 
-            a.AddDrift(prepend+c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['sext']['l']],aper1=apertures.aper[i]))
+            a.AddDrift(prepend+c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['sext']['l']]),aper1=apertures.aper[i])
         elif c.type[i] == 'OCTU' : 
-            if c.data[i][c.keys['octupole']['l']] > 1e-7 : 
-                a.AddDrift(prepend+c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['octu']['l']],aper1=apertures.aper[i]))
+            if c.data[i][c.keys['octu']['l']] > 1e-7 : 
+                a.AddDrift(prepend+c.name[i]+'_'+str(eCount),length=float(c.data[i][c.keys['octu']['l']]),aper1=apertures.aper[i])
             else : 
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
         elif c.type[i] == 'MULT' : 
@@ -170,7 +170,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
                               length  = float(c.data[i][c.keys['rcol']['l']]), 
                               xsize   = float(collimator.getCollimator(c.name[i])['xsize']), 
                               ysize   = float(collimator.getCollimator(c.name[i])['ysize']),
-                              material= float(collimator.getCollimator(c.name[i])['bdsim_material']))           
+                              material= collimator.getCollimator(c.name[i])['bdsim_material'])          
                 else : 
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['rcol']['l']]))
 
@@ -197,7 +197,7 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     
     return beam
 
-def Mad8MakeApertures(inputFileName, outputFileName="apertures.dat") : 
+def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.dat") : 
     # open mad output
     o = pymad8.Mad8.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
