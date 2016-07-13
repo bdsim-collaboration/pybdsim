@@ -47,6 +47,32 @@ class ExecOptions(dict):
         result = dict((k,self[k]) for k in self.keys() if k in self._okArgs)
         return result
 
+class GmadModifier : 
+    def __init__(self,rootgmadfilename) : 
+        self.rootgmadfilename = rootgmadfilename 
+        self.gmadfiles = [self.rootgmadfilename]
+        self.DetermineIncludes(self.rootgmadfilename)
+        self.CheckExtensions()
+
+    def DetermineIncludes(self,filename) :
+        f = open(filename)
+        for l in f :
+            if l.find("include") != -1 :
+                includefile = l.split()[1].replace(";","")
+                self.gmadfiles.append(includefile)
+                self.DetermineIncludes(includefile)
+        f.close()
+
+    def CheckExtensions(self) :
+        for filename in self.gmadfiles : 
+            pass
+    
+    def ReplaceTokens(self,tokenDict) :
+        pass
+    
+    
+        
+
 class Study:
     """
     A holder for multiple runs.
