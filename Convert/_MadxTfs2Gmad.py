@@ -199,10 +199,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
             kickangle = item['HKICK'] * factor
-            if(l != 0) :
-                a.AddHKicker(rname,l,angle=kickangle,**kws)
-            else :
+            if zerolength and not izlis:
                 a.AddMarker(rname)
+            else:
+                a.AddHKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
             if zerolength and not izlis:
@@ -239,12 +239,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 k5s = item['K5SL'] / _lFake * factor
                 k6s = item['K6SL'] / _lFake * factor
                 tilt= item['TILT']
+                print 'WARNING - only using quadrupole component just now!'
                 if k1 != 0 : 
                     a.AddQuadrupole(rname,k1=k1,length=_lFake,**kws) 
                 else:
                     a.AddMarker(rname)
                     #a.AddMultipole(name,length=_lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),**kws)
-            elif zerolength and izlis:
+            elif zerolength and not izlis:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of multipole'
