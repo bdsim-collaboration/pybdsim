@@ -6,8 +6,11 @@ import optparse as _op
 import pymad8
 from .. import Builder
 from .. import Beam
+from .. import Options
 
-def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(1e-10,1e-10), collimator="collimator.dat", apertures="apertures.dat",samplers='all', options=True) :         
+def Mad8Twiss2Gmad(inputFileName, outputFileName, 
+                   istart = 0, beam=True, gemit=(1e-10,1e-10), 
+                   collimator="collimator.dat", apertures="apertures.dat",samplers='all', options=True) :         
 
     # open mad output
     o = pymad8.Mad8.OutputReader()
@@ -23,7 +26,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
     # load Collimator db or use instance
     if type(collimator) == str : 
         collimator = Mad8CollimatorDatabase(collimator) 
-
+        collimator.openCollimators()
     # load Aperture db or use instance
     if type(apertures) == str : 
         apertures = Mad8ApertureDatabase(apertures) 
@@ -35,6 +38,14 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
     # create name dictionary 
     nameDict = {}    
 
+    # create emittance
+    if type(gemit) == str : 
+        echoVals = Mad8EchoValue(gemit)
+        echoVals.loadValues()
+        gemit = _np.zeros(2)
+        gemit[0] = echoVals.valueDict['EMITX']
+        gemit[1] = echoVals.valueDict['EMITY']
+    
     # create beam 
     if beam : 
         E = c.data[istart][c.keys['drif']['E']] 
@@ -43,9 +54,11 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName, istart = 0, beam=True, gemit=(
         b.SetEmittanceY(gemit[1],'m')
         a.AddBeam(b)
 
+
     # create options 
     if options : 
-        pass
+        o = Options.ElectronColliderOptions()
+        a.AddOptions(o)
 
     # iterate through objects and build machine 
     for i in range(istart,len(c.name),1) : 
@@ -197,6 +210,19 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     
     return beam
 
+
+def Mad8MakeOptions(inputTwissFile, inputEchoFile) :
+    # open mad output
+    o = pymad8.Mad8.OutputReader()
+    c, t = o.readFile(inputFileName,'twiss')
+    
+    # get initial beam pipe size
+    a = c.getApertures(raw=False)
+
+    # get values from echo of mad8 output (particle type, beam energy, energy spread)
+    echoVals = Mad8EchoValue(inputEchoFile)
+    echoVals.loadValues()
+
 def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.dat") : 
     # open mad output
     o = pymad8.Mad8.OutputReader()
@@ -231,6 +257,22 @@ def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator_template
             f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['ecol']['l']])+"\t"+str(c.data[i][c.keys['ecol']['xsize']])+"\t"+str(c.data[i][c.keys['ecol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\t"+"SIGMA"+"\n")
     f.close()
         
+
+class Mad8EchoValue :
+    def __init__(self,echoFileName) : 
+        self.echoFileName = echoFileName
+        self.valueDict = {}
+        
+    def loadValues(self) : 
+        f = open(self.echoFileName) 
+
+        for l in f : 
+            if l.find("Value") != -1 :
+                sl = l.split()
+                k  = sl[3].strip('"')
+                v  = float(sl[5])
+                self.valueDict[k] = v
+    
 
 class Mad8ApertureDatabase: 
     def __init__(self,apertureFileName) : 
@@ -319,6 +361,7 @@ class Mad8CollimatorDatabase:
         for k in self.getCollimators() : 
             f.write(k+"\t"+self._coll[k]['type']+"\t"+str(self._coll[k]['l'])+"\t"+str(self._coll[k]['xsize'])+"\t"+str(self._coll[k]['ysize'])+"\t"+self._coll[k]['bdsim_material']+"\t"+self._coll[k]['bdsim_geom']+"\t"+self._coll[k]['setting']+"\n")
         
+
 def main() : 
     usage = "usage : %prog [inputFileName]" 
     parser = _op.OptionParser(usage)
