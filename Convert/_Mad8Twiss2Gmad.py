@@ -38,20 +38,23 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # create name dictionary 
     nameDict = {}    
 
-    # create emittance
+    esprd = 0.0
+    # create beam (emit and energy spread)
     if type(gemit) == str : 
         echoVals = Mad8EchoValue(gemit)
         echoVals.loadValues()
         gemit = _np.zeros(2)
         gemit[0] = echoVals.valueDict['EMITX']
         gemit[1] = echoVals.valueDict['EMITY']
-    
+        esprd    = echoVals.valueDict['ESPRD']
+
     # create beam 
     if beam : 
         E = c.data[istart][c.keys['drif']['E']] 
         b = Mad8Twiss2Beam(t,istart,"e-",E)
         b.SetEmittanceX(gemit[0],'m')
-        b.SetEmittanceY(gemit[1],'m')
+        b.SetEmittanceY(gemit[1],'m')        
+        b.SetSigmaE(esprd)
         a.AddBeam(b)
 
 
