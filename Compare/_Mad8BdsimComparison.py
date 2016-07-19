@@ -3,6 +3,7 @@ import pylab  as _pl
 import pymad8 as _pymad8
 from .. import Data as _Data
 import matplotlib.pyplot as _plt
+import numpy as _np
 
 class Mad8Bdsim :
     def __init__(self, 
@@ -46,6 +47,34 @@ class Mad8Bdsim :
         _pymad8.Plot.setCallbacks(figure,ax0,ax2)
 
         _pl.savefig("mad8bdsim_sigma.pdf")
+        
+
+    def plotMean(self) : 
+        figure = _plt.figure()
+        gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
+        ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
+        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)   
+
+        ax1 = _plt.subplot(gs[1])
+        _pl.plot(self.mad8Envel.getColumn('suml'), _np.zeros(len(self.mad8Envel.getColumn('suml'))),"+-",label="MAD8") #mad8 orbit perfectly on reference
+        _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Mean_x']/1e-6,"x--",label="BDSIM")
+        _pl.xlim(0,2275)
+        #_pl.ylim(0,3000)
+        _pl.legend(loc=0)
+        _pl.ylabel("$\\overline{x}$ [$\mu$m]")
+
+        ax2 = _plt.subplot(gs[2])
+        _pl.plot(self.mad8Envel.getColumn('suml'), _np.zeros(len(self.mad8Envel.getColumn('suml'))) ,"+-")
+        _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Mean_y']/1e-6,"x--")
+        _pl.xlim(0,2275)
+        #_pl.ylim(0,100)
+        _pl.ylabel("$\\overline{y}$ [$\mu$m]")
+        _pl.xlabel("$S$ [m]")
+
+        _pymad8.Plot.setCallbacks(figure,ax0,ax1)
+        _pymad8.Plot.setCallbacks(figure,ax0,ax2)
+
+        _pl.savefig("mad8bdsim_mean.pdf")
 
 
     
