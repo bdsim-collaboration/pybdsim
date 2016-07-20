@@ -31,16 +31,16 @@ class Mad8Bdsim :
         ax1 = _plt.subplot(gs[1])
         _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Envel.getColumn('s11'))*1e6,"+-",label="MAD8")
         _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Sigma_x']/1e-6,"x--",label="BDSIM")
-        _pl.xlim(0,2275)
-        _pl.ylim(0,3000)
+        #_pl.xlim(0,2275)
+        #_pl.ylim(0,3000)
         _pl.legend(loc=0)
         _pl.ylabel("$\\sigma_x$ [$\mu$m]")
 
         ax2 = _plt.subplot(gs[2])
         _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Envel.getColumn('s33'))*1e6,"+-")
         _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Sigma_y']/1e-6,"x--")
-        _pl.xlim(0,2275)
-        _pl.ylim(0,100)
+        #_pl.xlim(0,2275)
+        #_pl.ylim(0,100)
         _pl.ylabel("$\\sigma_y$ [$\mu$m]")
         _pl.xlabel("$S$ [m]")
 
@@ -71,11 +71,9 @@ class Mad8Bdsim :
         _pl.ylabel("$\\overline{y}$ [$\mu$m]")
         _pl.xlabel("$S$ [m]")
 
-        _pymad8.Plot.setCallbacks(figure,ax0,ax1)
-        _pymad8.Plot.setCallbacks(figure,ax0,ax2)
-
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
+        
         _pl.savefig("mad8bdsim_mean.pdf")
-
 
     
     def plotBeta(self) : 
@@ -97,9 +95,10 @@ class Mad8Bdsim :
         _pl.ylabel("$\\beta_y$")
         _pl.xlabel("$S$ [m]")
 
-        _pymad8.Plot.setCallbacks(figure,ax0,[ax0,ax1],self.mad8Twiss)
-    
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
+        
         _pl.savefig("mad8bdsim_beta.pdf")
+    
 
     def plotSurvey(self, mad8SurveyFileName, bdsimSurveyFileName) :
         # load bdsim survey
@@ -129,10 +128,9 @@ class Mad8Bdsim :
 
         _pl.legend(loc=0)
         _pl.subplots_adjust(hspace=0.25,top=0.94,left=0.1,right=0.92)
+
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
         
-        _pymad8.Plot.setCallbacks(figure,ax0,ax1)
-        _pymad8.Plot.setCallbacks(figure,ax0,ax2)
-    
         _pl.savefig("mad8bdsim_survey.pdf")
 
 
@@ -156,7 +154,9 @@ class Mad8Bdsim :
         _pl.xlabel("$S$ [m]")
         
         _pl.legend(loc=0)
-
+        
         _pymad8.Plot.setCallbacks(figure,ax0,[ax0,ax1],self.mad8Twiss)
 
         _pl.savefig("mad8bdsim_eta.pdf")
+
+
