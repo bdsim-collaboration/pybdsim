@@ -44,8 +44,7 @@ class Mad8Bdsim :
         _pl.ylabel("$\\sigma_y$ [$\mu$m]")
         _pl.xlabel("$S$ [m]")
 
-        _pymad8.Plot.setCallbacks(figure,ax0,ax1)
-        _pymad8.Plot.setCallbacks(figure,ax0,ax2)
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
 
         _pl.savefig("mad8bdsim_sigma.pdf")
         
@@ -98,8 +97,7 @@ class Mad8Bdsim :
         _pl.ylabel("$\\beta_y$")
         _pl.xlabel("$S$ [m]")
 
-        _pymad8.Plot.setCallbacks(figure,ax0,ax1)
-        _pymad8.Plot.setCallbacks(figure,ax0,ax2)
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax0,ax1],self.mad8Twiss)
     
         _pl.savefig("mad8bdsim_beta.pdf")
 
@@ -159,7 +157,6 @@ class Mad8Bdsim :
         
         _pl.legend(loc=0)
 
-        _pymad8.Plot.setCallbacks(figure,ax0,ax1)
-        _pymad8.Plot.setCallbacks(figure,ax0,ax2)
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax0,ax1],self.mad8Twiss)
 
         _pl.savefig("mad8bdsim_eta.pdf")
