@@ -10,7 +10,7 @@ from .. import Options
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
                    istart = 0, beam=True, gemit=(1e-10,1e-10), 
-                   collimator="collimator.dat", apertures="apertures.dat",samplers='all', options=True) :         
+                   collimator="collimator.dat", apertures="apertures.dat",samplers='all', options=True, flip = 1) :         
 
     # open mad output
     o = pymad8.Mad8.OutputReader()
@@ -121,15 +121,21 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
             else : 
                 a.AddQuadrupole(prepend+c.name[i]+'_'+str(eCount),
-                                k1     = float(c.data[i][c.keys['quad']['k1']]),
+                                k1     = float(c.data[i][c.keys['quad']['k1']])*flip,
                                 length = float(c.data[i][c.keys['quad']['l']]),
                                 tilt   = float(c.data[i][c.keys['quad']['tilt']]),
                                 aper1  = float(apertures.aper[i]))
 ###################################################################################
         elif c.type[i] == 'SEXT' : 
-            a.AddDrift(prepend+c.name[i]+'_'+str(eCount),
-                       length=float(c.data[i][c.keys['sext']['l']]),
-                       aper1=apertures.aper[i])
+            if c.data[i][c.keys['quad']['l']] < 1e-7 :
+                a.AddDrift(prepend+c.name[i]+'_'+str(eCount),
+                           length=float(c.data[i][c.keys['sext']['l']]),
+                           aper1=apertures.aper[i])
+            else : 
+                a.AddSextupole(prepend+c.name[i]+'_'+str(eCount),
+                               length=float(c.data[i][c.keys['sext']['l']]),
+                               k2=float(c.data[i][c.keys['sext']['k2']]),
+                               aper1=apertures.aper[i])
 ###################################################################################
         elif c.type[i] == 'OCTU' : 
             if c.data[i][c.keys['octu']['l']] > 1e-7 : 
@@ -160,9 +166,11 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             if c.data[i][c.keys['sben']['l']] < 1e-7 : 
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
             else : 
+                # check for large tilt
+                
                 a.AddDipole(prepend+c.name[i]+'_'+str(eCount),'sbend',
                             length= float(c.data[i][c.keys['sben']['l']]), 
-                            angle = float(c.data[i][c.keys['sben']['angle']]),
+                            angle = float(c.data[i][c.keys['sben']['angle']])*flip,
                             aper  = float(apertures.aper[i]),
                             e1    = float(c.data[i][c.keys['sben']['e1']]),
                             e2    = float(c.data[i][c.keys['sben']['e2']]),
@@ -231,6 +239,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 ###################################################################################
         else :
             print "UNKN> ",c.type[i]
+###################################################################################
 
         nameDict[c.name[i]] += 1 
 
