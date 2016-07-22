@@ -43,7 +43,7 @@ def MadxGmadComparison(tfsfile, gmadfile, title='', outputfilename=None):
 def AddMachineLatticeToFigure(figure,tfsfile):
     _pymadx.Plot.AddMachineLatticeToFigure(figure,tfsfile)
 
-def ProvidedWraooedS(sArray, index):
+def ProvidWrappedS(sArray, index):
     s = sArray #shortcut
     smax = s[-1]
     sind = s[index]
@@ -52,8 +52,7 @@ def ProvidedWraooedS(sArray, index):
     snewb = s[:index]
     snewb = snewb + (smax - sind)
     snew  = _np.concatentate((snewa,snewb))
-    return snew
-    
+    return snew    
 
 def CompareBDSIMWithMadXSigma(tfsfile, bdsfile, emittance, title='', outputfilename=None):
     """
