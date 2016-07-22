@@ -182,7 +182,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 
                 a.AddDipole(prepend+c.name[i]+'_'+str(eCount),'sbend',
                             length= float(c.data[i][c.keys['sben']['l']]), 
-                            angle = float(c.data[i][c.keys['sben']['angle']])*flip,
+                            angle = float(c.data[i][c.keys['sben']['angle']]),
                             aper  = float(apertures.aper[i]),
                             e1    = float(c.data[i][c.keys['sben']['e1']]),
                             e2    = float(c.data[i][c.keys['sben']['e2']]),
