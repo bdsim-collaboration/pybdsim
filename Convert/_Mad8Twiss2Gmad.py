@@ -9,7 +9,7 @@ from .. import Beam
 from .. import Options
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
-                   istart = 0, beam=True, gemit=(1e-10,1e-10), 
+                   istart = 0, beam=True, gemit=(1e-10,1e-10), mad8FileName = "", 
                    collimator="collimator.dat", apertures="apertures.dat",samplers='all', options=True, flip = 1) :         
 
     # open mad output
@@ -38,8 +38,20 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # create name dictionary 
     nameDict = {}    
 
-    esprd = 0.0
+    
+    # load mad8
+    particle = 'e+'
+    m8 = pymad8.Mad8.Mad8(mad8FileName)
+    if m8.particle == 'ELECTRON' :
+        particle = 'e-'
+        flip     = -1
+
+    elif m8.particle == 'POSITRON' : 
+        particle = 'e+'
+        flip     = 1
+
     # create beam (emit and energy spread)
+    esprd = 0.0
     if type(gemit) == str : 
         echoVals = pymad8.Mad8.EchoValue(gemit)
         echoVals.loadValues()
@@ -50,8 +62,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
     # create beam 
     if beam : 
-        E = c.data[istart][c.keys['drif']['E']] 
-        b = Mad8Twiss2Beam(t,istart,"e-",E)
+        E = c.data[istart][c.keys['drif']['E']]         
+        b = Mad8Twiss2Beam(t,istart,particle,E)
         b.SetEmittanceX(gemit[0],'m')
         b.SetEmittanceY(gemit[1],'m')        
         b.SetSigmaE(esprd)
@@ -134,7 +146,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             else : 
                 a.AddSextupole(prepend+c.name[i]+'_'+str(eCount),
                                length=float(c.data[i][c.keys['sext']['l']]),
-                               k2=float(c.data[i][c.keys['sext']['k2']]),
+                               k2=float(c.data[i][c.keys['sext']['k2']])*flip,
                                aper1=apertures.aper[i])
 ###################################################################################
         elif c.type[i] == 'OCTU' : 
