@@ -33,7 +33,7 @@ def GetDataFromROOTHist(hist):
         centres.append(hist.GetBinCenter(i))
         error.append(hist.GetBinError(i))
 
-        values.extend(binWidth, content, centres, error)
+        values.extend([binWidth, content, centres, error])
 
     return dict(zip(variables, values))
 
