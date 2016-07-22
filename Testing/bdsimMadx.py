@@ -168,11 +168,11 @@ class LatticeTest:
         attempts = 0
         
         while(isValid==False and attempts<=5):
-            rootdata  = robdsim.RobdsimOutput(self.filename+".root")
+            rootdata  = robdsim.RobdsimOutput(self.filename+".root",'none')
             print "robdsim.RobdsimOutput> root file loaded"
         
             primchain = rootdata.GetSamplerChain('Primaries')
-            bdsimprim = _rnp.tree2rec(primchain)
+            bdsimprim = _rnp.tree2array(primchain)
             Bx0 = bdsimprim['x']
             By0 = bdsimprim['y']
             Bxp0 = bdsimprim['xp']
@@ -186,7 +186,7 @@ class LatticeTest:
                     break
             print( "End sampler found to be " + final_sampler)
             endchain = rootdata.GetSamplerChain(final_sampler)
-            bdsim = _rnp.tree2rec(endchain)
+            bdsim = _rnp.tree2array(endchain)
             Bx = bdsim['x']
             By = bdsim['y']
             Bxp = bdsim['xp']
