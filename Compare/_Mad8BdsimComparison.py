@@ -84,7 +84,7 @@ class Mad8Bdsim :
         ax1 = _plt.subplot(gs[1])
         _pl.plot(self.mad8Envel.getColumn('suml'), _np.zeros(len(self.mad8Envel.getColumn('suml'))),"+-",label="MAD8") #mad8 orbit perfectly on reference
         _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Mean_x']/1e-6,"x--",label="BDSIM")
-        _pl.xlim(0,2275)
+        #_pl.xlim(0,2275)
         #_pl.ylim(0,3000)
         _pl.legend(loc=0)
         _pl.ylabel("$\\overline{x}$ [$\mu$m]")

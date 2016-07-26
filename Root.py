@@ -23,12 +23,19 @@ def GetDataFromROOTHist(hist):
     binWidth = []
     content  = []
     centres  = []
+    error    = []
+
+    variables = ['binwidth', 'content', 'centres', 'error']
+    values = []
     for i in range(nbinsX):
         binWidth.append(hist.GetXaxis().GetBinWidth(i))
         content.append(hist.GetBinContent(i))
         centres.append(hist.GetBinCenter(i))
+        error.append(hist.GetBinError(i))
 
-    return binWidth, content, centres
+        values.extend([binWidth, content, centres, error])
+
+    return dict(zip(variables, values))
 
 def PlotTH1Bar(hist, edgecolor='none', color='b', label='', newFigure=True):
 
