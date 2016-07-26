@@ -9,7 +9,7 @@ from .. import Beam
 from .. import Options
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
-                   istart = 0, beam=True, gemit=(1e-10,1e-10), 
+                   istart = 0, beam=True, gemit=(1e-10,1e-10), mad8FileName = "", 
                    collimator="collimator.dat", apertures="apertures.dat",samplers='all', options=True, flip = 1) :         
 
     # open mad output
@@ -38,10 +38,22 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # create name dictionary 
     nameDict = {}    
 
-    esprd = 0.0
+    
+    # load mad8
+    particle = 'e+'
+    m8 = pymad8.Mad8.Mad8(mad8FileName)
+    if m8.particle == 'ELECTRON' :
+        particle = 'e-'
+        flip     = -1
+
+    elif m8.particle == 'POSITRON' : 
+        particle = 'e+'
+        flip     = 1
+
     # create beam (emit and energy spread)
+    esprd = 0.0
     if type(gemit) == str : 
-        echoVals = Mad8EchoValue(gemit)
+        echoVals = pymad8.Mad8.EchoValue(gemit)
         echoVals.loadValues()
         gemit = _np.zeros(2)
         gemit[0] = echoVals.valueDict['EMITX']
@@ -50,8 +62,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
     # create beam 
     if beam : 
-        E = c.data[istart][c.keys['drif']['E']] 
-        b = Mad8Twiss2Beam(t,istart,"e-",E)
+        E = c.data[istart][c.keys['drif']['E']]         
+        b = Mad8Twiss2Beam(t,istart,particle,E)
         b.SetEmittanceX(gemit[0],'m')
         b.SetEmittanceY(gemit[1],'m')        
         b.SetSigmaE(esprd)
@@ -134,7 +146,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             else : 
                 a.AddSextupole(prepend+c.name[i]+'_'+str(eCount),
                                length=float(c.data[i][c.keys['sext']['l']]),
-                               k2=float(c.data[i][c.keys['sext']['k2']]),
+                               k2=float(c.data[i][c.keys['sext']['k2']])*flip,
                                aper1=apertures.aper[i])
 ###################################################################################
         elif c.type[i] == 'OCTU' : 
@@ -170,7 +182,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 
                 a.AddDipole(prepend+c.name[i]+'_'+str(eCount),'sbend',
                             length= float(c.data[i][c.keys['sben']['l']]), 
-                            angle = float(c.data[i][c.keys['sben']['angle']])*flip,
+                            angle = float(c.data[i][c.keys['sben']['angle']]),
                             aper  = float(apertures.aper[i]),
                             e1    = float(c.data[i][c.keys['sben']['e1']]),
                             e2    = float(c.data[i][c.keys['sben']['e2']]),
@@ -271,7 +283,7 @@ def Mad8MakeOptions(inputTwissFile, inputEchoFile) :
     a = c.getApertures(raw=False)
 
     # get values from echo of mad8 output (particle type, beam energy, energy spread)
-    echoVals = Mad8EchoValue(inputEchoFile)
+    echoVals = pymad8.Mad8.EchoValue(inputEchoFile)
     echoVals.loadValues()
 
 def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.dat") : 
@@ -308,23 +320,6 @@ def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator_template
             f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['ecol']['l']])+"\t"+str(c.data[i][c.keys['ecol']['xsize']])+"\t"+str(c.data[i][c.keys['ecol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\t"+"SIGMA"+"\n")
     f.close()
         
-
-class Mad8EchoValue :
-    def __init__(self,echoFileName) : 
-        self.echoFileName = echoFileName
-        self.valueDict = {}
-        
-    def loadValues(self) : 
-        f = open(self.echoFileName) 
-
-        for l in f : 
-            if l.find("Value") != -1 :
-                sl = l.split()
-                k  = sl[3].strip('"')
-                v  = float(sl[5])
-                self.valueDict[k] = v
-    
-
 class Mad8ApertureDatabase: 
     def __init__(self,apertureFileName) : 
         self.apertureFileName = apertureFileName
@@ -338,10 +333,7 @@ class Mad8ApertureDatabase:
             t = l.split() 
             self.name.append(t[0])
             self.aper.append(float(t[1]))
-
-            
-
-
+        
 class Mad8CollimatorDatabase: 
     '''
     Load collimator file into memory and functions to open and manipulate collimator system

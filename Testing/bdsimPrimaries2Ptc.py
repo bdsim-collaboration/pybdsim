@@ -1,6 +1,6 @@
+import ROOT as _rt
 import root_numpy as _rnp
 import numpy as _np
-import robdsim as _rbs
 import matplotlib.pyplot as _plt
 
 
@@ -12,17 +12,18 @@ def BdsimPrimaries2Ptc(inputfile,outfile):
     """    
 
     print "BdsimPrimaries2Ptc processing... ", inputfile
-    rootin      = _rbs.RobdsimOutput(inputfile,'none')
-    primchain   = rootin.GetSamplerChain('Primaries')
-    arrchain    = _rnp.tree2rec(primchain)   #array form of the primary tree chain
+    rootin      = _rt.TFile(inputfile)
+    t           = rootin.Get("Event")
+    
+    x           =  _rnp.tree2rec(t, branches="Primary.x")
+    y           =  _rnp.tree2rec(t, branches="Primary.y")
+    xp          =  _rnp.tree2rec(t, branches="Primary.xp")
+    yp          =  _rnp.tree2rec(t, branches="Primary.yp")
+    t           =  _rnp.tree2rec(t, branches="Primary.z")
+   # E           =  _rnp.tree2rec(t, branches="Primary.energy")
+    E           = _np.full((len(x)), 250.0)
 
-    nparticles  = len(arrchain)
-    x           = arrchain['x']
-    y           = arrchain['y']
-    xp          = arrchain['xp']
-    yp          = arrchain['yp']
-    t           = arrchain['z']
-    E           = arrchain['E']
+    nparticles  = len(x)
     meanE       = _np.mean(E)
     
 
