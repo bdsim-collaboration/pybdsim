@@ -20,7 +20,8 @@ import os as _os
 try:
     import root_numpy as _rnp
 except ImportError:
-    print 'root_numpy not found, Root loader not available.'
+    pass
+    #print 'root_numpy not found, Root loader not available.'
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
