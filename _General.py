@@ -12,7 +12,7 @@ import pybdsim.Data
 import re as _re
 import numpy as _np
 
-def CheckFileExists(filename):
+def GenUniqueFilename(filename):
     i = 1
     parts = filename.split('.')
     basefilename = parts[0]
