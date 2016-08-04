@@ -11,4 +11,5 @@ from _MadxTfs2Gmad import MadxTfs2Gmad
 from _MadxTfs2GmadStrength import MadxTfs2GmadStrength
 from _Mad8Twiss2Gmad import *
 from _Mad8Saveline2Gmad import *
+from _BdsimPrimaries2Inrays import *
 
