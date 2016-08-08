@@ -19,7 +19,7 @@ def bdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
     start     - <int>  starting primary particle index
     ninrays   - <int> total number of inrays to generate
     """
-    if not (outfile[:-5] == ".madx"):
+    if not (outfile[-5:] == ".madx"):
         outfile = outfile+".madx"
     
     primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
@@ -53,7 +53,7 @@ def bdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     start     - <int>  starting primary particle index
     ninrays   - <int> total number of inrays to generate, default is all available
     """
-    if not (outfile[:-5] == ".madx"):
+    if not (outfile[-5:] == ".madx"):
         outfile = outfile+".madx"
     
     primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
@@ -87,7 +87,7 @@ def bdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     start     - <int>  starting primary particle index
     ninrays   - <int> total number of inrays to generate
     """
-    if not (outfile[:-5] == ".mad8"):
+    if not (outfile[-5:] == ".mad8"):
         outfile = outfile+".mad8"
     
     primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
