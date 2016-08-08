@@ -6,7 +6,13 @@ from ROOT import TFile as _TFile
 import root_numpy as _root_numpy 
 import sys as _sys
 
-def Rebdsim2Numpy(rootfilename,picklefilename) :
+def Rebdsim2Numpy(rootfilename,picklefilename):
+    """
+    Load an output file from rebdsim using root_numpy, convert
+    to a dictionary of arrays and save in a Python binary pickled file.
+    
+    Arguments Rebdsim2Numpy(inputfilename, outputfilename)
+    """
     # open file 
     f = _TFile(rootfilename)
 
@@ -44,5 +50,9 @@ def Rebdsim2Numpy(rootfilename,picklefilename) :
     pickle.dump(dd,of)
     of.close()
 
-if __name__ == "__main__" :
+if __name__ == "__main__":
+    nargs = len(_sys.argv)
+    if (nargs < 3 or nargs > 3):
+        print "Error - Usage: Rebdsim2Numpy.py inputfile outputfile"
+        _sys.exit(1)
     Rebdsim2Numpy(_sys.argv[1],_sys.argv[2])
