@@ -293,3 +293,9 @@ class BDSAsciiData(list):
             raise ValueError("Invalid column name")
         ind = self.names.index(columnstring)
         return _np.array([element[ind] for element in self])
+
+    def __repr__(self):
+        s = ''
+        s += 'pybdsim.Data.BDSAsciiData instance\n'
+        s += str(len(self)) + ' entries'
+        return s
