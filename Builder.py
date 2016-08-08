@@ -802,7 +802,7 @@ def WriteMachine(machine, filename, verbose=False):
     
     #check if file already exists
     ofilename = filename
-    filename = _General.CheckFileExists(filename)
+    filename = _General.GenUniqueFilename(filename)
     if filename != ofilename:
         print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
     basefilename = filename[:-5] #everything before '.gmad'
