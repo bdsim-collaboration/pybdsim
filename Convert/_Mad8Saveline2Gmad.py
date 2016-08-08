@@ -1,6 +1,6 @@
 from .. import Builder as _Builder
 from .. import Beam as _Beam
-import pymad8.Saveline as _Saveline
+from  pymad8.Output import Saveline as _Saveline
 
 # pybdsim.Convert.Mad8Saveline2Gmad('../ebds.saveline', 'ilc.gmad', ignore_zero_length_items=False)
 

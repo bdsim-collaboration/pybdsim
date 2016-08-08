@@ -47,7 +47,33 @@ class Mad8Bdsim :
         _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
 
         _pl.savefig("mad8bdsim_sigma.pdf")
+
         
+    def plotSigmaPrim(self) : 
+        figure = _plt.figure(figsize=(11.6, 7.2))
+        gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
+        ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
+        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)   
+
+        ax1 = _plt.subplot(gs[1])
+        _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Envel.getColumn('s22'))*1e6,"+-",label="MAD8")
+        _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Sigma_xp']/1e-6,"x--",label="BDSIM")
+        #_pl.xlim(0,2275)
+        #_pl.ylim(0,3000)
+        _pl.legend(loc=0)
+        _pl.ylabel("$\\sigma^{'}_{x}$ [$\mu$m]")
+
+        ax2 = _plt.subplot(gs[2])
+        _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Envel.getColumn('s44'))*1e6,"+-")
+        _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Sigma_yp']/1e-6,"x--")
+        #_pl.xlim(0,2275)
+        #_pl.ylim(0,100)
+        _pl.ylabel("$\\sigma^{'}_{y}$ [$\mu$m]")
+        _pl.xlabel("$S$ [m]")
+
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
+
+        _pl.savefig("mad8bdsim_sigma_prim.pdf")
 
     def plotMean(self) : 
         figure = _plt.figure(figsize=(11.6, 7.2))
@@ -58,7 +84,7 @@ class Mad8Bdsim :
         ax1 = _plt.subplot(gs[1])
         _pl.plot(self.mad8Envel.getColumn('suml'), _np.zeros(len(self.mad8Envel.getColumn('suml'))),"+-",label="MAD8") #mad8 orbit perfectly on reference
         _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Mean_x']/1e-6,"x--",label="BDSIM")
-        _pl.xlim(0,2275)
+        #_pl.xlim(0,2275)
         #_pl.ylim(0,3000)
         _pl.legend(loc=0)
         _pl.ylabel("$\\overline{x}$ [$\mu$m]")
@@ -86,13 +112,13 @@ class Mad8Bdsim :
         ax1.set_autoscale_on(True)
         _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Twiss.getColumn('betx')),"+-")
         _pl.plot(self.bdsimOptics['S'],_pl.sqrt(self.bdsimOptics['Beta_x']),"+--")
-        _pl.ylabel("$\\beta_x$")
+        _pl.ylabel("$\sqrt\\beta_x$ [m]")
 
         ax2 = _pl.subplot(gs[2])
         ax2.set_autoscale_on(True)
         _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Twiss.getColumn('bety')),"+-")
         _pl.plot(self.bdsimOptics['S'],_pl.sqrt(self.bdsimOptics['Beta_y']),"+--")
-        _pl.ylabel("$\\beta_y$")
+        _pl.ylabel("$\sqrt\\beta_y$ [m]")
         _pl.xlabel("$S$ [m]")
 
         _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
@@ -155,8 +181,60 @@ class Mad8Bdsim :
         
         _pl.legend(loc=0)
         
-        _pymad8.Plot.setCallbacks(figure,ax0,[ax0,ax1],self.mad8Twiss)
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
 
         _pl.savefig("mad8bdsim_eta.pdf")
+        
+
+    def plotDispersionPrim(self) :
+        figure = _plt.figure(figsize=(11.6, 7.2))
+        gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
+        ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
+        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)  
+
+        ax1 = _pl.subplot(gs[1])
+        ax1.set_autoscale_on(True)
+        _pl.plot(self.mad8Envel.getColumn('suml'),self.mad8Twiss.getColumn('dpx'),"+-",label="MAD8")
+        _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Disp_xp'],"+--",label="BDSIM") # 4000 1/250*1e6
+        _pl.ylabel("$\\eta^{'}_{x}$ [rad]")
+
+        ax2 = _pl.subplot(gs[2])
+        ax2.set_autoscale_on(True)
+        _pl.plot(self.mad8Envel.getColumn('suml'),self.mad8Twiss.getColumn('dpy'),"+-",label="MAD8")
+        _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Disp_yp'],"+--",label="BDSIM") # 4000 1/250*1e6
+        _pl.ylabel("$\\eta^{'}_{y}$ [rad]")
+        _pl.xlabel("$S$ [m]")
+        
+        _pl.legend(loc=0)
+        
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
+
+        _pl.savefig("mad8bdsim_etaprim.pdf")
+
+        
+    def plotEmittance(self) :
+        figure = _plt.figure(figsize=(11.6, 7.2))
+        gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
+        ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
+        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)  
+
+        ax1 = _pl.subplot(gs[1])
+        ax1.set_autoscale_on(True)
+        #_pl.plot(self.mad8Envel.getColumn('suml'), _np.zeros(len(self.mad8Envel.getColumn('suml'))),"+-",label="MAD8")
+        _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Emitt_x'],"+--",label="BDSIM") # 4000 1/250*1e6
+        _pl.ylabel("$\\epsilon_{x}$ [m]")
+
+        ax2 = _pl.subplot(gs[2])
+        ax2.set_autoscale_on(True)
+        #_pl.plot(self.mad8Envel.getColumn('suml'), _np.zeros(len(self.mad8Envel.getColumn('suml'))),"+-",label="MAD8")
+        _pl.plot(self.bdsimOptics['S'],self.bdsimOptics['Emitt_y'],"+--",label="BDSIM") # 4000 1/250*1e6
+        _pl.ylabel("$\\epsilon_{y}$ [m]")
+        _pl.xlabel("$S$ [m]")
+        
+        _pl.legend(loc=0)
+        
+        _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
+
+        _pl.savefig("mad8bdsim_emitt.pdf")
 
 
