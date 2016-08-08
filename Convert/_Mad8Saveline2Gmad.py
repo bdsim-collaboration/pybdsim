@@ -1,6 +1,10 @@
 from .. import Builder as _Builder
 from .. import Beam as _Beam
-from  pymad8.Output import Saveline as _Saveline
+try:
+    from  pymad8.Output import Saveline as _Saveline
+except ImportError:
+    print "_Mad8Saveline2Gmad.py > WARNING - no pymad8 module found"
+    print "mad8 conversion tools may not work as intended"
 
 # pybdsim.Convert.Mad8Saveline2Gmad('../ebds.saveline', 'ilc.gmad', ignore_zero_length_items=False)
 
