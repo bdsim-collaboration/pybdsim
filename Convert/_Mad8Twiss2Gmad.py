@@ -30,6 +30,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # load Aperture db or use instance
     if type(apertures) == str : 
         apertures = Mad8ApertureDatabase(apertures) 
+        apertures.openApertures()
 
     print collimator
     # create machine instance 
@@ -333,6 +334,10 @@ class Mad8ApertureDatabase:
             t = l.split() 
             self.name.append(t[0])
             self.aper.append(float(t[1]))
+
+    def openApertures(self,size = 0.1) : 
+        for i in range(0,len(self.aper)):
+            self.aper[i] = size
         
 class Mad8CollimatorDatabase: 
     '''
