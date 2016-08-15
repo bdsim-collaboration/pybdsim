@@ -9,8 +9,16 @@ from .. import Beam
 from .. import Options
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
-                   istart = 0, beam=True, gemit=(1e-10,1e-10), mad8FileName = "", 
-                   collimator="collimator.dat", apertures="apertures.dat",samplers='all', options=True, flip = 1) :         
+                   istart = 0, beam=True, gemit=(1e-10,1e-10), mad8FileName = "",                  
+                   collimator="collimator.dat", apertures="apertures.dat",samplers='all', 
+                   options=True, 
+                   flip                      = 1, 
+                   enableSextupoles          = True, 
+                   enableOctupoles           = True,
+                   enableDecapoles           = True,
+                   openApertures             = True,
+                   openCollimators           = True,
+                   enableDipoleTiltTransform = True) :         
 
     # open mad output
     o = pymad8.Mad8.OutputReader()
@@ -26,11 +34,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # load Collimator db or use instance
     if type(collimator) == str : 
         collimator = Mad8CollimatorDatabase(collimator) 
-        collimator.openCollimators()
+        if openCollimators :
+            collimator.openCollimators()
     # load Aperture db or use instance
     if type(apertures) == str : 
         apertures = Mad8ApertureDatabase(apertures) 
-        apertures.openApertures()
+        if openApertures :
+            apertures.openApertures()
 
     print collimator
     # create machine instance 
@@ -140,14 +150,19 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                                 aper1  = float(apertures.aper[i]))
 ###################################################################################
         elif c.type[i] == 'SEXT' : 
-            if c.data[i][c.keys['quad']['l']] < 1e-7 :
+            l = float(c.data[i][c.keys['sext']['l']])
+            if l < 1e-7 :
                 a.AddDrift(prepend+c.name[i]+'_'+str(eCount),
-                           length=float(c.data[i][c.keys['sext']['l']]),
+                           length=l,
                            aper1=apertures.aper[i])
             else : 
+                if enableSextupoles : 
+                    k2in=float(c.data[i][c.keys['sext']['k2']])*flip
+                else : 
+                    k2in=0.0                    
                 a.AddSextupole(prepend+c.name[i]+'_'+str(eCount),
-                               length=float(c.data[i][c.keys['sext']['l']]),
-                               k2=float(c.data[i][c.keys['sext']['k2']])*flip,
+                               length=l,
+                               k2=k2in,
                                aper1=apertures.aper[i])
 ###################################################################################
         elif c.type[i] == 'OCTU' : 
