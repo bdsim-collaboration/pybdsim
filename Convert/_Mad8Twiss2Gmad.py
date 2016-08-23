@@ -9,16 +9,22 @@ from .. import Beam
 from .. import Options
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
-                   istart = 0, beam=True, gemit=(1e-10,1e-10), mad8FileName = "",                  
-                   collimator="collimator.dat", apertures="apertures.dat",samplers='all', 
-                   options=True, 
-                   flip                      = 1, 
-                   enableSextupoles          = True, 
-                   enableOctupoles           = True,
-                   enableDecapoles           = True,
-                   openApertures             = True,
-                   openCollimators           = True,
-                   enableDipoleTiltTransform = True) :         
+                   istart = 0, 
+                   beam                         = True, 
+                   gemit                        = (1e-10,1e-10), 
+                   mad8FileName                 = "",                  
+                   collimator                   = "collimator.dat", 
+                   apertures                    = "apertures.dat",
+                   samplers                     = 'all', 
+                   options                      = True, 
+                   flip                         = 1, 
+                   enableSextupoles             = True, 
+                   enableOctupoles              = True,
+                   enableDecapoles              = True,
+                   openApertures                = True,
+                   openCollimators              = True,
+                   enableDipoleTiltTransform    = True,
+                   enableDipolePoleFaceRotation = True) :         
 
     # open mad output
     o = pymad8.Mad8.OutputReader()
@@ -51,15 +57,19 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
     
     # load mad8
-    particle = 'e+'
-    m8 = pymad8.Mad8.Mad8(mad8FileName)
-    if m8.particle == 'ELECTRON' :
+    if mad8FileName != "" : 
+        particle = 'e+'
+        m8 = pymad8.Mad8.Mad8(mad8FileName)
+        if m8.particle == 'ELECTRON' :
+            particle = 'e-'
+            flip     = -1
+
+        elif m8.particle == 'POSITRON' : 
+            particle = 'e+'
+            flip     = 1
+    else : 
         particle = 'e-'
         flip     = -1
-
-    elif m8.particle == 'POSITRON' : 
-        particle = 'e+'
-        flip     = 1
 
     # create beam (emit and energy spread)
     esprd = 0.0
@@ -190,19 +200,37 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                        aper1=float(apertures.aper[i]))
 ###################################################################################
         elif c.type[i] == 'SBEN' : 
-            print "SBEN> ",c.name[i],c.data[i][c.keys['sben']['tilt']]
             if c.data[i][c.keys['sben']['l']] < 1e-7 : 
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
             else : 
-                # check for large tilt
-                
+                # check for large tilt                
+                if float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :                    
+                    print "inserting transform 3D"
+                    a.AddTransform3D(c.name[i]+"3dt_in",phi=0,theta=0,psi=float(c.data[i][c.keys['sben']['tilt']]))
+                    
+                print "SBEN> ",c.name[i],c.data[i][c.keys['sben']['tilt']]
+
+                # check for poleface
+                e1in = 0.0
+                e2in = 0.0
+                if enableDipolePoleFaceRotation :
+                    e1in = float(c.data[i][c.keys['sben']['e1']])
+                    e2in = float(c.data[i][c.keys['sben']['e2']])
+
                 a.AddDipole(prepend+c.name[i]+'_'+str(eCount),'sbend',
                             length= float(c.data[i][c.keys['sben']['l']]), 
                             angle = float(c.data[i][c.keys['sben']['angle']]),
                             aper  = float(apertures.aper[i]),
-                            e1    = float(c.data[i][c.keys['sben']['e1']]),
-                            e2    = float(c.data[i][c.keys['sben']['e2']]),
-                            tilt  = float(c.data[i][c.keys['sben']['tilt']]))
+                            e1    = e1in,
+                            e2    = e2in)
+                #           removed and use transform     
+                #           tilt  = float(c.data[i][c.keys['sben']['tilt']])) 
+
+
+                if float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :
+                    print "removing transform 3D"
+                    a.AddTransform3D(c.name[i]+"3dt_out",phi=0,theta=0,psi=-float(c.data[i][c.keys['sben']['tilt']]))
+
 ###################################################################################
         elif c.type[i] == 'LCAV' : 
             length   = float(c.data[i][c.keys['lcav']['l']])
@@ -217,7 +245,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
             if collimator == None : 
                 # make collimator from mad8 file
-                print "ECOL> ",c.name[i], "mad8 file"
+#                print "ECOL> ",c.name[i], "mad8 file"
                 print c.data[i][c.keys['ecol']['xsize']],c.data[i][c.keys['ecol']['ysize']]
                 if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                     a.AddECol(prepend+c.name[i]+'_'+str(eCount), 
@@ -229,7 +257,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                     a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['ecol']['l']])
             else : 
                 # make collimator from file
-                print "ECOL> ",c.name[i], "coll file"
+#                print "ECOL> ",c.name[i], "coll file"
                 if (collimator.getCollimator(c.name[i])['xsize'] != 0) and \
                    (collimator.getCollimator(c.name[i])['xsize'] != 0) : 
                     a.AddECol(prepend+c.name[i]+'_'+str(eCount), 
@@ -242,7 +270,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 ###################################################################################
         elif c.type[i] == 'RCOL' :
             if collimator == None : 
-                print "RCOL> ",c.name[i], "mad8 file"
+#                print "RCOL> ",c.name[i], "mad8 file"
                 print c.data[i][c.keys['rcol']['xsize']],c.data[i][c.keys['rcol']['ysize']]
                 if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                     a.AddRCol(prepend+c.name[i]+'_'+str(eCount), 
@@ -254,7 +282,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),c.data[i][c.keys['rcol']['l']])
             else : 
                 # make collimator from file
-                print "RCOL> ",c.name[i], "coll file"
+ #               print "RCOL> ",c.name[i], "coll file"
                 if (collimator.getCollimator(c.name[i])['xsize'] != 0) and \
                    (collimator.getCollimator(c.name[i])['ysize'] != 0) : 
                     a.AddRCol(prepend+c.name[i]+'_'+str(eCount),
@@ -296,7 +324,8 @@ def Mad8MakeOptions(inputTwissFile, inputEchoFile) :
     c, t = o.readFile(inputFileName,'twiss')
     
     # get initial beam pipe size
-    a = c.getApertures(raw=False)
+#    a = c.getApertures(raw=False)
+    a = c.getApertures(raw=True)
 
     # get values from echo of mad8 output (particle type, beam energy, energy spread)
     echoVals = pymad8.Mad8.EchoValue(inputEchoFile)
@@ -306,7 +335,8 @@ def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.d
     # open mad output
     o = pymad8.Mad8.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
-    a = c.getApertures(raw=False)
+#    a = c.getApertures(raw=False)
+    a = c.getApertures(raw=True)
 
     # write apertures to file
     f = open(outputFileName,"w")     
