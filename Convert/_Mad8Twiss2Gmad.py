@@ -204,7 +204,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
             else : 
                 # check for large tilt                
-                if float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :                    
+                if enableDipolePoleFaceRotation and float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :
                     print "inserting transform 3D"
                     a.AddTransform3D(c.name[i]+"3dt_in",phi=0,theta=0,psi=float(c.data[i][c.keys['sben']['tilt']]))
                     
@@ -227,7 +227,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 #           tilt  = float(c.data[i][c.keys['sben']['tilt']])) 
 
 
-                if float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :
+                if enableDipolePoleFaceRotation and float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :
                     print "removing transform 3D"
                     a.AddTransform3D(c.name[i]+"3dt_out",phi=0,theta=0,psi=-float(c.data[i][c.keys['sben']['tilt']]))
 
@@ -324,8 +324,8 @@ def Mad8MakeOptions(inputTwissFile, inputEchoFile) :
     c, t = o.readFile(inputFileName,'twiss')
     
     # get initial beam pipe size
-#    a = c.getApertures(raw=False)
-    a = c.getApertures(raw=True)
+    a = c.getApertures(raw=False)
+#    a = c.getApertures(raw=True)
 
     # get values from echo of mad8 output (particle type, beam energy, energy spread)
     echoVals = pymad8.Mad8.EchoValue(inputEchoFile)
@@ -335,8 +335,8 @@ def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.d
     # open mad output
     o = pymad8.Mad8.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
-#    a = c.getApertures(raw=False)
-    a = c.getApertures(raw=True)
+    a = c.getApertures(raw=False)
+#    a = c.getApertures(raw=True)
 
     # write apertures to file
     f = open(outputFileName,"w")     
