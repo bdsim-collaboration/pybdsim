@@ -27,7 +27,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    enableDipolePoleFaceRotation = True) :         
 
     # open mad output
-    o = pymad8.Mad8.OutputReader()
+    o = pymad8.Output.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
 
     # check type of start 
@@ -59,7 +59,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # load mad8
     if mad8FileName != "" : 
         particle = 'e+'
-        m8 = pymad8.Mad8.Mad8(mad8FileName)
+        m8 = pymad8.Output.Mad8(mad8FileName)
         if m8.particle == 'ELECTRON' :
             particle = 'e-'
             flip     = -1
@@ -74,7 +74,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # create beam (emit and energy spread)
     esprd = 0.0
     if type(gemit) == str : 
-        echoVals = pymad8.Mad8.EchoValue(gemit)
+        echoVals = pymad8.Output.EchoValue(gemit)
         echoVals.loadValues()
         gemit = _np.zeros(2)
         gemit[0] = echoVals.valueDict['EMITX']
@@ -320,7 +320,7 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
 
 def Mad8MakeOptions(inputTwissFile, inputEchoFile) :
     # open mad output
-    o = pymad8.Mad8.OutputReader()
+    o = pymad8.Output.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
     
     # get initial beam pipe size
@@ -328,12 +328,12 @@ def Mad8MakeOptions(inputTwissFile, inputEchoFile) :
 #    a = c.getApertures(raw=True)
 
     # get values from echo of mad8 output (particle type, beam energy, energy spread)
-    echoVals = pymad8.Mad8.EchoValue(inputEchoFile)
+    echoVals = pymad8.Output.EchoValue(inputEchoFile)
     echoVals.loadValues()
 
 def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.dat") : 
     # open mad output
-    o = pymad8.Mad8.OutputReader()
+    o = pymad8.Output.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
     a = c.getApertures(raw=False)
 #    a = c.getApertures(raw=True)
@@ -353,7 +353,7 @@ def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator_template
     collimator.dat must be edited to provide types and materials, apertures will be defined from lattice   
     '''
     # open mad output
-    o = pymad8.Mad8.OutputReader()
+    o = pymad8.Output.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
 
     # open collimator output file
