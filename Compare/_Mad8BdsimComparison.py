@@ -28,14 +28,14 @@ class Mad8Bdsim :
 
         # load mad8 data
         r = _pymad8.Mad8.OutputReader()    
-        [self.c,self.mad8Envel] = r.readFile(mad8EnvelopeFileName,"envel")
-        [self.c,self.mad8Twiss] = r.readFile(mad8TwissFileName,"twiss")
+        [self.mad8Comm,self.mad8Envel] = r.readFile(mad8EnvelopeFileName,"envel")
+        [self.mad8Comm,self.mad8Twiss] = r.readFile(mad8TwissFileName,"twiss")
 
     def plotSigma(self) : 
         figure = _plt.figure(figsize=(11.6, 7.2))
         gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
         ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
-        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)   
+        _pymad8.Plot.drawMachineLattice(self.mad8Comm,self.mad8Twiss)
 
         ax1 = _plt.subplot(gs[1])
         _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Envel.getColumn('s11'))*1e6,"+-",label="MAD8")
@@ -62,7 +62,7 @@ class Mad8Bdsim :
         figure = _plt.figure(figsize=(11.6, 7.2))
         gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
         ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
-        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)   
+        _pymad8.Plot.drawMachineLattice(self.mad8Comm,self.mad8Twiss)
 
         ax1 = _plt.subplot(gs[1])
         _pl.plot(self.mad8Envel.getColumn('suml'),_pl.sqrt(self.mad8Envel.getColumn('s22'))*1e6,"+-",label="MAD8")
@@ -84,11 +84,11 @@ class Mad8Bdsim :
 
         _pl.savefig("mad8bdsim_sigma_prim.pdf")
 
-    def plotMean(self) : 
+    def plotOrbit(self) :
         figure = _plt.figure(figsize=(11.6, 7.2))
         gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
         ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
-        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)   
+        _pymad8.Plot.drawMachineLattice(self.mad8Comm,self.mad8Twiss)
 
         ax1 = _plt.subplot(gs[1])
         _pl.plot(self.mad8Envel.getColumn('suml'), _np.zeros(len(self.mad8Envel.getColumn('suml'))),"+-",label="MAD8") #mad8 orbit perfectly on reference
@@ -115,7 +115,7 @@ class Mad8Bdsim :
         figure = _plt.figure(figsize=(11.6, 7.2))
         gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
         ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
-        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)
+        _pymad8.Plot.drawMachineLattice(self.mad8Comm,self.mad8Twiss)
         
         ax1 = _pl.subplot(gs[1])
         ax1.set_autoscale_on(True)
@@ -146,7 +146,7 @@ class Mad8Bdsim :
         figure = _plt.figure(figsize=(11.6, 7.2))
         gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
         ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
-        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)  
+        _pymad8.Plot.drawMachineLattice(self.mad8Comm,self.mad8Twiss)
 
         ax1 = _pl.subplot(gs[1])
         _pl.plot(mad8Survey.getColumn('suml'), mad8Survey.getColumn('x'),"+-", label = "MAD8")
@@ -173,7 +173,7 @@ class Mad8Bdsim :
         figure = _plt.figure(figsize=(11.6, 7.2))
         gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
         ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
-        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)  
+        _pymad8.Plot.drawMachineLattice(self.mad8Comm,self.mad8Twiss)
 
         ax1 = _pl.subplot(gs[1])
         ax1.set_autoscale_on(True)
@@ -199,7 +199,7 @@ class Mad8Bdsim :
         figure = _plt.figure(figsize=(11.6, 7.2))
         gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
         ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
-        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)  
+        _pymad8.Plot.drawMachineLattice(self.mad8Comm,self.mad8Twiss)
 
         ax1 = _pl.subplot(gs[1])
         ax1.set_autoscale_on(True)
@@ -225,7 +225,7 @@ class Mad8Bdsim :
         figure = _plt.figure(figsize=(11.6, 7.2))
         gs  = _plt.GridSpec(3,1,height_ratios=[1,3,3])
         ax0 = figure.add_subplot(gs[0],projection="_My_Axes")
-        _pymad8.Plot.drawMachineLattice(self.c,self.mad8Twiss)  
+        _pymad8.Plot.drawMachineLattice(self.mad8Comm,self.mad8Twiss)
 
         ax1 = _pl.subplot(gs[1])
         ax1.set_autoscale_on(True)
