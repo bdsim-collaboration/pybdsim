@@ -1,14 +1,14 @@
 import ROOT as _rt
 import numpy as _np
 import matplotlib.pyplot as _plt
-from scipy.constants import c
+#from scipy.constants import c
 import sys
 import time
+import warnings
 try:
     import root_numpy as _rnp
 except ImportError:
-    print "No root_numpy found.  mad8 conversion tools may not work as intended."
-
+    warnings.warn("No root_numpy found.  mad8 conversion tools may not work as intended.", UserWarning)
 
 def bdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
     """"
@@ -108,14 +108,15 @@ def bdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
         s += 'PY=' + str(primary_coords[3][n][0])
         s += ', T='  + str(primary_coords[4][n][0])
         s += ', DELTAP=' + str(primary_coords[5][n][0])   
-        s += ';\n'
+        s += '\n'
         outfile.writelines(s)
         
     outfile.close()
 
 
 def _LoadBdsimPrimaries(inputfile, start, ninrays):
-
+    c = 299792458.0     #speed of light in vacuum        
+    
     print "Loading input file: ", inputfile
     rootin      = _rt.TFile(inputfile)
     if (rootin.IsZombie()):
