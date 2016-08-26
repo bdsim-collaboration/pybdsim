@@ -24,7 +24,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    openApertures                = True,
                    openCollimators              = True,
                    enableDipoleTiltTransform    = True,
-                   enableDipolePoleFaceRotation = True) :         
+                   enableDipolePoleFaceRotation = True,
+                   enableSrScaling              = True) :
 
     # open mad output
     o = pymad8.Output.OutputReader()
@@ -49,8 +50,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             apertures.openApertures()
 
     print collimator
-    # create machine instance 
-    a = Builder.Machine()    
+    # create machine instance
+    # TODO : Need to extract nominal energy from file
+    a = Builder.Machine(sr=True, energy0=250)
 
     # create name dictionary 
     nameDict = {}    
@@ -208,7 +210,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                     print "inserting transform 3D"
                     a.AddTransform3D(c.name[i]+"3dt_in",phi=0,theta=0,psi=float(c.data[i][c.keys['sben']['tilt']]))
                     
-                print "SBEN> ",c.name[i],c.data[i][c.keys['sben']['tilt']]
+                # print "SBEN> ",c.name[i],c.data[i][c.keys['sben']['tilt']]
 
                 # check for poleface
                 e1in = 0.0
@@ -301,6 +303,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
     a.AddSampler(samplers)
     a.Write(outputFileName)
+
+    return a
 
 def Mad8Twiss2Beam(t, istart, particle, energy) :            
     

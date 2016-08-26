@@ -352,13 +352,20 @@ class Machine:
     >>> a.AddDrift('mydrift', l=1.3)
     >>> a.Write("lattice.gmad")
 
+    Example with Sychrotron rescaling
+    >>> a = Machine(sr=True, energy0=250,charge=-1)
+    >>> a.AddDipole('sb1','sbend',length=1.0,1e-5)
+    >>> a.AddDrift('dr1',length=1)
+    >>> a.AddDipole('sb2','sbend',length=1.0,1e-5)
+    >>> a.AddDrift("dr2",length=1)
+
     Caution: adding an element of the same name twice will result the 
     element being added only to the sequence again and not being
     redefined - irrespective of if the parameters are different. If
     verbose is used (True), then a warning will be issued.    
     
     """
-    def __init__(self,verbose=False):
+    def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
         self.sequence  = []
         self.elements  = []
@@ -369,6 +376,12 @@ class Machine:
         self.bias      = []
         self.beam      = _Beam.Beam()
         self.options   = None
+        self.energy0   = energy0
+        self.energy    = []
+        self.lenint    = []
+        self.sr        = sr
+        self.energy.append(energy0)
+        self.charge = charge
 
     def __repr__(self):
         s = ''
@@ -428,18 +441,58 @@ class Machine:
                 print "Element of name: ",object.name," already defined, simply adding to sequence"
         #finally add it to the sequence
         self.sequence.append(object.name)
+
         self.length += object.length
+        self.lenint.append(self.length)
+
         if 'angle' in object:
             ang = object['angle']
             if type(ang) == tuple:
-                self.angint += ang[0]
+                ang = ang[0]
             else:
-                self.angint += ang
+                ang = ang
+
+            self.angint += ang
+
+            # bend so SR generated. Recompute beam energy
+            energy = self.energy[-1]
+            self.energy.append(energy-14.1e-6*ang**2/object.length*energy**4)
+        else :
+            self.energy.append(self.energy[-1])
+
+    def SynchrotronRadiationRescale(self):
+        """
+        Rescale all component strengths for SR
+        """
+        ielement = 1
+        for element in self.elements:
+            if element.category == 'rbend' or element.category == 'sbend' :
+                print element.keys()
+                angle  = element['angle']
+                length = element['l']
+                # insert magnetic field value after angle
+                element._keysextra.insert(element._keysextra.index('angle')+1,'B')
+                # consistent calculation with BDSIM
+                element['B'] = self.charge*self.energy[ielement]/0.299792458*angle/length
+            elif element.category == 'quadrupole' :
+                element['k1'] = self.energy[ielement] / self.energy0 * element['k1']
+            elif element.category == 'sextupole' :
+                element['k2'] = self.energy[ielement] / self.energy0 * element['k2']
+            elif element.category == 'octupole':
+                element['k3'] = self.energy[ielement] / self.energy0 * element['k3']
+            elif element.category == 'decupole':
+                element['k4'] = self.energy[ielement] / self.energy0 * element['k4']
+            elif element.category == 'multipole' :
+                pass
+            ielement += 1
 
     def Write(self,filename,verbose=False):
         """
         Write the machine to a series of gmad files.
         """
+        if self.sr :
+            self.SynchrotronRadiationRescale()
+
         verboseresult = verbose or self.verbose
         WriteMachine(self,filename,verboseresult)
 
