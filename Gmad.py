@@ -257,6 +257,8 @@ class Lattice(object):
             sposstart      += d['Length']
             self.lattice.append(d)
 
+        self.smax = sposend
+
     def GetName(self,index):
         return str(self._parserlib.GetName(index))
 
@@ -388,6 +390,11 @@ class Lattice(object):
         closestS = min(sMid, key=lambda x:abs(x-S))
         return sMid.index(closestS)
 
+    def GetColumn(self, column):
+        data = []
+        for element in self.lattice:
+            data.append(element[column])
+        return data
 
 class GmadFile(object) :
     """
