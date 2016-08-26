@@ -12,10 +12,19 @@ class Mad8Bdsim :
                  mad8TwissFileName   = "ebds1.twiss",
                  mad8EnvelopeFileName = "ebds1.envelope") : 
         # load bdsim data
-        f = open(bdsimFileName) 
-        self.bdsimData = _pkl.load(f)
-        self.bdsimOptics = self.bdsimData['optics']
-        f.close()
+        if bdsimFileName.find("pickle") != -1 :
+            f = open(bdsimFileName) 
+            self.bdsimData = _pkl.load(f)
+            self.bdsimOptics = self.bdsimData['optics']
+            f.close()
+        elif bdsimFileName.find(".root") != -1 :
+            import ROOT as _ROOT 
+            import root_numpy as _root_numpy
+            f = _ROOT.TFile(bdsimFileName)
+            t = f.Get("optics")
+            self.bdsimOptics = _root_numpy.tree2rec(t)
+            
+
 
         # load mad8 data
         r = _pymad8.Mad8.OutputReader()    
