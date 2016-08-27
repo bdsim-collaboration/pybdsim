@@ -467,7 +467,6 @@ class Machine:
         ielement = 1
         for element in self.elements:
             if element.category == 'rbend' or element.category == 'sbend' :
-                print element.keys()
                 angle  = element['angle']
                 length = element['l']
                 # insert magnetic field value after angle
