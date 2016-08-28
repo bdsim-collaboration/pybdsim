@@ -466,21 +466,24 @@ class Machine:
         """
         ielement = 1
         for element in self.elements:
+            energyave = (self.energy[ielement]+self.energy[ielement-1])/2.0
+
             if element.category == 'rbend' or element.category == 'sbend' :
                 angle  = element['angle']
                 length = element['l']
+
                 # insert magnetic field value after angle
                 element._keysextra.insert(element._keysextra.index('angle')+1,'B')
                 # consistent calculation with BDSIM
-                element['B'] = self.charge*self.energy[ielement]/0.299792458*angle/length
+                element['B'] = self.charge*energyave/0.299792458*angle/length
             elif element.category == 'quadrupole' :
-                element['k1'] = self.energy[ielement] / self.energy0 * element['k1']
+                element['k1'] = energyave / self.energy0 * element['k1']
             elif element.category == 'sextupole' :
-                element['k2'] = self.energy[ielement] / self.energy0 * element['k2']
+                element['k2'] = energyave / self.energy0 * element['k2']
             elif element.category == 'octupole':
-                element['k3'] = self.energy[ielement] / self.energy0 * element['k3']
+                element['k3'] = energyave / self.energy0 * element['k3']
             elif element.category == 'decupole':
-                element['k4'] = self.energy[ielement] / self.energy0 * element['k4']
+                element['k4'] = energyave / self.energy0 * element['k4']
             elif element.category == 'multipole' :
                 pass
             ielement += 1
