@@ -46,3 +46,28 @@ class Event :
         maplH = _Root.TH1(rootH)         # matplotlib histogram object
 
         return maplH
+
+
+    def make2DHistogram(self, command, selector, name="hist", title="hist",
+                        xnbins=100, xlow=-1., xhigh=1.,
+                        ynbins=100, ylow=-1., yhigh=1.):
+        '''
+        Use TTree.Draw to create a histogram, useful when the size of the data cannot be extracted using getNumpyBranch
+        :param command:
+        :param selector:
+        :param name: histogram name
+        :param title: histogram title
+        :param xnbins: x number of bins
+        :param xlow: x histogram lowest edge
+        :param xhigh: x histogram highest edge
+        :param ynbins: y number of bins
+        :param ylow: y histogram lowest edge
+        :param yhigh: y histogram highest edge
+        :return: Root.TH1 object
+        '''
+        h = _ROOT.TH2D(name, title, xnbins, xlow, xhigh, ynbins, ylow, yhigh)
+        nSelected = self._tree.Draw(command + " >> " + name, selector, "goff")
+        rootH = _gDirectory.Get(name)  # root histogram object
+        maplH = _Root.TH2(rootH)  # matplotlib histogram object
+
+        return maplH

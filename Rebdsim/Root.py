@@ -38,11 +38,11 @@ class TH1 :
 
         for i in range(nbinsx):
             self.widths[i]   = hist.GetXaxis().GetBinWidth(i)
-            self.lowedge[i]  = hist.GetBinLowEdge(i)
+            self.lowedge[i]  = hist.GetBinLowEdge(i+1)
             self.highedge[i] = hist.GetBinLowEdge(i+1)
-            self.contents[i] = hist.GetBinContent(i)
-            self.centres[i]  = hist.GetBinCenter(i)
-            self.errors[i]   = hist.GetBinError(i)
+            self.centres[i]  = hist.GetBinCenter(i+1)
+            self.contents[i] = hist.GetBinContent(i+1)
+            self.errors[i]   = hist.GetBinError(i+1)
 
     def plot(self,opt ='hist'):
         '''
@@ -74,3 +74,45 @@ class TH1 :
     def setLabels(self):
         _plt.xlabel(self.labelX)
         _plt.ylabel(self.labelY)
+
+
+class TH2 :
+    def __init__(self,hist):
+        self.hist   = hist
+
+        # extract meta data
+        self.name   = hist.GetName()
+        self.title  = hist.GetTitle()
+        self.labelX = hist.GetXaxis().GetTitle()
+        self.labelY = hist.GetYaxis().GetTitle()
+
+        # extract data
+        nbinsx   = hist.GetNbinsX()
+        nbinsy   = hist.GetNbinsY()
+        self.xwidths   = _np.zeros(nbinsx)
+        self.xcentres  = _np.zeros(nbinsx)
+        self.xlowedge  = _np.zeros(nbinsx)
+        self.xhighedge = _np.zeros(nbinsx)
+        self.ywidths   = _np.zeros(nbinsy)
+        self.ycentres  = _np.zeros(nbinsy)
+        self.ylowedge  = _np.zeros(nbinsy)
+        self.yhighedge = _np.zeros(nbinsy)
+        self.contents = _np.zeros((nbinsx,nbinsy))
+        self.errors   = _np.zeros((nbinsx,nbinsy))
+
+        for i in range(nbinsx):
+            self.xwidths[i]   = hist.GetXaxis().GetBinWidth(i+1)
+            self.xlowedge[i]  = hist.GetXaxis().GetBinLowEdge(i+1)
+            self.xhighedge[i] = hist.GetXaxis().GetBinLowEdge(i+2)
+            self.xcentres[i]  = hist.GetXaxis().GetBinCenter(i+1)
+
+        for i in range(nbinsy):
+            self.ywidths[i]   = hist.GetYaxis().GetBinWidth(i+1)
+            self.ylowedge[i]  = hist.GetYaxis().GetBinLowEdge(i+1)
+            self.yhighedge[i] = hist.GetYaxis().GetBinLowEdge(i+2)
+            self.ycentres[i]  = hist.GetYaxis().GetBinCenter(i+1)
+
+        for i in range(nbinsx) :
+            for j in range(nbinsy) :
+                self.contents[i,j] = hist.GetBinContent(i+1,j+1)
+                self.errors[i,j]   = hist.GetBinError(i+1,j+1)
