@@ -466,8 +466,9 @@ class Machine:
         """
         ielement = 1
         for element in self.elements:
-            energyave = (self.energy[ielement]+self.energy[ielement-1])/2.0
-
+            # energyave = (self.energy[ielement]+self.energy[ielement-1])/2.0
+            energyave = self.energy[ielement]
+            print energyave
             if element.category == 'rbend' or element.category == 'sbend' :
                 angle  = element['angle']
                 length = element['l']
