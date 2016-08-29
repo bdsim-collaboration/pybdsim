@@ -14,8 +14,14 @@ class TTree :
         '''
         self.data = r2n_tree
 
-    def plot(self, keyX, keyY, opt = ''):
-        _plt.plot(self.data[keyX], self.data[keyY])
+    def plot(self, keyX, keyY, keyYErr = '', opt = '', label = ''):
+        if keyYErr == '' :
+            _plt.plot(self.data[keyX], self.data[keyY], opt, label = label)
+        else :
+            _plt.errorbar(self.data[keyX], self.data[keyY], self.data[keyYErr], opt, label = label)
+
+    def keys(self):
+        return self.data.dtype.names
 
 class TH1 :
     def __init__(self, hist):
@@ -116,3 +122,12 @@ class TH2 :
             for j in range(nbinsy) :
                 self.contents[i,j] = hist.GetBinContent(i+1,j+1)
                 self.errors[i,j]   = hist.GetBinError(i+1,j+1)
+
+    def plot(self):
+        pass
+
+    def plotColz(self):
+        xx, yy = _np.meshgrid(self.xcentres,self.ycentres)
+        _plt.style.use("seaborn-whitegrid")
+        _plt.pcolormesh(xx,yy,self.contents)
+        # _plt.colorbar()
