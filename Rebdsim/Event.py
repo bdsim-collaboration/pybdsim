@@ -9,8 +9,8 @@ class Event :
     Converter and convenience methods for Bdsim root output files in python
     '''
 
-
     def __init__(self, filename):
+        # TODO move over to chains of files
         self._filename = filename
         self._rootFile = _ROOT.TFile(filename)
         self._tree     = self._rootFile.Get("Event")
@@ -28,7 +28,21 @@ class Event :
         datArray= _np.array(dat)
         return datArray
 
-    def make1DHistogram(self, command, selector, name="hist", title="hist", nbins = 100, xlow=-1., xhigh=1.):
+    def setEvents(self, selector = '', listname = 'evtList'):
+        '''
+        :param listname: event list name
+        :param selector: selection on the tree
+        :return:
+        '''
+        if selector == '' :
+            self._tree.SetEventList(0)
+
+        self._tree.Draw(">>"+listname,selector)
+        el = _gDirectory.Get(listname)
+        self._tree.SetEventList(el)
+
+
+    def make1DHistogram(self, command, selector = "", name="hist", title="hist", nbins = -1, xlow=-1., xhigh=1.):
         '''
         Use TTree.Draw to create a histogram, useful when the size of the data cannot be extracted using getNumpyBranch
         :param command:
@@ -40,7 +54,15 @@ class Event :
         :param xhigh: histogram highest edge
         :return: Root.TH1 object
         '''
-        h = _ROOT.TH1D(name,title,nbins,xlow,xhigh)
+
+        # check for existing histogram
+        h = _ROOT.gDirectory.Get(name)
+        if h != None :
+            _ROOT.gDirectory.Delete(name)
+
+        # make histogram if bins are defined
+        if nbins != -1 :
+            h = _ROOT.TH1D(name,title,nbins,xlow,xhigh)
         nSelected = self._tree.Draw(command+" >> "+name,selector,"goff")
         rootH = _gDirectory.Get(name)    # root histogram object
         maplH = _Root.TH1(rootH)         # matplotlib histogram object
@@ -48,9 +70,9 @@ class Event :
         return maplH
 
 
-    def make2DHistogram(self, command, selector, name="hist", title="hist",
-                        xnbins=100, xlow=-1., xhigh=1.,
-                        ynbins=100, ylow=-1., yhigh=1.):
+    def make2DHistogram(self, command, selector = "", name="hist", title="hist",
+                        xnbins=-1, xlow=-1., xhigh=1.,
+                        ynbins=-1, ylow=-1., yhigh=1.):
         '''
         Use TTree.Draw to create a histogram, useful when the size of the data cannot be extracted using getNumpyBranch
         :param command:
@@ -65,7 +87,15 @@ class Event :
         :param yhigh: y histogram highest edge
         :return: Root.TH1 object
         '''
-        h = _ROOT.TH2D(name, title, xnbins, xlow, xhigh, ynbins, ylow, yhigh)
+
+        # check for existing histogram
+        h = _ROOT.gDirectory.Get(name)
+        if h != None :
+            _ROOT.gDirectory.Delete(name)
+
+        # make histogram if bins are defined
+        if xnbins != -1 and ynbins != -1:
+            h = _ROOT.TH2D(name, title, xnbins, xlow, xhigh, ynbins, ylow, yhigh)
         nSelected = self._tree.Draw(command + " >> " + name, selector, "goff")
         rootH = _gDirectory.Get(name)  # root histogram object
         maplH = _Root.TH2(rootH)  # matplotlib histogram object
