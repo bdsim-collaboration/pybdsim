@@ -14,8 +14,14 @@ class Event :
         # TODO move over to chains of files
         self._filename = filename
         self._rootFile = _ROOT.TFile(filename)
+        print self._rootFile
+        if not self._rootFile.IsOpen() :
+            raise IOError
         self._tree     = self._rootFile.Get("Event")
 
+
+        # find numbe of events in file
+        self.nevent    = self._tree.GetEntries()
 
         # set branch addresses etc
         # TODO : Add samplers
@@ -37,7 +43,10 @@ class Event :
         self._tree.SetBranchAddress("Histos.",self.histos)
 
     def getEvent(self,ientry):
-        self._tree.GetEntry(ientry)
+        if ientry > -1 and ientry < self.nevent :
+            self._tree.GetEntry(ientry)
+        else :
+            raise IndexError
 
         '''
         Extract complete event ientry
