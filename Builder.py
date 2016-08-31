@@ -72,6 +72,8 @@ class ElementBase(dict):
     def __Update(self,d):
         dict.update(d)
         for key,value in d.iteritems():
+            if value == "" :
+                continue
             if type(value) == tuple and self._isMultipole:
                 self[key] = value
             elif type(value) == tuple:
@@ -468,7 +470,7 @@ class Machine:
         for element in self.elements:
             # energyave = (self.energy[ielement]+self.energy[ielement-1])/2.0
             energyave = self.energy[ielement]
-            print energyave
+            # print energyave
             if element.category == 'rbend' or element.category == 'sbend' :
                 angle  = element['angle']
                 length = element['l']
