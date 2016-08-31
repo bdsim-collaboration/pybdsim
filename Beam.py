@@ -9,7 +9,8 @@ BDSIMDistributionTypes = [
     'gausstwiss',
     'eshell',
     'ring',
-    'ptc'
+    'ptc',
+    'halo'
 ]
 
 BDSIMParticleTypes = [
@@ -19,7 +20,7 @@ BDSIMParticleTypes = [
     'gamma',
 ]
 
-class Beam(dict):
+class Beam(dict) :
     def __init__(self,particletype='e-',energy=1.0,distrtype='reference',*args,**kwargs):
         dict.__init__(self,*args,**kwargs)
         self.SetParticleType(particletype)
@@ -67,7 +68,23 @@ class Beam(dict):
             setattr(self, 'SetRMax',       self._SetRMax)
         elif distrtype == 'ptc' : 
             setattr(self, 'SetSigmaE',     self._SetSigmaE)            
-            setattr(self, 'SetDistribFileName',self._SetDistribFileName) 
+            setattr(self, 'SetDistribFileName',self._SetDistribFileName)
+        elif distrtype == 'halo' :
+            setattr(self, 'SetBetaX',         self._SetBetaX)
+            setattr(self, 'SetBetaY',         self._SetBetaY)
+            setattr(self, 'SetAlphaX',        self._SetAlphaX)
+            setattr(self, 'SetAlphaY',        self._SetAlphaY)
+            setattr(self, 'SetHaloEmittanceX',self._SetHaloEmittanceX)
+            setattr(self, 'SetHaloEmittanceY',self._SetHaloEmittanceY)
+            setattr(self, 'SetSigmaE',        self._SetSigmaE)
+            setattr(self, 'SetSigmaT',        self._SetSigmaT)
+            setattr(self, 'SetEnvelopeX',     self._SetEnvelopeX)
+            setattr(self, 'SetEnvelopeY',     self._SetEnvelopeY)
+            setattr(self, 'SetEnvelopeXp',    self._SetEnvelopeXP)
+            setattr(self, 'SetEnvelopeYp',    self._SetEnvelopeYP)
+            setattr(self, 'SetHaloEnvelopeEmitX', self._SetHaloEnvelopeEmitX)
+            setattr(self, 'SetHaloEnvelopeEmitY', self._SetHaloEnvelopeEmitY)
+
 
     def ReturnBeamString(self):
         s = ''
@@ -151,6 +168,31 @@ class Beam(dict):
 
     def _SetShellYP(self,shellyp=1.0):
         self['shellYp'] = shellyp
+
+    def _SetEnvelopeX(self, envelopex=1.0,unitstring='m'):
+        self['envelopeX'] = str(envelopex) + '*' + unitstring
+
+    def _SetEnvelopeY(self, envelopey=1.0,unitstring='m'):
+        self['envelopeY'] = str(envelopey) + '*' + unitstring
+
+    def _SetEnvelopeXP(self, envelopexp=1.0,unitstring='m'):
+        self['envelopeXp'] = str(envelopexp) + '*' + unitstring
+
+    def _SetEnvelopeYP(self, envelopeyp=1.0):
+        self['envelopeYp'] = str(envelopeyp)
+
+    def _SetHaloEmittanceX(self, haloemitx=1.0, unitsstring='m'):
+        self['haloEmitX'] = str(haloemitx) + '*' + unitsstring
+
+    def _SetHaloEmittanceY(self, haloemity=1.0, unitsstring='m'):
+        self['haloEmitY'] = str(haloemity) + '*' + unitsstring
+
+    def _SetHaloEnvelopeEmitX(self, envelopeemitx=1.0,unitstring='m'):
+        self['haloEnvelopeEmitX'] = str(envelopeemitx) + '*' + unitstring
+
+    def _SetHaloEnvelopeEmitY(self, envelopeemity=1.0,unitstring='m'):
+        self['haloEnvelopeEmitY'] = str(envelopeemity) + '*' + unitstring
+
 
     def _SetRMin(self,rmin=0.9,unitsstring='mm'):
         if self.has_key('Rmax') == True:
