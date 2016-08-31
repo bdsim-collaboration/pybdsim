@@ -135,6 +135,6 @@ class TH2 :
 
     def plotColz(self):
         xx, yy = _np.meshgrid(self.xcentres,self.ycentres)
-        _plt.style.use("seaborn-whitegrid")
+        _plt.rcParams['image.cmap'] = 'coolwarm'
         _plt.pcolormesh(xx,yy,self.contents)
         # _plt.colorbar()
