@@ -24,6 +24,8 @@ class TTree :
         return self.data.dtype.names
 
 class TH1 :
+    # TODO : TH1 Deal with under/overflows properly
+    # TODO : TH1 Equivalent of statistics box
     def __init__(self, hist):
         self.hist   = hist
 
@@ -35,6 +37,7 @@ class TH1 :
 
         # extract data
         nbinsx   = hist.GetNbinsX()
+        self.entries   = hist.GetEntries()
         self.widths   = _np.zeros(nbinsx)
         self.centres  = _np.zeros(nbinsx)
         self.lowedge  = _np.zeros(nbinsx)
@@ -83,6 +86,8 @@ class TH1 :
 
 
 class TH2 :
+    # TODO : TH2 Deal with under/overflows properly
+    # TODO : TH2 Equivalent of statistics box
     def __init__(self,hist):
         self.hist   = hist
 
@@ -93,8 +98,10 @@ class TH2 :
         self.labelY = hist.GetYaxis().GetTitle()
 
         # extract data
+
         nbinsx   = hist.GetNbinsX()
         nbinsy   = hist.GetNbinsY()
+        self.entries   = hist.GetEntries()
         self.xwidths   = _np.zeros(nbinsx)
         self.xcentres  = _np.zeros(nbinsx)
         self.xlowedge  = _np.zeros(nbinsx)
