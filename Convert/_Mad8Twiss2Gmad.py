@@ -7,10 +7,11 @@ import pymad8
 from .. import Builder 
 from .. import Beam
 from .. import Options
+from .. import XSecBias
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
-                   istart = 0, 
-                   beam                         = True, 
+                   istart                       = 0,
+                   beam                         = ["nominal"],
                    gemit                        = (1e-10,1e-10), 
                    mad8FileName                 = "",                  
                    collimator                   = "collimator.dat", 
@@ -25,7 +26,10 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    openCollimators              = True,
                    enableDipoleTiltTransform    = True,
                    enableDipolePoleFaceRotation = True,
-                   enableSrScaling              = True) :
+                   enableSr                     = False,
+                   enableSrScaling              = False,
+                   enableMuon                   = False,
+                   enableMuonBias               = True) :
 
     # open mad output
     o = pymad8.Output.OutputReader()
@@ -50,13 +54,16 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             apertures.openApertures()
 
     print collimator
-    # create machine instance
-    # TODO : Need to extract nominal energy from file
-    a = Builder.Machine(sr=True, energy0=250)
 
     # create name dictionary 
     nameDict = {}    
 
+    # Need nominal energy for SR calculations
+    energy = c.data[istart][c.keys['drif']['E']]
+
+    # create machine instance
+    # TODO : Need to extract nominal energy from file
+    a = Builder.Machine(sr=enableSrScaling, energy0=float(energy))
     
     # load mad8
     if mad8FileName != "" : 
@@ -83,22 +90,69 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         gemit[1] = echoVals.valueDict['EMITY']
         esprd    = echoVals.valueDict['ESPRD']
 
-    # create beam 
-    if beam : 
-        E = c.data[istart][c.keys['drif']['E']]         
-        b = Mad8Twiss2Beam(t,istart,particle,E)
-        b.SetEmittanceX(gemit[0],'m')
-        b.SetEmittanceY(gemit[1],'m')        
-        b.SetSigmaE(esprd)
+    # create beam
+    beamname = beam[0]
+    if beamname == "reference" :
+        b = Beam.Beam(particle, energy, "reference")
         a.AddBeam(b)
+    elif beamname == "nominal" :
+        b = Mad8Twiss2Beam(t,istart,particle,energy)
+        b._SetEmittanceX(gemit[0],'m')
+        b._SetEmittanceY(gemit[1],'m')
+        b._SetSigmaE(esprd)
+        a.AddBeam(b)
+    elif beamname == "halo" :
+        b = Mad8Twiss2Beam(t,istart,particle,energy)
+        b.SetDistributionType("halo")
+        betx = t.data[istart][t.keys['betx']]
+        bety = t.data[istart][t.keys['bety']]
+        alfx = t.data[istart][t.keys['alfx']]
+        alfy = t.data[istart][t.keys['alfy']]
 
+        # 5 13
+        # 36 92
+        nsigxmin = beam[1]
+        nsigxmax = beam[2]
+        nsigymin = beam[3]
+        nsigymax = beam[4]
+
+        b._SetHaloEmittanceX(nsigxmin**2*gemit[0],'m')
+        b._SetHaloEmittanceY(nsigymin**2*gemit[1],'m')
+        b._SetHaloEnvelopeEmitX(nsigxmax**2*gemit[0],'m')
+        b._SetHaloEnvelopeEmitY(nsigymax**2*gemit[1],'m')
+        b._SetEnvelopeX(_np.sqrt(nsigxmax**2*betx*gemit[0]))
+        b._SetEnvelopeXP(_np.sqrt(nsigxmax**2*(1+alfx**2)/betx*gemit[0]))
+        b._SetEnvelopeY(_np.sqrt(nsigymax**2*betx*gemit[1]))
+        b._SetEnvelopeYP(_np.sqrt(nsigymax**2*(1+alfy**2)/bety*gemit[1]))
+        b._SetSigmaE(esprd)
+        a.AddBeam(b)
 
     # create options 
     if options : 
         o = Options.ElectronColliderOptions()
+        o.SetBuildTunnel(False)
+        o.SetBuildTunnelFloor(False)
+        o.SetPrintModuloFraction(1e-5)
+
+        process = 'em'
+        if enableSr :
+            process += ' synchrad'
+        if enableMuon :
+            process += ' muon'
+
+        o.SetPhysicsList(process)
         a.AddOptions(o)
 
-    # iterate through objects and build machine 
+    # create bias options
+    biasList = ""
+    if enableMuonBias :
+        gmb = XSecBias.XSecBias("gmb","gamma","GammaToMuPair","5e8","1")
+        # pmb = XSecBias.XSecBias("pmb","e+",[""])
+        a.AddBias(gmb)
+
+        biasList = "gmb"
+
+    # iterate through objects and build machine
     for i in range(istart,len(c.name),1) : 
 # unique(c.type)
 # ['', 'BLMO', 'DRIF', 'ECOL', 'HKIC', 'IMON', 'INST', 'LCAV', 'MARK',
@@ -254,25 +308,34 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                               length  = float(c.data[i][c.keys['ecol']['l']]), 
                               xsize   = float(c.data[i][c.keys['ecol']['xsize']]), 
                               ysize   = float(c.data[i][c.keys['ecol']['ysize']]),
-                              material= 'Copper')                    
+                              material= 'Copper')
                 else : 
                     a.AddDrift(c.name[i]+'_'+str(eCount),c.data[i][c.keys['ecol']['l']])
             else : 
                 # make collimator from file
 #                print "ECOL> ",c.name[i], "coll file"
-                if (collimator.getCollimator(c.name[i])['xsize'] != 0) and \
-                   (collimator.getCollimator(c.name[i])['xsize'] != 0) : 
+                length=float(c.data[i][c.keys['rcol']['l']])
+                xsize = float(collimator.getCollimator(c.name[i])['xsize'])
+                ysize = float(collimator.getCollimator(c.name[i])['ysize'])
+                mater = collimator.getCollimator(c.name[i])['bdsim_material']
+                if xsize != 0 and ysize == 0 :
+                    ysize = 0.2
+                if xsize == 0 and ysize != 0 :
+                    xsize = 0.2
+
+                if (xsize != 0 and ysize != 0):
                     a.AddECol(prepend+c.name[i]+'_'+str(eCount), 
-                              length  = float(c.data[i][c.keys['rcol']['l']]), 
-                              xsize   = float(collimator.getCollimator(c.name[i])['xsize']), 
-                              ysize   = float(collimator.getCollimator(c.name[i])['ysize']),
-                              material= collimator.getCollimator(c.name[i])['bdsim_material'])                  
+                              length  = length,
+                              xsize   = xsize,
+                              ysize   = ysize,
+                              material= mater,
+                              bias    = biasList)
                 else : 
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['ecol']['l']]))
 ###################################################################################
         elif c.type[i] == 'RCOL' :
             if collimator == None : 
-#                print "RCOL> ",c.name[i], "mad8 file"
+#               print "RCOL> ",c.name[i], "mad8 file"
                 print c.data[i][c.keys['rcol']['xsize']],c.data[i][c.keys['rcol']['ysize']]
                 if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
                     a.AddRCol(prepend+c.name[i]+'_'+str(eCount), 
@@ -284,14 +347,23 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),c.data[i][c.keys['rcol']['l']])
             else : 
                 # make collimator from file
- #               print "RCOL> ",c.name[i], "coll file"
-                if (collimator.getCollimator(c.name[i])['xsize'] != 0) and \
-                   (collimator.getCollimator(c.name[i])['ysize'] != 0) : 
+ #              print "RCOL> ",c.name[i], "coll file"
+                length= float(c.data[i][c.keys['rcol']['l']])
+                xsize = float(collimator.getCollimator(c.name[i])['xsize'])
+                ysize = float(collimator.getCollimator(c.name[i])['ysize'])
+                mater = collimator.getCollimator(c.name[i])['bdsim_material']
+                if xsize != 0 and ysize == 0 :
+                    ysize = 0.2
+                if xsize == 0 and ysize != 0 :
+                    xsize = 0.2
+
+                if (xsize != 0 and ysize != 0) :
                     a.AddRCol(prepend+c.name[i]+'_'+str(eCount),
-                              length  = float(c.data[i][c.keys['rcol']['l']]), 
-                              xsize   = float(collimator.getCollimator(c.name[i])['xsize']), 
-                              ysize   = float(collimator.getCollimator(c.name[i])['ysize']),
-                              material= collimator.getCollimator(c.name[i])['bdsim_material'])          
+                              length  = length,
+                              xsize   = xsize,
+                              ysize   = ysize,
+                              material= mater,
+                              bias=biasList)
                 else : 
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['rcol']['l']]))
 ###################################################################################
@@ -314,11 +386,11 @@ def Mad8Twiss2Beam(t, istart, particle, energy) :
     alfy = t.data[istart][t.keys['alfy']]
 
     beam = Beam.Beam(particle,energy,'gausstwiss')
-    beam.SetBetaX(betx)
-    beam.SetBetaY(bety)
-    beam.SetAlphaX(alfx)
-    beam.SetAlphaY(alfy)
-    
+    beam._SetBetaX(betx)
+    beam._SetBetaY(bety)
+    beam._SetAlphaX(alfx)
+    beam._SetAlphaY(alfy)
+
     return beam
 
 
@@ -427,7 +499,7 @@ class Mad8CollimatorDatabase:
             self._coll[name] = d     
             self._collNames.append(name)
 
-    def openCollimators(self,openHalfSizeX=0.1, openHalfSizeY=0.1) : 
+    def openCollimators(self,openHalfSizeX=0.2, openHalfSizeY=0.2) :
         for c in self._coll.keys() :
             self._coll[c]['xsize'] = openHalfSizeX
             self._coll[c]['ysize'] = openHalfSizeY
