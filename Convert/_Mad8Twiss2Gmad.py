@@ -124,6 +124,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         b._SetEnvelopeXP(_np.sqrt(nsigxmax**2*(1+alfx**2)/betx*gemit[0]))
         b._SetEnvelopeY(_np.sqrt(nsigymax**2*betx*gemit[1]))
         b._SetEnvelopeYP(_np.sqrt(nsigymax**2*(1+alfy**2)/bety*gemit[1]))
+        b._SetHaloPSWeightParameter(-1.0)
+        b._SetHaloPSWeightFunction("oneoverr")
         b._SetSigmaE(esprd)
         a.AddBeam(b)
 

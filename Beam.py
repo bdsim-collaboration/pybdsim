@@ -84,6 +84,8 @@ class Beam(dict) :
             setattr(self, 'SetEnvelopeYp',    self._SetEnvelopeYP)
             setattr(self, 'SetHaloEnvelopeEmitX', self._SetHaloEnvelopeEmitX)
             setattr(self, 'SetHaloEnvelopeEmitY', self._SetHaloEnvelopeEmitY)
+            setattr(self, 'SetHaloPSWeightParameter', self._SetHaloPSWeightParameter)
+            setattr(self, 'SetHaloPSWeightFunction',  self._SetHaloPSWeightFunction)
 
 
     def ReturnBeamString(self):
@@ -193,6 +195,11 @@ class Beam(dict) :
     def _SetHaloEnvelopeEmitY(self, envelopeemity=1.0,unitstring='m'):
         self['haloEnvelopeEmitY'] = str(envelopeemity) + '*' + unitstring
 
+    def _SetHaloPSWeightParameter(self, param):
+        self['haloPSWeightParameter'] = param
+
+    def _SetHaloPSWeightFunction(self, func):
+        self['haloPSWeightFunction'] = '"'+func+'"'
 
     def _SetRMin(self,rmin=0.9,unitsstring='mm'):
         if self.has_key('Rmax') == True:
