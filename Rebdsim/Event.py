@@ -4,6 +4,7 @@ import Root as _Root
 import numpy as _np
 import platform as _platform
 
+
 class Event :
     '''
     Converter and convenience methods for Bdsim root output files in python
@@ -14,6 +15,36 @@ class Event :
         self._filename = filename
         self._rootFile = _ROOT.TFile(filename)
         self._tree     = self._rootFile.Get("Event")
+
+
+        # set branch addresses etc
+        # TODO : Add samplers
+        self.info            = _ROOT.BDSOutputROOTEventInfo()
+        self.primary         = _ROOT.BDSOutputROOTEventSampler("float")()
+        self.eloss           = _ROOT.BDSOutputROOTEventLoss()
+        self.primaryFirstHit = _ROOT.BDSOutputROOTEventLoss()
+        self.primaryLastHit  = _ROOT.BDSOutputROOTEventLoss()
+        self.tunnelHit       = _ROOT.BDSOutputROOTEventLoss()
+        self.trajectories    = _ROOT.BDSOutputROOTEventTrajectory()
+        self.histos          = _ROOT.BDSOutputROOTEventHistograms()
+
+        self._tree.SetBranchAddress("Info.",self.info)
+        self._tree.SetBranchAddress("Primary.",self.primary)
+        self._tree.SetBranchAddress("PrimaryFirstHit.",self.primaryFirstHit)
+        self._tree.SetBranchAddress("PrimaryLastHit.",self.primaryLastHit)
+        self._tree.SetBranchAddress("Eloss.",self.eloss)
+        self._tree.SetBranchAddress("Trajectory.",self.trajectories)
+        self._tree.SetBranchAddress("Histos.",self.histos)
+
+    def getEvent(self,ientry):
+        self._tree.GetEntry(ientry)
+
+        '''
+        Extract complete event ientry
+        :param ientry: name of event branch/leaf
+        :return: event object
+        '''
+        pass
 
     def getNumpyBranch(self,branchname,selector):
         '''
