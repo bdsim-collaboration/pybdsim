@@ -11,6 +11,7 @@ class Event :
     '''
 
     def __init__(self, filename):
+
         # TODO move over to chains of files
         self._filename = filename
         self._rootFile = _ROOT.TFile(filename)
@@ -55,7 +56,7 @@ class Event :
         '''
         pass
 
-    def getNumpyBranch(self,branchname,selector):
+    def getNumpyBranch(self,branchname,selector = ''):
         '''
         Extract array of event tree
         :param branchname: name of event branch/leaf
@@ -63,7 +64,7 @@ class Event :
         :return: numpy array of data
         '''
         nSelected = self._tree.Draw(branchname,selector,"goff")
-        dat       = self._tree.GetV1();
+        dat       = self._tree.GetV1()
         dat.SetSize(nSelected)
         datArray= _np.array(dat)
         return datArray
@@ -94,6 +95,10 @@ class Event :
         :param xhigh: histogram highest edge
         :return: Root.TH1 object
         '''
+
+        # just in case
+        _ROOT.TH1.AddDirectory(True)
+
 
         # check for existing histogram
         h = _ROOT.gDirectory.Get(name)
@@ -127,6 +132,10 @@ class Event :
         :param yhigh: y histogram highest edge
         :return: Root.TH1 object
         '''
+
+
+        # just in case
+        _ROOT.TH2.AddDirectory(True)
 
         # check for existing histogram
         h = _ROOT.gDirectory.Get(name)
