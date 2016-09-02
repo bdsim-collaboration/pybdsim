@@ -33,10 +33,10 @@ def ElectronColliderOptions():
     a.SetNGenerate(100)
 
     #Production cuts
-    a.SetDefaultRangeCut(1,"m")
-    a.SetProductionCutElectrons(1,"m")
-    a.SetProductionCutPositrons(1,"m")
-    a.SetProductionCutPhotons(1,"m")
+    a.SetDefaultRangeCut(0.25,"m")
+    a.SetProductionCutElectrons(0.25,"m")
+    a.SetProductionCutPositrons(0.25,"m")
+    a.SetProductionCutPhotons(0.25,"m")
 
     #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
