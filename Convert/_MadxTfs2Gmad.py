@@ -498,4 +498,6 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     
     beam.SetXP0(tfs[startindex]['PY'])
     beam.SetYP0(tfs[startindex]['PX'])
+    beam.SetXP0(tfs[startindex]['PX'])
+    beam.SetYP0(tfs[startindex]['PY'])
     return beam
