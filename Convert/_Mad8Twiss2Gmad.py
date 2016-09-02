@@ -2,12 +2,14 @@
 
 import numpy as _np
 import optparse as _op
+from collections import OrderedDict
 
 import pymad8
 from .. import Builder 
 from .. import Beam
 from .. import Options
 from .. import XSecBias
+
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
                    istart                       = 0,
@@ -148,11 +150,12 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # create bias options
     biasList = ""
     if enableMuonBias :
-        gmb = XSecBias.XSecBias("gmb","gamma","GammaToMuPair","5e8","1")
-        # pmb = XSecBias.XSecBias("pmb","e+",[""])
+        gmb = XSecBias.XSecBias("gmb","gamma","GammaToMuPair","1e2","1")
+        pmb = XSecBias.XSecBias("pmb","e+","AnnihiToMuPair","1e2","1")
         a.AddBias(gmb)
+        a.AddBias(pmb)
 
-        biasList = "gmb"
+        biasList = "gmb pmb"
 
     # iterate through objects and build machine
     for i in range(istart,len(c.name),1) : 
@@ -481,7 +484,7 @@ class Mad8CollimatorDatabase:
 
         inx = 0 
 
-        self._coll = {}
+        self._coll = OrderedDict()
         self._collNames = []
         for l in f : 
             t = l.split()
