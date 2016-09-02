@@ -43,6 +43,13 @@ class Event :
         self._tree.SetBranchAddress("Trajectory.",self.trajectories)
         self._tree.SetBranchAddress("Histos.",self.histos)
 
+        # dictionary of samplers
+        self.samplerDict = {}
+
+    def enableSampler(self,samplerName):
+        self.samplerDict[samplerName] = _ROOT.BDSOutputROOTEventSampler("float")()
+        self._tree.SetBranchAddress(samplerName+'.',self.samplerDict[samplerName])
+
     def getEvent(self,ientry):
         if ientry > -1 and ientry < self.nevent :
             self._tree.GetEntry(ientry)
