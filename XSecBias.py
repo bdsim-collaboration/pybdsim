@@ -92,7 +92,7 @@ class XSecBias(object):
         xsec     = 'xsecfact={' + ','.join(map(str, self.xseclist)) + '}'
         flag     = 'flag={' + ','.join(map(str,self.flaglist)) + '}'
 
-        s = self.name + ": xsecBias, " + ', '.join([particle,proc,xsec,flag]) + ';'
+        s = self.name + ": xsecBias, " + ', '.join([particle,proc,xsec,flag]) + ';\n'
         
         return s
 
