@@ -136,6 +136,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         o = Options.ElectronColliderOptions()
         o.SetBuildTunnel(False)
         o.SetBuildTunnelFloor(False)
+        o.SetMagnetGeometryType("none")
         o.SetPrintModuloFraction(1e-5)
 
         process = 'em'
@@ -143,6 +144,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             process += ' synchrad'
         if enableMuon :
             process += ' muon'
+            o.SetStoreTrajectory(True)
+            o.SetStoreTrajectoryParticle("mu+ mu-")
+
 
         o.SetPhysicsList(process)
         a.AddOptions(o)
@@ -157,15 +161,17 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
         biasList = "gmb pmb"
 
+
+
     # iterate through objects and build machine
     for i in range(istart,len(c.name),1) : 
-# unique(c.type)
-# ['', 'BLMO', 'DRIF', 'ECOL', 'HKIC', 'IMON', 'INST', 'LCAV', 'MARK',
-#       'MATR', 'MONI', 'PROF', 'QUAD', 'RCOL', 'SBEN', 'SOLE', 'VKIC',
-#       'WIRE']
+        # unique(c.type)
+        # ['', 'BLMO', 'DRIF', 'ECOL', 'HKIC', 'IMON', 'INST', 'LCAV', 'MARK',
+        # 'MATR', 'MONI', 'PROF', 'QUAD', 'RCOL', 'SBEN', 'SOLE', 'VKIC',
+        #       'WIRE']
 
         # print element
-#        print i,c.name[i],c.type[i]
+        # print i,c.name[i],c.type[i]
 
         # check name dictionary 
         try : 
