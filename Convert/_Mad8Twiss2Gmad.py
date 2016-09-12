@@ -271,9 +271,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
             else : 
                 # check for large tilt                
-                if enableDipoleTiltTransform and float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :
-                    print "inserting transform 3D"
-                    a.AddTransform3D(c.name[i]+"3dt_in",phi=0,theta=0,psi=float(c.data[i][c.keys['sben']['tilt']]))
+                #if enableDipoleTiltTransform and float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :
+                #    print "inserting transform 3D"
+                #    a.AddTransform3D(c.name[i]+"3dt_in",phi=0,theta=0,psi=float(c.data[i][c.keys['sben']['tilt']]))
                     
                 # print "SBEN> ",c.name[i],c.data[i][c.keys['sben']['tilt']]
 
@@ -289,14 +289,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                             angle = float(c.data[i][c.keys['sben']['angle']]),
                             aper  = float(apertures.aper[i]),
                             e1    = e1in,
-                            e2    = e2in)
-                #           removed and use transform     
-                #           tilt  = float(c.data[i][c.keys['sben']['tilt']])) 
+                            e2    = e2in,
+                            tilt  = float(c.data[i][c.keys['sben']['tilt']]))
 
 
-                if enableDipoleTiltTransform and float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :
-                    print "removing transform 3D"
-                    a.AddTransform3D(c.name[i]+"3dt_out",phi=0,theta=0,psi=-float(c.data[i][c.keys['sben']['tilt']]))
+                #if enableDipoleTiltTransform and float(c.data[i][c.keys['sben']['tilt']]) > 0.2 :
+                #    print "removing transform 3D"
+                #    a.AddTransform3D(c.name[i]+"3dt_out",phi=0,theta=0,psi=-float(c.data[i][c.keys['sben']['tilt']]))
 
 ###################################################################################
         elif c.type[i] == 'LCAV' : 
