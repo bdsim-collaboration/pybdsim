@@ -4,11 +4,11 @@ import matplotlib.pyplot as _plt
 #from scipy.constants import c
 import sys
 import time
+import warnings
 try:
     import root_numpy as _rnp
 except ImportError:
-    print "No root_numpy found.  mad8 conversion tools may not work as intended."
-
+    warnings.warn("No root_numpy found.  mad8 conversion tools may not work as intended.", UserWarning)
 
 def bdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
     """"

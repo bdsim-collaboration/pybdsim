@@ -31,7 +31,13 @@ def ElectronColliderOptions():
     a.SetOuterDiameter(1,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
-    
+
+    #Production cuts
+    a.SetDefaultRangeCut(0.25,"m")
+    a.SetProductionCutElectrons(0.25,"m")
+    a.SetProductionCutPositrons(0.25,"m")
+    a.SetProductionCutPhotons(0.25,"m")
+
     #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
     
@@ -90,11 +96,20 @@ class Options(dict):
             'qgsp_bic_hp',
             'ftfp_bert',
             'ftfp_bert_hp',
-            'decay'
+            'decay',
+            'muon'
             ]
-        if physicslist not in physicslistlist:
-            raise ValueError('Unknown physicslist: '+physicslist)
-        self['physicsList'] = '"' + str(physicslist) + '"'
+        if len(physicslist.split()) == 1 :
+            if physicslist not in physicslistlist:
+                raise ValueError('Unknown physicslist: '+physicslist)
+            self['physicsList'] = '"' + str(physicslist) + '"'
+        else :
+            splitphysicslist = physicslist.split()
+            for token in splitphysicslist :
+                if token not in physicslistlist :
+                    raise ValueError('Unknown physicslist: ' + physicslist)
+
+            self['physicsList'] = '"' + str(physicslist) + '"'
 
     def SetBeamPipeRadius(self,beampiperadius=5,unitsstring='cm'):
         self['beampipeRadius'] = str(beampiperadius) + '*' +unitsstring
@@ -291,6 +306,12 @@ class Options(dict):
         else:
             self['storeTrajectory'] = 0
 
+    def SetStoreTrajectoryParticle(self, particle = "muon"):
+        self['storeTrajectoryParticle'] = particle
+
+    def SetMagnetGeometryType(self, magnetGeometryType = 'none'):
+        self['magnetGeometryType'] = magnetGeometryType
+
     def SetStoreMuonTrajectory(self,on=True):
         if True:
             self['storeMuonTrajectory'] = 1
@@ -308,6 +329,9 @@ class Options(dict):
 
     def SetTrajectoryCutLTR(self,ltr=10.0,unitsstring='m'):
         self['trajCutLTR'] = str(ltr) + '*' + unitsstring
+
+    def SetPrintModuloFraction(self,pmf=1e-2):
+        self['printModuloFraction'] = pmf
 
     def SetNPerFile(self,nperfile=100):
         self['nperfile'] = nperfile

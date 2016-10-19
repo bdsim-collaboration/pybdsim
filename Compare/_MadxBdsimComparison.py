@@ -177,16 +177,17 @@ def _PlotOptics(tfsopt, bdsopt,outdir,saveFigs,survey, full):
         axes = figure.gca()
         axes.legend(loc='best')
         axes.set_xlabel('S / m')
-        if survey.split(".")[-1] == 'dat':
-            _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
-        else:
-            _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
-        if saveFigs == True:
-            if index == 0:  #only make directory once.
-                dirname = _pybdsim._General.GenUniqueFilename(outdir)
-                _os.mkdir(dirname)
-            filename = figure.canvas.get_window_title()
-            figure.savefig(dirname+'/' + filename +'.pdf')
+        if survey != None:
+            if survey.split(".")[-1] == 'dat':
+                _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
+            else:
+                _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
+            if saveFigs == True:
+                if index == 0:  #only make directory once.
+                    dirname = _pybdsim._General.GenUniqueFilename(outdir)
+                    _os.mkdir(dirname)
+                filename = figure.canvas.get_window_title()
+                figure.savefig(dirname+'/' + filename +'.pdf')
 
     _plt.show()
 

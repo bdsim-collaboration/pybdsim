@@ -253,8 +253,11 @@ class Lattice(object):
             d['SPosStart'] =  sposstart
             sposend        += d['Length']
             d['SPosEnd']   =  sposend
+            d['SPosMid']   = sposstart + d['Length']/2
             sposstart      += d['Length']
             self.lattice.append(d)
+
+        self.smax = sposend
 
     def GetName(self,index):
         return str(self._parserlib.GetName(index))
@@ -377,6 +380,21 @@ class Lattice(object):
                 s += '\n'
         print s
 
+    def IndexFromNearestS(self, S):
+        """
+        IndexFromNearestS(S)
+
+        return the index of the beamline element clostest to S
+        """
+        sMid = self.GetColumn('SPosMid')
+        closestS = min(sMid, key=lambda x:abs(x-S))
+        return sMid.index(closestS)
+
+    def GetColumn(self, column):
+        data = []
+        for element in self.lattice:
+            data.append(element[column])
+        return data
 
 class GmadFile(object) :
     """
