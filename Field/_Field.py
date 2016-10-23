@@ -1,0 +1,135 @@
+import numpy as _np
+
+
+class Field(object):
+    """
+    Base class used for common writing procedures for BDSIM field format.
+    """
+    def __init__(self, array=_np.array([]), columns=[]):
+        self.data    = array
+        self.columns = columns
+        self.header  = {}
+
+    def Write(self, fileName):
+        f = open(fileName, 'w')
+        for key,value in self.header.iteritems():
+            f.write(str(key)+'> '+ str(value) + '\n')
+
+        colStrings = map(lambda s: '%14s' % s, self.columns)
+        colStrings[0] = colStrings[0].strip() # don't pad the first column title
+        # a '!' denotes the column header line
+        f.write('! '+ '\t'.join(colStrings)+'\n')
+        
+        # flatten all but last dimension - 3 field components
+        nvalues = _np.shape(self.data)[-1]
+        datal = self.data.reshape(-1,nvalues)
+        for value in datal:
+            strings = map(lambda x: '%.7E' % x, value)
+            stringsFW = map(lambda s: '%14s' % s, strings)
+            f.write('\t'.join(stringsFW) + '\n')
+
+        f.close()
+
+
+class Field1D(Field):
+    """
+    Utility class to write a numpy 1D array to BDSIM field format.
+
+    Input 4x 1D numpy arrays for x, and the field components bx,by,z.
+    This can of course be used for electric fields too, despite the 'b'
+    labelling.
+
+    Example::
+    
+    >>> a = Field1D(x,bx,by,bz)
+    >>> a.Write('outputFileName.dat')
+
+    """
+    def __init__(self,x,bx,by,bz):
+        data = _np.column_stack([x,bx,by,bz])
+        columns = ['X','Bx','By','Bz']
+        super(Field1D, self).__init__(data,columns)
+        self.header['xmin'] = min(self.data[:,0])
+        self.header['xmax'] = max(self.data[:,0])
+        self.header['nx']   = _np.shape(self.data)[0]
+
+class Field2D(Field):
+    """
+    Utility class to write a 2D field map array to BDSIM field format.
+
+    The array supplied should be 3 dimensional. Dimensions are:
+    (x,y,value) where value has 5 elements [x,y,bx,by,bz].  So a 100x50 (x,y)
+    grid would have np.shape of (100,50,5).
+
+    Example::
+    
+    >>> a = Field2D(data) # data is a prepared array
+    >>> a.Write('outputFileName.dat')
+
+    """
+    def __init__(self,data):
+        columns = ['X','Y','Bx','By','Bz']
+        super(Field2D, self).__init__(data,columns)
+        self.header['xmin'] = min(self.data[:,0])
+        self.header['xmax'] = max(self.data[:,0])
+        self.header['nx']   = _np.shape(self.data)[0]
+        self.header['ymin'] = min(self.data[:,:,1])
+        self.header['ymax'] = max(self.data[:,:,1])
+        self.header['ny']   = _np.shape(self.data)[1]
+
+class Field3D(Field):
+    """
+    Utility class to write a 3D field map array to BDSIM field format.
+
+    The array supplied should be 4 dimensional. Dimensions are:
+    (x,y,z,value) where value has 6 elements [x,y,z,bx,by,bz].  So a 100x50x30 
+    (x,y,z) grid would have np.shape of (100,50,30,6).
+    
+    Example::
+    
+    >>> a = Field3D(data) # data is a prepared array
+    >>> a.Write('outputFileName.dat')
+
+    """
+    def __init__(self,data):
+        columns = ['X','Y','Z','Bx','By','Bz']
+        super(Field3D, self).__init__(data,columns)
+        self.header['xmin'] = min(self.data[:,0])
+        self.header['xmax'] = max(self.data[:,0])
+        self.header['nx']   = _np.shape(self.data)[0]
+        self.header['ymin'] = min(self.data[:,:,1])
+        self.header['ymax'] = max(self.data[:,:,1])
+        self.header['ny']   = _np.shape(self.data)[1]
+        self.header['zmin'] = min(self.data[:,:,2])
+        self.header['zmax'] = max(self.data[:,:,2])
+        self.header['nz']   = _np.shape(self.data)[2]
+
+class Field4D(Field):
+    """
+    Utility class to write a 4D field map array to BDSIM field format.
+
+    The array supplied should be 5 dimensional. Dimensions are:
+    (x,y,z,t,value) where value has 7 elements [x,y,z,t,bx,by,bz].  So a 100x50x30x10
+    (x,y,z,t) grid would have np.shape of (100,50,30,10,7).
+    
+    Example::
+    
+    >>> a = Field4D(data) # data is a prepared array
+    >>> a.Write('outputFileName.dat')
+
+    """
+    def __init__(self,data):
+        columns = ['X','Y','Z','T','Bx','By','Bz']
+        super(Field4D, self).__init__(data,columns)
+        self.header['xmin'] = min(self.data[:,0])
+        self.header['xmax'] = max(self.data[:,0])
+        self.header['nx']   = _np.shape(self.data)[0]
+        self.header['ymin'] = min(self.data[:,:,1])
+        self.header['ymax'] = max(self.data[:,:,1])
+        self.header['ny']   = _np.shape(self.data)[1]
+        self.header['zmin'] = min(self.data[:,:,2])
+        self.header['zmax'] = max(self.data[:,:,2])
+        self.header['nz']   = _np.shape(self.data)[2]
+        self.header['tmin'] = min(self.data[:,:,3])
+        self.header['tmax'] = max(self.data[:,:,3])
+        self.header['nt']   = _np.shape(self.data)[3]
