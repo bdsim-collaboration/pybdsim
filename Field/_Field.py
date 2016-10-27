@@ -48,8 +48,8 @@ class Field1D(Field):
         data = _np.column_stack([x,fx,fy,fz])
         columns = ['X','Fx','Fy','Fz']
         super(Field1D, self).__init__(data,columns)
-        self.header['xmin'] = min(self.data[:,0])
-        self.header['xmax'] = max(self.data[:,0])
+        self.header['xmin'] = _np.min(self.data[:,0])
+        self.header['xmax'] = _np.max(self.data[:,0])
         self.header['nx']   = _np.shape(self.data)[0]
 
 class Field2D(Field):
@@ -69,11 +69,11 @@ class Field2D(Field):
     def __init__(self,data):
         columns = ['X','Y','Fx','Fy','Fz']
         super(Field2D, self).__init__(data,columns)
-        self.header['xmin'] = min(self.data[:,0])
-        self.header['xmax'] = max(self.data[:,0])
+        self.header['xmin'] = _np.min(self.data[:,0])
+        self.header['xmax'] = _np.max(self.data[:,0])
         self.header['nx']   = _np.shape(self.data)[0]
-        self.header['ymin'] = min(self.data[:,:,1])
-        self.header['ymax'] = max(self.data[:,:,1])
+        self.header['ymin'] = _np.min(self.data[:,:,1])
+        self.header['ymax'] = _np.max(self.data[:,:,1])
         self.header['ny']   = _np.shape(self.data)[1]
 
 class Field3D(Field):
@@ -93,14 +93,14 @@ class Field3D(Field):
     def __init__(self,data):
         columns = ['X','Y','Z','Fx','Fy','Fz']
         super(Field3D, self).__init__(data,columns)
-        self.header['xmin'] = min(self.data[:,0])
-        self.header['xmax'] = max(self.data[:,0])
+        self.header['xmin'] = _np.min(self.data[:,0])
+        self.header['xmax'] = _np.max(self.data[:,0])
         self.header['nx']   = _np.shape(self.data)[0]
-        self.header['ymin'] = min(self.data[:,:,1])
-        self.header['ymax'] = max(self.data[:,:,1])
+        self.header['ymin'] = _np.min(self.data[:,:,1])
+        self.header['ymax'] = _np.max(self.data[:,:,1])
         self.header['ny']   = _np.shape(self.data)[1]
-        self.header['zmin'] = min(self.data[:,:,2])
-        self.header['zmax'] = max(self.data[:,:,2])
+        self.header['zmin'] = _np.min(self.data[:,:,2])
+        self.header['zmax'] = _np.max(self.data[:,:,2])
         self.header['nz']   = _np.shape(self.data)[2]
 
 class Field4D(Field):
@@ -120,15 +120,15 @@ class Field4D(Field):
     def __init__(self,data):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
         super(Field4D, self).__init__(data,columns)
-        self.header['xmin'] = min(self.data[:,0])
-        self.header['xmax'] = max(self.data[:,0])
+        self.header['xmin'] = _np.min(self.data[:,0])
+        self.header['xmax'] = _np.max(self.data[:,0])
         self.header['nx']   = _np.shape(self.data)[0]
-        self.header['ymin'] = min(self.data[:,:,1])
-        self.header['ymax'] = max(self.data[:,:,1])
+        self.header['ymin'] = _np.min(self.data[:,:,1])
+        self.header['ymax'] = _np.max(self.data[:,:,1])
         self.header['ny']   = _np.shape(self.data)[1]
-        self.header['zmin'] = min(self.data[:,:,2])
-        self.header['zmax'] = max(self.data[:,:,2])
+        self.header['zmin'] = _np.min(self.data[:,:,2])
+        self.header['zmax'] = _np.max(self.data[:,:,2])
         self.header['nz']   = _np.shape(self.data)[2]
-        self.header['tmin'] = min(self.data[:,:,3])
-        self.header['tmax'] = max(self.data[:,:,3])
+        self.header['tmin'] = _np.min(self.data[:,:,3])
+        self.header['tmax'] = _np.max(self.data[:,:,3])
         self.header['nt']   = _np.shape(self.data)[3]
