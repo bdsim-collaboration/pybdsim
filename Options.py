@@ -61,6 +61,9 @@ def MinimumStandard():
 class Options(dict):
     def __init__(self,*args,**kwargs):
         dict.__init__(self,*args,**kwargs)
+
+    def SetGeneralOption(self, option, value):
+        self[option] = value
         
     def ReturnOptionsString(self):
         s = ''
