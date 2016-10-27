@@ -35,19 +35,18 @@ class Field1D(Field):
     """
     Utility class to write a numpy 1D array to BDSIM field format.
 
-    Input 4x 1D numpy arrays for x, and the field components bx,by,z.
-    This can of course be used for electric fields too, despite the 'b'
-    labelling.
+    Input 4x 1D numpy arrays for x, and the field components fx,fy,fz.
+    This can be used for both electric and magnetic fields.
 
     Example::
     
-    >>> a = Field1D(x,bx,by,bz)
+    >>> a = Field1D(x,fx,fy,fz)
     >>> a.Write('outputFileName.dat')
 
     """
-    def __init__(self,x,bx,by,bz):
-        data = _np.column_stack([x,bx,by,bz])
-        columns = ['X','Bx','By','Bz']
+    def __init__(self,x,fx,fy,fz):
+        data = _np.column_stack([x,fx,fy,fz])
+        columns = ['X','Fx','Fy','Fz']
         super(Field1D, self).__init__(data,columns)
         self.header['xmin'] = min(self.data[:,0])
         self.header['xmax'] = max(self.data[:,0])
@@ -58,7 +57,7 @@ class Field2D(Field):
     Utility class to write a 2D field map array to BDSIM field format.
 
     The array supplied should be 3 dimensional. Dimensions are:
-    (x,y,value) where value has 5 elements [x,y,bx,by,bz].  So a 100x50 (x,y)
+    (x,y,value) where value has 5 elements [x,y,fx,fy,fz].  So a 100x50 (x,y)
     grid would have np.shape of (100,50,5).
 
     Example::
@@ -68,7 +67,7 @@ class Field2D(Field):
 
     """
     def __init__(self,data):
-        columns = ['X','Y','Bx','By','Bz']
+        columns = ['X','Y','Fx','Fy','Fz']
         super(Field2D, self).__init__(data,columns)
         self.header['xmin'] = min(self.data[:,0])
         self.header['xmax'] = max(self.data[:,0])
@@ -82,7 +81,7 @@ class Field3D(Field):
     Utility class to write a 3D field map array to BDSIM field format.
 
     The array supplied should be 4 dimensional. Dimensions are:
-    (x,y,z,value) where value has 6 elements [x,y,z,bx,by,bz].  So a 100x50x30 
+    (x,y,z,value) where value has 6 elements [x,y,z,fx,fy,fz].  So a 100x50x30 
     (x,y,z) grid would have np.shape of (100,50,30,6).
     
     Example::
@@ -92,7 +91,7 @@ class Field3D(Field):
 
     """
     def __init__(self,data):
-        columns = ['X','Y','Z','Bx','By','Bz']
+        columns = ['X','Y','Z','Fx','Fy','Fz']
         super(Field3D, self).__init__(data,columns)
         self.header['xmin'] = min(self.data[:,0])
         self.header['xmax'] = max(self.data[:,0])
@@ -109,7 +108,7 @@ class Field4D(Field):
     Utility class to write a 4D field map array to BDSIM field format.
 
     The array supplied should be 5 dimensional. Dimensions are:
-    (x,y,z,t,value) where value has 7 elements [x,y,z,t,bx,by,bz].  So a 100x50x30x10
+    (x,y,z,t,value) where value has 7 elements [x,y,z,t,fx,fy,fz]. So a 100x50x30x10
     (x,y,z,t) grid would have np.shape of (100,50,30,10,7).
     
     Example::
@@ -119,7 +118,7 @@ class Field4D(Field):
 
     """
     def __init__(self,data):
-        columns = ['X','Y','Z','T','Bx','By','Bz']
+        columns = ['X','Y','Z','T','Fx','Fy','Fz']
         super(Field4D, self).__init__(data,columns)
         self.header['xmin'] = min(self.data[:,0])
         self.header['xmax'] = max(self.data[:,0])
