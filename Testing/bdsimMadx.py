@@ -140,8 +140,8 @@ class LatticeTest:
         print 'Test> Running new parameters: ', self.filename
 
         _os.chdir(self.folderpath)
-        _subprocess.call(["bdsim","--file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=root --outfile="+self.filename+" > bdsim.log"])
-        pybdsim.Convert.bdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
+        _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=rootevent --outfile="+self.filename+"> bdsim.log")
+        pybdsim.Convert.bdsimPrimaries2Ptc(''+self.filename+'_event.root', self.ptcinrays)
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
@@ -167,11 +167,11 @@ class LatticeTest:
         if particle == 'ELECTRON' :
             self.flipmagnets = True
         
-        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets ,verbose=self.verbose)                        
+        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose)                        
         
-        _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays)
+        _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
 
-        _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=rootevent --outfile="+self.filename+" > bdsim.log")
+        _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --seed=1993 --output=rootevent --outfile="+self.filename+"> bdsim.log")
 
         pybdsim.Convert.bdsimPrimaries2Ptc(''+self.filename+'_event.root', self.ptcinrays)
 
@@ -357,7 +357,7 @@ class LatticeTest:
                 PTC_opterr_x = ptcdata.Sigma_beta_x()
                 PTC_opterr_y = ptcdata.Sigma_beta_y()
                 
-                print 'LenMopt ',len(M_optfn_x),' LenMs ',len(M_s),' LenBs ',len(B_s),' LenBopt ',len(B_optfn_x)
+                #print 'LenMopt ',len(M_optfn_x),' LenMs ',len(M_s),' LenBs ',len(B_s),' LenBopt ',len(B_optfn_x)
                 
             elif (opt=='alpha'):
                 fn_name      = r'\alpha' #this is a raw string for Latex labels and titles
@@ -423,7 +423,7 @@ class LatticeTest:
                 plotNr      += 1
                 
                 in_Tfs       = True
-                M_optfn_x    = _np.empty(len(M_s)); #Emittance in the TFS file is constant defined in the header
+                M_optfn_x    = _np.empty(len(M_s)); #Emittance in the TFS file is a constant defined in the header
                 M_optfn_x.fill(M_emittx)       
                 M_optfn_y    = _np.empty(len(M_s));
                 M_optfn_y.fill(M_emitty)
