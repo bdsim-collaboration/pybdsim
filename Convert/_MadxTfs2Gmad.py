@@ -36,7 +36,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
                  defaultAperture='circular',
                  biasVacuum=None,
-                 biasMaterial=None):
+                 biasMaterial=None,
+                 optionsDict = {}):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
@@ -120,6 +121,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     +---------------------------+-------------------------------------------------------------------+
     | **biasMaterial**          | Optional list of bias objects to written into each component      |
     |                           | definition that are attached to volumes outside the vacuum.       |
+    +---------------------------+-------------------------------------------------------------------+
+    | **optionsDict**           | Optional dictionary of general options to be written to the       |
+    |                           | bdsim model options.                                              |
     +---------------------------+-------------------------------------------------------------------+
 
     Example:
@@ -430,6 +434,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
     options = _Options.Options()
     options.SetBeamPipeRadius(beampiperadius,unitsstring='cm')
+    if (len(optionsDict) > 0):
+        options.update(optionsDict) # expand with user supplied bdsim options
     a.AddOptions(options)
     b.AddOptions(options)
 
