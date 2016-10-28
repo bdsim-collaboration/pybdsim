@@ -31,7 +31,11 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    enableSr                     = False,
                    enableSrScaling              = False,
                    enableMuon                   = False,
-                   enableMuonBias               = True) :
+                   enableMuonBias               = True):
+    """
+    Convert MAD8 twiss output to a BDSIM model in GMAD syntax.
+
+    """
 
     # open mad output
     o = pymad8.Output.OutputReader()
