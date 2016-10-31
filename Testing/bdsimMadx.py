@@ -173,7 +173,7 @@ class LatticeTest:
 
         _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --seed=1993 --output=rootevent --outfile="+self.filename+"> bdsim.log")
 
-        pybdsim.Convert.bdsimPrimaries2Ptc(''+self.filename+'_event.root', self.ptcinrays)
+        pybdsim.Convert.BdsimPrimaries2Ptc(''+self.filename+'_event.root', self.ptcinrays)
 
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
