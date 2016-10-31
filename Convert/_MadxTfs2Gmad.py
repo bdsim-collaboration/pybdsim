@@ -422,9 +422,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     #add a single marker at the end of the line
     a.AddMarker('theendoftheline')
     b.AddMarker('theendoftheline')
-    
-    a.AddSampler(samplers)
-    b.AddSampler(samplers)
+
+    if (samplers != None):
+        a.AddSampler(samplers)
+        b.AddSampler(samplers)
 
     # Make beam file 
     if beam: 
