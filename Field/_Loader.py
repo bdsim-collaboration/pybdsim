@@ -50,14 +50,15 @@ def Load(filename, debug=False):
 
     required = ['nx','ny','nz','nt']
 
-    requiredKeys = set(required[:nDim])
-    if not requiredKeys.issubset(header.keys()):
+    requiredKeys    = required[:nDim]
+    requiredKeysSet = set(requiredKeys)
+    if not requiredKeysSet.issubset(header.keys()):
         print('missing keys from header!')
         if debug:
             print(header)
         return
     else:
-        dims = [int(header[k]) for k in requiredKeys]
+        dims = [int(header[k]) for k in requiredKeys[::-1]]
         dims.append(len(columns))
         if debug:
             print dims
