@@ -33,19 +33,21 @@ class Field(object):
 
 class Field1D(Field):
     """
-    Utility class to write a numpy 1D array to BDSIM field format.
+    Utility class to write a 1D field map array to BDSIM field format.
 
-    Input 4x 1D numpy arrays for x, and the field components fx,fy,fz.
+    The array supplied should be 2 dimensional. Dimensions are:
+    (x,value) where value has 4 element [x,fx,fy,fz]. So a 120 long
+    array would have np.shape of (100,4).
+    
     This can be used for both electric and magnetic fields.
 
     Example::
     
-    >>> a = Field1D(x,fx,fy,fz)
+    >>> a = Field1D(data)
     >>> a.Write('outputFileName.dat')
 
     """
-    def __init__(self,x,fx,fy,fz):
-        data = _np.column_stack([x,fx,fy,fz])
+    def __init__(self,data):
         columns = ['X','Fx','Fy','Fz']
         super(Field1D, self).__init__(data,columns)
         self.header['xmin'] = _np.min(self.data[:,0])
