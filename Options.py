@@ -341,6 +341,12 @@ class Options(dict):
 
     def SetNLinesIgnore(self,nlines=0):
         self['nlinesIgnore'] = nlines
+    
+    def SetIncludeFringeFields(self,on=True):
+        if on == True:
+            self['includeFringeFields'] = 1
+        else:
+            self['includeFringeFields'] = 0
 
 class Editor : 
     def __init__(self, fileName) :
