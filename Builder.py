@@ -35,6 +35,7 @@ bdsimcategories = [
     'sextupole',
     'octupole',
     'multipole',
+    'thinmultipole',
     'rfcavity',
     'rcol',
     'ecol',
@@ -172,9 +173,9 @@ class Element(ElementBase):
         s += self.category
         if len(self._keysextra) > 0:
             for key in self._keysextra:
-                if type(self[key]) == tuple and self.category != 'multipole':
+                if type(self[key]) == tuple and self.category != 'thinmultipole':
                     s += ', ' + key + '=' + str(self[key][0]) + '*' + str(self[key][1])
-                elif type(self[key]) == tuple and self.category == 'multipole' : 
+                elif type(self[key]) == tuple and self.category == 'thinmultipole' : 
                     s += ', ' + key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
                 else:
                     s += ', ' + key + '=' + str(self[key])
@@ -573,6 +574,10 @@ class Machine:
             self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, tilt=tilt, **kwargs))
         else :
             self.AddMarker(name)
+
+    def AddThinMultipole(self, name='mp', knl=(0), ksl=(0), tilt=0.0, **kwargs):
+        self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, tilt=tilt, **kwargs))
+
 
     def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
         self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
