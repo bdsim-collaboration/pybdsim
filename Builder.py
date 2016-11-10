@@ -148,7 +148,10 @@ class Element(ElementBase):
     def __init__(self, name, category, **kwargs):
         if category not in bdsimcategories:
             raise ValueError("Not a valid BDSIM element type")
-        ElementBase.__init__(self,name,**kwargs)
+        if (category == 'thinmultipole') or (category == 'multipole'):
+            ElementBase.__init__(self,name,isMultipole=True,**kwargs)
+        else:
+            ElementBase.__init__(self,name,**kwargs)
         self['category'] = category
         self.category    = category
         self.length      = 0.0 #for book keeping only
