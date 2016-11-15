@@ -145,7 +145,7 @@ class LatticeTest:
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
-    def Run(self, bdsim='bdsim', madx='madx'):
+    def Run(self, bdsim='bdsim', madx='madx', integratorSet="bdsim"):
         print 'Test> Lattice: ', self.filename 
         print 'Test> Destination filepath: ', self.filepath
 
@@ -168,7 +168,7 @@ class LatticeTest:
             self.flipmagnets = True
         
         #pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose)
-        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, thinmultipoles=True, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict={'integratorSet':'"geant4"'})
+        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, thinmultipoles=True, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict={'integratorSet': '"'+integratorSet+'"'})
         
         _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
 
