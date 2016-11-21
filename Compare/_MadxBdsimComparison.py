@@ -175,7 +175,7 @@ def _PlotOptics(tfsopt, bdsopt,outdir,saveFigs,survey, full):
 
     for index, figure in enumerate(figs):
         axes = figure.gca()
-        axes.legend(loc='best')
+        axes.legend(loc='best', numpoints=1)
         axes.set_xlabel('S / m')
         if survey != None:
             if survey.split(".")[-1] == 'dat':
