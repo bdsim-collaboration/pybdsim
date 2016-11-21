@@ -391,7 +391,7 @@ class Machine:
 
     def __repr__(self):
         s = ''
-        s += 'pybdism.Builder.Machine instance\n'
+        s += 'pybdsim.Builder.Machine instance\n'
         s += str(len(self.sequence)) + ' items in sequence\n'
         s += str(len(self.elements)) + ' unique elements defined\n'
         return s

@@ -190,6 +190,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         t     = item['KEYWORD']
         l     = item['L']
         ang   = item['ANGLE']
+        tilt  = item['TILT']
+        
+        if tilt != 0:
+            kws['tilt'] = tilt
 
         # append any user defined parameters for this element into the kws dictionary
         if name in userdict:
