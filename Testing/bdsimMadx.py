@@ -168,7 +168,7 @@ class LatticeTest:
             self.flipmagnets = True
         
         #pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose)
-        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, thinmultipoles=True, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict={'integratorSet': '"'+integratorSet+'"'})
+        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, thinmultipoles=True, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict={'integratorSet': '"'+integratorSet+'"','includeFringeFields':1})
         
         _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
 
