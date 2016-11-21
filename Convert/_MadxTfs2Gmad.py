@@ -308,7 +308,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             e2 = item['E2']
             if (e1 != 0):
                 kws['e1'] = e1
-            if (e1 != 0):
+            if (e2 != 0):
                 kws['e2'] = e2
             k1l = item['K1L']
             if k1l != 0:
