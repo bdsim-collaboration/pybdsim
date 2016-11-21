@@ -69,8 +69,6 @@ class GmadModifier :
     
     def ReplaceTokens(self,tokenDict) :
         pass
-    
-    
         
 
 class Study:
@@ -86,6 +84,10 @@ class Study:
         """
         Get info about a particular run.
         """
+        if index < 0:
+            print("No runs yet")
+            return
+        
         i = index
         result = {'execoptions' : self.execoptions[i],
                   'outputname'  : self.outputnames[i],
