@@ -98,8 +98,9 @@ class Study:
             output='rootevent',
             outfile='output',
             ngenerate=1,
-            bdsimcommand='bdsim-devel'):
-        eo = ExecOptions(file=inputfile, output=output, outfile=outfile, ngenerate=ngenerate)
+            bdsimcommand='bdsim-devel',
+            **kwargs):
+        eo = ExecOptions(file=inputfile, output=output, outfile=outfile, ngenerate=ngenerate, **kwargs)
         return self.RunExecOptions(eo)
 
     def RunExecOptions(self, execoptions, debug=False):
