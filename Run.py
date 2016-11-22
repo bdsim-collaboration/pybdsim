@@ -133,9 +133,15 @@ class Study:
             return
         
         # get output file name - the latest file in the directory hopefully
-        outfilename = _General.GetLatestFileFromDir(extension='*root') # this directory
+        try:
+            outfilename = eo['outfile']
+        except KeyError:
+            outfilename = _General.GetLatestFileFromDir(extension='*root') # this directory
 
         # record info
         self.execoptions.append(eo)
         self.outputnames.append(outfilename)
-        self.outputsizes.append(os.path.getsize(outfilename))
+        try:
+            self.outputsizes.append(os.path.getsize(outfilename))
+        except OSError:
+            self.outputsizes.append(0)
