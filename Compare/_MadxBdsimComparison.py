@@ -101,8 +101,8 @@ def _PlotOptics(tfsopt, bdsopt,outdir,saveFigs,survey, full):
         _plt.plot(tfsopt['S'], tfsopt['BETX'], 'b', label=r'MADX $\beta_{x}$')
         _plt.plot(tfsopt['S'], tfsopt['BETY'], 'g', label=r'MADX $\beta_{y}$')
         #bds
-        _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'], yerr=bdsopt['Sigma_Beta_x'] ,label=r'BDSIM $\beta_{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
-        _plt.errorbar(bdsopt['S'], bdsopt['Beta_y'], yerr=bdsopt['Sigma_Beta_y'],label=r'BDSIM $\beta_{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'], yerr=bdsopt['Sigma_Beta_x'], fmt='b.', label=r'BDSIM $\beta_{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Beta_y'], yerr=bdsopt['Sigma_Beta_y'], fmt='g.', label=r'BDSIM $\beta_{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
         axes = _plt.gcf().gca()
         axes.set_ylabel(r'$\beta_{x,y}$ / m')
         return betaPlot
@@ -112,8 +112,8 @@ def _PlotOptics(tfsopt, bdsopt,outdir,saveFigs,survey, full):
         _plt.plot(tfsopt['S'], tfsopt['ALFX'], 'b', label=r'MADX $\alpha_{x}$')
         _plt.plot(tfsopt['S'], tfsopt['ALFY'], 'g', label=r'MADX $\alpha_{y}$')
         #bds
-        _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'], yerr=bdsopt['Sigma_Alpha_x'] ,label=r'BDSIM $\alpha_{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
-        _plt.errorbar(bdsopt['S'], bdsopt['Alpha_y'], yerr=bdsopt['Sigma_Alpha_y'] ,label=r'BDSIM $\alpha_{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'], yerr=bdsopt['Sigma_Alpha_x'], fmt='b.', label=r'BDSIM $\alpha_{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Alpha_y'], yerr=bdsopt['Sigma_Alpha_y'], fmt='g.', label=r'BDSIM $\alpha_{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
         axes = _plt.gcf().gca()
         axes.set_ylabel(r'$\alpha_{x,y}$ / m')
         return alphaPlot
@@ -123,8 +123,8 @@ def _PlotOptics(tfsopt, bdsopt,outdir,saveFigs,survey, full):
         _plt.plot(tfsopt['S'], tfsopt['DX'], 'b', label=r'MADX $D_{x}$')
         _plt.plot(tfsopt['S'], tfsopt['DY'], 'g', label=r'MADX $D_{y}$')
         #bds
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'], yerr=bdsopt['Sigma_Disp_x'] ,label=r'BDSIM $D_{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'], yerr=bdsopt['Sigma_Disp_y'] ,label=r'BDSIM $D_{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'], yerr=bdsopt['Sigma_Disp_x'], fmt='b.', label=r'BDSIM $D_{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'], yerr=bdsopt['Sigma_Disp_y'], fmt='g.', label=r'BDSIM $D_{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
         axes = _plt.gcf().gca()
         axes.set_ylabel(r'$D_{x,y} / m$')
         return dispPlot
@@ -134,8 +134,8 @@ def _PlotOptics(tfsopt, bdsopt,outdir,saveFigs,survey, full):
         _plt.plot(tfsopt['S'], tfsopt['DPX'], 'b', label=r'MADX $D_{p_{x}}$')
         _plt.plot(tfsopt['S'], tfsopt['DPY'], 'g', label=r'MADX $D_{p_{y}}$')
         #bds
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'], yerr=bdsopt['Sigma_Disp_xp'] ,label=r'BDSIM $D_{p_{x}}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'], yerr=bdsopt['Sigma_Disp_yp'] ,label=r'BDSIM $D_{p_{y}}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'], yerr=bdsopt['Sigma_Disp_xp'], fmt='b.', label=r'BDSIM $D_{p_{x}}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'], yerr=bdsopt['Sigma_Disp_yp'], fmt='g.', label=r'BDSIM $D_{p_{y}}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
         axes = _plt.gcf().gca()
         axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / m')
         return dispPPlot
@@ -145,8 +145,8 @@ def _PlotOptics(tfsopt, bdsopt,outdir,saveFigs,survey, full):
         _plt.plot(tfsopt['S'], tfsopt['SIGMAX'], 'b', label=r'MADX $\sigma_{x}$')
         _plt.plot(tfsopt['S'], tfsopt['SIGMAY'], 'g', label=r'MADX $\sigma_{y}$')
         #bds
-        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'], yerr=bdsopt['Sigma_Sigma_x'] ,label=r'BDSIM $\sigma_{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
-        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_y'], yerr=bdsopt['Sigma_Sigma_y'] ,label=r'BDSIM $\sigma_{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'], yerr=bdsopt['Sigma_Sigma_x'], fmt='b.', label=r'BDSIM $\sigma_{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_y'], yerr=bdsopt['Sigma_Sigma_y'], fmt='g.', label=r'BDSIM $\sigma_{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
         axes = _plt.gcf().gca()
         axes.set_ylabel(r'$\sigma_{x,y}$ / m')
         return sigmaPlot
@@ -156,8 +156,8 @@ def _PlotOptics(tfsopt, bdsopt,outdir,saveFigs,survey, full):
         _plt.plot(tfsopt['S'], tfsopt['X'], 'b', label=r'MADX $\bar{x}$')
         _plt.plot(tfsopt['S'], tfsopt['Y'], 'g', label=r'MADX $\bar{y}$')
         #bds
-        _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'], yerr=bdsopt['Sigma_Mean_x'] ,label=r'BDSIM $\bar{x}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
-        _plt.errorbar(bdsopt['S'], bdsopt['Mean_y'], yerr=bdsopt['Sigma_Mean_y'] ,label=r'BDSIM $\bar{y}$' + ' ; N=' + str(int(N)),marker='x', ls = '')
+        _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'], yerr=bdsopt['Sigma_Mean_x'], fmt='b.', label=r'BDSIM $\bar{x}$' + ' ; N=' + str(int(N)),marker='x')
+        _plt.errorbar(bdsopt['S'], bdsopt['Mean_y'], yerr=bdsopt['Sigma_Mean_y'], fmt='g.', label=r'BDSIM $\bar{y}$' + ' ; N=' + str(int(N)),marker='x')
         axes = _plt.gcf().gca()
         axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
         return meanPlot
