@@ -15,8 +15,8 @@ def MadxTfs2GmadStrength(input, outputfilename, existingmachine=None, verbose=Fa
     # ensure it's tfs instance and if not open the filepath provided
     madx = _pymadx.CheckItsTfs(input)
 
-    # check it has the required columns
-    _MadxTfs2Gmad.TfsHasRequiredColumns(madx)
+    # Zero any missing required columns
+    ZeroMissingRequiredColumns(madx)
 
     if existingmachine == None:
         existingnames = madx.GetColumn('NAME')

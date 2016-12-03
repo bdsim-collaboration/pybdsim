@@ -1,31 +1,41 @@
 import numpy as _np
 import re as _re
 import pymadx as _pymadx
+import warnings as _warnings
 from .. import Builder as _Builder
 from .. import Options as _Options
 from .. import Beam as _Beam
 from .. import _General
 from .. import XSecBias
 
-_requiredKeys = [
+_requiredKeys = frozenset([
     'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
     'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
-    'VKICK', 'HKICK', 'E1', 'E2'
-]
+    'VKICK', 'HKICK', 'E1', 'E2'])
 
 _lFake = 1e-6 # fake length for thin magnets
 
-def TfsHasRequiredColumns(tfsinstance):
+def ZeroMissingRequiredColumns(tfsinstance):
     """
-    Test the tfs file to check it has everything we need.
+    Sets any missing required columns to zero.  Warns user when doing so.
     """
-    test = _np.array([not (key in tfsinstance.columns) for key in _requiredKeys])
-    if test.any():
-        print 'Required columns : L, ANGLE, KSI, K1L...K6L, K1SL...K6SL, TILT,' 
-        print '                   KEYWORD, ALFX, ALFY, BETX, BETY, VKICK, HKICK'
-        print 'Missing column(s): ',_requiredKeys[test==True]
-        raise KeyError("Required column missing from tfs file")
+    missingColumns = [key for key
+                      in _requiredKeys if key not in tfsinstance.columns]
+
+    if not missingColumns:
+        return
+
+    for column in missingColumns:
+        tfsinstance.columns.append(column)
+        for key, data in tfsinstance.data.iteritems():
+            data.append(0.0)
+
+        warningString = "\n- ".join(missingColumns)
+        _warnings.warn("\n\x1b[0;37;41mWARNING:"
+                       "Columns missing from TFS file:\x1b[0m\n- " +  warningString +
+                       "\nThey have ALL been set to ZERO!")
+
 
 def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
                  ignorezerolengthitems=True, thinmultipoles=False, samplers='all',
@@ -332,8 +342,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     # test whether filpath or tfs instance supplied
     madx = _pymadx._General.CheckItsTfs(input)
 
-    # check it has all the required columns
-    TfsHasRequiredColumns(madx)
+    # check whether it has all the required columns.
+    ZeroMissingRequiredColumns(madx)
 
     if verbose:
         madx.ReportPopulations()
