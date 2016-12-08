@@ -35,6 +35,7 @@ bdsimcategories = [
     'sextupole',
     'octupole',
     'multipole',
+    'thinmultipole',
     'rfcavity',
     'rcol',
     'ecol',
@@ -147,7 +148,10 @@ class Element(ElementBase):
     def __init__(self, name, category, **kwargs):
         if category not in bdsimcategories:
             raise ValueError("Not a valid BDSIM element type")
-        ElementBase.__init__(self,name,**kwargs)
+        if (category == 'thinmultipole') or (category == 'multipole'):
+            ElementBase.__init__(self,name,isMultipole=True,**kwargs)
+        else:
+            ElementBase.__init__(self,name,**kwargs)
         self['category'] = category
         self.category    = category
         self.length      = 0.0 #for book keeping only
@@ -172,9 +176,9 @@ class Element(ElementBase):
         s += self.category
         if len(self._keysextra) > 0:
             for key in self._keysextra:
-                if type(self[key]) == tuple and self.category != 'multipole':
+                if type(self[key]) == tuple and self.category != 'thinmultipole':
                     s += ', ' + key + '=' + str(self[key][0]) + '*' + str(self[key][1])
-                elif type(self[key]) == tuple and self.category == 'multipole' : 
+                elif type(self[key]) == tuple and self.category == 'thinmultipole' : 
                     s += ', ' + key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
                 else:
                     s += ', ' + key + '=' + str(self[key])
@@ -387,7 +391,7 @@ class Machine:
 
     def __repr__(self):
         s = ''
-        s += 'pybdism.Builder.Machine instance\n'
+        s += 'pybdsim.Builder.Machine instance\n'
         s += str(len(self.sequence)) + ' items in sequence\n'
         s += str(len(self.elements)) + ' unique elements defined\n'
         return s
@@ -573,6 +577,10 @@ class Machine:
             self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, tilt=tilt, **kwargs))
         else :
             self.AddMarker(name)
+
+    def AddThinMultipole(self, name='mp', knl=(0), ksl=(0), tilt=0.0, **kwargs):
+        self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, tilt=tilt, **kwargs))
+
 
     def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
         self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
@@ -885,21 +893,14 @@ def WriteMachine(machine, filename, verbose=False):
         f.close()
     
     #write component files
-    ncomponentfiles = int(_np.ceil(len(machine.elements)/1000.0))
-    for i in range(0,ncomponentfiles):
-        if i == 0:
-            fname = fn_components
-        else:
-            fname = fn_components[:-5]+'_'+str(i)+'.gmad'
-        f = open(fname,'w')
-        files.append(fname)
-        f.write(timestring)
-        f.write('! pybdsim.Builder Lattice \n')
-        #extra spaces added here to overcome wierd parser bug... seems to fix it
-        f.write('! COMPONENT DEFINITION                                      \n\n')
-        for element in machine.elements[i*1000:i*1000+1000]:
-            f.write(str(element))
-        f.close()
+    f = open(fn_components, 'w')
+    files.append(fn_components)
+    f.write(timestring)
+    f.write('! pybdsim.Builder Lattice \n')
+    f.write('! COMPONENT DEFINITION\n\n')
+    for element in machine.elements:
+        f.write(str(element))
+    f.close()
 
     #write lattice sequence
     f = open(fn_sequence,'w')

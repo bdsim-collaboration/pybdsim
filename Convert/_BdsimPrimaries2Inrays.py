@@ -10,7 +10,7 @@ try:
 except ImportError:
     warnings.warn("No root_numpy found.  mad8 conversion tools may not work as intended.", UserWarning)
 
-def bdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
+def BdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
     """"
     Takes .root file generated from a BDSIM run an an input and creates
     a PTC inrays file from the primary particle tree.
@@ -44,7 +44,7 @@ def bdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
 
     outfile.close()
 
-def bdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
+def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     """"
     Takes .root file generated from a BDSIM run an an input and creates
     a MADX inrays file from the primary particle tree.
@@ -78,7 +78,7 @@ def bdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
         
     outfile.close()
 
-def bdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
+def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     """"
     Takes .root file generated from a BDSIM run an an input and creates
     a MAD8 inrays file from the primary particle tree.

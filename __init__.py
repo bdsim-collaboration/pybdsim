@@ -15,6 +15,7 @@ pybdsim - python tools for bdsim
 | Builder - create generic accelerators for bdsim
 | Convert - convert other formats into gmad
 | Data    - read the bdsim output formats
+| Fields  - write BDSIM field format
 | Gmad    - create bdsim input files - lattices & options
 | ModelProcessing - tools to process existing BDSIM models and generate other versions of them.
 | Options - methods to generate bdsim options
@@ -37,6 +38,7 @@ import Builder
 import Constants
 import Convert
 import Compare
+import Field
 import Data
 import Gmad
 import Options
@@ -62,6 +64,7 @@ __all__ = ['Beam',
            'Convert',
            'Compare',
            'Data',
+           'Field',
            'Gmad',
            'Options',
            'Plot',

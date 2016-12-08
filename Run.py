@@ -69,8 +69,6 @@ class GmadModifier :
     
     def ReplaceTokens(self,tokenDict) :
         pass
-    
-    
         
 
 class Study:
@@ -86,6 +84,10 @@ class Study:
         """
         Get info about a particular run.
         """
+        if index < 0:
+            print("No runs yet")
+            return
+        
         i = index
         result = {'execoptions' : self.execoptions[i],
                   'outputname'  : self.outputnames[i],
@@ -96,8 +98,9 @@ class Study:
             output='rootevent',
             outfile='output',
             ngenerate=1,
-            bdsimcommand='bdsim-devel'):
-        eo = ExecOptions(file=inputfile, output=output, outfile=outfile, ngenerate=ngenerate)
+            bdsimcommand='bdsim-devel',
+            **kwargs):
+        eo = ExecOptions(file=inputfile, output=output, outfile=outfile, ngenerate=ngenerate, **kwargs)
         return self.RunExecOptions(eo)
 
     def RunExecOptions(self, execoptions, debug=False):
@@ -133,9 +136,15 @@ class Study:
             return
         
         # get output file name - the latest file in the directory hopefully
-        outfilename = _General.GetLatestFileFromDir(extension='*root') # this directory
+        try:
+            outfilename = eo['outfile']
+        except KeyError:
+            outfilename = _General.GetLatestFileFromDir(extension='*root') # this directory
 
         # record info
         self.execoptions.append(eo)
         self.outputnames.append(outfilename)
-        self.outputsizes.append(os.path.getsize(outfilename))
+        try:
+            self.outputsizes.append(os.path.getsize(outfilename))
+        except OSError:
+            self.outputsizes.append(0)

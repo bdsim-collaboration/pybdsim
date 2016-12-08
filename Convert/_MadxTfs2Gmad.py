@@ -38,7 +38,7 @@ def ZeroMissingRequiredColumns(tfsinstance):
 
 
 def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
-                 ignorezerolengthitems=True, thinmultipoles=False, samplers='all',
+                 ignorezerolengthitems=True, thinmultipoles=True, samplers='all',
                  aperturedict={},
                  collimatordict={},
                  userdict={},
@@ -46,7 +46,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
                  defaultAperture='circular',
                  biasVacuum=None,
-                 biasMaterial=None):
+                 biasMaterial=None,
+                 optionsDict = {}):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
     
@@ -131,6 +132,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     | **biasMaterial**          | Optional list of bias objects to written into each component      |
     |                           | definition that are attached to volumes outside the vacuum.       |
     +---------------------------+-------------------------------------------------------------------+
+    | **optionsDict**           | Optional dictionary of general options to be written to the       |
+    |                           | bdsim model options.                                              |
+    +---------------------------+-------------------------------------------------------------------+
 
     Example:
     
@@ -196,6 +200,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         t     = item['KEYWORD']
         l     = item['L']
         ang   = item['ANGLE']
+        tilt  = item['TILT']
+        
+        if tilt != 0:
+            kws['tilt'] = tilt
 
         # append any user defined parameters for this element into the kws dictionary
         if name in userdict:
@@ -233,28 +241,22 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
-            # TBC - cludge for thin multipoles (uses _lFake for a short non-zero length)
+            k1  = item['K1L'] * factor
+            k2  = item['K2L'] * factor
+            k3  = item['K3L'] * factor
+            k4  = item['K4L'] * factor
+            k5  = item['K5L'] * factor
+            k6  = item['K6L'] * factor
+            k1s = item['K1SL'] * factor
+            k2s = item['K2SL'] * factor
+            k3s = item['K3SL'] * factor
+            k4s = item['K4SL'] * factor
+            k5s = item['K5SL'] * factor
+            k6s = item['K6SL'] * factor
+            tilt= item['TILT']
+            
             if thinmultipoles:
-                print 'WARNING - conversion of thin multipoles is not finished yet!'
-                k1  = item['K1L']  / _lFake * factor
-                k2  = item['K2L']  / _lFake * factor
-                k3  = item['K3L']  / _lFake * factor
-                k4  = item['K4L']  / _lFake * factor
-                k5  = item['K5L']  / _lFake * factor
-                k6  = item['K6L']  / _lFake * factor
-                k1s = item['K1SL'] / _lFake * factor
-                k2s = item['K2SL'] / _lFake * factor
-                k3s = item['K3SL'] / _lFake * factor
-                k4s = item['K4SL'] / _lFake * factor
-                k5s = item['K5SL'] / _lFake * factor
-                k6s = item['K6SL'] / _lFake * factor
-                tilt= item['TILT']
-                print 'WARNING - only using quadrupole component just now!'
-                if k1 != 0 : 
-                    a.AddQuadrupole(rname,k1=k1,length=_lFake,**kws) 
-                else:
-                    a.AddMarker(rname)
-                    #a.AddMultipole(name,length=_lFake,knl=(k1,k2,k3),ksl=(k1s,k2s,k3s),**kws)
+                a.AddThinMultipole(name, knl=(k1,k2,k3,k4,k5,k6), ksl=(k1s,k2s,k3s,k4s,k5s,k6s),**kws)
             elif zerolength and not izlis:
                 a.AddMarker(rname)
                 if verbose:
@@ -282,6 +284,12 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['e1'] = e1
             if (e1 != 0):
                 kws['e2'] = e2
+            fint  = item['FINT']
+            fintx = item['FINTX']
+            if (fint != 0):
+                kws['fint'] = fint
+            if (fintx != 0):
+                kws['fintx'] = fintx
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
         elif t == 'RCOLLIMATOR' or t == 'ECOLLIMATOR':
             #only use xsize as only have half gap
@@ -310,12 +318,18 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             e2 = item['E2']
             if (e1 != 0):
                 kws['e1'] = e1
-            if (e1 != 0):
+            if (e2 != 0):
                 kws['e2'] = e2
             k1l = item['K1L']
             if k1l != 0:
                 k1 = k1l / l * factor
                 kws['k1'] = k1
+            fint  = item['FINT']
+            fintx = item['FINTX']
+            if (fint != 0):
+                kws['fint'] = fint
+            if (fintx != 0):
+                kws['fintx'] = fintx
             a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t == 'SEXTUPOLE':
             k2 = item['K2L'] / l * factor
@@ -428,9 +442,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     #add a single marker at the end of the line
     a.AddMarker('theendoftheline')
     b.AddMarker('theendoftheline')
-    
-    a.AddSampler(samplers)
-    b.AddSampler(samplers)
+
+    if (samplers != None):
+        a.AddSampler(samplers)
+        b.AddSampler(samplers)
 
     # Make beam file 
     if beam: 
@@ -440,6 +455,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
     options = _Options.Options()
     options.SetBeamPipeRadius(beampiperadius,unitsstring='cm')
+    if (len(optionsDict) > 0):
+        options.update(optionsDict) # expand with user supplied bdsim options
     a.AddOptions(options)
     b.AddOptions(options)
 
