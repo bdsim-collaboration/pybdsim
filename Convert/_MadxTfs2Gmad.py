@@ -50,7 +50,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  optionsDict = {}):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
-    
+
     +---------------------------+-------------------------------------------------------------------+
     | **inputfilename**         | path to the input file                                            |
     +---------------------------+-------------------------------------------------------------------+
@@ -106,7 +106,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     |                           | unspecified.                                                      |
     +---------------------------+-------------------------------------------------------------------+
     | **verbose**               | Print out lots of information when building the model.            |
-    +---------------------------+-------------------------------------------------------------------+    
+    +---------------------------+-------------------------------------------------------------------+
     | **beam**                  | True \| False - generate an input gauss Twiss beam based on the   |
     |                           | values of the twiss parameters at the beginning of the lattice    |
     |                           | (startname) NOTE - we thoroughly recommend checking these         |
@@ -137,7 +137,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     +---------------------------+-------------------------------------------------------------------+
 
     Example:
-    
+
     >>> a,o = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
 
     In normal mode:
@@ -145,8 +145,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
     In verbose mode:
     Returns Machine, Machine, [omittedItems]
-    
-    Returns two pybdsim.Builder.Machine instances. The first desired full conversion.  The second is 
+
+    Returns two pybdsim.Builder.Machine instances. The first desired full conversion.  The second is
     the raw conversion that's not split by aperture. Thirdly, a list of the names of the omitted items
     is returned.
     """
@@ -154,10 +154,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     # machine instance that will be added to
     a = _Builder.Machine() # raw converted machine
     b = _Builder.Machine() # final machine, split with aperture
-   
+
     izlis  = ignorezerolengthitems
     factor = -1 if flipmagnets else 1  #flipping magnets
-    
+
     biasVacuumNames = []
     if type(biasVacuum) == XSecBias.XSecBias:
         biasVacuumNames.append(biasVacuum.name)
@@ -167,7 +167,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         biasVacuumNames = [bias.name for bias in biasVacuum]
         [a.AddBias(bias) for bias in biasVacuum]
         [b.AddBias(bias) for bias in biasVacuum]
-    
+
     biasMaterialNames = []
     if type(biasMaterial) == XSecBias.XSecBias:
         biasMaterialNames.append(biasMaterial.name)
@@ -177,7 +177,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         biasMaterialNames = [bias.name for bias in biasMaterial]
         [a.AddBias(bias) for bias in biasMaterial]
         [b.AddBias(bias) for bias in biasMaterial]
-    
+
     # define utility function that does conversion
     def AddSingleElement(item, a, aperModel=None):
         # a is a pybdsim.Builder.Machine instance
@@ -191,7 +191,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             kws['biasVacuum'] = ' '.join(biasVacuumNames)
         if len(biasMaterialNames) > 0:
             kws['biasMaterial'] = ' '.join(biasMaterialNames)
-        
+
         if aperModel != None:
             kws.update(aperModel)
 
@@ -201,7 +201,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         l     = item['L']
         ang   = item['ANGLE']
         tilt  = item['TILT']
-        
+
         if tilt != 0:
             kws['tilt'] = tilt
 
@@ -211,7 +211,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
         if verbose:
             print kws
-        
+
         if t == 'DRIFT':
             #print 'AddDrift'
             a.AddDrift(rname,l,**kws)
@@ -254,7 +254,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             k5s = item['K5SL'] * factor
             k6s = item['K6SL'] * factor
             tilt= item['TILT']
-            
+
             if thinmultipoles:
                 a.AddThinMultipole(name, knl=(k1,k2,k3,k4,k5,k6), ksl=(k1s,k2s,k3s,k4s,k5s,k6s),**kws)
             elif zerolength and not izlis:
@@ -371,10 +371,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             aperturedict.ReportPopulations()
     if verbose:
         print 'Using pymadx.Apeture instance? --> ',useTfsAperture
-    
+
     # keep list of omitted zero length items
     itemsomitted = []
-    
+
     # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
         name = item['NAME']
@@ -438,7 +438,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             AddSingleElement(item, a)
             AddSingleElement(item, b)
     # end of for loop
-                
+
     #add a single marker at the end of the line
     a.AddMarker('theendoftheline')
     b.AddMarker('theendoftheline')
@@ -447,8 +447,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         a.AddSampler(samplers)
         b.AddSampler(samplers)
 
-    # Make beam file 
-    if beam: 
+    # Make beam file
+    if beam:
         bm = MadxTfs2GmadBeam(madx, startname, verbose)
         a.AddBeam(bm)
         b.AddBeam(bm)
@@ -485,7 +485,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
 
     if startindex > 0:
         startindex -= 1
-    
+
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])
     particle = tfs.header['PARTICLE']
@@ -498,16 +498,16 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
 
     if particle == 'ELECTRON' :
         particle = 'e-'
-    elif particle == 'POSITRON' : 
-        particle = 'e+' 
-    elif particle == 'PROTON' : 
-        particle = 'proton' 
+    elif particle == 'POSITRON' :
+        particle = 'e+'
+    elif particle == 'PROTON' :
+        particle = 'proton'
 
     #print particle,energy,gamma,ex,ey
     if verbose:
         print 'beta_x: ',data['BETX'],'alpha_x: ',data['ALFX'],'mu_x: ',data['MUX']
         print 'beta_y: ',data['BETY'],'alpha_y: ',data['ALFY'],'mu_y: ',data['MUY']
-    
+
     #gammax = (1.0+data['ALFX'])/data['BETX']
     #gammay = (1.0+data['ALFY'])/data['BETY']
 
@@ -519,7 +519,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetBetaY(data['BETY'])
     beam.SetAlphaX(data['ALFX'])
     beam.SetAlphaY(data['ALFY'])
-    beam.SetEmittanceX(ex,'m') 
+    beam.SetEmittanceX(ex,'m')
     beam.SetEmittanceY(ey,'m')
     beam.SetSigmaE(sigmae)
     beam.SetXP0(tfs[startindex]['PX'])

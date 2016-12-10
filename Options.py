@@ -11,7 +11,7 @@ def ProtonColliderOptions():
     a.SetOuterDiameter(0.5,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
-    
+
     #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
 
@@ -40,7 +40,7 @@ def ElectronColliderOptions():
 
     #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
-    
+
     #Tunnel
     a.SetBuildTunnel(True)
     a.SetBuildTunnelFloor(True)
@@ -64,7 +64,7 @@ class Options(dict):
 
     def SetGeneralOption(self, option, value):
         self[option] = value
-        
+
     def ReturnOptionsString(self):
         s = ''
         numOptions=0
@@ -81,10 +81,10 @@ class Options(dict):
         s4 = '\n'.join(s2[2:])
         st = s3+s4
         return st
-    
+
     def SetNGenerate(self,nparticles=1):
         self['ngenerate'] = nparticles
-    
+
     def SetPhysicsList(self,physicslist=''):
         physicslistlist = [
             'em',
@@ -119,7 +119,7 @@ class Options(dict):
 
     def SetOuterDiameter(self,outerdiameter=2,unitsstring='m'):
         self['outerDiameter'] = str(outerdiameter) + '*' + unitsstring
-        
+
     def SetTunnelRadius(self,tunnelradius=2,unitsstring='m'):
         self['tunnelRadius'] = str(tunnelradius) + '*' + unitsstring
 
@@ -128,7 +128,7 @@ class Options(dict):
 
     def SetPipeMaterial(self,bpm):
         self['pipeMaterial'] = '"' + str(bpm) + '"'
-        
+
     def SetVacuumMaterial(self,vm):
         self['vacMaterial'] = '"' + str(vm) + '"'
 
@@ -143,7 +143,7 @@ class Options(dict):
             self['buildTunnel'] = 1
         else:
             self['buildTunnel'] = 0
-    
+
     def SetBuildTunnelFloor(self,tunnelfloor=False):
         if tunnelfloor == True:
             self['buildTunnelFloor'] = 1
@@ -194,7 +194,7 @@ class Options(dict):
 
     def SetChordStepMinimum(self,csm=1,unitsstring='nm'):
         self['chordStepMinimum'] = str(csm) + '*' + unitsstring
-    
+
     def SetLengthSafety(self,ls=10,unitsstring='um'):
         self['lengthSafety'] = str(ls) + '*' + unitsstring
 
@@ -245,7 +245,7 @@ class Options(dict):
 
     def SetProductionCutElectrons(self,pc=100,unitsstring='keV'):
         self['prodCutElectrons'] = str(pc) + '*' + unitsstring
-    
+
     def SetProductionCutPositrons(self,pc=100,unitsstring='keV'):
         self['prodCutPositrons'] = str(pc) + '*' + unitsstring
 
@@ -319,7 +319,7 @@ class Options(dict):
         if True:
             self['storeMuonTrajectory'] = 1
         else:
-            self['storeMuonTrajectory'] = 0    
+            self['storeMuonTrajectory'] = 0
 
     def SetStoreNeutronTrajectory(self,on=True):
         if True:
@@ -341,7 +341,7 @@ class Options(dict):
 
     def SetNLinesIgnore(self,nlines=0):
         self['nlinesIgnore'] = nlines
-    
+
     def SetIncludeFringeFields(self,on=True):
         if on == True:
             self['includeFringeFields'] = 1
