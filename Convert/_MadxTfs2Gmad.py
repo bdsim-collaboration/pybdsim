@@ -12,7 +12,7 @@ _requiredKeys = frozenset([
     'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
     'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
-    'VKICK', 'HKICK', 'E1', 'E2'])
+    'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX'])
 
 _lFake = 1e-6 # fake length for thin magnets
 
