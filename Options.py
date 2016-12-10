@@ -348,8 +348,12 @@ class Options(dict):
         else:
             self['includeFringeFields'] = 0
 
-class Editor : 
-    def __init__(self, fileName) :
-        self.fileName = fileName 
+    def SetDefaultBiasVaccum(self, biases=""):
+        self["defaultBiasVacuum"] = biases
 
-    
+    def SetDefaultBiasMaterial(self, biases=""):
+        self["defaultBiasMaterial"] = biases
+
+class Editor :
+    def __init__(self, fileName) :
+        self.fileName = fileName
