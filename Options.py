@@ -52,10 +52,7 @@ def ElectronColliderOptions():
 
 def MinimumStandard():
     a = Options()
-    a.SetBeamPipeThickness(1,'mm')
-    a.SetOuterDiameter(0.5,'m')
-    a.SetNGenerate(100)
-    a.SetBeamPipeRadius(3,'cm')
+    # no specific defaults needed
     return a
 
 class Options(dict):
@@ -67,6 +64,10 @@ class Options(dict):
 
     def ReturnOptionsString(self):
         s = ''
+        if len(self.keys()) == 0:
+            print 'No options set - empty string'
+            return s
+        
         numOptions=0
         for k,v in self.iteritems():
             s += ', \n\t'+str(k)+'='+str(v)
