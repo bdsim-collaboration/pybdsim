@@ -306,8 +306,9 @@ def _CheckFilesExist(tfs, bdsim, survey):
     '''
     Otherwise such errors are too cryptic.
     '''
-    if (isinstance(tfs, str) or isinstance(tfs, _pymadx.Tfs)) and not isfile(tfs):
-        raise IOError("File not found: ", tfs)
+    if isinstance(tfs, str):
+        if not isfile(tfs):
+            raise IOError("File not found: ", tfs)
     if isinstance(bdsim, str) and not isfile(bdsim):
         raise IOError("File not found: ", bdsim)
     if isinstance(survey, str) and not isfile(survey):
