@@ -20,8 +20,14 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
 
     _CheckFilesExist(tfs, bdsim, survey)
 
-    tfsopt = _GetTfsOptics(tfs)
-    bdsopt = _GetBDSIMOptics(bdsim)
+    tfsinst   = _pymadx._General.CheckItsTfs(tfs)
+    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+
+    tfsopt    = _GetTfsOptics(tfsinst)
+    bdsopt    = _GetBDSIMOptics(bdsinst)
+
+    if survey == None:
+        survey = tfsinst
 
     PlotBetas(tfsopt, bdsopt, survey=survey,
               functions=functions)
@@ -36,35 +42,21 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
     PlotMeans(tfsopt, bdsopt, survey=survey,
               functions=functions)
 
-
-
-def _GetBDSIMOptics(opticsfile):
+def _GetBDSIMOptics(optics):
     '''
-    Takes either a BDSAscii instance or file.
+    Takes a BDSAscii instance.
     Return a dictionary of lists matching the variable with the list of values.
     '''
-    def GetDatOptics():
-        optvars = {}
-        for variable in bdsoptics.names:
-            datum = getattr(bdsoptics, variable)()
-            optvars[variable] = datum
-        return optvars
+    optvars = {}
+    for variable in optics.names:
+        datum = getattr(optics, variable)()
+        optvars[variable] = datum
+    return optvars
 
-    if isinstance(opticsfile, _pybdsim.Data.BDSAsciiData):
-        bdsoptics = opticsfile
-        return GetDatOptics()
-    elif isinstance(opticsfile, str):
-        bdsoptics = _pybdsim.Data.Load(opticsfile)
-        return GetDatOptics()
-
-def _GetTfsOptics(opticsIn):
+def _GetTfsOptics(optics):
     '''
-    Takes either Tfs file or instance.  Returns dictionary of lists.
+    Takes either Tfs instance.  Returns dictionary of lists.
     '''
-    if isinstance(opticsIn, str):
-        tfsopt = _pymadx.Tfs(opticsIn)
-    elif isinstance(opticsIn, _pymadx.Tfs):
-        tfsopt = opticsIn
 
     MADXOpticsVariables = frozenset(['NAME',
                                      'S',
@@ -87,7 +79,7 @@ def _GetTfsOptics(opticsIn):
 
     optvars = {}
     for variable in MADXOpticsVariables:
-        optvars[variable] = tfsopt.GetColumn(variable)
+        optvars[variable] = optics.GetColumn(variable)
     return optvars
 
 def PlotBetas(tfsopt, bdsopt, survey=None, functions=None):
@@ -285,10 +277,13 @@ def PlotMeans(tfsopt, bdsopt, survey=None, functions=None):
 def _AddSurvey(figure, survey):
     if survey == None:
         return
-    if survey.split(".")[-1] == 'dat':
-        _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
-    else:
+    if type(survey) == str:
+        if survey.split(".")[-1] == 'dat':
+            _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
+    elif type(survey) == _pybdsim.Data.BDSAsciiData:
         _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
+    elif type(survey) == _pymadx.Tfs:
+        _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
 
 def _ProcessInput(tfsOptics, bdsimOptics):
 
@@ -311,7 +306,7 @@ def _CheckFilesExist(tfs, bdsim, survey):
     '''
     Otherwise such errors are too cryptic.
     '''
-    if isinstance(tfs, str) and not isfile(tfs):
+    if (isinstance(tfs, str) or isinstance(tfs, _pymadx.Tfs)) and not isfile(tfs):
         raise IOError("File not found: ", tfs)
     if isinstance(bdsim, str) and not isfile(bdsim):
         raise IOError("File not found: ", bdsim)
