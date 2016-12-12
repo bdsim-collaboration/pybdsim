@@ -3,10 +3,7 @@ import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 from os.path import isfile
 
-def MadxVsBDSIMOptics(tfs,
-                      bdsim,
-                      survey=None,
-                      functions=None):
+def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
     '''
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
