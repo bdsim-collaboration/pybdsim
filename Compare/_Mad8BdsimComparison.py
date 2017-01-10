@@ -2,7 +2,6 @@ import pickle as _pkl
 import pylab  as _pl
 import pymad8 as _pymad8
 import pybdsim as _pybdsim
-from .. import Data as _Data
 import matplotlib.pyplot as _plt
 import numpy as _np
 
