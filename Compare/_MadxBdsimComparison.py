@@ -12,10 +12,9 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
     tfs        :    tfs file or Tfs instance
     bdsim      :    optics root file (from rebdsimOptics or rebdsim) or
     survey     :    BDSIM model survey
-    functions  :    A function or list of functions which
-                    are called immediately prior to adding survey to figure.
-                    For some reason there is no pythonic way to add to figure
-                    after having added survey.  So this is next best thing.
+    functions  :    Hook for users to add their functions which are called
+                    immediately prior to the addition of the plot.  Use lambda
+                    to add functions with arguments.
     '''
 
     _CheckFilesExist(tfs, bdsim, survey)
