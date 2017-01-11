@@ -10,8 +10,6 @@ S. Boogert
 ## Setup ##
 The module currently requires no setup and can be used by adding the pybdsim directory to your python path.
 
-git clone http://bitbucket.org/nevay/pybdsim .
-
 -> edit your terminal (perhaps bash) profile
 
 
