@@ -10,8 +10,6 @@ S. Boogert
 ## Setup ##
 The module currently requires no setup and can be used by adding the pybdsim directory to your python path.
 
-git clone http://bitbucket.org/nevay/pybdsim .
-
 -> edit your terminal (perhaps bash) profile
 
 
@@ -43,6 +41,6 @@ In future, conventional python setup scripts will be implemented along with dyna
 * scipy
 * matplotlib 
 * pyroot (build root with python extensions)
-* [pymad8]()
-* [pymadx]()
-* [robdsim]()
+* [pymad8](https://bitbucket.org/jairhul/pymad8)
+* [pymadx](https://bitbucket.org/jairhul/pymadx)
+* [robdsim](https://bitbucket.org/jairhul/robdsim)

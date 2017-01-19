@@ -98,7 +98,7 @@ class Survey(object):
 
 def _LoadLib():
     libname = 'gmadShared'
-    libpath = '/usr/local/lib'
+    libpath = '/usr/local/lib/'
     parserlib = None
 
     test0,test1,test2,test3 = False, False, False, False
@@ -122,7 +122,7 @@ def _LoadLib():
     #test2 - try /usr/local/lib/libgmadShared.so
     try:
         fulllibname = 'lib'+libname+'.so'
-        parserlib   = _ctypes.cdll.LoadLibrary('/usr/local/lib/'+fulllibname)
+        parserlib   = _ctypes.cdll.LoadLibrary(libpath+fulllibname)
         test2 = True
     except OSError:
         pass
@@ -130,7 +130,7 @@ def _LoadLib():
     #test3 - try /usr/local/lib/libgmadShared.dylib
     try:
         fulllibname = 'lib'+libname+'.dylib'
-        parserlib   = _ctypes.cdll.LoadLibrary('/usr/local/lib/'+fulllibname)
+        parserlib   = _ctypes.cdll.LoadLibrary(libpath+fulllibname)
         test3 = True
     except OSError:
         pass

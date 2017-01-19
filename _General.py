@@ -21,7 +21,7 @@ def GenUniqueFilename(filename):
     else:
         extension = ''
     while os.path.exists(filename) :
-        filename = basefilename+str(i)+extension
+        filename = basefilename+'_'+str(i)+extension
         i = i + 1
     return filename
 

@@ -358,7 +358,8 @@ class Machine:
     >>> a.AddDrift('mydrift', l=1.3)
     >>> a.Write("lattice.gmad")
 
-    Example with Sychrotron rescaling
+    Example with Sychrotron rescaling:
+    
     >>> a = Machine(sr=True, energy0=250,charge=-1)
     >>> a.AddDipole('sb1','sbend',length=1.0,1e-5)
     >>> a.AddDrift('dr1',length=1)

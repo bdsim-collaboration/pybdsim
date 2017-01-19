@@ -116,7 +116,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     | **flipmagnets**               | True \| False - flip the sign of all k values for magnets - MADX  |
     |                               | currently tracks particles agnostic of the particle charge -      |
     |                               | BDISM however, follows their manual definition strictly -         |
-    |                               | positive k -> horizontal focussing for positive partilces         |
+    |                               | positive k -> horizontal focussing for positive particles         |
     |                               | therefore, positive k -> vertical focussing for negative          |
     |                               | particles. Use this flag to flip the sign of all magnets.         |
     +-------------------------------+-------------------------------------------------------------------+
