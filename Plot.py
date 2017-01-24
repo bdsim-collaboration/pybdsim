@@ -136,16 +136,27 @@ def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=Non
         _plt.savefig(outputfilename+'.png')
     
 
-def AddMachineLatticeFromSurveyToFigure(figure,*args):
+def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
+    tightLayout = True
+    if 'tightLayout' in kwargs:
+        tightLayout = kwargs['tightLayout']
+    
     axs = figure.get_axes() #get the existing graph
     axoptics = axs[0]  #get the only presumed axes from the figure
 
     #adjust existing plot to make way for machine lattice
     #iterate over axes incase there's dual plots
-    gs = _plt.GridSpec(2,1,height_ratios=(1,5))
-    for ax in axs:
-        ax.set_position(gs[1].get_position(figure))
-        ax.set_subplotspec(gs[1])
+    nAxesNewX = len(axs) + 1 # there will be one more new axis
+    ratios = [15]*len(axs) # here we assume if there are other figures, they're equal proportion
+    ratios.insert(0,1) # put the small one at the front, 1/5 the size of the others
+    gs = _plt.GridSpec(nAxesNewX,1,height_ratios=tuple(ratios))
+    # apparently, gridspec is like a list but doesn't implement len or shape
+    # and it's in reverse order compared to the axes from a figure - it's bad
+    for i,ax in enumerate(axs):
+        # axs is original set of axes
+        gsindex = i+1
+        ax.set_position(gs[gsindex].get_position(figure))
+        ax.set_subplotspec(gs[gsindex])
 
     #add new axes for machine lattice
     axmachine = figure.add_subplot(gs[0], projection="_My_Axes")
@@ -156,7 +167,6 @@ def AddMachineLatticeFromSurveyToFigure(figure,*args):
     axmachine.spines['left'].set_visible(False)
     axmachine.spines['right'].set_visible(False)
     figure.set_facecolor('white')
-    _plt.subplots_adjust(hspace=0.01,top=0.94,left=0.1,right=0.92)
 
     #concat machine lattices
     sf = CheckItsBDSAsciiData(args[0])
@@ -186,6 +196,15 @@ def AddMachineLatticeFromSurveyToFigure(figure,*args):
 
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
+
+    if (tightLayout):
+        _plt.tight_layout()
+
+    # if we only have 2 axes (including new machine diagram, condense vertical space between
+    # the machine diagram and the plot. if more than 2, it means there are more user plots
+    # and we should leave it alone
+    if (nAxesNewX == 2):
+        _plt.subplots_adjust(hspace=0.04)
 
 def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     ax  = axesinstance #handy shortcut
@@ -230,7 +249,7 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     # plot beam line
     smax = bds.SEnd()[-1]
     ax.plot([0,smax],[0,0],'k-',lw=1)
-    ax.set_ylim(-0.5,0.5)
+    ax.set_ylim(-0.2,0.2)
  
     # loop over elements and Draw on beamline
     types   = bds.Type()
