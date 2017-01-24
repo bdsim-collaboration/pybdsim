@@ -243,11 +243,11 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     for i in range(len(bds)):
         kw = types[i]
         if kw == 'quadrupole': 
-            DrawQuad(starts[i],lengths[i],k1[i])
+            DrawQuad(starts[i],lengths[i],k1[i], u'#ff3333') #red
         elif kw == 'rbend': 
-            DrawBend(starts[i],lengths[i])
+            DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'sbend': 
-            DrawBend(starts[i],lengths[i])
+            DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'rcol': 
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'ecol': 
@@ -255,13 +255,15 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
         elif kw == 'degrader': 
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'sextupole':
-            DrawHex(starts[i],lengths[i],'#ffcf17') #yellow
+            DrawHex(starts[i],lengths[i], u'#ffcc00') #yellow
         elif kw == 'octupole':
-            DrawHex(starts[i],lengths[i],'g')
+            DrawHex(starts[i],lengths[i], u'#00994c') #green
+        elif kw == 'decapole':
+            DrawHex(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'hkick':
-            DrawHKicker(starts[i],lengths[i])
+            DrawHKicker(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'vkick':
-            DrawVKicker(starts[i],lengths[i])
+            DrawVKicker(starts[i],lengths[i], u'#ba55d3') #medium orchid
         elif kw == 'drift':
             pass
         elif kw == 'multipole':
