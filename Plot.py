@@ -40,8 +40,8 @@ def MadxTfsBeta(tfsfile, title='', outputfilename=None):
 def MadxGmadComparison(tfsfile, gmadfile, title='', outputfilename=None):
     pass
 
-def AddMachineLatticeToFigure(figure,tfsfile):
-    _pymadx.Plot.AddMachineLatticeToFigure(figure,tfsfile)
+def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True, countAxes=True):
+    _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout, countAxes)
 
 def ProvidWrappedS(sArray, index):
     s = sArray #shortcut
@@ -134,56 +134,56 @@ def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=Non
             outputfilename = outputfilename.split('.')[0]
         _plt.savefig(outputfilename+'.pdf')
         _plt.savefig(outputfilename+'.png')
+
+def _SetMachineAxesStyle(ax):
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+def _PrepareMachineAxes(figure):
+    # create new machine axis with proportions 6 : 1
+    axmachine = figure.add_subplot(911, projection="_My_Axes")
+    _SetMachineAxesStyle(axmachine)
+    return axmachine
+
+def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
+    """
+    Fraction is fraction of height all subplots will be after adjustment.
+    Default is 0.9 for 90% of height. 
+    """
+    # we have to set tight layout before adjustment otherwise if called
+    # later it will cause an overlap with the machine diagram
+    if (tightLayout):
+        _plt.tight_layout()
     
+    axs = figure.get_axes()
+    
+    for ax in axs:
+        bbox = ax.get_position()
+        bbox.y0 = bbox.y0 * fraction
+        bbox.y1 = bbox.y1 * fraction
+        ax.set_position(bbox)    
 
 def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
+    # options
     tightLayout = True
     if 'tightLayout' in kwargs:
         tightLayout = kwargs['tightLayout']
+
+    axoptics  = figure.get_axes()[0]
+    _AdjustExistingAxes(figure, tightLayout=tightLayout)
+    axmachine = _PrepareMachineAxes(figure)
     
-    axs = figure.get_axes() #get the existing graph
-    axoptics = axs[0]  #get the only presumed axes from the figure
-
-    #adjust existing plot to make way for machine lattice
-    #iterate over axes incase there's dual plots
-    nAxesNewX = len(axs) + 1 # there will be one more new axis
-    ratios = [15]*len(axs) # here we assume if there are other figures, they're equal proportion
-    ratios.insert(0,1) # put the small one at the front, 1/5 the size of the others
-    gs = _plt.GridSpec(nAxesNewX,1,height_ratios=tuple(ratios))
-    # apparently, gridspec is like a list but doesn't implement len or shape
-    # and it's in reverse order compared to the axes from a figure - it's bad
-    for i,ax in enumerate(axs):
-        # axs is original set of axes
-        gsindex = i+1
-        ax.set_position(gs[gsindex].get_position(figure))
-        ax.set_subplotspec(gs[gsindex])
-
-    #add new axes for machine lattice
-    axmachine = figure.add_subplot(gs[0], projection="_My_Axes")
-    axmachine.get_xaxis().set_visible(False)
-    axmachine.get_yaxis().set_visible(False)
-    axmachine.spines['top'].set_visible(False)
-    axmachine.spines['bottom'].set_visible(False)
-    axmachine.spines['left'].set_visible(False)
-    axmachine.spines['right'].set_visible(False)
-    figure.set_facecolor('white')
-
-    #concat machine lattices
+    #concatenate machine lattices
     sf = CheckItsBDSAsciiData(args[0])
     if len(args) > 1:
         for machine in args[1:]:
             sf.ConcatenateMachine(machine)
 
     _DrawMachineLattice(axmachine,sf)
-    xl1 = axmachine.get_xlim()
-    xl2 = axoptics.get_xlim()
-    if xl1 > xl2:
-        xl = xl1
-    else:
-        xl = xl2
-    xr = xl[1] - xl[0]
-    axoptics.set_xlim(xl[0]-0.02*xr,xl[1]+0.02*xr)
-    axmachine.set_xlim(xl[0]-0.02*xr,xl[1]+0.02*xr)
 
     #put callbacks for linked scrolling
     def MachineXlim(ax): 
@@ -196,15 +196,6 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
 
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
-
-    if (tightLayout):
-        _plt.tight_layout()
-
-    # if we only have 2 axes (including new machine diagram, condense vertical space between
-    # the machine diagram and the plot. if more than 2, it means there are more user plots
-    # and we should leave it alone
-    if (nAxesNewX == 2):
-        _plt.subplots_adjust(hspace=0.04)
 
 def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     ax  = axesinstance #handy shortcut
