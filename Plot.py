@@ -243,7 +243,7 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     for i in range(len(bds)):
         kw = types[i]
         if kw == 'quadrupole': 
-            DrawQuad(starts[i],lengths[i],k1[i], u'#ff3333') #red
+            DrawQuad(starts[i],lengths[i],k1[i], u'#d10000') #red
         elif kw == 'rbend': 
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'sbend': 
