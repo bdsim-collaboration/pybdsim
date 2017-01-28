@@ -9,5 +9,5 @@ setup(
 #   py_modules = ['__init__','Beam','Builder','Constants','Data','Gmad','Joinhistograms',
 #                 'ModelProcessing','Options','Plot','Run','Visualisation','XSecBias','_General'],
    package_dir = {'pybdsim': './'},
-   packages=['pybdsim','pybdsim.Compare','pybdsim.Field','pybdsim.Geometry','pybdsim.Testing'],
+   packages=['pybdsim','pybdsim.Convert','pybdsim.Compare','pybdsim.Field','pybdsim.Geometry','pybdsim.Testing'],
 )
