@@ -6,7 +6,7 @@ setup(
    description='BDSIM python helper package',
    author='JAI@RHUL',
    author_email='stewart.boogert@rhul.ac.uk',
-   py_modules = ['__init__','Beam','Builder','Constants','Data','Gmad','Joinhistograms',
-                 'ModelProcessing','Options','Plot','Run','Visualisation','XSecBias','_General'],
-   packages=['Compare','Field','Geometry','Testing'],
+#   py_modules = ['__init__','Beam','Builder','Constants','Data','Gmad','Joinhistograms',
+#                 'ModelProcessing','Options','Plot','Run','Visualisation','XSecBias','_General'],
+   packages=['','Compare','Field','Geometry','Testing'],
 )
