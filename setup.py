@@ -8,6 +8,6 @@ setup(
    author_email='stewart.boogert@rhul.ac.uk',
 #   py_modules = ['__init__','Beam','Builder','Constants','Data','Gmad','Joinhistograms',
 #                 'ModelProcessing','Options','Plot','Run','Visualisation','XSecBias','_General'],
-   package_dir = {'': '../'},
+   package_dir = {'pybdsim': './'},
    packages=['pybdsim','pybdsim.Compare','pybdsim.Field','pybdsim.Geometry','pybdsim.Testing'],
 )
