@@ -49,7 +49,9 @@ bdsimcategories = [
     'matdef',
     'laser',
     'gas',
-    'spec'
+    'spec',
+    'degrader',
+    'shield'
     ]
 
 class ElementBase(dict):
@@ -593,9 +595,28 @@ class Machine:
                 d[k] = v
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
 
+    def AddDegrader(self, length=0.1, name='deg', nWedges=1, wedgeLength=0.1, degHeight=0.1, materialThickness=None, degraderOffset=None, **kwargs):
+        if (materialThickness==None) and (degraderOffset==None):
+            raise TypeError('materialThickness or degraderOffset must be specified for a degrader')
+        elif materialThickness != None:
+            self.Append(Element(name,'degrader',l=length,numberWedges=nWedges,wedgeLength=wedgeLength,
+                                degraderHeight=degHeight, materialThickness=materialThickness,**kwargs))
+        else:
+            self.Append(Element(name,'degrader',l=length,numberWedges=nWedges,wedgeLength=wedgeLength,
+                                degraderHeight=degHeight, degraderOffset=degraderOffset,**kwargs))
+
+    def AddMuSpoiler(self, name='mu', length=0.1, b=0.0, **kwargs):
+        self.Append(Element(name,'muspoiler',l=length,B=b,**kwargs))
+
     def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
         self.Append(Element(name,'solenoid',l=length,ks=ks,**kwargs))
-    
+
+    def AddShield(self, name='sh', length=0.1, **kwargs):
+        self.Append(Element(name,'shield',l=length,**kwargs))
+
+    def AddLaser(self, length=0.1, name='lsr', x=1, y=0, z=0, waveLength=532e-9, **kwargs):
+        self.Append(Element(name,'laser',l=length,x=x,y=y,z=z,waveLength=waveLength,**kwargs))
+
     def AddTransform3D(self, name='t3d',**kwargs):
         if len(kwargs.keys()) == 0:
             pass
