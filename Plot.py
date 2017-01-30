@@ -40,8 +40,8 @@ def MadxTfsBeta(tfsfile, title='', outputfilename=None):
 def MadxGmadComparison(tfsfile, gmadfile, title='', outputfilename=None):
     pass
 
-def AddMachineLatticeToFigure(figure,tfsfile):
-    _pymadx.Plot.AddMachineLatticeToFigure(figure,tfsfile)
+def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True, countAxes=True):
+    _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout, countAxes)
 
 def ProvidWrappedS(sArray, index):
     s = sArray #shortcut
@@ -134,46 +134,56 @@ def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=Non
             outputfilename = outputfilename.split('.')[0]
         _plt.savefig(outputfilename+'.pdf')
         _plt.savefig(outputfilename+'.png')
+
+def _SetMachineAxesStyle(ax):
+    ax.get_xaxis().set_visible(False)
+    ax.get_yaxis().set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+def _PrepareMachineAxes(figure):
+    # create new machine axis with proportions 6 : 1
+    axmachine = figure.add_subplot(911, projection="_My_Axes")
+    _SetMachineAxesStyle(axmachine)
+    return axmachine
+
+def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
+    """
+    Fraction is fraction of height all subplots will be after adjustment.
+    Default is 0.9 for 90% of height. 
+    """
+    # we have to set tight layout before adjustment otherwise if called
+    # later it will cause an overlap with the machine diagram
+    if (tightLayout):
+        _plt.tight_layout()
     
-
-def AddMachineLatticeFromSurveyToFigure(figure,*args):
-    axs = figure.get_axes() #get the existing graph
-    axoptics = axs[0]  #get the only presumed axes from the figure
-
-    #adjust existing plot to make way for machine lattice
-    #iterate over axes incase there's dual plots
-    gs = _plt.GridSpec(2,1,height_ratios=(1,5))
+    axs = figure.get_axes()
+    
     for ax in axs:
-        ax.set_position(gs[1].get_position(figure))
-        ax.set_subplotspec(gs[1])
+        bbox = ax.get_position()
+        bbox.y0 = bbox.y0 * fraction
+        bbox.y1 = bbox.y1 * fraction
+        ax.set_position(bbox)    
 
-    #add new axes for machine lattice
-    axmachine = figure.add_subplot(gs[0], projection="_My_Axes")
-    axmachine.get_xaxis().set_visible(False)
-    axmachine.get_yaxis().set_visible(False)
-    axmachine.spines['top'].set_visible(False)
-    axmachine.spines['bottom'].set_visible(False)
-    axmachine.spines['left'].set_visible(False)
-    axmachine.spines['right'].set_visible(False)
-    figure.set_facecolor('white')
-    _plt.subplots_adjust(hspace=0.01,top=0.94,left=0.1,right=0.92)
+def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
+    # options
+    tightLayout = True
+    if 'tightLayout' in kwargs:
+        tightLayout = kwargs['tightLayout']
 
-    #concat machine lattices
+    axoptics  = figure.get_axes()[0]
+    _AdjustExistingAxes(figure, tightLayout=tightLayout)
+    axmachine = _PrepareMachineAxes(figure)
+    
+    #concatenate machine lattices
     sf = CheckItsBDSAsciiData(args[0])
     if len(args) > 1:
         for machine in args[1:]:
             sf.ConcatenateMachine(machine)
 
     _DrawMachineLattice(axmachine,sf)
-    xl1 = axmachine.get_xlim()
-    xl2 = axoptics.get_xlim()
-    if xl1 > xl2:
-        xl = xl1
-    else:
-        xl = xl2
-    xr = xl[1] - xl[0]
-    axoptics.set_xlim(xl[0]-0.02*xr,xl[1]+0.02*xr)
-    axmachine.set_xlim(xl[0]-0.02*xr,xl[1]+0.02*xr)
 
     #put callbacks for linked scrolling
     def MachineXlim(ax): 
@@ -230,7 +240,7 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     # plot beam line
     smax = bds.SEnd()[-1]
     ax.plot([0,smax],[0,0],'k-',lw=1)
-    ax.set_ylim(-0.5,0.5)
+    ax.set_ylim(-0.2,0.2)
  
     # loop over elements and Draw on beamline
     types   = bds.Type()
@@ -243,11 +253,11 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     for i in range(len(bds)):
         kw = types[i]
         if kw == 'quadrupole': 
-            DrawQuad(starts[i],lengths[i],k1[i])
+            DrawQuad(starts[i],lengths[i],k1[i], u'#d10000') #red
         elif kw == 'rbend': 
-            DrawBend(starts[i],lengths[i])
+            DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'sbend': 
-            DrawBend(starts[i],lengths[i])
+            DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'rcol': 
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'ecol': 
@@ -255,13 +265,15 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
         elif kw == 'degrader': 
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'sextupole':
-            DrawHex(starts[i],lengths[i],'#ffcf17') #yellow
+            DrawHex(starts[i],lengths[i], u'#ffcc00') #yellow
         elif kw == 'octupole':
-            DrawHex(starts[i],lengths[i],'g')
+            DrawHex(starts[i],lengths[i], u'#00994c') #green
+        elif kw == 'decapole':
+            DrawHex(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'hkick':
-            DrawHKicker(starts[i],lengths[i])
+            DrawHKicker(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'vkick':
-            DrawVKicker(starts[i],lengths[i])
+            DrawVKicker(starts[i],lengths[i], u'#ba55d3') #medium orchid
         elif kw == 'drift':
             pass
         elif kw == 'multipole':

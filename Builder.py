@@ -749,7 +749,7 @@ def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first
     for i in range(ndipoles):
         a.AddDipole(length=dipolelength, angle=dangle)
     a.AddSampler(samplers)
-    a.WriteMachine(filename)
+    a.Write(filename)
 
 def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfraction=0.1, samplers='first'):
     """
@@ -778,7 +778,7 @@ def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfractio
         a.AddDrift(length=driftlength)
         a.AddDipole(length=dipolelength*0.5, angle=dangle*0.5)
     a.AddSampler(samplers)
-    a.WriteMachine(filename)
+    a.Write(filename)
 
 def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='first'):
     """
@@ -821,7 +821,7 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
         a.AddDrift(cellname+'_dr_d',drl)
         a.AddQuadrupole(cellname+'_qd_c',ql*0.5,k1)
     a.AddSampler(samplers)
-    a.WriteMachine(filename)
+    a.Write(filename)
     
 def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, samplers='all',**kwargs):
     """
@@ -839,7 +839,7 @@ def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, sampl
     k1     = SuggestFodoK(magnetlength,driftlength)
     a.AddFodoCellSplitDriftMultiple(magnetlength=magnetlength,driftlength=driftlength,kabs=k1,nsplits=10,ncells=ncells,**kwargs)
     a.AddSampler(samplers)
-    a.WriteMachine(filename)
+    a.Write(filename)
 
 def SuggestFodoK(magnetlength,driftlength):
     """

@@ -17,11 +17,14 @@ import numpy as _np
 import Constants as _Constants
 import _General
 import os as _os
+
+useRootNumpy = True
+
 try:
     import root_numpy as _rnp
 except ImportError:
+    useRootNumpy = False
     pass
-    #print 'root_numpy not found, Root loader not available.'
 
 def Load(filepath):
     extension = filepath.split('.')[-1]
@@ -85,6 +88,8 @@ def _LoadAsciiHistogram(filepath):
     return data
 
 def _LoadRoot(filepath):
+    if not useRootNumpy:
+        raise IOError("root_numpy not available - can't load ROOT file")
     data = BDSAsciiData()
     trees = _rnp.list_trees(filepath)
 

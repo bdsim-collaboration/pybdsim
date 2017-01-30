@@ -36,8 +36,8 @@ class Field1D(Field):
     Utility class to write a 1D field map array to BDSIM field format.
 
     The array supplied should be 2 dimensional. Dimensions are:
-    (x,value) where value has 4 element [x,fx,fy,fz]. So a 120 long
-    array would have np.shape of (100,4).
+    (x,value) where value has 4 elements [x,fx,fy,fz]. So a 120 long
+    array would have np.shape of (120,4).
     
     This can be used for both electric and magnetic fields.
 

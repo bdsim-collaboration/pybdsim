@@ -125,14 +125,12 @@ def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None):
     _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
                   yerr=bdsopt['Sigma_Alpha_x'],
                   label=r'BDSIM $\alpha_{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '')
+                  fmt='b.', capsize=3)
 
     _plt.errorbar(bdsopt['S'], bdsopt['Alpha_y'],
                   yerr=bdsopt['Sigma_Alpha_y'],
                   label=r'BDSIM $\alpha_{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '')
+                  fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\alpha_{x,y}$ / m')
@@ -155,16 +153,12 @@ def PlotDs(tfsopt, bdsopt, survey=None, functions=None):
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
                   yerr=bdsopt['Sigma_Disp_x'],
                   label=r'BDSIM $D_{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
+                  fmt='b.', capsize=3)
 
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'],
                   yerr=bdsopt['Sigma_Disp_y'],
                   label=r'BDSIM $D_{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
+                  fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$D_{x,y} / m$')
@@ -187,16 +181,12 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None):
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
                   yerr=bdsopt['Sigma_Disp_xp'],
                   label=r'BDSIM $D_{p_{x}}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
+                  fmt='b.', capsize=3)
 
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
                   yerr=bdsopt['Sigma_Disp_yp'],
                   label=r'BDSIM $D_{p_{y}}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
+                  fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / m')
@@ -220,18 +210,14 @@ def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None):
                   bdsopt['Sigma_x'],
                   yerr=bdsopt['Sigma_Sigma_x'],
                   label=r'BDSIM $\sigma_{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
+                  fmt='b.', capsize=3)
 
     _plt.errorbar(bdsopt['S'],
                   bdsopt['Sigma_y'],
                   yerr=bdsopt['Sigma_Sigma_y'],
                   label=r'BDSIM $\sigma_{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
-
+                  fmt='g.', capsize=3)
+    
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\sigma_{x,y}$ / m')
     axes.set_xlabel('S from IR1 / m')
@@ -246,8 +232,7 @@ def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None):
 def PlotMeans(tfsopt, bdsopt, survey=None, functions=None):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     meanPlot = _plt.figure('Mean')
-
-
+    #tfs
     _plt.plot(tfsopt['S'], tfsopt['X'], 'b', label=r'MADX $\bar{x}$')
     _plt.plot(tfsopt['S'], tfsopt['Y'], 'g', label=r'MADX $\bar{y}$')
 
@@ -255,16 +240,12 @@ def PlotMeans(tfsopt, bdsopt, survey=None, functions=None):
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
                   yerr=bdsopt['Sigma_Mean_x'],
                   label=r'BDSIM $\bar{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
+                  fmt='b.', capsize=3)
 
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_y'],
                   yerr=bdsopt['Sigma_Mean_y'],
                   label=r'BDSIM $\bar{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
+                  fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
