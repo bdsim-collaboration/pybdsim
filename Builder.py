@@ -349,7 +349,7 @@ class Sampler:
 
 class Machine:
     """
-    A class represents an acceleartor lattice as a sequence of 
+    A class represents an accelerator lattice as a sequence of
     components. Member functions allow various lattice components
     to be append to the sequence of the machine. This class allows
     the user to programatically create a lattice and write the 
