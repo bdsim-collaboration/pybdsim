@@ -18,6 +18,7 @@ Machine - a list of elements
 """
 import Beam as _Beam
 import Options as _Options
+import Writer as _Writer
 import _General
 from   _General import IsFloat as _IsFloat
 import math as _math
@@ -506,7 +507,8 @@ class Machine:
             self.SynchrotronRadiationRescale()
 
         verboseresult = verbose or self.verbose
-        WriteMachine(self,filename,verboseresult)
+        writer = _Writer.Writer()
+        writer.WriteMachine(self,filename,verboseresult)
 
     def AddBias(self, biasobject):
         self.bias.append(biasobject)
