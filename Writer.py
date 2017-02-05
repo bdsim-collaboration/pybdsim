@@ -183,7 +183,7 @@ class Writer():
         #for any include lines that will be written in the main file.
         self._sectionsToBeWritten = []
 
-    def WriteMachine(self,machine, filename, singlefile = False, verbose = False):
+    def WriteMachine(self,machine, filename, singlefile = False, verbose = True):
         """
         WriteMachine(machine(machine),filename(string),singlefile(bool),verbose(bool))
 
@@ -229,13 +229,14 @@ class Writer():
         #Write main
         self.WriteMain(machine)
 
-        #user feedback
-        print 'Lattice written to:'
-        for section in self._sectionsToBeWritten:
-            sectObject = getattr(self,section) #a copy of the FileSection object.
-            fn = getattr(sectObject,'_filePath')
-            print(fn)
-        print 'All included in main file: \n',self._mainFilename
+        if verbose:
+            #user feedback
+            print 'Lattice written to:'
+            for section in self._sectionsToBeWritten:
+                sectObject = getattr(self,section) #a copy of the FileSection object.
+                fn = getattr(sectObject,'_filePath')
+                print(fn)
+            print 'All included in main file: \n',self._mainFilename
 
     def WriteMain(self,machine,filename=''):
         """
