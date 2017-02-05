@@ -562,7 +562,7 @@ class Machine:
             s = 'Invalid category ' + category
             raise ValueError(s)
         if (angle==None) and (b==None):
-            raise TypeError('angle or b must be specified for an sbend')
+            raise TypeError('angle or b must be specified for a dipole')
         elif angle != None:
             self.Append(Element(name,category,l=length,angle=angle,**kwargs))
         else:
