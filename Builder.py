@@ -35,6 +35,7 @@ bdsimcategories = [
     'quadrupole',
     'sextupole',
     'octupole',
+    'decapole',
     'multipole',
     'thinmultipole',
     'rfcavity',
@@ -576,6 +577,9 @@ class Machine:
 
     def AddOctupole(self, name='oc', length=0.1, k3=0.0, **kwargs):
         self.Append(Element(name,'octupole',l=length,k3=k3,**kwargs))
+
+    def AddDecapole(self, name='dc', length=0.1, k4=0.0, **kwargs):
+        self.Append(Element(name,'decapole',l=length,k4=k4,**kwargs))
 
     def AddMultipole(self, name='mp', length=0.1, knl=(0), ksl=(0), tilt=0.0, **kwargs):
         if length > 1e-12:
