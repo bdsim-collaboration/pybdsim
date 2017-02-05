@@ -220,6 +220,12 @@ class Options(dict):
         else:
             self['stopTracks'] = 0
 
+    def SetStopSecondaries(self,stop=True):
+        if stop == True:
+            self['stopSecondaries'] = 1
+        else:
+            self['stopSecondaries'] = 0
+
     def SetSynchRadiationOn(self,on=True):
         if on == True:
             self['synchRadOn'] = 1
