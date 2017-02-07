@@ -305,7 +305,7 @@ class Lattice(object):
         array_pointer = _ctypes.cast(ks_c, _ctypes.POINTER(KsArrayType))
         ks = _np.frombuffer(array_pointer.contents)
         ks[ks < 1e-20] = 0 #replace dbl_min values
-        keys = ['ks','k0','k1','k2','k3']
+        keys = ['ks','k1','k2','k3','k4']
         d = dict(zip(keys,ks))
         return d
 
