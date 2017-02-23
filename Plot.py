@@ -40,8 +40,8 @@ def MadxTfsBeta(tfsfile, title='', outputfilename=None):
 def MadxGmadComparison(tfsfile, gmadfile, title='', outputfilename=None):
     pass
 
-def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True, countAxes=True):
-    _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout, countAxes)
+def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True):
+    _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout)
 
 def ProvidWrappedS(sArray, index):
     s = sArray #shortcut
