@@ -5,27 +5,45 @@ class Field(object):
     """
     Base class used for common writing procedures for BDSIM field format.
     """
-    def __init__(self, array=_np.array([]), columns=[]):
-        self.data    = array
-        self.columns = columns
-        self.header  = {}
+    def __init__(self, array=_np.array([]), columns=[], flip=True, doublePrecision=False):
+        self.data            = array
+        self.columns         = columns
+        self.header          = {}
+        self.flip            = flip
+        self.doublePrecision = doublePrecision
 
     def Write(self, fileName):
         f = open(fileName, 'w')
         for key,value in self.header.iteritems():
             f.write(str(key)+'> '+ str(value) + '\n')
 
-        colStrings = map(lambda s: '%14s' % s, self.columns)
+        if self.doublePrecision:
+            colStrings = map(lambda s: '%23s' % s, self.columns)
+        else:
+            colStrings = map(lambda s: '%14s' % s, self.columns)
         colStrings[0] = colStrings[0].strip() # don't pad the first column title
         # a '!' denotes the column header line
         f.write('! '+ '\t'.join(colStrings)+'\n')
         
         # flatten all but last dimension - 3 field components
-        nvalues = _np.shape(self.data)[-1]
-        datal = self.data.reshape(-1,nvalues)
+        nvalues = _np.shape(self.data)[-1] # number of values in last dimension
+
+        if self.flip:
+            inds = range(self.data.ndim)       # indices for dimension [0,1,2] etc
+            # keep the last value the same but reverse all indices before then
+            inds[:(self.data.ndim - 1)] = reversed(inds[:(self.data.ndim - 1)]) 
+            datal = _np.transpose(self.data, inds)
+        else:
+            datal = self.data
+
+        datal = datal.reshape(-1,nvalues)
         for value in datal:
-            strings = map(lambda x: '%.7E' % x, value)
-            stringsFW = map(lambda s: '%14s' % s, strings)
+            if self.doublePrecision:
+                strings   = map(lambda x: '%.16E' % x, value)
+                stringsFW = map(lambda s: '%23s' % s,  strings)
+            else:
+                strings   = map(lambda x: '%.8E' % x, value)
+                stringsFW = map(lambda s: '%14s' % s, strings)
             f.write('\t'.join(stringsFW) + '\n')
 
         f.close()
@@ -47,9 +65,9 @@ class Field1D(Field):
     >>> a.Write('outputFileName.dat')
 
     """
-    def __init__(self,data):
+    def __init__(self, data, doublePrecision=False):
         columns = ['X','Fx','Fy','Fz']
-        super(Field1D, self).__init__(data,columns)
+        super(Field1D, self).__init__(data,columns,doublePrecision=doublePrecision)
         self.header['xmin'] = _np.min(self.data[:,0])
         self.header['xmax'] = _np.max(self.data[:,0])
         self.header['nx']   = _np.shape(self.data)[0]
@@ -59,8 +77,8 @@ class Field2D(Field):
     Utility class to write a 2D field map array to BDSIM field format.
 
     The array supplied should be 3 dimensional. Dimensions are:
-    (y,x,value) where value has 5 elements [x,y,fx,fy,fz].  So a 100x50 (x,y)
-    grid would have np.shape of (50,100,5).
+    (x,y,value) where value has 5 elements [x,y,fx,fy,fz].  So a 100x50 (x,y)
+    grid would have np.shape of (100,50,5).
 
     Example::
     
@@ -68,9 +86,9 @@ class Field2D(Field):
     >>> a.Write('outputFileName.dat')
 
     """
-    def __init__(self,data):
+    def __init__(self, data, flip=True, doublePrecision=False):
         columns = ['X','Y','Fx','Fy','Fz']
-        super(Field2D, self).__init__(data,columns)
+        super(Field2D, self).__init__(data,columns,flip,doublePrecision)
         self.header['xmin'] = _np.min(self.data[:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,0])
         self.header['nx']   = _np.shape(self.data)[1]
@@ -92,9 +110,9 @@ class Field3D(Field):
     >>> a.Write('outputFileName.dat')
 
     """
-    def __init__(self,data):
+    def __init__(self, data, flip=True, doublePrecision=False):
         columns = ['X','Y','Z','Fx','Fy','Fz']
-        super(Field3D, self).__init__(data,columns)
+        super(Field3D, self).__init__(data,columns,flip,doublePrecision)
         self.header['xmin'] = _np.min(self.data[:,:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,:,0])
         self.header['nx']   = _np.shape(self.data)[2]
@@ -119,9 +137,9 @@ class Field4D(Field):
     >>> a.Write('outputFileName.dat')
 
     """
-    def __init__(self,data):
+    def __init__(self, data, flip=True, doublePrecision=False):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
-        super(Field4D, self).__init__(data,columns)
+        super(Field4D, self).__init__(data,columns,flip,doublePrecision)
         self.header['xmin'] = _np.min(self.data[:,:,:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,:,:,0])
         self.header['nx']   = _np.shape(self.data)[3]
