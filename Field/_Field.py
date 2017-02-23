@@ -29,9 +29,15 @@ class Field(object):
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
 
         if self.flip:
+            # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
+            # [x,y,z,values]   -> [z,y,x,values]   for 3D
+            # [x,y,values]     -> [y,x,values]     for 2D
+            # [x,values]       -> [x,values]       for 1D
+            if (self.data.ndim == 2):
+                pass # do nothin for 1D
             inds = range(self.data.ndim)       # indices for dimension [0,1,2] etc
             # keep the last value the same but reverse all indices before then
-            inds[:(self.data.ndim - 1)] = reversed(inds[:(self.data.ndim - 1)]) 
+            inds[:(self.data.ndim - 1)] = reversed(inds[:(self.data.ndim - 1)])
             datal = _np.transpose(self.data, inds)
         else:
             datal = self.data
