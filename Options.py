@@ -289,6 +289,12 @@ class Options(dict):
     def SetNGenerate(self,nparticles=10):
         self['ngenerate'] = nparticles
 
+    def SetWritePrimaries(self,on=True):
+        if on == True:
+            self['writePrimaries'] = 1
+        else:
+            self['writePrimaries'] = 0
+
     def SetELossHistBinWidth(self,width):
         self['elossHistoBinWidth'] = width
 
