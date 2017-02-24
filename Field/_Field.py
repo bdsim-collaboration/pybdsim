@@ -91,6 +91,12 @@ class Field2D(Field):
     >>> a = Field2D(data) # data is a prepared array
     >>> a.Write('outputFileName.dat')
 
+    The 'flip' boolean allows an array with (y,x,value) dimension order
+    to be written as (x,y,value).
+
+    The 'doublePrecision' boolean controls whether the field and spatial
+    values are written to 16 s.f. (True) or 8 s.f. (False - default).
+
     """
     def __init__(self, data, flip=True, doublePrecision=False):
         columns = ['X','Y','Fx','Fy','Fz']
@@ -107,13 +113,19 @@ class Field3D(Field):
     Utility class to write a 3D field map array to BDSIM field format.
 
     The array supplied should be 4 dimensional. Dimensions are:
-    (z,y,x,value) where value has 6 elements [x,y,z,fx,fy,fz].  So a 100x50x30 
-    (x,y,z) grid would have np.shape of (30,50,100,6).
+    (x,y,z,value) where value has 6 elements [x,y,z,fx,fy,fz].  So a 100x50x30 
+    (x,y,z) grid would have np.shape of (100,50,30,6).
     
     Example::
     
     >>> a = Field3D(data) # data is a prepared array
     >>> a.Write('outputFileName.dat')
+
+    The 'flip' boolean allows an array with (z,y,x,value) dimension order to
+    be written as (x,y,z,value).
+
+    The 'doublePrecision' boolean controls whether the field and spatial
+    values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
     def __init__(self, data, flip=True, doublePrecision=False):
@@ -141,6 +153,12 @@ class Field4D(Field):
     
     >>> a = Field4D(data) # data is a prepared array
     >>> a.Write('outputFileName.dat')
+
+    The 'flip' boolean allows an array with (t,z,y,x,value) dimension order to
+    be written as (x,y,z,t,value).
+
+    The 'doublePrecision' boolean controls whether the field and spatial
+    values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
     def __init__(self, data, flip=True, doublePrecision=False):
