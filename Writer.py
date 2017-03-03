@@ -183,7 +183,7 @@ class Writer():
         #for any include lines that will be written in the main file.
         self._sectionsToBeWritten = []
 
-    def WriteMachine(self,machine, filename, singlefile = False, verbose = True):
+    def WriteMachine(self,machine, filename, singlefile = False, verbose = True, summary=True):
         """
         WriteMachine(machine(machine),filename(string),singlefile(bool),verbose(bool))
 
@@ -227,7 +227,7 @@ class Writer():
         self.WriteBias(machine)
         
         #Write main
-        self.WriteMain(machine)
+        self.WriteMain(machine, summary=summary)
 
         if verbose:
             #user feedback
@@ -238,7 +238,7 @@ class Writer():
                 print(fn)
             print 'All included in main file: \n',self._mainFilename
 
-    def WriteMain(self,machine,filename=''):
+    def WriteMain(self,machine,filename='',summary=True):
         """
         WriteMain(machine(machine),filename(string))
         
@@ -266,10 +266,13 @@ class Writer():
         #write main file
         f = open(fn_main,'w')
         f.write(self._timestring)
-        f.write('! pybdsim.Builder Lattice \n')
-        f.write('! number of elements = ' + str(len(machine.elements)) + '\n')
-        f.write('! total length       = ' + str(machine.length) + ' m\n\n')
-        
+        if (summary):
+            f.write('! pybdsim.Builder Lattice \n')
+            f.write('! number of elements = ' + str(len(machine.elements)) + '\n')
+            f.write('! total length       = ' + str(machine.length) + ' m\n\n')
+        else:
+            f.write('\n\n')
+            
         #other files to include
         for section in self._sectionsToBeWritten:
             sectObject = getattr(self,section)
