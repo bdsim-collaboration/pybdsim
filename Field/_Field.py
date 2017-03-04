@@ -4,13 +4,16 @@ import numpy as _np
 class Field(object):
     """
     Base class used for common writing procedures for BDSIM field format.
+
+    This does not support arbitrary loop ordering - only the originally intended
+    xyzt.
     """
     def __init__(self, array=_np.array([]), columns=[], flip=True, doublePrecision=False):
         self.data            = array
         self.columns         = columns
         self.header          = {}
         self.flip            = flip
-        self.doublePrecision = doublePrecision
+        self.doublePrecision = doublePrecision       
 
     def Write(self, fileName):
         f = open(fileName, 'w')
