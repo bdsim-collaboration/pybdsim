@@ -9,3 +9,7 @@ from _Field import Field3D
 from _Field import Field4D
 
 from _Loader import Load
+
+from FieldPlotter import Plot2DXY
+from FieldPlotter import Plot3DXY
+from FieldPlotter import Plot3DXZ
