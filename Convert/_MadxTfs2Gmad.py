@@ -204,11 +204,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             print kws
 
         if t == 'DRIFT':
-            #print 'AddDrift'
             a.AddDrift(rname,l,**kws)
-            print kws
         elif t == 'HKICKER':
-            print 'HICKER',rname
+            if verbose:
+                print 'HICKER',rname
             kickangle = item['HKICK'] * factor
             if zerolength and not izlis:
                 a.AddMarker(rname)
@@ -269,7 +268,6 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         elif t == 'QUADRUPOLE':
             k1 = item['K1L'] / l * factor
             a.AddQuadrupole(rname,l,k1=k1,**kws)
-            print kws
         elif t == 'RBEND':
             angle = item['ANGLE']
             e1    = item['E1']
@@ -294,10 +292,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['tilt']     = colld['tilt']
                 xsize           = colld['xsize']
                 ysize           = colld['ysize']
-                print xsize
+                if verbose:
+                    print 'collimator xsize ',xsize
                 #if xsize > 0.1 or ysize > 0.1:
                 kws['outerDiameter'] = max(xsize,ysize)*2.5
-                print kws
                 if t == 'RCOLLIMATOR':
                     a.AddRCol(rname,l,xsize,ysize,**kws)
                 else:
