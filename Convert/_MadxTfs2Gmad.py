@@ -1,3 +1,4 @@
+from copy import deepcopy as _deepcopy
 import numpy as _np
 import re as _re
 import pymadx as _pymadx
@@ -174,8 +175,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.Append(item)
             return
 
-        kws = allelementdict # element-wise keywords
-
+        kws = {} # ensure empty
+        # deep copy as otherwise allelementdict gets irreperably changed!
+        kws = _deepcopy(allelementdict)
+        if verbose:
+            print 'starting key word arguments from all element dict'
+            print kws
+        
         if aperModel != None:
             kws.update(aperModel)
 
@@ -194,11 +200,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             kws.update(userdict[name])
 
         if verbose:
+            print 'Full set of key word arguments:'
             print kws
 
         if t == 'DRIFT':
             #print 'AddDrift'
             a.AddDrift(rname,l,**kws)
+            print kws
         elif t == 'HKICKER':
             print 'HICKER',rname
             kickangle = item['HKICK'] * factor
@@ -261,18 +269,19 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         elif t == 'QUADRUPOLE':
             k1 = item['K1L'] / l * factor
             a.AddQuadrupole(rname,l,k1=k1,**kws)
+            print kws
         elif t == 'RBEND':
             angle = item['ANGLE']
-            e1 = item['E1']
-            e2 = item['E2']
+            e1    = item['E1']
+            e2    = item['E2']
+            fint  = item['FINT']
+            fintx = item['FINTX']
             if (e1 != 0):
                 kws['e1'] = e1
             if (e1 != 0):
                 kws['e2'] = e2
-            fint  = item['FINT']
-            fintx = item['FINTX']
             if (fint != 0):
-                kws['fint'] = fint
+                kws['fint']  = fint
             if (fintx != 0):
                 kws['fintx'] = fintx
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
@@ -298,25 +307,21 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
-            kws  = {}
             angle = item['ANGLE']
-            e1 = item['E1']
-            e2 = item['E2']
+            e1    = item['E1']
+            e2    = item['E2']
+            fint  = item['FINT']
+            fintx = item['FINTX']
+            k1l   = item['K1L']
             if (e1 != 0):
                 kws['e1'] = e1
             if (e2 != 0):
                 kws['e2'] = e2
-            kws['e1'] = e1            
-            kws['e2'] = e2
-
-            k1l = item['K1L']
             if k1l != 0:
                 k1 = k1l / l * factor
                 kws['k1'] = k1
-            fint  = item['FINT']
-            fintx = item['FINTX']
             if (fint != 0):
-                kws['fint'] = fint
+                kws['fint']  = fint
             if (fintx != 0):
                 kws['fintx'] = fintx
             a.AddDipole(rname,'sbend',l,angle=angle,**kws)
