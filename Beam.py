@@ -153,10 +153,10 @@ class Beam(dict) :
     def _SetAlphaY(self,alphay=1.0,unitsstring='m'):
         self['alfy'] = str(alphay)
 
-    def _SetEmittanceX(self,emitx=1.0,unitsstring='um'):
+    def _SetEmittanceX(self,emitx=1.0e-9,unitsstring='um'):
         self['emitx'] = str(emitx) + '*' + unitsstring
    
-    def _SetEmittanceY(self,emity=1.0,unitsstring='um'):
+    def _SetEmittanceY(self,emity=1.0e-9,unitsstring='um'):
         self['emity'] = str(emity) + '*' + unitsstring
 
     def _SetShellX(self,shellx=1.0,unitsstring='m'):
