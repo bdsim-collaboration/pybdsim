@@ -3,3 +3,4 @@
 *.idea/
 #emacs autosave
 \#*\#
+build

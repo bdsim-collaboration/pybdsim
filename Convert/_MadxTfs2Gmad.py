@@ -200,6 +200,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             #print 'AddDrift'
             a.AddDrift(rname,l,**kws)
         elif t == 'HKICKER':
+            print 'HICKER',rname
             kickangle = item['HKICK'] * factor
             if zerolength and not izlis:
                 a.AddMarker(rname)
@@ -297,6 +298,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SBEND':
+            kws  = {}
             angle = item['ANGLE']
             e1 = item['E1']
             e2 = item['E2']
@@ -304,6 +306,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['e1'] = e1
             if (e2 != 0):
                 kws['e2'] = e2
+            kws['e1'] = e1            
+            kws['e2'] = e2
+
             k1l = item['K1L']
             if k1l != 0:
                 k1 = k1l / l * factor
