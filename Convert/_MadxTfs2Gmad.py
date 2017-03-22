@@ -492,8 +492,8 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     if ey == 1:
         print 'Horizontal emittance of 1 is too large - setting to 1e-9'
         ey = 1e-9
-
-    data     = tfs.GetRowDict(tfs.sequence[startindex])
+    
+    data = tfs[0]
 
     if particle == 'ELECTRON' :
         particle = 'e-'
@@ -521,6 +521,8 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetEmittanceX(ex,'m')
     beam.SetEmittanceY(ey,'m')
     beam.SetSigmaE(sigmae)
-    beam.SetXP0(tfs[startindex]['PX'])
-    beam.SetYP0(tfs[startindex]['PY'])
+    beam.SetXP0(data['PX'])
+    beam.SetYP0(data['PY'])
+    beam.SetX0(data['X'])
+    beam.SetY0(data['Y'])
     return beam
