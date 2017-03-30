@@ -180,9 +180,9 @@ class Element(ElementBase):
         s += self.category
         if len(self._keysextra) > 0:
             for key in self._keysextra:
-                if type(self[key]) == tuple and self.category != 'thinmultipole':
+                if type(self[key]) == tuple and (self.category != 'thinmultipole') and (self.category != 'multipole'):
                     s += ', ' + key + '=' + str(self[key][0]) + '*' + str(self[key][1])
-                elif type(self[key]) == tuple and self.category == 'thinmultipole' : 
+                elif type(self[key]) == tuple and ((self.category == 'thinmultipole') or (self.category == 'multipole')):
                     s += ', ' + key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
                 else:
                     s += ', ' + key + '=' + str(self[key])
