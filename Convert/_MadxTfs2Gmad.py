@@ -364,7 +364,6 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
     # check aperture information if supplied
     useTfsAperture = False
-    print 'TYPE of aperdict: ',type(aperturedict)
     if type(aperturedict) == _pymadx.Aperture:
         useTfsAperture = True
         if verbose:
