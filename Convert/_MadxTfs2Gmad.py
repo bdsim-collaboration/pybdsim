@@ -465,19 +465,20 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
+    
     if startname == None:
         startindex = 0
     elif type(startname) == int:
         startindex = startname
     else:
         startindex = tfs.IndexFromName(startname)
-
+        
     #MADX defines parameters at the end of elements so need to go 1 element
     #back if we can.
 
     if startindex > 0:
         startindex -= 1
-
+    
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])
     particle = tfs.header['PARTICLE']
@@ -493,7 +494,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
         print 'Horizontal emittance of 1 is too large - setting to 1e-9'
         ey = 1e-9
     
-    data = tfs[0]
+    data = tfs[startindex]
 
     if particle == 'ELECTRON' :
         particle = 'e-'
