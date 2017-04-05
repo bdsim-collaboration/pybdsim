@@ -44,7 +44,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  collimatordict={},
                  userdict={},
                  beampiperadius=5.0,
-                 verbose=False, beam=True, flipmagnets=False, usemadxaperture=False,
+                 verbose=False, beam=True, flipmagnets=None, usemadxaperture=False,
                  defaultAperture='circular',
                  biases=None,
                  allelementdict={},
@@ -157,8 +157,19 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     a = _Builder.Machine() # raw converted machine
     b = _Builder.Machine() # final machine, split with aperture
 
+    # test whether filpath or tfs instance supplied
+    madx = _pymadx._General.CheckItsTfs(input)
+    
     izlis  = ignorezerolengthitems
-    factor = -1 if flipmagnets else 1  #flipping magnets
+    factor = 1
+    if flipmagnets != None:
+        factor = -1 if flipmagnets else 1  #flipping magnets
+    else:
+        if madx.header.has_key('PARTICLE'):
+            particleName = madx.header['PARTICLE']
+            if particleName == "ELECTRON":
+                flipmagnets = True
+                print 'Detected electron in TFS file - changing flipmagnets to True'
 
     if type(biases) == XSecBias.XSecBias:
         a.AddBias(biases)
@@ -344,9 +355,6 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 print 'putting drift in instead as it has a finite length'
                 a.AddDrift(rname,l)
     # end of utility conversion function
-
-    # test whether filpath or tfs instance supplied
-    madx = _pymadx._General.CheckItsTfs(input)
 
     # check whether it has all the required columns.
     ZeroMissingRequiredColumns(madx)
