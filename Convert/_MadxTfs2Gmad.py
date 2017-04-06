@@ -299,18 +299,32 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             if name in collimatordict:
                 #gets a dictionary then extends kws dict with that dictionary
                 colld = collimatordict[name]
-                kws['material'] = colld['material']
-                kws['tilt']     = colld['tilt']
-                xsize           = colld['xsize']
-                ysize           = colld['ysize']
-                if verbose:
-                    print 'collimator xsize ',xsize
-                #if xsize > 0.1 or ysize > 0.1:
-                kws['outerDiameter'] = max(xsize,ysize)*2.5
-                if t == 'RCOLLIMATOR':
-                    a.AddRCol(rname,l,xsize,ysize,**kws)
+
+                #collimator defined by external geometry file
+                if 'geometryFile' in colld:
+                    kws['geometryFile'] = colld['geometryFile']
+                    k = 'outerDiameter' #key
+                    if k not in kws:
+                        #not already specified via other dictionaries
+                        if k in colld:
+                            kws[k] = colld[k]
+                        else:
+                            kws[k] = 1 #ensure there's a default as not in madx
+                    # add a general element
+                    a.AddElement(rname,l,**kws)
                 else:
-                    a.AddECol(rname,l,xsize,ysize,**kws)
+                    kws['material'] = colld['material']
+                    kws['tilt']     = colld['tilt']
+                    xsize           = colld['xsize']
+                    ysize           = colld['ysize']
+                    if verbose:
+                        print 'collimator xsize ',xsize
+                    #if xsize > 0.1 or ysize > 0.1:
+                    kws['outerDiameter'] = max(xsize,ysize)*2.5
+                    if t == 'RCOLLIMATOR':
+                        a.AddRCol(rname,l,xsize,ysize,**kws)
+                    else:
+                        a.AddECol(rname,l,xsize,ysize,**kws)
             else:
                 a.AddDrift(rname,l)
         elif t == 'RFCAVITY':
