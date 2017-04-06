@@ -642,6 +642,9 @@ class Machine:
     def AddVKicker(self, name='vk', length=0.1, angle=0.0, **kwargs):
         self.Append(Element(name,'vkick', l=length, angle=angle, **kwargs))
 
+    def AddElement(self, name='el', length=0.1, outerDiameter=1, geometryFile="geometry.gdml", **kwargs):
+        self.Append(Element(name, 'element',l=length,outerDiameter=outerDiameter,geometryFile=geometryFile, **kwargs))
+
     def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=0.2,**kwargs):
         """
         AddFodoCell(basename,magnetlength,driftlength,kabs,**kwargs)
