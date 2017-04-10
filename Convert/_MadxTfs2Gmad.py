@@ -220,10 +220,22 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             if verbose:
                 print 'HICKER',rname
             kickangle = item['HKICK'] * factor
-            if zerolength and not izlis:
+            if kickangle != 0 and zerolength:
+                a.AddHKicker(rname, 1e-7, angle=kickangle,**kws)
+            elif zerolength and not izlis:
                 a.AddMarker(rname)
             else:
                 a.AddHKicker(rname,l,angle=kickangle,**kws)
+        elif t == 'VKICKER':
+            if verbose:
+                print 'VKICKER',rname
+            kickangle = item['VKICK'] * factor
+            if kickangle !=0 and zerolength:
+                a.AddVKicker(rname, 1e-7, angle=kickangle, **kws)
+            elif zerolength and not izlis:
+                a.AddMarker(rname)
+            else:
+                a.AddVKicker(rname,l,angle=kickangle,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
             if zerolength and not izlis:
@@ -357,9 +369,6 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddDrift(rname,l,**kws)
         elif t == 'TKICKER':
             a.AddDrift(rname,l,**kws)
-        elif t == 'VKICKER':
-            kickangle = item['VKICK'] * factor
-            a.AddVKicker(rname,l,angle=kickangle,**kws)
         else:
             print 'unknown element type:', t, 'for element named: ', name
             if zerolength and not izlis:
@@ -396,7 +405,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         zerolength = True if item['L'] < 1e-9 else False
         if verbose:
             print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
-        if zerolength and ignorezerolengthitems:
+        if madx.ComponentPerturbs(name):
+            pass #ie proceed normally
+        elif zerolength and ignorezerolengthitems:
             itemsomitted.append(name)
             if verbose:
                 print 'skipping this item'
