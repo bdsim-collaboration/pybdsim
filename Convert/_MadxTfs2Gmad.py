@@ -297,6 +297,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             e2    = item['E2']
             fint  = item['FINT']
             fintx = item['FINTX']
+            hgap  = item['HGAP']
             if (e1 != 0):
                 kws['e1'] = e1
             if (e1 != 0):
@@ -305,6 +306,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['fint']  = fint
             if (fintx != 0):
                 kws['fintx'] = fintx
+            if (hgap != 0):
+                kws['fintx'] = hgap
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
         elif t == 'RCOLLIMATOR' or t == 'ECOLLIMATOR':
             #only use xsize as only have half gap
@@ -348,6 +351,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             fint  = item['FINT']
             fintx = item['FINTX']
             k1l   = item['K1L']
+            hgap  = item['HGAP']
             if (e1 != 0):
                 kws['e1'] = e1
             if (e2 != 0):
@@ -359,6 +363,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['fint']  = fint
             if (fintx != 0):
                 kws['fintx'] = fintx
+            if (hgap != 0):
+                kws['hgap'] = hgap
             a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t == 'SEXTUPOLE':
             k2 = item['K2L'] / l * factor
