@@ -647,7 +647,7 @@ class Machine:
         self.Append(Element(name,'kicker', hkick=hkick, vkick=hkick, **kwargs))
 
     def AddTKicker(self, name='tk', hkick=0.0, vkick=0.0, **kwargs):
-        self.Append(Element(name,'tkicker', l=length, angle=angle, **kwargs))
+        self.Append(Element(name,'tkicker', hkick=hkick, vkick=vkick, **kwargs))
 
     def AddElement(self, name='el', length=0.1, outerDiameter=1, geometryFile="geometry.gdml", **kwargs):
         self.Append(Element(name, 'element',l=length,outerDiameter=outerDiameter,geometryFile=geometryFile, **kwargs))
