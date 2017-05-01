@@ -43,8 +43,10 @@ bdsimcategories = [
     'ecol',
     'muspoiler',
     'solenoid',
-    'hkick',
-    'vkick',
+    'hkicker',
+    'vkicker',
+    'kicker',
+    'tkicker',
     'transform3d',
     'element',
     'line',
@@ -590,7 +592,6 @@ class Machine:
     def AddThinMultipole(self, name='mp', knl=(0), ksl=(0), tilt=0.0, **kwargs):
         self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, tilt=tilt, **kwargs))
 
-
     def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
         self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
         
@@ -636,11 +637,17 @@ class Machine:
                 d[k] = v
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
         
-    def AddHKicker(self, name='hk', length=0.1, angle=0.0, **kwargs):
-        self.Append(Element(name,'hkick', l=length, angle=angle, **kwargs))
+    def AddHKicker(self, name='hk', length=0.1, hkick=0.0, **kwargs):
+        self.Append(Element(name,'hkicker', l=length, hkick=hkick, **kwargs))
 
-    def AddVKicker(self, name='vk', length=0.1, angle=0.0, **kwargs):
-        self.Append(Element(name,'vkick', l=length, angle=angle, **kwargs))
+    def AddVKicker(self, name='vk', length=0.1, vkick=0.0, **kwargs):
+        self.Append(Element(name,'vkicker', l=length, vkick=vkick, **kwargs))
+
+    def AddKicker(self, name='kk', hkick=0.0, vkick=0.0, **kwargs):
+        self.Append(Element(name,'kicker', hkick=hkick, vkick=hkick, **kwargs))
+
+    def AddTKicker(self, name='tk', hkick=0.0, vkick=0.0, **kwargs):
+        self.Append(Element(name,'tkicker', l=length, angle=angle, **kwargs))
 
     def AddElement(self, name='el', length=0.1, outerDiameter=1, geometryFile="geometry.gdml", **kwargs):
         self.Append(Element(name, 'element',l=length,outerDiameter=outerDiameter,geometryFile=geometryFile, **kwargs))
