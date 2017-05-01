@@ -219,23 +219,33 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         elif t == 'HKICKER':
             if verbose:
                 print 'HICKER',rname
-            kickangle = item['HKICK'] * factor
-            if kickangle != 0 and zerolength:
-                a.AddHKicker(rname, 1e-7, angle=kickangle,**kws)
-            elif zerolength and not izlis:
-                a.AddMarker(rname)
-            else:
-                a.AddHKicker(rname,l,angle=kickangle,**kws)
+            hkick = item['HKICK'] * factor
+            if not zerolength:
+                kws['length'] = l
+            a.AddHKicker(rname,hkick=hkick,**kws)
         elif t == 'VKICKER':
             if verbose:
                 print 'VKICKER',rname
-            kickangle = item['VKICK'] * factor
-            if kickangle !=0 and zerolength:
-                a.AddVKicker(rname, 1e-7, angle=kickangle, **kws)
-            elif zerolength and not izlis:
-                a.AddMarker(rname)
-            else:
-                a.AddVKicker(rname,l,angle=kickangle,**kws)
+            vkick = item['VKICK'] * factor
+            if not zerolength:
+                kws['length'] = l
+            a.AddVKicker(rname,vkick=vkick,**kws)
+        elif t == 'KICKER':
+            if verbose:
+                print 'KICKER',rname
+            hkick = item['HKICK'] * factor
+            vkick = item['VKICK'] * factor
+            if not zerolength:
+                kws['length'] = l
+            a.AddKicker(rname,hkick=hkick,vkick=vkick,**kws)
+        elif t == 'TKICKER':
+            if verbose:
+                print 'TKICKER',rname
+            hkick = item['HKICK'] * factor
+            vkick = item['VKICK'] * factor
+            if not zerolength:
+                kws['length'] = l
+            a.AddTKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
             if zerolength and not izlis:
