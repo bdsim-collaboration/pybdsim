@@ -637,11 +637,11 @@ class Machine:
                 d[k] = v
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
         
-    def AddHKicker(self, name='hk', length=0.1, hkick=0.0, **kwargs):
-        self.Append(Element(name,'hkicker', l=length, hkick=hkick, **kwargs))
+    def AddHKicker(self, name='hk', hkick=0.0, **kwargs):
+        self.Append(Element(name,'hkicker', hkick=hkick, **kwargs))
 
-    def AddVKicker(self, name='vk', length=0.1, vkick=0.0, **kwargs):
-        self.Append(Element(name,'vkicker', l=length, vkick=vkick, **kwargs))
+    def AddVKicker(self, name='vk', vkick=0.0, **kwargs):
+        self.Append(Element(name,'vkicker', vkick=vkick, **kwargs))
 
     def AddKicker(self, name='kk', hkick=0.0, vkick=0.0, **kwargs):
         self.Append(Element(name,'kicker', hkick=hkick, vkick=hkick, **kwargs))

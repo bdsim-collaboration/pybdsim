@@ -221,14 +221,14 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 print 'HICKER',rname
             hkick = item['HKICK'] * factor
             if not zerolength:
-                kws['length'] = l
+                kws['l'] = l
             a.AddHKicker(rname,hkick=hkick,**kws)
         elif t == 'VKICKER':
             if verbose:
                 print 'VKICKER',rname
             vkick = item['VKICK'] * factor
             if not zerolength:
-                kws['length'] = l
+                kws['l'] = l
             a.AddVKicker(rname,vkick=vkick,**kws)
         elif t == 'KICKER':
             if verbose:
@@ -236,7 +236,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             hkick = item['HKICK'] * factor
             vkick = item['VKICK'] * factor
             if not zerolength:
-                kws['length'] = l
+                kws['l'] = l
             a.AddKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'TKICKER':
             if verbose:
@@ -244,7 +244,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             hkick = item['HKICK'] * factor
             vkick = item['VKICK'] * factor
             if not zerolength:
-                kws['length'] = l
+                kws['l'] = l
             a.AddTKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
