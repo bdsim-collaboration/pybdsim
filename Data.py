@@ -96,6 +96,9 @@ def _LoadRoot(filepath):
     if trees.__contains__('optics'):
         branches = _rnp.list_branches(filepath,'optics')
         treedata = _rnp.root2array(filepath,'optics')
+    elif trees.__contains__('orbit'):
+        branches = _rnp.list_branches(filepath, 'orbit')
+        treedata = _rnp.root2array(filepath, 'orbit')
     else:
         raise IOError("This file doesn't have the required tree 'optics'.")
     for element in range(len(treedata[branches[0]])):
