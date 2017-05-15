@@ -51,6 +51,9 @@ def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None):
     tfsorbit  = _GetTfsOptics(tfsinst)
     bdsopt    = _GetBDSIMOptics(bdsinst)
 
+    if survey == None:
+        survey = tfsinst
+
     PlotOrbit(tfsorbit, bdsopt, survey=survey, functions=functions)
     
     
