@@ -1,7 +1,7 @@
 import ROOT as _rt
 import numpy as _np
 import matplotlib.pyplot as _plt
-#from scipy.constants import c
+from scipy import constants as _con
 import sys
 import time
 import warnings
@@ -133,11 +133,30 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     tof         =  _rnp.tree2array(tree, branches="Primary.t")
     E           =  _rnp.tree2array(tree, branches="Primary.energy")
 
+    #Get particle pdg number
+    priPid      =  _rnp.tree2array(tree, branches="Primary.partID")
+    pid         =  _np.int(_np.mean(priPid)[0])  #cast to int to match pdg id
+
+    #Particle mass needed for calculating momentum, in turn needed for dE.
+    mass = 0
+    if pid == 2212:                                     #proton
+        mass = _con.proton_mass * c**2 / _con.e / 1e9
+    elif (pid == 11) or (pid == -11):                   #electron / positron
+        mass = _con.electron_mass * c**2 / _con.e / 1e9
+    elif (pid == 13) or (pid == -13):                   #mu- / mu+
+        mass = 0.1056583745
+
+    #TODO: Add more particle masses and particle numbers as needed.
+
+    if mass == 0:
+        raise ValueError('Unknown primary particle species.')
+
     npart       = len(x)
     Em          = _np.mean(E)
+    p           = _np.sqrt(Em**2 - mass**2)
     tofm        = _np.mean(tof)
     
-    dE          = (E -_np.full(npart,Em))/E
+    dE          = (E -_np.full(npart,Em))/(p*c)         # energy spread from MAD-X Manual V 5.03.00, pg 16.
     t           = (tof-_np.full(npart,tofm))*1.e-9*c    #c is sof and the 1.e-9 factor is nm to m conversion
 
     #Truncate the arrays to the desired lenght
