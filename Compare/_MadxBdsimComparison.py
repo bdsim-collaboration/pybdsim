@@ -41,6 +41,22 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
     PlotMeans(tfsopt, bdsopt, survey=survey,
               functions=functions)
 
+
+def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None):
+
+    _CheckFilesExist(tfs, bdsim, survey)
+    tfsinst   = _pymadx._General.CheckItsTfs(tfs)
+    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+
+    tfsorbit  = _GetTfsOptics(tfsinst)
+    bdsopt    = _GetBDSIMOptics(bdsinst)
+
+    if survey == None:
+        survey = tfsinst
+
+    PlotOrbit(tfsorbit, bdsopt, survey=survey, functions=functions)
+    
+    
 def _GetBDSIMOptics(optics):
     '''
     Takes a BDSAscii instance.
@@ -257,6 +273,28 @@ def PlotMeans(tfsopt, bdsopt, survey=None, functions=None):
 
     _plt.show(block=False)
     return meanPlot
+
+def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None):
+    orbitPlot = _plt.figure('Orbit')
+
+    #tfs
+    _plt.plot(tfsopt['S'], tfsopt['X'], 'b', label=r'MADX $\bar{x}$')
+    _plt.plot(tfsopt['S'], tfsopt['Y'], 'g', label=r'MADX $\bar{y}$')
+
+    #bdsim
+    _plt.plot(bdsopt['s'], bdsopt['x'], 'b.', label='BDSIM x')
+    _plt.plot(bdsopt['s'], bdsopt['y'], 'g.', label='BDSIM y')
+
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
+    axes.set_xlabel('S from IR1 / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(orbitPlot, survey)
+
+    _plt.show(block=False)
+    return orbitPlot
 
 def _AddSurvey(figure, survey):
     if survey == None:
