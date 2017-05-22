@@ -19,6 +19,7 @@ import matplotlib.backends.backend_pdf
 import matplotlib.patches as mpatches
 import subprocess
 import time
+import string as _string
 
 from scipy.stats import binned_statistic
 import scipy.constants as _scpconsts
@@ -76,18 +77,88 @@ class LatticeTest:
         """
         _os.chdir(self.folderpath)
         
-        _os.system("rm -rf *.log")
-        _os.system("rm -rf *.dat")
-        _os.system("rm -rf *.tfs")
-        _os.system("rm -rf *.ps")
-        _os.system("rm -rf ptc*")
-        _os.system("rm -rf *.txt")
-        _os.system("rm -rf *.root")
-        _os.system("rm -rf *.gmad")
-        _os.system("rm -rf *_inrays.madx")
-        _os.system("rm -rf *.png")
-        _os.system("rm -rf *.pdf")
-        _os.system("rm trackone")
+        #PTC files
+        ptcMain         = "ptc_"+self.filename+".madx"
+        ptcComponents   = "ptc_"+self.filename+"_components.madx"
+        ptcJob          = "ptc_"+self.filename+"_ptcjob.madx"
+        ptcSequence     = "ptc_"+self.filename+"_sequence.madx"
+        ptcBeam         = "ptc_"+self.filename+"_beam.madx"
+        
+        #gmad files
+        gmadMain        = self.filename+".gmad"
+        gmadComponents  = self.filename+"_components.gmad"
+        gmadOptions     = self.filename+"_options.gmad"
+        gmadSequence    = self.filename+"_sequence.gmad"
+        gmadBeam        = self.filename+"_beam.gmad"
+        
+        #bdsim output
+        event           = self.filename+"_event.root"
+        optics          = self.filename+"_optics.root"
+        config          = self.filename+"_analConfig.txt"
+
+        #ptc/madx output
+        tfs             = _string.lower(self.filename) + ".tfs"
+        trackone        = "trackone"
+        maxwell         = "Maxwellian*"
+        printFile       = "print.dat"
+        ptcOpt          = "ptc_"+self.filename+"_opticalfns.dat"
+        
+        #logfiles
+        bdsimLog        = "bdsim.log"
+        madxLog         = "madx.log"
+        ptcLog          = "ptc_madx.log"
+        
+        #plots
+        psFile          = "madx.ps"
+        pdfFile         = self.filename+"_plots.pdf"
+        
+        #other
+        inrays          = self.filename+"_inrays.madx"
+        stdevFile       = self.filename+"_stdev.txt"
+        
+        try:
+            _os.remove(ptcMain)
+            _os.remove(ptcComponents)
+            _os.remove(ptcJob)
+            _os.remove(ptcSequence)
+            _os.remove(ptcBeam)
+            _os.remove(gmadMain)
+            _os.remove(gmadComponents)
+            _os.remove(gmadOptions)
+            _os.remove(gmadSequence)
+            _os.remove(gmadBeam)
+            _os.remove(event)
+            _os.remove(optics)
+            _os.remove(config)
+            _os.remove(tfs)
+            _os.remove(trackone)
+            _os.system("rm -rf "+maxwell)
+            _os.remove(printFile)
+            _os.remove(ptcOpt)
+            _os.remove(bdsimLog)
+            _os.remove(madxLog)
+            _os.remove(ptcLog)
+            _os.remove(psFile)
+            _os.remove(pdfFile)
+            _os.remove(inrays)
+            _os.remove(stdevFile)
+
+        except OSError:
+            # File probably doesn't exist
+            pass
+
+#        _os.system("rm -rf *.log")
+#        _os.system("rm -rf *.dat")
+#        _os.system("rm -rf *.tfs")
+#        _os.system("rm -rf *.ps")
+#        _os.system("rm -rf ptc*")
+#        _os.system("rm -rf *.txt")
+#        _os.system("rm -rf *.root")
+#        _os.system("rm -rf *.gmad")
+#        _os.system("rm -rf *_inrays.madx")
+#        _os.system("rm -rf *.png")
+#        _os.system("rm -rf *.pdf")
+#        _os.system("rm trackone")
 
         # clean and close figures (10 figures in total)
         for i in range(11):
