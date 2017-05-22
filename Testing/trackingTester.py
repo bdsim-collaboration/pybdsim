@@ -108,6 +108,18 @@ class Test:
             name = 'sb1'
             bm.AddDipole(name,length=self.length,**self.kwargs)
             xm.AddDipole(name,length=self.length,**self.kwargs)
+        elif self.type_ == 'rbend':
+            name = 'rb1'
+            bm.AddDipole(name,category='rbend',length=self.length,**self.kwargs)
+            xm.AddDipole(name,category='rbend',length=self.length,**self.kwargs)
+        elif self.type_ == 'hkicker':
+            name = 'hk1'
+            bm.AddHKicker(name, length=self.length, **self.kwargs)
+            xm.AddHKicker(name, length=self.length, **self.kwargs)
+        elif self.type_ == 'vkicker':
+            name = 'vk1'
+            bm.AddVKicker(name, length=self.length, **self.kwargs)
+            xm.AddVKicker(name, length=self.length, **self.kwargs)
         elif self.type_ == 'quadrupole' :
             name = 'q1'
             bm.AddQuadrupole(name,length=self.length,**self.kwargs)

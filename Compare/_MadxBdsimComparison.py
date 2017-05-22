@@ -1,6 +1,7 @@
 import pymadx as _pymadx
 import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
+import numpy as _np
 from os.path import isfile
 
 def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
@@ -55,7 +56,41 @@ def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None):
         survey = tfsinst
 
     PlotOrbit(tfsorbit, bdsopt, survey=survey, functions=functions)
+    #PlotOrbitResiduals(tfsorbit, bdsopt, survey=survey, functions=functions)
+
+def PrepareResiduals(tfs, bds, survey=None, verbose=False):
+    """
+    Filter the tfs to provide data that will match the 
+    BDSIM data in s position. 
+    """
+    _CheckFilesExist(tfs, bds, survey)
+    tfsinst   = _pymadx._General.CheckItsTfs(tfs)
+    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
+
+    bdss = bdsinst.s()
+
+    keys = ['S', 'X', 'PX', 'Y', 'PY']
+
+    tfsdata = {
+        'S':[],
+        'X':[],
+        'PX':[],
+        'Y':[],
+        'PY':[]
+        }
     
+    for s in bdss:
+        ind = tfsinst.IndexFromNearestS(s)
+        if (verbose):
+            print 'bdsim s:',s,' index in tfs:',ind, tfsinst[ind]
+        for key in keys:
+            tfsdata[key].append(tfsinst[ind][key])
+
+    for key in keys:
+        tfsdata[key] = _np.array(tfsdata[key])
+
+    return tfsdata
+
     
 def _GetBDSIMOptics(optics):
     '''
@@ -283,8 +318,10 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None):
 
     #bdsim
     _plt.plot(bdsopt['s'], bdsopt['x'], 'b.', label='BDSIM x')
+    _plt.plot(bdsopt['s'], bdsopt['x'], 'b-', alpha=0.4)
     _plt.plot(bdsopt['s'], bdsopt['y'], 'g.', label='BDSIM y')
-
+    _plt.plot(bdsopt['s'], bdsopt['y'], 'g-', alpha=0.4)
+    
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
     axes.set_xlabel('S from IR1 / m')
@@ -295,6 +332,37 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None):
 
     _plt.show(block=False)
     return orbitPlot
+
+def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, verbose=False):
+    _CheckFilesExist(tfs, bds, survey)
+    tfsinst   = _pymadx._General.CheckItsTfs(tfs)
+    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
+    tfsd = PrepareResiduals(tfs, bds)
+
+    if survey == None:
+        survey = tfsinst
+    
+    s   = bdsinst.s()
+    dx  = tfsd['X']  - bdsinst.x()
+    dxp = tfsd['PX'] - bdsinst.xp()
+    dy  = tfsd['Y']  - bdsinst.y()
+    dyp = tfsd['PY'] - bdsinst.yp()
+
+    orbRes = _plt.figure('OrbitResiduals')
+    _plt.plot(s, abs(dx),  '.', label='x')
+    _plt.plot(s, abs(dxp), '.', label='xp')
+    _plt.plot(s, abs(dy),  '.', label='y')
+    _plt.plot(s, abs(dyp), '.', label='yp')
+    _plt.legend()
+    _plt.xlabel('S (m)')
+    _plt.ylabel('|residual| (m, rad)')
+    _plt.yscale('log')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(orbRes, survey)
+
+    _plt.show(block=False)
+    return orbRes
 
 def _AddSurvey(figure, survey):
     if survey == None:
