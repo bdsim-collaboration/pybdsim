@@ -49,7 +49,7 @@ def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None):
     tfsinst   = _pymadx._General.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
 
-    tfsorbit  = _GetTfsOptics(tfsinst)
+    tfsorbit  = _GetTfsOrbit(tfsinst)
     bdsopt    = _GetBDSIMOptics(bdsinst)
 
     if survey == None:
@@ -122,6 +122,22 @@ def _GetTfsOptics(optics):
                                      'SIGMAY',
                                      'SIGMAXP',
                                      'SIGMAYP',
+                                     'X',
+                                     'Y',
+                                     'PX',
+                                     'PY'])
+
+    optvars = {}
+    for variable in MADXOpticsVariables:
+        optvars[variable] = optics.GetColumn(variable)
+    return optvars
+
+def _GetTfsOrbit(optics):
+    '''
+    Takes either Tfs instance.  Returns dictionary of lists.
+    '''
+
+    MADXOpticsVariables = frozenset(['S',
                                      'X',
                                      'Y',
                                      'PX',
