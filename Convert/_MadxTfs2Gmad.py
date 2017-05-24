@@ -421,7 +421,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         zerolength = True if item['L'] < 1e-9 else False
         if verbose:
             print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
-        if madx.ComponentPerturbs(name):
+        if madx.ElementPerturbs(item):
             pass #ie proceed normally
         elif zerolength and ignorezerolengthitems:
             itemsomitted.append(name)
