@@ -14,13 +14,13 @@ class TTree :
         '''
         self.data = r2n_tree
 
-    def plot(self, keyX, keyY, keyYErr = '', opt = '', label = ''):
+    def Plot(self, keyX, keyY, keyYErr = '', opt = '', label = ''):
         if keyYErr == '' :
             _plt.plot(self.data[keyX], self.data[keyY], opt, label = label)
         else :
             _plt.errorbar(self.data[keyX], self.data[keyY], self.data[keyYErr], opt, label = label)
 
-    def keys(self):
+    def Keys(self):
         return self.data.dtype.names
 
 class TH1 :
@@ -53,7 +53,7 @@ class TH1 :
             self.contents[i] = hist.GetBinContent(i+1)
             self.errors[i]   = hist.GetBinError(i+1)
 
-    def plot(self,opt ='hist'):
+    def Plot(self,opt ='hist'):
         '''
         ROOT like plotting options for convenience
         :param opt: hist|e1
@@ -68,19 +68,19 @@ class TH1 :
 
         self.setLabels()
 
-    def plotPlot(self):
+    def PlotPlot(self):
         _plt.plot(self.centres,self.contents)
 
-    def plotErrorbar(self, edgecolor='none', color='b', label=''):
+    def PlotErrorbar(self, edgecolor='none', color='b', label=''):
         _plt.errorbar(self.centres,self.contents, self.errors, color=color, label=label)
 
-    def plotBar(self, edgecolor='none', color='b', label=''):
+    def PlotBar(self, edgecolor='none', color='b', label=''):
         _plt.bar(self.lowedge, self.contents, self.widths, edgecolor=edgecolor, color=color, label=label)
 
-    def plotHist(self, edgecolor='none', color='b', label=''):
+    def PlotHist(self, edgecolor='none', color='b', label=''):
         _plt.hist(self.centres, self.lowedge, weights=self.contents, edgecolor=edgecolor, color=color, label=label)
 
-    def setLabels(self):
+    def SetLabels(self):
         _plt.xlabel(self.labelX)
         _plt.ylabel(self.labelY)
 
@@ -130,10 +130,10 @@ class TH2 :
                 self.contents[i,j] = hist.GetBinContent(i+1,j+1)
                 self.errors[i,j]   = hist.GetBinError(i+1,j+1)
 
-    def plot(self):
+    def Plot(self):
         pass
 
-    def plotColz(self):
+    def PlotColz(self):
         xx, yy = _np.meshgrid(self.xcentres,self.ycentres)
         _plt.rcParams['image.cmap'] = 'coolwarm'
         _plt.pcolormesh(xx,yy,self.contents)
