@@ -4,8 +4,8 @@ import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile
 
-def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
-    '''
+def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, figsize=(12,5)):
+    """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
 
@@ -16,7 +16,8 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
     functions  :    Hook for users to add their functions which are called
                     immediately prior to the addition of the plot.  Use lambda
                     to add functions with arguments.
-    '''
+    figsize    :    figure size for all figures - default is (12,5)
+    """
 
     _CheckFilesExist(tfs, bdsim, survey)
 
@@ -30,17 +31,17 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None):
         survey = tfsinst
 
     PlotBetas(tfsopt, bdsopt, survey=survey,
-              functions=functions)
+              functions=functions, figsize=figsize)
     PlotAlphas(tfsopt, bdsopt, survey=survey,
-               functions=functions)
+               functions=functions, figsize=figsize)
     PlotDs(tfsopt, bdsopt, survey=survey,
-           functions=functions)
+           functions=functions, figsize=figsize)
     PlotDps(tfsopt, bdsopt, survey=survey,
-            functions=functions)
+            functions=functions, figsize=figsize)
     PlotSigmas(tfsopt, bdsopt, survey=survey,
-               functions=functions)
+               functions=functions, figsize=figsize)
     PlotMeans(tfsopt, bdsopt, survey=survey,
-              functions=functions)
+              functions=functions, figsize=figsize)
 
 
 def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None):
@@ -148,10 +149,10 @@ def _GetTfsOrbit(optics):
         optvars[variable] = optics.GetColumn(variable)
     return optvars
 
-def PlotBetas(tfsopt, bdsopt, survey=None, functions=None):
+def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    betaPlot = _plt.figure('Beta')
+    betaPlot = _plt.figure('Beta', figsize=figsize)
     _plt.plot(tfsopt['S'], tfsopt['BETX'], 'b', label=r'MADX $\beta_{x}$')
     _plt.plot(tfsopt['S'], tfsopt['BETY'], 'g', label=r'MADX $\beta_{y}$')
 
@@ -182,9 +183,9 @@ def PlotBetas(tfsopt, bdsopt, survey=None, functions=None):
     _plt.show(block=False)
     return betaPlot
 
-def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None):
+def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    alphaPlot = _plt.figure('Alpha')
+    alphaPlot = _plt.figure('Alpha', figsize=figsize)
     #tfs
     _plt.plot(tfsopt['S'], tfsopt['ALFX'], 'b', label=r'MADX $\alpha_{x}$')
     _plt.plot(tfsopt['S'], tfsopt['ALFY'], 'g', label=r'MADX $\alpha_{y}$')
@@ -210,9 +211,9 @@ def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None):
     _plt.show(block=False)
     return alphaPlot
 
-def PlotDs(tfsopt, bdsopt, survey=None, functions=None):
+def PlotDs(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    dispPlot = _plt.figure('Dispersion')
+    dispPlot = _plt.figure('Dispersion', figsize=figsize)
     #tfs
     _plt.plot(tfsopt['S'], tfsopt['DX'], 'b', label=r'MADX $D_{x}$')
     _plt.plot(tfsopt['S'], tfsopt['DY'], 'g', label=r'MADX $D_{y}$')
@@ -238,9 +239,9 @@ def PlotDs(tfsopt, bdsopt, survey=None, functions=None):
     _plt.show(block=False)
     return dispPlot
 
-def PlotDps(tfsopt, bdsopt, survey=None, functions=None):
+def PlotDps(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    dispPPlot = _plt.figure('Momentum_Dispersion')
+    dispPPlot = _plt.figure('Momentum_Dispersion', figsize=figsize)
     #tfs
     _plt.plot(tfsopt['S'], tfsopt['DPX'], 'b', label=r'MADX $D_{p_{x}}$')
     _plt.plot(tfsopt['S'], tfsopt['DPY'], 'g', label=r'MADX $D_{p_{y}}$')
@@ -266,9 +267,9 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None):
     _plt.show(block=False)
     return dispPPlot
 
-def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None):
+def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    sigmaPlot = _plt.figure('Sigma')
+    sigmaPlot = _plt.figure('Sigma', figsize=figsize)
     #tfs
     _plt.plot(tfsopt['S'], tfsopt['SIGMAX'], 'b', label=r'MADX $\sigma_{x}$')
     _plt.plot(tfsopt['S'], tfsopt['SIGMAY'], 'g', label=r'MADX $\sigma_{y}$')
@@ -296,9 +297,9 @@ def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None):
     _plt.show(block=False)
     return sigmaPlot
 
-def PlotMeans(tfsopt, bdsopt, survey=None, functions=None):
+def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    meanPlot = _plt.figure('Mean')
+    meanPlot = _plt.figure('Mean', figsize=figsize)
     #tfs
     _plt.plot(tfsopt['S'], tfsopt['X'], 'b', label=r'MADX $\bar{x}$')
     _plt.plot(tfsopt['S'], tfsopt['Y'], 'g', label=r'MADX $\bar{y}$')
@@ -325,8 +326,8 @@ def PlotMeans(tfsopt, bdsopt, survey=None, functions=None):
     _plt.show(block=False)
     return meanPlot
 
-def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None):
-    orbitPlot = _plt.figure('Orbit')
+def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+    orbitPlot = _plt.figure('Orbit', figsize=figsize)
 
     #tfs
     _plt.plot(tfsopt['S'], tfsopt['X'], 'b', label=r'MADX $\bar{x}$')
@@ -349,7 +350,7 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None):
     _plt.show(block=False)
     return orbitPlot
 
-def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, verbose=False):
+def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, verbose=False, figsize=(12,5)):
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx._General.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
@@ -364,7 +365,7 @@ def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, verbose=False):
     dy  = tfsd['Y']  - bdsinst.y()
     dyp = tfsd['PY'] - bdsinst.yp()
 
-    orbRes = _plt.figure('OrbitResiduals')
+    orbRes = _plt.figure('OrbitResiduals', figsize=figsize)
     _plt.plot(s, abs(dx),  '.', label='x')
     _plt.plot(s, abs(dxp), '.', label='xp')
     _plt.plot(s, abs(dy),  '.', label='y')
