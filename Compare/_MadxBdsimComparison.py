@@ -173,7 +173,7 @@ def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\beta_{x,y}$ / m')
-    axes.set_xlabel('S from IR1 / m')
+    axes.set_xlabel('S / m')
 
     print "survey =", survey
 
@@ -202,7 +202,7 @@ def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\alpha_{x,y}$ / m')
-    axes.set_xlabel('S from IR1 / m')
+    axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
@@ -230,7 +230,7 @@ def PlotDs(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$D_{x,y} / m$')
-    axes.set_xlabel('S from IR1 / m')
+    axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
@@ -258,7 +258,7 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / m')
-    axes.set_xlabel('S from IR1 / m')
+    axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
@@ -288,7 +288,7 @@ def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\sigma_{x,y}$ / m')
-    axes.set_xlabel('S from IR1 / m')
+    axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
@@ -317,7 +317,7 @@ def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
-    axes.set_xlabel('S from IR1 / m')
+    axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
@@ -341,7 +341,7 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
-    axes.set_xlabel('S from IR1 / m')
+    axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)

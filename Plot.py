@@ -9,7 +9,6 @@ Useful plots for bdsim output
 """
 import Data as _Data
 import pymadx as _pymadx
-import pymadx._General
 
 import matplotlib as _matplotlib
 import matplotlib.pyplot as _plt
@@ -17,7 +16,7 @@ import matplotlib.patches as _patches
 import numpy as _np
 import string as _string
 
-from _General import CheckItsBDSAsciiData
+from _General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
@@ -32,18 +31,24 @@ class _My_Axes(_matplotlib.axes.Axes):
 _matplotlib.projections.register_projection(_My_Axes)
 
 def MadxTfsBetaSimple(tfsfile, title='', outputfilename=None):
+    """
+    A forward to the pymadx.Plot.PlotTfsBetaSimple function.
+    """
     _pymadx.Plot.PlotTfsBetaSimple(tfsfile,title,outputfilename)
 
 def MadxTfsBeta(tfsfile, title='', outputfilename=None):
+    """
+    A forward to the pymadx.Plot.PlotTfsBeta function.
+    """
     _pymadx.Plot.PlotTfsBeta(tfsfile,title,outputfilename)
 
-def MadxGmadComparison(tfsfile, gmadfile, title='', outputfilename=None):
-    pass
-
 def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True):
+    """
+    A forward to the pymadx.Plot.AddMachineLatticeToFigure function.
+    """
     _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout)
 
-def ProvidWrappedS(sArray, index):
+def ProvideWrappedS(sArray, index):
     s = sArray #shortcut
     smax = s[-1]
     sind = s[index]
@@ -52,88 +57,7 @@ def ProvidWrappedS(sArray, index):
     snewb = s[:index]
     snewb = snewb + (smax - sind)
     snew  = _np.concatentate((snewa,snewb))
-    return snew    
-
-def CompareBDSIMWithMadXSigma(tfsfile, bdsfile, emittance, title='', outputfilename=None):
-    """
-    This currently does not take into account the dispersion contribution to the beam size.
-
-    """
-    bds  = _Data.Load(bdsfile)
-    tfs  = _pymadx._General.CheckItsTfs(tfsfile)
-    tfsd = _pymadx.Plot._GetOpticalDataFromTfs(tfs)
-    tfsd['sigmax'] = _np.sqrt(tfsd['betx']*emittance)
-    tfsd['sigmay'] = _np.sqrt(tfsd['bety']*emittance)
-    smax = tfs.smax
-
-    f = _plt.figure(figsize=(7,6))
-    ax = f.add_subplot(211)
-    ax.errorbar(bds.S(), bds.Sigma_x()*1000.0, yerr=bds.Sigma_sigma_x()*1000.0, fmt='b.', label='BDSIM x')
-    ax.errorbar(bds.S(), bds.Sigma_y()*1000.0, yerr=bds.Sigma_sigma_y()*1000.0, fmt='g.', label='BDSIM y')
-    ax.plot(tfsd['s'], tfsd['sigmax']*1000.0, 'b-', label='MADX x')
-    ax.plot(tfsd['s'], tfsd['sigmay']*1000.0, 'g-', label='MADX y')
-    ax.axes.get_xaxis().set_visible(False)
-    ax.set_ylabel('$\sigma_{\mathrm{x,y}}$ (mm)', fontsize='large')
-    _plt.legend(numpoints=1,fontsize='small')
-
-    ax2 = f.add_subplot(212)
-    #ax2.errorbar(bds.S(), bds.Mean_x(), yerr=bds.Sigma_mean_x(), fmt='b.', label='BDSIM $\mu_x$')
-    ax2.plot(bds.S(), bds.Mean_x()*1000.0, 'b.', label='BDSIM x')
-    #ax2.errorbar(bds.S(), bds.Mean_y(), yerr=bds.Sigma_mean_y(), fmt='g.', label='BDSIM $\mu_y$')
-    ax2.plot(bds.S(), bds.Mean_y()*1000.0, 'g.', label='BDSIM y')
-    ax2.plot(tfsd['s'], tfsd['x']*1000.0, 'b-', label='MADX x')
-    ax2.plot(tfsd['s'], tfsd['y']*1000.0, 'g-', label='MADX y')
-    ax2.set_ylim(-7,7)
-
-    ax2.set_xlabel('S Position from IP1 (ATLAS) (m)', fontsize='large')
-    ax2.set_ylabel('$\mu_{\mathrm{x,y}}$ (mm)',fontsize='large')
-
-    #_plt.legend(numpoints=1,fontsize='small')
-    _plt.subplots_adjust(left=0.12,right=0.95,top=0.98,bottom=0.12,hspace=0.06)
-
-    AddMachineLatticeToFigure(f,tfsfile)
-
-    _plt.xlim(12980,13700)
-    
-def CompareBDSIMSurveyWithMadXTfs(tfsfile, bdsfile, title='', outputfilename=None):
-    bds  = _Data.Load(bdsfile)
-    tfs  = _pymadx._General.CheckItsTfs(tfsfile)
-    tfsd = _pymadx.Plot._GetOpticalDataFromTfs(tfs)
-    smax = tfs.smax
-
-    #X
-    f1   = _plt.figure(figsize=(11,5))
-    axx  = f1.add_subplot(111)
-    axx.plot(tfsd['s'],_np.sqrt(tfsd['betx']),'b-', label='MADX')
-    axx.plot(bds.S(),_np.sqrt(bds.Beta_x()),'g-', label='BDSIM')
-    axx.set_xlabel('S (m)')
-    axx.set_ylabel(r'$\sqrt{\beta_{x}}$ ($\sqrt{\mathrm{m}}$)')
-    axx.legend(loc=2,fontsize='small') #best position
-    AddMachineLatticeToFigure(f1,tfs)
-    _plt.suptitle("X")
-
-    if outputfilename != None:
-        if '.' in outputfilename:
-            outputfilename = outputfilename.split('.')[0]
-        _plt.savefig(outputfilename+'.pdf')
-        _plt.savefig(outputfilename+'.png')
-
-    #Y
-    f2   = _plt.figure(figsize=(11,5))
-    axy  = f2.add_subplot(111)
-    axy.plot(tfsd['s'],_np.sqrt(tfsd['bety']),'b-', label='MADX')
-    axy.plot(bds.S(),_np.sqrt(bds.Beta_y()),'g-', label='BDSIM')
-    axy.set_xlabel('S (m)')
-    axy.set_ylabel(r'$\sqrt{\beta_{y}}$ ($\sqrt{\mathrm{m}}$)')
-    axy.legend(loc=2,fontsize='small') #best position
-    AddMachineLatticeToFigure(f2,tfs)
-    _plt.suptitle("Y")
-
-    if outputfilename != None:
-        if '.' in outputfilename:
-            outputfilename = outputfilename.split('.')[0]
-        _plt.savefig(outputfilename+'.pdf')
-        _plt.savefig(outputfilename+'.png')
+    return snew
 
 def _SetMachineAxesStyle(ax):
     ax.get_xaxis().set_visible(False)
@@ -168,6 +92,11 @@ def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
         ax.set_position(bbox)    
 
 def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
+    """
+    **kwargs - 'tightLayout' is set to True by default - can be supplied
+                in kwargs to force it to false.
+
+    """
     # options
     tightLayout = True
     if 'tightLayout' in kwargs:
@@ -178,7 +107,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
     axmachine = _PrepareMachineAxes(figure)
     
     #concatenate machine lattices
-    sf = CheckItsBDSAsciiData(args[0])
+    sf = _CheckItsBDSAsciiData(args[0])
     if len(args) > 1:
         for machine in args[1:]:
             sf.ConcatenateMachine(machine)
@@ -285,138 +214,4 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             else:
                 #relatively short element - just draw a line
                 DrawLine(starts[i],'#cccccc',alpha=0.1)
-
-def CompareBDSIMWithTfs(parameter, bdsfile, tfsfile, scaling=1, lattice=None, ylabel=None, outputfilename=None):
-    #bdsim parameter names and equivalent tfs names
-    okParams = {'Sigma_x'   : 'SIGMAX',
-                'Sigma_y'   : 'SIGMAY',
-                'Sigma_xp'  : 'SIGMAXP',
-                'Sigma_yp'  : 'SIGMAYP',
-                'Beta_x'    : 'BETX',
-                'Beta_y'    : 'BETY',
-                'Disp_x'    : 'DX',
-                'Disp_y'    : 'DY',
-                'Alph_x'    : 'ALFX',
-                'Alph_y'    : 'ALFY'}
-
-    #check inputs and load data
-    if  isinstance(bdsfile,_Data.BDSAsciiData):
-        bds = bdsfile
-    else:
-        bds = _Data.Load(bdsfile)
-    if isinstance(tfsfile,_pymadx.Tfs):
-        tfs  = tfsfile
-    else:
-        tfs  = _pymadx._General.CheckItsTfs(tfsfile)
-
-    if parameter not in okParams.keys():
-        raise ValueError(parameter +' is not a plottable parameter.')
-    tfsparam = okParams[parameter]
-
-    #name of parameter error
-    errorparam = 'Sigma_' + _string.lower(parameter)
-
-    maxes = []
-    mins  = []
-    #set plot minimum to 0 for any parameter which can't be negative.
-    if parameter[:4] != ('Disp' or 'Alph'):
-            mins.append(0)
-
-    _plt.figure()
-    if bds.names.__contains__(parameter):
-        data   = bds.GetColumn(parameter) * scaling
-        bdsimlabel = 'BDSIM, NPrimaries = %1.0e' %bds.GetColumn('Npart')[0]
-        #Check if errors exist
-        if bds.names.__contains__(errorparam):
-            errors = bds.GetColumn(errorparam)*scaling
-            _plt.errorbar(bds.GetColumn('S'), data, yerr=errors, label=bdsimlabel)
-        else:
-            _plt.plot(bds.GetColumn('S'), data,label=bdsimlabel)
-        maxes.append(_np.max(data + errors))
-        mins.append(_np.max(data - errors))
-    if tfs.names.__contains__(tfsparam):
-        data = tfs.GetColumn(tfsparam)*scaling
-        _plt.plot(tfs.GetColumn('S'), data, label='MADX')
-        maxes.append(_np.max(data))
-        mins.append(_np.min(data))
-
-    _plt.xlabel('S (m)')
-    if ylabel != None:
-        _plt.ylabel(ylabel)
-    _plt.legend(loc=0)
-    _plt.ylim(1.1*_np.min(mins), 1.1*_np.max(maxes))
-    if lattice != None:
-        AddMachineLatticeFromSurveyToFigure(_plt.gcf(),lattice)
-    if outputfilename != None:
-        if '.' in outputfilename:
-            outputfilename = outputfilename.split('.')[0]
-        _plt.savefig(outputfilename+'.pdf')
-        _plt.savefig(outputfilename+'.png')
-
-
-def CompareBDSIMWithTRANSPORT(parameter, bdsfile, transfile, transscaling=1, lattice=None, ylabel=None, outputfilename=None):
-    #bdsim parameter names and equivalent tfs names
-    okParams = ['Sigma_x',
-                'Sigma_y',
-                'Sigma_xp',
-                'Sigma_yp',
-                'Beta_x',
-                'Beta_y',
-                'Disp_x',
-                'Disp_y',
-                'Alph_x',
-                'Alph_y']
-
-    #check inputs and load data
-    if  isinstance(bdsfile,_Data.BDSAsciiData):
-        bds = bdsfile
-    else:
-        bds = _Data.Load(bdsfile)
-    if isinstance(transfile,_Data.BDSAsciiData):
-        trans  = transfile
-    else:
-        trans  = _pymadx._General.CheckItsTfs(tfsfile)
-
-    if not okParams.__contains__(parameter):
-        raise ValueError(parameter +' is not a plottable parameter.')
-
-    #name of parameter error
-    errorparam = 'Sigma_' + _string.lower(parameter)
-
-    maxes = []
-    mins  = []
-    #set plot minimum to 0 for any parameter which can't be negative.
-    if parameter[:4] != ('Disp' or 'Alph'):
-            mins.append(0)
-
-    _plt.figure()
-    if bds.names.__contains__(parameter):
-        data   = bds.GetColumn(parameter)
-        bdsimlabel = 'BDSIM, NPrimaries = %1.0e' %bds.GetColumn('Npart')[0]
-        #Check if errors exist
-        if bds.names.__contains__(errorparam):
-            errors = bds.GetColumn(errorparam)
-            _plt.errorbar(bds.GetColumn('S'), data, yerr=errors, label=bdsimlabel)
-        else:
-            _plt.plot(bds.GetColumn('S'), data,label=bdsimlabel)
-        maxes.append(_np.max(data + errors))
-        mins.append(_np.max(data - errors))
-    if trans.names.__contains__(parameter):
-        data = trans.GetColumn(parameter)*transscaling
-        _plt.plot(trans.GetColumn('S'), data, label='TRANSPORT')
-        maxes.append(_np.max(data))
-        mins.append(_np.min(data))
-
-    _plt.xlabel('S (m)')
-    if ylabel != None:
-        _plt.ylabel(ylabel)
-    _plt.legend(loc=0)
-    _plt.ylim(1.1*_np.min(mins), 1.1*_np.max(maxes))
-    if lattice != None:
-        AddMachineLatticeFromSurveyToFigure(_plt.gcf(),lattice)
-    if outputfilename != None:
-        if '.' in outputfilename:
-            outputfilename = outputfilename.split('.')[0]
-        _plt.savefig(outputfilename+'.pdf')
-        _plt.savefig(outputfilename+'.png')
 
