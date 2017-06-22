@@ -9,7 +9,6 @@ Useful plots for bdsim output
 """
 import Data as _Data
 import pymadx as _pymadx
-import pymadx._General
 
 import matplotlib as _matplotlib
 import matplotlib.pyplot as _plt
