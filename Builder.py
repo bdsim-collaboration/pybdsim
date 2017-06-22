@@ -458,12 +458,32 @@ class Machine:
         self.length += object.length
         self.lenint.append(self.length)
 
-        if 'angle' in object:
-            ang = object['angle']
-            if type(ang) == tuple:
-                ang = ang[0]
+        # list of elements that produce SR
+        elementsSR = ["sbend", "rbend"]
+
+        # update energy if correct element category and has finite length.
+        if (elementsSR.__contains__(object.category)) and (object.length > 0):
+            if object.has_key('angle'):
+                ang = object['angle']
+                if type(ang) == tuple:
+                    ang = ang[0]
+                else:
+                    ang = ang
+            elif object.has_key('B'):
+                # Assume a beam instance has been added to machine...
+                if (self.beam['particle'] == "e-") or (self.beam['particle'] == "e+"):
+                    pMass = 0.000511
+                elif (self.beam['particle'] == "proton"):
+                    pMass = 0.938
+                else:
+                    pMass = 0
+                if (self.energy[-1] > 0):
+                    brho = 3.3356 * _np.sqrt(self.energy[-1]**2 - pMass**2)
+                    ang  = object['B'] * object.length / brho
+                else:
+                    ang  = 0
             else:
-                ang = ang
+                ang = 0
 
             self.angint += ang
 
