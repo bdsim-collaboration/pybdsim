@@ -23,9 +23,10 @@ def SadFlat2GMad(inputFileName,
     gemit    = _np.zeros(2)
     gemit[0] = 1.2e-9
     gemit[1] = 12e-12
+    esprd    = 0.0008
 
     # Energy spread
-    esprd    = 0.0 # 6e-4
+    esprd    = 0.0008 # 6e-4
 
     # particle and flip required
     particle = 'e-'
@@ -38,7 +39,8 @@ def SadFlat2GMad(inputFileName,
     beam._SetBetaX(r.row(0)['BX'])
     beam._SetBetaY(r.row(0)['BY'])
     beam._SetAlphaX(r.row(0)['AX'])
-    beam._SetAlphaY(r.row(0)['AY'])    
+    beam._SetAlphaY(r.row(0)['AY'])
+    beam._SetSigmaE(esprd)
 
     # Default beam pipe radius
     defaultBpRadius = 0.05
@@ -99,7 +101,7 @@ def SadFlat2GMad(inputFileName,
                 a.AddMarker(prepend + name + '_' + str(eCount))
             else:
                 a.AddQuadrupole(prepend + name + '_' + str(eCount),
-                                k1=flip*row['K1'],
+                                k1=flip*row['K1']/row['LENGTH'],
                                 length=row['LENGTH'],
                                 tilt=row['ROTATE'],
                                 aper1=defaultBpRadius)
@@ -124,20 +126,8 @@ def SadFlat2GMad(inputFileName,
                 kws['fintx'] = fintx
             if (hgap != 0):
                 kws['hgap'] = hgap
-            if row['K1'] != 0 and (name != "B5FFA" and
-                                   name != "B5FFB" and
-                                   name != "B2FFA" and
-                                   name != "B2FFB" and
-                                   name != "B1FFA" and
-                                   name != "B1FFB") :
-                #a.AddDipole(name+'_d1','rbend',length=length/2,angle=angle,**kws)
-                #a.AddQuadrupole(name+'_q1',k1=row['K1']/length, length=0.000001)
-                #a.AddDipole(name+'_d2','rbend',length=length/2,angle=angle,**kws)
-                #a.AddQuadrupole(name+'_q2',k1=row['K1']/length, length=0.000001)
-                print row
-                # a.AddQuadrupole(name+'q',k1=flip*row['K1'], length=length)
-            else :
-                a.AddDipole(name,'rbend',length=row['LENGTH'],angle=angle,**kws)
+
+            a.AddDipole(name,'rbend',length=row['LENGTH'],angle=angle,**kws)
         ###################################################################################
         elif row['TYPE'] == 'SEXT':
             l = row['LENGTH']
