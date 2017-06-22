@@ -19,6 +19,12 @@ from _Mad8Twiss2Gmad import Mad8MakeOptions
 from _Mad8Twiss2Gmad import Mad8MakeApertureTemplate
 from _Mad8Twiss2Gmad import Mad8MakeCollimatorTemplate
 
+try : 
+    import pysad 
+    from _SadFlat2Gmad import SadFlat2GMad
+except ImportError :
+    pass
+
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Ptc
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Madx
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Mad8

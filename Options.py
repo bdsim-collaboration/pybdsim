@@ -325,7 +325,7 @@ class Options(dict):
     def SetStoreTrajectoryParticle(self, particle = "muon"):
         self['storeTrajectoryParticle'] = particle
 
-    def SetMagnetGeometryType(self, magnetGeometryType = 'none'):
+    def SetMagnetGeometryType(self, magnetGeometryType = '"none"'):
         self['magnetGeometryType'] = magnetGeometryType
 
     def SetStoreMuonTrajectory(self,on=True):

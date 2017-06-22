@@ -5,6 +5,7 @@ import optparse as _op
 from collections import OrderedDict
 
 import pymad8
+
 from .. import Builder 
 from .. import Beam
 from .. import Options
@@ -60,9 +61,6 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             apertures.openApertures()
 
     print collimator
-
-    # create name dictionary 
-    nameDict = {}    
 
     # Need nominal energy for SR calculations
     energy = c.data[istart][c.keys['drif']['E']]
