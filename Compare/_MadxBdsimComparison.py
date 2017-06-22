@@ -174,6 +174,7 @@ def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\beta_{x,y}$ / m')
     axes.set_xlabel('S / m')
+    axes.legend(loc='best')
 
     print "survey =", survey
 
