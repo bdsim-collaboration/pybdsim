@@ -16,7 +16,7 @@ import matplotlib.patches as _patches
 import numpy as _np
 import string as _string
 
-from _General import CheckItsBDSAsciiData
+from _General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
@@ -31,12 +31,21 @@ class _My_Axes(_matplotlib.axes.Axes):
 _matplotlib.projections.register_projection(_My_Axes)
 
 def MadxTfsBetaSimple(tfsfile, title='', outputfilename=None):
+    """
+    A forward to the pymadx.Plot.PlotTfsBetaSimple function.
+    """
     _pymadx.Plot.PlotTfsBetaSimple(tfsfile,title,outputfilename)
 
 def MadxTfsBeta(tfsfile, title='', outputfilename=None):
+    """
+    A forward to the pymadx.Plot.PlotTfsBeta function.
+    """
     _pymadx.Plot.PlotTfsBeta(tfsfile,title,outputfilename)
 
 def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True):
+    """
+    A forward to the pymadx.Plot.AddMachineLatticeToFigure function.
+    """
     _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout)
 
 def ProvideWrappedS(sArray, index):
@@ -98,7 +107,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
     axmachine = _PrepareMachineAxes(figure)
     
     #concatenate machine lattices
-    sf = CheckItsBDSAsciiData(args[0])
+    sf = _CheckItsBDSAsciiData(args[0])
     if len(args) > 1:
         for machine in args[1:]:
             sf.ConcatenateMachine(machine)
