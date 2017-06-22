@@ -48,7 +48,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  defaultAperture='circular',
                  biases=None,
                  allelementdict={},
-                 optionsDict = {}):
+                 optionsDict = {},
+                 linear = False) :
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
 
@@ -137,7 +138,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     | **optionsDict**               | Optional dictionary of general options to be written to the       |
     |                               | bdsim model options.                                              |
     +-------------------------------+-------------------------------------------------------------------+
-
+    | **linear**                    | Only linear optical components                                    |
+    +-------------------------------+-------------------------------------------------------------------+
     Example:
 
     >>> a,o = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
@@ -280,7 +282,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             k6s = item['K6SL'] * factor
             tilt= item['TILT']
 
-            if thinmultipoles:
+            if thinmultipoles and not linear :
                 a.AddThinMultipole(name, knl=(k1,k2,k3,k4,k5,k6), ksl=(k1s,k2s,k3s,k4s,k5s,k6s),**kws)
             elif zerolength and not izlis:
                 a.AddMarker(rname)
@@ -289,7 +291,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
-            k3 = item['K3L'] / l * factor
+            if linear :
+                k3 = 0.0
+            else :
+                k3 = item['K3L'] / l * factor
             a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
             if zerolength:
@@ -377,7 +382,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['hgap'] = hgap
             a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t == 'SEXTUPOLE':
-            k2 = item['K2L'] / l * factor
+            if linear :
+                k2 = 0.0
+            else :
+                k2 = item['K2L'] / l * factor
             a.AddSextupole(rname,l,k2=k2,**kws)
         elif t == 'SOLENOID':
             #ks = item['KSI'] / l
