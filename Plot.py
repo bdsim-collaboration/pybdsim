@@ -40,7 +40,7 @@ def MadxTfsBeta(tfsfile, title='', outputfilename=None):
 def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True):
     _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout)
 
-def ProvidWrappedS(sArray, index):
+def ProvideWrappedS(sArray, index):
     s = sArray #shortcut
     smax = s[-1]
     sind = s[index]
@@ -84,6 +84,11 @@ def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
         ax.set_position(bbox)    
 
 def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
+    """
+    **kwargs - 'tightLayout' is set to True by default - can be supplied
+                in kwargs to force it to false.
+
+    """
     # options
     tightLayout = True
     if 'tightLayout' in kwargs:
