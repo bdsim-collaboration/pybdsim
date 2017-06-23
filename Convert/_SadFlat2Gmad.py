@@ -14,7 +14,7 @@ def SadFlat2GMad(inputFileName,
                  istart=0,
                  samplers='all',
                  options = True,
-                 enableSextupoles=True) :
+                 enableSextupoles=False) :
     r = pysad.Reader.Flat(inputFileName)
 
     # Need nominal energy for SR calculations
@@ -23,10 +23,9 @@ def SadFlat2GMad(inputFileName,
     gemit    = _np.zeros(2)
     gemit[0] = 1.2e-9
     gemit[1] = 12e-12
-    esprd    = 0.0008
 
     # Energy spread
-    esprd    = 0.0008 # 6e-4
+    esprd    = 0.0006
 
     # particle and flip required
     particle = 'e-'
@@ -85,6 +84,13 @@ def SadFlat2GMad(inputFileName,
         if name[0].isdigit():
             prepend = 'M_'
 
+        #if row['TYPE'] != 'QUAD' :
+        #    print name,row['TYPE'],row['K1']
+
+        if row['LENGTH'] == 0 :
+            a.AddMarker(prepend + name + '_' + str(eCount))
+            continue
+
         if row['TYPE'] == 'MARK':
             a.AddMarker(prepend + name + '_' + str(eCount))
         ###################################################################################
@@ -106,7 +112,7 @@ def SadFlat2GMad(inputFileName,
                                 tilt=row['ROTATE'],
                                 aper1=defaultBpRadius)
         ###################################################################################
-        elif row['TYPE'] == 'BEND':
+        elif row['TYPE'] == 'BEND' :
             angle = row['ANGLE']
             length = row['LENGTH']
             e1    = 0
@@ -127,7 +133,7 @@ def SadFlat2GMad(inputFileName,
             if (hgap != 0):
                 kws['hgap'] = hgap
 
-            a.AddDipole(name,'rbend',length=row['LENGTH'],angle=angle,**kws)
+            a.AddDipole(name,'sbend',length=row['LENGTH'],angle=angle,**kws)
         ###################################################################################
         elif row['TYPE'] == 'SEXT':
             l = row['LENGTH']
