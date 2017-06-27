@@ -1,4 +1,6 @@
-# converts ROOT histogram to matplotlib figure
+"""
+Converts ROOT histogram to matplotlib figure
+"""
 
 import matplotlib.pyplot as _plt
 import numpy as _np
@@ -60,13 +62,13 @@ class TH1 :
         :return:
         '''
         if opt.find('hist') != -1 :
-            self.plotHist()
+            self.PlotHist()
         elif opt.find('line') != -1 :
-            self.plotPlot()
+            self.PlotPlot()
         elif opt.find('e1') != -1:
-            self.plotErrorbar()
+            self.PlotErrorbar()
 
-        self.setLabels()
+        self.SetLabels()
 
     def PlotPlot(self):
         _plt.plot(self.centres,self.contents)
