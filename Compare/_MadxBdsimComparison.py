@@ -40,6 +40,8 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, figsize=(12,5)):
             functions=functions, figsize=figsize)
     PlotSigmas(tfsopt, bdsopt, survey=survey,
                functions=functions, figsize=figsize)
+    PlotSigmasP(tfsopt, bdsopt, survey=survey,
+               functions=functions, figsize=figsize)
     PlotMeans(tfsopt, bdsopt, survey=survey,
               functions=functions, figsize=figsize)
 
@@ -297,6 +299,36 @@ def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _plt.show(block=False)
     return sigmaPlot
+
+def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    sigmaPPlot = _plt.figure('SigmaP', figsize=figsize)
+    #tfs
+    _plt.plot(tfsopt['S'], tfsopt['SIGMAXP'], 'b', label=r'MADX $\sigma_{xp}$')
+    _plt.plot(tfsopt['S'], tfsopt['SIGMAYP'], 'g', label=r'MADX $\sigma_{yp}$')
+    #bds
+    _plt.errorbar(bdsopt['S'],
+                  bdsopt['Sigma_xp'],
+                  yerr=bdsopt['Sigma_Sigma_xp'],
+                  label=r'BDSIM $\sigma_{xp}$' + ' ; N = ' + N,
+                  fmt='b.', capsize=3)
+
+    _plt.errorbar(bdsopt['S'],
+                  bdsopt['Sigma_yp'],
+                  yerr=bdsopt['Sigma_Sigma_yp'],
+                  label=r'BDSIM $\sigma_{yp}$' + ' ; N = ' + N,
+                  fmt='g.', capsize=3)
+    
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$\sigma_{xp,yp}$ / rad')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(sigmaPPlot, survey)
+
+    _plt.show(block=False)
+    return sigmaPPlot
 
 def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
