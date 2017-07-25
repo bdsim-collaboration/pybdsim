@@ -211,6 +211,9 @@ class Options(dict):
     def SetMaximumStepLength(self,msl=20,unitsstring='m'):
         self['maximumStepLength'] = str(msl) + '*' + unitsstring
 
+    def SetMaximumTrackingTime(self,mtt=-1,unitsstring='s'):
+        self['maximumTrackingTime'] = str(mtt) + '*' + unitsstring
+
     def SetThresholdCutCharged(self,tcc=100,unitsstring='MeV'):
         self['thresholdCutCharged'] = str(tcc) + '*' + unitsstring
 
