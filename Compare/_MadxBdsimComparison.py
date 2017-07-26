@@ -420,7 +420,7 @@ def _AddSurvey(figure, survey):
     if isinstance(survey, basestring):
         if survey.split(".")[-1] == 'dat':
             _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
-    elif isinstance(survey, _pybdsim.Data.BDSAsciiData)
+    elif isinstance(survey, _pybdsim.Data.BDSAsciiData):
         _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
     elif isinstance(survey, _pymadx.Tfs):
         _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
