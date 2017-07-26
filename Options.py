@@ -214,7 +214,7 @@ class Options(dict):
     def SetMaximumTrackingTime(self,mtt=-1,unitsstring='s'):
         self['maximumTrackingTime'] = str(mtt) + '*' + unitsstring
 
-    def SetIntegratorSet(self,integratorSet='bdsim'):
+    def SetIntegratorSet(self,integratorSet='"bdsim"'):
         self['integratorSet'] = integratorSet
 
     def SetThresholdCutCharged(self,tcc=100,unitsstring='MeV'):
