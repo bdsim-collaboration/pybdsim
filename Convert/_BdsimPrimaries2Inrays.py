@@ -5,7 +5,10 @@ except ImportError:
     
 import numpy as _np
 import matplotlib.pyplot as _plt
-from scipy import constants as _con
+try:
+    from scipy import constants as _con
+except ImportError:
+    print('Scipy not available - some functionality missing')
 import sys
 import time
 import warnings
