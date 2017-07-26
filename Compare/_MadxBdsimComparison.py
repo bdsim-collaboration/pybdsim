@@ -27,7 +27,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, figsize=(12,5)):
     tfsopt    = _GetTfsOptics(tfsinst)
     bdsopt    = _GetBDSIMOptics(bdsinst)
 
-    if survey == None:
+    if survey is None:
         survey = tfsinst
 
     PlotBetas(tfsopt, bdsopt, survey=survey,
@@ -55,7 +55,7 @@ def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None):
     tfsorbit  = _GetTfsOrbit(tfsinst)
     bdsopt    = _GetBDSIMOptics(bdsinst)
 
-    if survey == None:
+    if survey is None:
         survey = tfsinst
 
     PlotOrbit(tfsorbit, bdsopt, survey=survey, functions=functions)
@@ -389,7 +389,7 @@ def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, verbose=False, fig
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
     tfsd = PrepareResiduals(tfs, bds)
 
-    if survey == None:
+    if survey is None:
         survey = tfsinst
     
     s   = bdsinst.s()
@@ -415,19 +415,19 @@ def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, verbose=False, fig
     return orbRes
 
 def _AddSurvey(figure, survey):
-    if survey == None:
+    if survey is None:
         return
-    if type(survey) == str:
+    if isinstance(survey, basestring):
         if survey.split(".")[-1] == 'dat':
             _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
-    elif type(survey) == _pybdsim.Data.BDSAsciiData:
+    elif isinstance(survey, _pybdsim.Data.BDSAsciiData)
         _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
-    elif type(survey) == _pymadx.Tfs:
+    elif isinstance(survey, _pymadx.Tfs):
         _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
 
 def _ProcessInput(tfsOptics, bdsimOptics):
 
-    if not isinstance(tfsOptics, (_pymadx.Tfs, str)):
+    if not isinstance(tfsOptics, (_pymadx.Tfs, basestring)):
         raise TypeError("tfsOptics should be either a path to a tfs file or "
                         "a pymadx.Tfs instance!")
     if not isinstance(bdsimOptics, _pybdsim.Data.BDSAsciiData):
@@ -435,9 +435,9 @@ def _ProcessInput(tfsOptics, bdsimOptics):
                         "BDSAsciiData file or a pybdsim.Data.BDSAsciiData "
                         "instance")
 
-    if isinstance(tfsOptics, str):
+    if isinstance(tfsOptics, basestring):
         tfsOptics = _pymadx.Tfs(tfsOptics)
-    if isinstance(tfsOptics, str):
+    if isinstance(tfsOptics, basestring):
         bdsimOptics = _pybdsim.Data.Load(bdsimOptics)
 
     return tfsOptics, bdsimOptics
@@ -446,12 +446,12 @@ def _CheckFilesExist(tfs, bdsim, survey):
     '''
     Otherwise such errors are too cryptic.
     '''
-    if isinstance(tfs, str):
+    if isinstance(tfs, basestring):
         if not isfile(tfs):
             raise IOError("File not found: ", tfs)
-    if isinstance(bdsim, str) and not isfile(bdsim):
+    if isinstance(bdsim, basestring) and not isfile(bdsim):
         raise IOError("File not found: ", bdsim)
-    if isinstance(survey, str) and not isfile(survey):
+    if isinstance(survey, basestring) and not isfile(survey):
         raise IOError("File not found: ", survey)
 
 
