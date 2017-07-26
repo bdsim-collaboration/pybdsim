@@ -1,5 +1,5 @@
 try:
-import ROOT as _rt
+    import ROOT as _rt
 except ImportError:
     print('ROOT not available - some functionality missing')
     
