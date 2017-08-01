@@ -187,6 +187,12 @@ class Options(dict):
         else:
             self['includeIronMagFields'] = 0
 
+    def SetDontSplitSBends(self,dontsplitsbends=False):
+        if dontsplitsbends:
+            self['dontSplitSBends'] = 1
+        else:
+            self['dontSplitSBends'] = 0
+
     def SetDeltaChord(self,dc=0.001,unitsstring='m'):
         self['deltaChord'] = str(dc) + '*' + unitsstring
 
