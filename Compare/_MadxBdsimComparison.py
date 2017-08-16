@@ -331,6 +331,7 @@ def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None,
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPPlot, survey)
+    _CallUserFigureFunctions(postfunctions)
 
     _plt.show(block=False)
     return sigmaPPlot
