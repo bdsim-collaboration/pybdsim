@@ -122,7 +122,8 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
     def Click(a) : 
         if a.button == 3 : 
             print 'Closest element: ',sf.NameFromNearestS(a.xdata)
-
+            
+    MachineXlim(axmachine)
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
 
@@ -132,8 +133,8 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
 
     if not hasattr(bds,"SStart"):
         raise ValueError("This file doesn't have the required column SStart")
-    if not hasattr(bds,"Arc_len"):
-        raise ValueError("This file doesn't have the required column Arc_len")
+    if not hasattr(bds,"ArcLength"):
+        raise ValueError("This file doesn't have the required column ArcLength")
     
     def DrawBend(start,length,color='b',alpha=1.0):
         br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
@@ -173,7 +174,7 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
  
     # loop over elements and Draw on beamline
     types   = bds.Type()
-    lengths = bds.Arc_len()
+    lengths = bds.ArcLength()
     starts  = bds.SStart()
     if hasattr(bds,'k1'):
         k1  = bds.k1()
