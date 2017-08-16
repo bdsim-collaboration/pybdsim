@@ -76,6 +76,7 @@ class LatticeTest:
         .log .dat .tfs. .ps ptc* .txt .root .gmad inrays .png .pdf
         """
         _os.chdir(self.folderpath)
+
         
         #PTC files
         ptcMain         = "ptc_"+self.filename+".madx"
@@ -177,6 +178,12 @@ class LatticeTest:
         _os.system("rm -rf *.txt")
         _os.system("rm -rf *.png")
         _os.system("rm -rf *.pdf")
+        _os.system("rm -rf *.log")
+        _os.system("rm -rf *.ps")
+        _os.system("rm -rf *_inrays.madx")
+        _os.system("rm -rf *.gmad")
+        _os.system("rm -rf ptc_*")
+        _os.system("rm -rf *.tfs")
         _os.system("rm trackone")
 
         # clean and close figures (10 figures in total)
@@ -250,7 +257,7 @@ class LatticeTest:
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
-    def Compare(self, plot='all', addPrimaries=False, showPlots=False, showResiduals=True, rebdsim="rebdsim"):
+    def Compare(self, plot='all', addPrimaries=False, showPlots=False, showResiduals=True, rebdsim="rebdsim", noPlots=False):
         """
         Performs analysis and comparison of BDSIM, MADX and MADX-PTC output. 
        
@@ -369,9 +376,13 @@ class LatticeTest:
             outfile.writelines("{:<40s}".format('OutputFileName')+'\t ./'+self.filename+'_optics.root \n')
             outfile.writelines("{:<40s}".format('CalculateOpticalFunctions')+'\t 1 \n')
             outfile.writelines("{:<40s}".format('CalculateOpticalFunctionsFileName')+'\t ./'+self.filename+'_optics.dat \n')
+            outfile.writelines("{:<40s}".format('emittanceOnTheFly')+'\t 1 \n')
 
         #Calculates optical functions and produces .root and .dat files for analysis 
         _os.system(rebdsim+" "+self.filename+"_analConfig.txt")
+
+        if noPlots:
+            return
 
         boptfile  = _ROOT.TFile(self.filename+'_optics.root') #TODO(aabramov): change to use pickled root output
         bdata     = boptfile.Get('optics')
