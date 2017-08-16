@@ -84,13 +84,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     |                               | file - you can comment out the include to therefore exclude all   |
     |                               | samplers and retain the samplers file.                            |
     +-------------------------------+-------------------------------------------------------------------+
-    | **apertureinfo**              | aperture information. Can either be a dictionary of dictionaries  |
+    | **apertureinfo**              | Aperture information. Can either be a dictionary of dictionaries  |
     |                               | with the the first key the exact name of the element and the      |
     |                               | daughter dictionary containing the relevant bdsim parameters as   |
     |                               | keys (must be valid bdsim syntax). Alternatively, this can be a   |
     |                               | pymadx.Aperture instance that will be queried.                    |
     +-------------------------------+-------------------------------------------------------------------+
-    | **collimatordict**            | a dictionary of dictionaries with collimator information keys     |
+    | **collimatordict**            | A dictionary of dictionaries with collimator information keys     |
     |                               | should be exact string match of element name in tfs file value    |
     |                               | should be dictionary with the following keys:                     |
     |                               | "bdsim_material"   - the material                                 |
@@ -140,6 +140,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     +-------------------------------+-------------------------------------------------------------------+
     | **linear**                    | Only linear optical components                                    |
     +-------------------------------+-------------------------------------------------------------------+
+    
     Example:
 
     >>> a,o = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')

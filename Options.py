@@ -187,6 +187,12 @@ class Options(dict):
         else:
             self['includeIronMagFields'] = 0
 
+    def SetDontSplitSBends(self,dontsplitsbends=False):
+        if dontsplitsbends:
+            self['dontSplitSBends'] = 1
+        else:
+            self['dontSplitSBends'] = 0
+
     def SetDeltaChord(self,dc=0.001,unitsstring='m'):
         self['deltaChord'] = str(dc) + '*' + unitsstring
 
@@ -207,6 +213,15 @@ class Options(dict):
 
     def SetDeltaOneStep(self,dos=10,unitsstring='nm'):
         self['deltaOneStep'] = str(dos) + '*' + unitsstring
+
+    def SetMaximumStepLength(self,msl=20,unitsstring='m'):
+        self['maximumStepLength'] = str(msl) + '*' + unitsstring
+
+    def SetMaximumTrackingTime(self,mtt=-1,unitsstring='s'):
+        self['maximumTrackingTime'] = str(mtt) + '*' + unitsstring
+
+    def SetIntegratorSet(self,integratorSet='"bdsim"'):
+        self['integratorSet'] = integratorSet
 
     def SetThresholdCutCharged(self,tcc=100,unitsstring='MeV'):
         self['thresholdCutCharged'] = str(tcc) + '*' + unitsstring

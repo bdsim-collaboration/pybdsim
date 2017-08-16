@@ -93,8 +93,8 @@ def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
 
 def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
     """
-    **kwargs - 'tightLayout' is set to True by default - can be supplied
-                in kwargs to force it to false.
+    kwargs - 'tightLayout' is set to True by default - can be supplied
+              in kwargs to force it to false.
 
     """
     # options
