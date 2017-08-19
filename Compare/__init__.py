@@ -1,6 +1,7 @@
 from _MadxBdsimComparison import *
 from _Mad8BdsimComparison import Mad8Bdsim
 from _TransportBdsimComparison import TransportVsBDSIM
+import BdsimBdsimComparison
 try :
     import pysad as _pysad
     from _SadComparison import SadComparison
