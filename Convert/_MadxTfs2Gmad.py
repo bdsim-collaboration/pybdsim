@@ -4,9 +4,9 @@ import re as _re
 import pymadx as _pymadx
 import warnings as _warnings
 from .. import Builder as _Builder
-from .. import Options as _Options
+from ..Options import Options as _Options
 from .. import Beam as _Beam
-from .. import _General
+import pybdsim._General
 from .. import XSecBias
 
 _requiredKeys = frozenset([

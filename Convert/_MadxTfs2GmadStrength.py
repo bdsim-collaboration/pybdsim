@@ -1,5 +1,5 @@
 from .. import Builder as _Builder
-from .. import _General
+import pybdsim._General as _General
 import _MadxTfs2Gmad
 import pymadx as _pymadx
 

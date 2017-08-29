@@ -8,8 +8,8 @@ import pymad8
 
 from .. import Builder 
 from .. import Beam
-from .. import Options
-from .. import XSecBias
+from pybdsim.Options import Options
+import pybdsim.XSecBias
 
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
