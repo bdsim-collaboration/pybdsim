@@ -1,9 +1,11 @@
-"""Eight functions for comparing the optical distributions of two
+"""
+Functions for comparing the optical distributions of two
 BDSIM models.
 
-Seven functions for plotting the individual optical functions, and an
+Functions for plotting the individual optical functions, and an
 eighth, helper function ''compare_all_optics``, to plot display all
-seven in one go."""
+seven in one go.
+"""
 
 import os.path as _path
 import matplotlib.pyplot as _plt
