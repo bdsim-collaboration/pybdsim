@@ -4,7 +4,7 @@ import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile
 
-def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, figsize=(12,5)):
+def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
@@ -31,22 +31,22 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, figsize=(12,5)):
         survey = tfsinst
 
     PlotBetas(tfsopt, bdsopt, survey=survey,
-              functions=functions, figsize=figsize)
+              functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotAlphas(tfsopt, bdsopt, survey=survey,
-               functions=functions, figsize=figsize)
+               functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotDs(tfsopt, bdsopt, survey=survey,
-           functions=functions, figsize=figsize)
+           functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotDps(tfsopt, bdsopt, survey=survey,
-            functions=functions, figsize=figsize)
+            functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotSigmas(tfsopt, bdsopt, survey=survey,
                functions=functions, figsize=figsize)
     PlotSigmasP(tfsopt, bdsopt, survey=survey,
-               functions=functions, figsize=figsize)
+               functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotMeans(tfsopt, bdsopt, survey=survey,
-              functions=functions, figsize=figsize)
+              functions=functions, postfunctions=postfunctions, figsize=figsize)
 
 
-def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None):
+def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None, postfunctions=None):
 
     _CheckFilesExist(tfs, bdsim, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
@@ -151,7 +151,7 @@ def _GetTfsOrbit(optics):
         optvars[variable] = optics.GetColumn(variable)
     return optvars
 
-def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
 
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     betaPlot = _plt.figure('Beta', figsize=figsize)
@@ -182,11 +182,12 @@ def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(betaPlot, survey)
-
+    _CallUserFigureFunctions(postfunctions)
+    
     _plt.show(block=False)
     return betaPlot
 
-def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     alphaPlot = _plt.figure('Alpha', figsize=figsize)
     #tfs
@@ -210,11 +211,12 @@ def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(alphaPlot, survey)
-
+    _CallUserFigureFunctions(postfunctions)
+    
     _plt.show(block=False)
     return alphaPlot
 
-def PlotDs(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotDs(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPlot = _plt.figure('Dispersion', figsize=figsize)
     #tfs
@@ -238,11 +240,12 @@ def PlotDs(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(dispPlot, survey)
-
+    _CallUserFigureFunctions(postfunctions)
+    
     _plt.show(block=False)
     return dispPlot
 
-def PlotDps(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPPlot = _plt.figure('Momentum_Dispersion', figsize=figsize)
     #tfs
@@ -266,11 +269,12 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(dispPPlot, survey)
-
+    _CallUserFigureFunctions(postfunctions)
+    
     _plt.show(block=False)
     return dispPPlot
 
-def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma', figsize=figsize)
     #tfs
@@ -296,11 +300,12 @@ def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPlot, survey)
-
+    _CallUserFigureFunctions(postfunctions)
+    
     _plt.show(block=False)
     return sigmaPlot
 
-def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPPlot = _plt.figure('SigmaP', figsize=figsize)
     #tfs
@@ -326,6 +331,7 @@ def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPPlot, survey)
+    _CallUserFigureFunctions(postfunctions)
 
     _plt.show(block=False)
     return sigmaPPlot
@@ -355,11 +361,12 @@ def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(meanPlot, survey)
-
+    _CallUserFigureFunctions(postfunctions)
+    
     _plt.show(block=False)
     return meanPlot
 
-def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     orbitPlot = _plt.figure('Orbit', figsize=figsize)
 
     #tfs
@@ -379,11 +386,12 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(orbitPlot, survey)
+    _CallUserFigureFunctions(postfunctions)
 
     _plt.show(block=False)
     return orbitPlot
 
-def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, verbose=False, figsize=(12,5)):
+def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None, verbose=False, figsize=(12,5)):
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too

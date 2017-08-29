@@ -437,7 +437,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             if verbose:
                 print 'skipping this item'
             continue # skip this item in the for loop
-
+        
         # now deal with aperture
         if useTfsAperture:
             sMid = (item['S']*2 - item['L'] ) * 0.5
@@ -480,7 +480,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             AddSingleElement(item, a, apermodel)
             AddSingleElement(item, b, apermodel)
         elif item['NAME'] in aperturedict:
-            apermodel = _Build.PrepareApertureModel(aperturedict[name], defaultAperture)
+            apermodel = _Builder.PrepareApertureModel(aperturedict[name], defaultAperture)
             AddSingleElement(item, a, apermodel)
             AddSingleElement(item, b, apermodel)
         else:
