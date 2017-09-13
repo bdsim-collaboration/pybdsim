@@ -39,7 +39,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, fig
     PlotDps(tfsopt, bdsopt, survey=survey,
             functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotSigmas(tfsopt, bdsopt, survey=survey,
-               functions=functions, figsize=figsize)
+               functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotSigmasP(tfsopt, bdsopt, survey=survey,
                functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotMeans(tfsopt, bdsopt, survey=survey,
@@ -336,7 +336,7 @@ def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None,
     _plt.show(block=False)
     return sigmaPPlot
 
-def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     meanPlot = _plt.figure('Mean', figsize=figsize)
     #tfs
