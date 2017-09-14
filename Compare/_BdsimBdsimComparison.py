@@ -37,7 +37,7 @@ _SIGMA_P = [("Sigma_xp", "Sigma_Sigma_xp", r"$\sigma_{xp}$"),
 _MEAN = [("Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
          ("Mean_y", "Sigma_Mean_y", r"$\bar{y}$")]
 
-# use closure 2 avoid tonnes of boilerplate code as happened with
+# use closure to avoid tonnes of boilerplate code as happened with
 # MadxBdsimComparison.py
 def _make_plotter(plot_info_tuples, x_label, y_label, title):
     def f_out(first, second, first_name=None, second_name=None,
@@ -89,22 +89,20 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         return plot
     return f_out
 
-
-PlotBeta = _make_plotter(_BETA, "S / m", r"$\beta_{x,y}$ / m", "Beta")
-PlotAlpha = _make_plotter(_ALPHA, "S / m", r"$\alpha_{x,y}$ / m", "Alpha")
-PlotDisp = _make_plotter(_DISP, "S / m", "$D_{x,y} / m$", "Dispersion")
-PlotDispP = _make_plotter(_DISP_P, "S / m",
-                          "$D_{p_{x},p_{y}}$ / m", "Momentum_Dispersion")
-PlotSigma = _make_plotter(_SIGMA, "S / m", r"$\sigma_{x,y}$ / m", "Sigma")
-PlotSigmaP = _make_plotter(_SIGMA_P, "S / m",
-                           r"$\sigma_{xp,yp}$ / rad", "SigmaP")
-PlotMean = _make_plotter(_MEAN, "S / m",
-                         r"$\bar{x}, \bar{y}$ / m", "Mean")
+PlotBeta   = _make_plotter(_BETA,    "S / m", r"$\beta_{x,y}$ / m",      "Beta")
+PlotAlpha  = _make_plotter(_ALPHA,   "S / m", r"$\alpha_{x,y}$ / m",     "Alpha")
+PlotDisp   = _make_plotter(_DISP,    "S / m", r"$D_{x,y} / m$",          "Dispersion")
+PlotDispP  = _make_plotter(_DISP_P,  "S / m", r"$D_{p_{x},p_{y}}$ / m",  "Momentum_Dispersion")
+PlotSigma  = _make_plotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
+PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
+PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
 
-def CompareAllOptics(first, second, first_name=None,
-                     second_name=None, survey=None, **kwargs):
-    """Display all the optical function plots for the two input optics files."""
+def BDSIMVsBDSIM(first, second, first_name=None,
+                 second_name=None, survey=None, **kwargs):
+    """
+    Display all the optical function plots for the two input optics files.
+    """
     PlotBeta(first, second, first_name=first_name,
              second_name=second_name, survey=survey, **kwargs)
     PlotAlpha(first, second, first_name=first_name,
