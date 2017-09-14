@@ -34,23 +34,26 @@ class FileSection():
     """
     A class that represents a section of a gmad file. The sections that this
     class can represent are:
-        - Components
-        - Sequence
-        - Samplers
-        - Beam
-        - Options
-        - Bias
+    
+    * Components
+    * Sequence
+    * Samplers
+    * Beam
+    * Options
+    * Bias
 
-    The class contains booleans and strings relating to the location of that sections data.
-    The section can set to be:
-        - Written in its own separate file (default)
-        - Written in the main gmad file
-        - Called from an external file
+    The class contains booleans and strings relating to the location of 
+    that sections data. The section can set to be:
+    
+    * Written in its own separate file (default)
+    * Written in the main gmad file
+    * Called from an external file
 
-    These classes are instantiated in the writer class for each section. An optional string 
-    passed in upon class instantiation is purely for the representation of the object
-    which will state where the data will be written/called. This string should be one of the 
-    section names listed above.
+    These classes are instantiated in the writer class for each section. 
+    An optional string passed in upon class instantiation is purely for 
+    the representation of the object which will state where the data will 
+    be written/called. This string should be one of the section names 
+    listed above.
     
     Example:
 
@@ -186,20 +189,28 @@ class Writer():
     def WriteMachine(self,machine, filename, singlefile = False, verbose = True, summary=True):
         """
         WriteMachine(machine(machine),filename(string),singlefile(bool),verbose(bool))
-
+        
         Write a machine to disk. By default, the machine will be written
         into the following individual files:
         
-        filename_components.gmad - component files (max 10k per file)
-        filename_sequence.gmad   - lattice definition
-        filename_samplers.gmad   - sampler definitions (max 10k per file)
-        filename_options.gmad    - options (TO BE IMPLEMENTED)
-        filename_beam.gmad       - beam definition
-        filename_bias.gmad       - machine biases (if defined)
-        filename.gmad            - suitable main file with all sub
-                                   files in correct order
-                                   
-        these are prefixed with the specified filename / path
+        +---------------------------+----------------------------------------+
+        | filename_components.gmad  | component files (max 10k per file)     |
+        +---------------------------+----------------------------------------+
+        | filename_sequence.gmad    | lattice definition                     |
+        +---------------------------+----------------------------------------+
+        | filename_samplers.gmad    | sampler definitions (max 10k per file) |
+        +---------------------------+----------------------------------------+
+        | filename_options.gmad     | options                                |
+        +---------------------------+----------------------------------------+
+        | filename_beam.gmad        | beam definition                        |
+        +---------------------------+----------------------------------------+
+        | filename_bias.gmad        | machine biases (if defined)            |
+        +---------------------------+----------------------------------------+
+        | filename.gmad             | suitable main file with all sub        |
+        |                           | files in correct order                 |
+        +---------------------------+----------------------------------------+
+                          
+        These are prefixed with the specified filename / path
 
         The optional bool singlefile = True will write all the above sections 
         into a single file:
