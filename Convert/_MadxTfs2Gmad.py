@@ -49,7 +49,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  biases=None,
                  allelementdict={},
                  optionsDict = {},
-                 linear = False) :
+                 linear = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
 
@@ -84,7 +84,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     |                               | file - you can comment out the include to therefore exclude all   |
     |                               | samplers and retain the samplers file.                            |
     +-------------------------------+-------------------------------------------------------------------+
-    | **apertureinfo**              | Aperture information. Can either be a dictionary of dictionaries  |
+    | **aperturedict**              | Aperture information. Can either be a dictionary of dictionaries  |
     |                               | with the the first key the exact name of the element and the      |
     |                               | daughter dictionary containing the relevant bdsim parameters as   |
     |                               | keys (must be valid bdsim syntax). Alternatively, this can be a   |

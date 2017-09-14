@@ -9,14 +9,23 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, fig
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
 
-    Parameters:
-    tfs        :    tfs file or Tfs instance
-    bdsim      :    optics root file (from rebdsimOptics or rebdsim) or
-    survey     :    BDSIM model survey
-    functions  :    Hook for users to add their functions which are called
-                    immediately prior to the addition of the plot.  Use lambda
-                    to add functions with arguments.
-    figsize    :    figure size for all figures - default is (12,5)
+    +-----------------+---------------------------------------------------------+
+    | **Parameters**  | **Description**                                         |
+    +-----------------+---------------------------------------------------------+
+    | tfs             | Tfs file or pymadx.Data.Tfs instance.                   |
+    +-----------------+---------------------------------------------------------+
+    | bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
+    +-----------------+---------------------------------------------------------+
+    | survey          | BDSIM model survey.                                     |
+    +-----------------+---------------------------------------------------------+
+    | functions       | Hook for users to add their functions that are called   |
+    |                 | immediately prior to the addition of the plot. Use a    |
+    |                 | lambda function to add functions with arguments. Can    |
+    |                 | be a function or a list of functions.                   |
+    +-----------------+---------------------------------------------------------+
+    | figsize         | Figure size for all figures - default is (12,5)         |
+    +-----------------+---------------------------------------------------------+
+    
     """
 
     _CheckFilesExist(tfs, bdsim, survey)

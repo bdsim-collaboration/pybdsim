@@ -1,35 +1,54 @@
-# pybdsim - python tools for bdsim
-# Version 1.0
-# L. Nevay, S.T.Boogert
-
-
 """
-pybdsim - python tools for bdsim
+pybdsim - python tool for BDSIM
 
-| Dependencies:
-| package     - minimum version required
-| numpy       - 1.7.1
-| matplotlib  - 1.3.0
++-----------------+--------------------------------+
+| **Dependency**  | **Minimum Version Required**   |
++-----------------+--------------------------------+
+| numpy           | 1.7.1                          |
++-----------------+--------------------------------+
+| matplotlib      | 1.3.0                          |
++-----------------+--------------------------------+
+| pymadx          | latest                         |
++-----------------+--------------------------------+
 
-| Modules:
-| Builder - create generic accelerators for bdsim
-| Convert - convert other formats into gmad
-| Data    - read the bdsim output formats
-| Fields  - write BDSIM field format
-| Gmad    - create bdsim input files - lattices & options
-| ModelProcessing - tools to process existing BDSIM models and generate other versions of them.
-| Options - methods to generate bdsim options
-| Plot    - some nice plots for data
-| Root    - functions to convert ROOT histograms into matplotlib (not explicitly imported)
-| Run     - run BDSIM programatically
-| Visualisation - help locate objects in the BDSIM visualisation, requires a BDSIM survey file
++-----------------+----------------------------------------------------------+
+| **Module**      | **Description**                                          |
++-----------------+----------------------------------------------------------+
+| Builder         | Create generic accelerators for bdsim.                   |
++-----------------+----------------------------------------------------------+
+| Convert         | Convert other formats into gmad.                         |
++-----------------+----------------------------------------------------------+
+| Data            | Read the bdsim output formats.                           |
++-----------------+----------------------------------------------------------+
+| Fields          | Write BDSIM field format.                                |
++-----------------+----------------------------------------------------------+
+| Gmad            | Create bdsim input files - lattices & options.           |
++-----------------+----------------------------------------------------------+
+| ModelProcessing | Tools to process existing BDSIM models and generate      |
+|                 | other versions of them.                                  |
++-----------------+----------------------------------------------------------+
+| Options         | Methods to generate bdsim options.                       |
++-----------------+----------------------------------------------------------+
+| Plot            | Some nice plots for data.                                |
++-----------------+----------------------------------------------------------+
+| Run             | Run BDSIM programatically.                               |
++-----------------+----------------------------------------------------------+
+| Visualisation   | Help locate objects in the BDSIM visualisation, requires |
+|                 | a BDSIM survey file.                                     |
++-----------------+----------------------------------------------------------+
 
-| Classes:
-| Analysis - encapsulates functions & plots for a single file
-| Beam     - a beam options dictionary with methods
-| ExecOptions - all the executable options for BDSIM for a particular run
-| Study       - a holder for the output of runs
-| XSecBias - a cross-section biasing object
++-------------+--------------------------------------------------------------+
+| **Class**   | **Description**                                              |
++-------------+--------------------------------------------------------------+
+| Beam        | A beam options dictionary with methods.                      |
++-------------+--------------------------------------------------------------+
+| ExecOptions | All the executable options for BDSIM for a particular run,   |
+|             | included in the Run module.                                  |
++-------------+--------------------------------------------------------------+
+| Study       | A holder for the output of runs. Included in the Run Module. |
++-------------+--------------------------------------------------------------+
+| XSecBias    | A cross-section biasing object.                              |
++-------------+--------------------------------------------------------------+
 
 """
 
