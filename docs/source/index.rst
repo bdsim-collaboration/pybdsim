@@ -6,17 +6,19 @@ of BDSIM models.
 
 .. toctree::
    :maxdepth: 2
-	      
+
+   licence
+   authorship
    builder
    convert
-   compare
-   modelprocessing	     
+   compare	     
    data
    classes
    gmad
    plot
    run
    visualisation
+   support
    moduledocs
 	     
 

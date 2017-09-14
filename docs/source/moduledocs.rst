@@ -44,6 +44,12 @@ pybdsim.Compare
 		:members:
 		:undoc-members:
 
+		.. autofunction:: MadxVsBDSIM
+		.. autofunction:: MadxVsBDSIMOrbit
+		.. autofunction:: BDSIMVsBDSIM
+		.. autofunction:: TransportVsBDSIM 
+
+
 pybdsim.Constants module
 ------------------------
 
@@ -52,12 +58,26 @@ pybdsim.Constants module
 		:undoc-members:
 		:show-inheritance:
 
+.. _pybdsim-convert:
+
 pybdsim.Convert
 ---------------
 
 .. automodule:: pybdsim.Convert
 		:members:
 		:undoc-members:
+
+		.. autofunction:: BdsimPrimaries2Mad8
+		.. autofunction:: BdsimPrimaries2Madx
+		.. autofunction:: BdsimPrimaries2Ptc
+		.. autofunction:: Mad8MakeApertureTemplate
+		.. autofunction:: Mad8MakeCollimatorTemplate
+		.. autofunction:: Mad8MakeOptions
+		.. autofunction:: Mad8Twiss2Gmad
+		.. autofunction:: Mad8Saveline2Gmad
+		.. autofunction:: MadxTfs2Gmad
+		.. autofunction:: MadxTfs2GmadStrength
+				  
 
 .. automodule:: pybdsim.Convert._MadxTfs2Gmad
 		:members:
@@ -101,6 +121,8 @@ pybdsim.ModelProcessing module
 		:undoc-members:
 		:show-inheritance:
 
+.. _pybdsim-options-module:
+
 pybdsim.Options module
 ----------------------
 
@@ -141,6 +163,8 @@ pybdsim.Writer module
 		:undoc-members:
 		:show-inheritance:
 
+.. _pybdsim-xsecbias-module:
+		   
 pybdsim.XSecBias module
 -----------------------
 

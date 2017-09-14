@@ -31,8 +31,8 @@
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx.ext.autodoc',
-    'sphinx.ext.coverage',
-    'sphinx.ext.mathjax']
+              'sphinx.ext.coverage',
+              'sphinx.ext.mathjax']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -48,8 +48,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pybdsim'
-copyright = u'2017, Laurie Nevay'
-author = u'Laurie Nevay'
+copyright = u'Royal Holloway, University of London 2017'
+author = u'L Nevay, A Abramov, S Boogert, W Shields, J Snuverink, S Walker'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -124,7 +124,7 @@ htmlhelp_basename = 'pybdsimdoc'
 latex_elements = {
     # The paper size ('letterpaper' or 'a4paper').
     #
-    # 'papersize': 'letterpaper',
+    'papersize': 'a4paper',
 
     # The font size ('10pt', '11pt' or '12pt').
     #
