@@ -1,25 +1,23 @@
-.. pybdsim documentation master file, created by
-   sphinx-quickstart on Thu Sep 14 11:17:27 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+pybdsim documentation
+=====================
 
-Welcome to pybdsim's documentation!
-===================================
+pybdsim is a Python package to aid in the preparation, running and validation
+of BDSIM models.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
-
-	     builder
-	     convert
-	     compare
-	     modelprocessing	     
-	     data
-	     classes
-	     gmad
-	     plot
-	     run
-	     visualisation
+	      
+   builder
+   convert
+   compare
+   modelprocessing	     
+   data
+   classes
+   gmad
+   plot
+   run
+   visualisation
+   moduledocs
 	     
 
 
