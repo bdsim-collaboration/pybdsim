@@ -20,7 +20,7 @@ def TransportVsBDSIM(parameter, bdsfile, transfile, transscaling=1, lattice=None
 
     #check inputs and load data
     bds   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
-    trans = _pymadx._General.CheckItsTfs(tfs) #TBC is this meant to be MADX Tfs?
+    trans = _pymadx.Data.CheckItsTfs(tfs) # TBC is this meant to be MADX Tfs?
 
     #name of parameter error
     errorparam = 'Sigma_' + _string.lower(parameter)

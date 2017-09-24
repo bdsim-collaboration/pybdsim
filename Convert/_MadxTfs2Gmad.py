@@ -161,8 +161,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     b = _Builder.Machine() # final machine, split with aperture
 
     # test whether filpath or tfs instance supplied
-    madx = _pymadx._General.CheckItsTfs(input)
-    
+    madx = _pymadx.Data.CheckItsTfs(input)
+
     izlis  = ignorezerolengthitems
     factor = 1
     if flipmagnets != None:
@@ -200,7 +200,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             kws.update(aperModel)
 
         name  = item['NAME']
-        rname = _General.PrepareReducedName(name) #remove special characters like $, % etc 'reduced' name - rname
+        # remove special characters like $, % etc 'reduced' name - rname:
+        rname = pybdsim._General.PrepareReducedName(name)
         t     = item['KEYWORD']
         l     = item['L']
         ang   = item['ANGLE']
@@ -412,7 +413,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
     # check aperture information if supplied
     useTfsAperture = False
-    if type(aperturedict) == _pymadx.Aperture:
+    if type(aperturedict) == _pymadx.Data.Aperture:
         useTfsAperture = True
         if verbose:
             aperturedict.ReportPopulations()
@@ -502,7 +503,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         a.AddBeam(bm)
         b.AddBeam(bm)
 
-    options = _Options.Options()
+    options = _Options()
     options.SetBeamPipeRadius(beampiperadius,unitsstring='cm')
     if (len(optionsDict) > 0):
         options.update(optionsDict) # expand with user supplied bdsim options
