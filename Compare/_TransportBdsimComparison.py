@@ -15,7 +15,7 @@ def TransportVsBDSIM(parameter, bdsfile, transfile, transscaling=1, lattice=None
                 'Disp_y',
                 'Alph_x',
                 'Alph_y']
-    if not okParams.__contains__(parameter):
+    if parameter not in okParams:
         raise ValueError(parameter +' is not a plottable parameter.')
 
     #check inputs and load data
@@ -32,18 +32,18 @@ def TransportVsBDSIM(parameter, bdsfile, transfile, transscaling=1, lattice=None
             mins.append(0)
 
     _plt.figure()
-    if bds.names.__contains__(parameter):
+    if parameter in bds.names:
         data   = bds.GetColumn(parameter)
         bdsimlabel = 'BDSIM, NPrimaries = %1.0e' %bds.GetColumn('Npart')[0]
         #Check if errors exist
-        if bds.names.__contains__(errorparam):
+        if errorparam in bds.names:
             errors = bds.GetColumn(errorparam)
             _plt.errorbar(bds.GetColumn('S'), data, yerr=errors, label=bdsimlabel)
         else:
             _plt.plot(bds.GetColumn('S'), data,label=bdsimlabel)
         maxes.append(_np.max(data + errors))
         mins.append(_np.max(data - errors))
-    if trans.names.__contains__(parameter):
+    if parameter in trans.names:
         data = trans.GetColumn(parameter)*transscaling
         _plt.plot(trans.GetColumn('S'), data, label='TRANSPORT')
         maxes.append(_np.max(data))

@@ -78,7 +78,7 @@ class FileSection():
         
         #string for __repr__ output
         self._willContain=''
-        if isinstance(willContain,_np.str) and sections.__contains__(willContain):
+        if isinstance(willContain, basestring) and willContain in sections:
             self._willContain = willContain
 
     def __repr__(self):
@@ -502,7 +502,7 @@ class Writer():
             raise ValueError("Both filename and sectiontype cannot be empty strings")
         
         #get section file name
-        if sections.__contains__(sectiontype):
+        if sectiontype in sections:
             if (filename == '') or (filename == self._basefilename):
                 fn_name = self._defaultSectionFilenames[sectiontype]    #no name or name = basefilename, use section default
             else:

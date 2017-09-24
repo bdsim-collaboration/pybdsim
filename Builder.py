@@ -462,7 +462,7 @@ class Machine:
         elementsSR = ["sbend", "rbend"]
 
         # update energy if correct element category and has finite length.
-        if (elementsSR.__contains__(object.category)) and (object.length > 0):
+        if object.category in elementsSR and object.length > 0:
             if object.has_key('angle'):
                 ang = object['angle']
                 if type(ang) == tuple:
