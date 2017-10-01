@@ -57,15 +57,16 @@ Once prepared, the Tfs file can be converted. The converter is used as follows::
   >>> pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'latticev1')
 
 The conversion returns typically two objects, which are the :code:`pybdsim.Builder.Machine`
-instance and a list of any ommitted items by name.::
+instance and a list of any ommitted items by name. ::
 
   >>> a,o = pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'latticev1')
 
-The user may convert only part of the input model by specifying `startname` and `stopname`.
+where `latticev1` is the output name of the converted model. The user may convert
+only part of the input model by specifying `startname` and `stopname`.
 The full list of options is described in :ref:`pybdsim-convert`.
 
-Generally speaking, extra information can be folded into the conversion by the user
-supply a dictionary with extra parameters for a particular element by name. For a
+Generally speaking, extra information can be folded into the conversion via a user
+supplied dictionary with extra parameters for a particular element by name. For a
 given element, for example 'drift123', extra parameters can be speficied in a dictionary.
 This leads to a dictionary of dictionaries being supplied. This is a relatively simple
 structure the user may prepare from their own input format and converters in Python.
