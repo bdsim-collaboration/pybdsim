@@ -1,17 +1,21 @@
+import warnings
+
 try:
     import ROOT as _rt
 except ImportError:
-    print('ROOT not available - some functionality missing')
+    warnings.warn("ROOT not available - some functionality missing")
     
 import numpy as _np
 import matplotlib.pyplot as _plt
+
 try:
     from scipy import constants as _con
 except ImportError:
-    print('Scipy not available - some functionality missing')
+    warnings.warn("Scipy not available - some functionality missing")
+
 import sys
 import time
-import warnings
+
 try:
     import root_numpy as _rnp
 except ImportError:
