@@ -23,6 +23,10 @@ try:
     from _SadFlat2Gmad import SadFlat2GMad
 except ImportError:
     pass
+    #import warnings
+    #msg = "Missing pysad dependency. SAD conversion facilities excluded."
+    #warnings.warn(msg)
+    #del warnings
 
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Ptc
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Madx
