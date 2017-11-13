@@ -1,21 +1,25 @@
+import warnings
+
 try:
     import ROOT as _rt
 except ImportError:
-    print('ROOT not available - some functionality missing')
+    warnings.warn("ROOT not available - some functionality missing", UserWarning)
     
 import numpy as _np
 import matplotlib.pyplot as _plt
+
 try:
     from scipy import constants as _con
 except ImportError:
-    print('Scipy not available - some functionality missing')
+    warnings.warn("Scipy not available - some functionality missing", UserWarning)
+
 import sys
 import time
-import warnings
+
 try:
     import root_numpy as _rnp
 except ImportError:
-    warnings.warn("No root_numpy found.  mad8 conversion tools may not work as intended.", UserWarning)
+    warnings.warn("No root_numpy found - some functionality missing", UserWarning)
 
 def BdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
     """"

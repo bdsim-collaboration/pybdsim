@@ -327,13 +327,16 @@ class ApertureModel(dict):
         self['aper4'] = aper4
 
     def __repr__(self):
-        s =  'apertureType="' + self['apertureType'] + '"'
-        s += ', aper1=' + str(self['aper1'])
-        for i in (2,3,4):
-            value = self['aper'+str(i)]
-            if value > 0:
-                s += ', aper' + str(i) + '=' + str(value)
-        return s
+        # aper1 is always present at least.
+        out = ('apertureType="{}*m", aper1={}*m').format(self["apertureType"],
+                                                         self["aper1"])
+        # Append any non-zero apertures.
+        for i in [2,3,4]:
+            aperKey = "aper{}".format(i)
+            aperValue = self[aperKey]
+            if aperValue > 0:
+                out += ", {}={}*m".format(aperKey, aperValue)
+        return out
 
 class Sampler:
     """
@@ -462,7 +465,7 @@ class Machine:
         elementsSR = ["sbend", "rbend"]
 
         # update energy if correct element category and has finite length.
-        if (elementsSR.__contains__(object.category)) and (object.length > 0):
+        if object.category in elementsSR and object.length > 0:
             if object.has_key('angle'):
                 ang = object['angle']
                 if type(ang) == tuple:

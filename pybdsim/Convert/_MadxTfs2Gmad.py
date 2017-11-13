@@ -4,9 +4,9 @@ import re as _re
 import pymadx as _pymadx
 import warnings as _warnings
 from .. import Builder as _Builder
-from .. import Options as _Options
+from ..Options import Options as _Options
 from .. import Beam as _Beam
-from .. import _General
+import pybdsim._General
 from .. import XSecBias
 
 _requiredKeys = frozenset([
@@ -49,7 +49,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  biases=None,
                  allelementdict={},
                  optionsDict = {},
-                 linear = False) :
+                 linear = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
 
@@ -84,7 +84,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     |                               | file - you can comment out the include to therefore exclude all   |
     |                               | samplers and retain the samplers file.                            |
     +-------------------------------+-------------------------------------------------------------------+
-    | **apertureinfo**              | Aperture information. Can either be a dictionary of dictionaries  |
+    | **aperturedict**              | Aperture information. Can either be a dictionary of dictionaries  |
     |                               | with the the first key the exact name of the element and the      |
     |                               | daughter dictionary containing the relevant bdsim parameters as   |
     |                               | keys (must be valid bdsim syntax). Alternatively, this can be a   |
@@ -200,7 +200,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             kws.update(aperModel)
 
         name  = item['NAME']
-        rname = _General.PrepareReducedName(name) #remove special characters like $, % etc 'reduced' name - rname
+        # remove special characters like $, % etc 'reduced' name - rname:
+        rname = pybdsim._General.PrepareReducedName(name)
         t     = item['KEYWORD']
         l     = item['L']
         ang   = item['ANGLE']
@@ -502,7 +503,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         a.AddBeam(bm)
         b.AddBeam(bm)
 
-    options = _Options.Options()
+    options = _Options()
     options.SetBeamPipeRadius(beampiperadius,unitsstring='cm')
     if (len(optionsDict) > 0):
         options.update(optionsDict) # expand with user supplied bdsim options

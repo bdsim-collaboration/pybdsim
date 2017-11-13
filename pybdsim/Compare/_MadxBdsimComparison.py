@@ -9,14 +9,23 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, fig
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
 
-    Parameters:
-    tfs        :    tfs file or Tfs instance
-    bdsim      :    optics root file (from rebdsimOptics or rebdsim) or
-    survey     :    BDSIM model survey
-    functions  :    Hook for users to add their functions which are called
-                    immediately prior to the addition of the plot.  Use lambda
-                    to add functions with arguments.
-    figsize    :    figure size for all figures - default is (12,5)
+    +-----------------+---------------------------------------------------------+
+    | **Parameters**  | **Description**                                         |
+    +-----------------+---------------------------------------------------------+
+    | tfs             | Tfs file or pymadx.Data.Tfs instance.                   |
+    +-----------------+---------------------------------------------------------+
+    | bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
+    +-----------------+---------------------------------------------------------+
+    | survey          | BDSIM model survey.                                     |
+    +-----------------+---------------------------------------------------------+
+    | functions       | Hook for users to add their functions that are called   |
+    |                 | immediately prior to the addition of the plot. Use a    |
+    |                 | lambda function to add functions with arguments. Can    |
+    |                 | be a function or a list of functions.                   |
+    +-----------------+---------------------------------------------------------+
+    | figsize         | Figure size for all figures - default is (12,5)         |
+    +-----------------+---------------------------------------------------------+
+    
     """
 
     _CheckFilesExist(tfs, bdsim, survey)
@@ -39,7 +48,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, fig
     PlotDps(tfsopt, bdsopt, survey=survey,
             functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotSigmas(tfsopt, bdsopt, survey=survey,
-               functions=functions, figsize=figsize)
+               functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotSigmasP(tfsopt, bdsopt, survey=survey,
                functions=functions, postfunctions=postfunctions, figsize=figsize)
     PlotMeans(tfsopt, bdsopt, survey=survey,
@@ -49,7 +58,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, fig
 def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None, postfunctions=None):
 
     _CheckFilesExist(tfs, bdsim, survey)
-    tfsinst   = _pymadx._General.CheckItsTfs(tfs)
+    tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
 
     tfsorbit  = _GetTfsOrbit(tfsinst)
@@ -67,7 +76,7 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
     BDSIM data in s position. 
     """
     _CheckFilesExist(tfs, bds, survey)
-    tfsinst   = _pymadx._General.CheckItsTfs(tfs)
+    tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
 
     bdss = bdsinst.s()
@@ -393,7 +402,7 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, f
 
 def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None, verbose=False, figsize=(12,5)):
     _CheckFilesExist(tfs, bds, survey)
-    tfsinst   = _pymadx._General.CheckItsTfs(tfs)
+    tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
     tfsd = PrepareResiduals(tfs, bds)
 
@@ -435,16 +444,16 @@ def _AddSurvey(figure, survey):
 
 def _ProcessInput(tfsOptics, bdsimOptics):
 
-    if not isinstance(tfsOptics, (_pymadx.Tfs, basestring)):
+    if not isinstance(tfsOptics, (_pymadx.Data.Tfs, basestring)):
         raise TypeError("tfsOptics should be either a path to a tfs file or "
-                        "a pymadx.Tfs instance!")
+                        "a pymadx.Data.Tfs instance!")
     if not isinstance(bdsimOptics, _pybdsim.Data.BDSAsciiData):
         raise TypeError("bdsimOptics should be either be a path to a "
                         "BDSAsciiData file or a pybdsim.Data.BDSAsciiData "
                         "instance")
 
     if isinstance(tfsOptics, basestring):
-        tfsOptics = _pymadx.Tfs(tfsOptics)
+        tfsOptics = _pymadx.Data.Tfs(tfsOptics)
     if isinstance(tfsOptics, basestring):
         bdsimOptics = _pybdsim.Data.Load(bdsimOptics)
 

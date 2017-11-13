@@ -93,10 +93,10 @@ def _LoadRoot(filepath):
     data = BDSAsciiData()
     trees = _rnp.list_trees(filepath)
 
-    if trees.__contains__('optics'):
+    if 'optics' in trees:
         branches = _rnp.list_branches(filepath,'optics')
         treedata = _rnp.root2array(filepath,'optics')
-    elif trees.__contains__('orbit'):
+    elif 'orbit' in trees:
         branches = _rnp.list_branches(filepath, 'orbit')
         treedata = _rnp.root2array(filepath, 'orbit')
     else:
