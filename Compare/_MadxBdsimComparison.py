@@ -21,7 +21,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, fig
 
     _CheckFilesExist(tfs, bdsim, survey)
 
-    tfsinst   = _pymadx._General.CheckItsTfs(tfs)
+    tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
 
     tfsopt    = _GetTfsOptics(tfsinst)
@@ -336,7 +336,7 @@ def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None,
     _plt.show(block=False)
     return sigmaPPlot
 
-def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, figsize=(12,5)):
+def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     meanPlot = _plt.figure('Mean', figsize=figsize)
     #tfs
@@ -430,7 +430,7 @@ def _AddSurvey(figure, survey):
             _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
     elif isinstance(survey, _pybdsim.Data.BDSAsciiData):
         _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
-    elif isinstance(survey, _pymadx.Tfs):
+    elif isinstance(survey, _pymadx.Data.Tfs):
         _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
 
 def _ProcessInput(tfsOptics, bdsimOptics):
