@@ -161,8 +161,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     b = _Builder.Machine() # final machine, split with aperture
 
     # test whether filpath or tfs instance supplied
-    madx = _pymadx._General.CheckItsTfs(input)
-    
+    madx = _pymadx.Data.CheckItsTfs(input)
+
     izlis  = ignorezerolengthitems
     factor = 1
     if flipmagnets != None:
@@ -412,7 +412,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
     # check aperture information if supplied
     useTfsAperture = False
-    if type(aperturedict) == _pymadx.Aperture:
+    if type(aperturedict) == _pymadx.Data.Aperture:
         useTfsAperture = True
         if verbose:
             aperturedict.ReportPopulations()
