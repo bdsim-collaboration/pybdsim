@@ -1,7 +1,7 @@
 import pymadx.Ptc
 import pymadx.Beam
 import pymadx.Builder
-import pymadx.Tfs
+import pymadx.Data
 import pybdsim.Beam
 import pybdsim.Builder
 import pybdsim.Data
@@ -95,7 +95,7 @@ class LatticeTest:
         gmadBeam        = self.filename+"_beam.gmad"
         
         #bdsim output
-        event           = self.filename+"_event.root"
+        event           = self.filename+".root"
         optics          = self.filename+"_optics.root"
         config          = self.filename+"_analConfig.txt"
 
@@ -221,7 +221,7 @@ class LatticeTest:
 
         _os.chdir(self.folderpath)
         _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=rootevent --outfile="+self.filename+"> bdsim.log")
-        pybdsim.Convert.bdsimPrimaries2Ptc(''+self.filename+'_event.root', self.ptcinrays)
+        pybdsim.Convert.bdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
@@ -242,7 +242,7 @@ class LatticeTest:
         
         """
         #Load Tfs file to check particle type and flip BDSIM magnet polarities as needed
-        tfs  = _pymadx.Tfs(self.tfsfilename+'.tfs')
+        tfs  = _pymadx.Data.Tfs(self.tfsfilename+'.tfs')
         particle = tfs.header['PARTICLE']
         if particle == 'ELECTRON' :
             self.flipmagnets = True
@@ -250,11 +250,11 @@ class LatticeTest:
         #pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose)
         pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, thinmultipoles=True, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict={'integratorSet': '"'+integratorSet+'"','includeFringeFields':1})
         
-        _pymadx.MadxTfs2Ptc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
+        _pymadx.Convert.TfsToPtc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
 
         _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --seed=1993 --output=rootevent --outfile="+self.filename+"> bdsim.log")
 
-        pybdsim.Convert.BdsimPrimaries2Ptc(''+self.filename+'_event.root', self.ptcinrays)
+        pybdsim.Convert.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
@@ -271,7 +271,7 @@ class LatticeTest:
         _os.chdir(self.folderpath)
 
         #Load data
-        rootin     = _ROOT.TFile(self.filename+"_event.root")
+        rootin     = _ROOT.TFile(self.filename+".root")
         t          = rootin.Get("Event")
         rng        = len(t.GetListOfBranches())
         last_samp  = t.GetListOfBranches()[rng-1]
@@ -298,7 +298,7 @@ class LatticeTest:
         BE = [val[0] for val in BE]
         self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp}
         
-        madxout = pymadx.Tfs("trackone")
+        madxout = pymadx.Data.Tfs("trackone")
         madxend = madxout.GetSegment(madxout.nsegments) #get the last 'segment' / sampler
         Mx = madxend.GetColumn('X')
         My = madxend.GetColumn('Y') 
@@ -369,12 +369,12 @@ class LatticeTest:
                 stdout.writelines(s)            
         
         #Loading output and processing optical functions
-        madx = pymadx.Tfs(''+self.tfsfilename+'.tfs')
+        madx = pymadx.Data.Tfs(''+self.tfsfilename+'.tfs')
 
         #Writes the text file for Rebdsim
         with open(''+self.filename+'_analConfig.txt', 'w') as outfile:
             outfile.writelines("{:<40s}".format('Debug')+'\t 0\n')
-            outfile.writelines("{:<40s}".format('InputFilePath')+'\t ./'+self.filename+'_event.root \n')
+            outfile.writelines("{:<40s}".format('InputFilePath')+'\t ./'+self.filename+'.root \n')
             outfile.writelines("{:<40s}".format('OutputFileName')+'\t ./'+self.filename+'_optics.root \n')
             outfile.writelines("{:<40s}".format('CalculateOpticalFunctions')+'\t 1 \n')
             outfile.writelines("{:<40s}".format('CalculateOpticalFunctionsFileName')+'\t ./'+self.filename+'_optics.dat \n')
@@ -389,16 +389,16 @@ class LatticeTest:
         boptfile  = _ROOT.TFile(self.filename+'_optics.root') #TODO(aabramov): change to use pickled root output
         bdata     = boptfile.Get('optics')
 
-        ptcfile  = 'ptc_'+self.filename+'_opticalfns.dat'
-        print "ptcCalculateOpticalFunctions> processing... " , ptcfile 
-        ptc      = _pymadx.PtcAnalysis(ptcOutput="trackone") 
-        ptc.CalculateOpticalFunctions(ptcfile)
-        ptcdata  = pybdsim.Data.Load(ptcfile)
+        #ptcfile  = 'ptc_'+self.filename+'_opticalfns.dat'
+        #print "ptcCalculateOpticalFunctions> processing... " , ptcfile 
+        #ptc      = _pymadx.PtcAnalysis.PtcAnalysis(ptcOutput="trackone") 
+        #ptc.CalculateOpticalFunctions(ptcfile)
+        #ptcdata  = pybdsim.Data.Load(ptcfile)
 
         #Get the S coordinate from all outputs
         M_s       = madx.GetColumn('S')
         B_s       = _rnp.tree2array(bdata, branches = "S") 
-        PTC_s     = ptcdata.S()
+        #PTC_s     = ptcdata.S()
 
         M_emittx  = madx.header['EX'] #Get emittance from tfs file header
         M_emitty  = madx.header['EY'] #To be used in emittance and sigma plots
@@ -437,10 +437,10 @@ class LatticeTest:
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Beta_y")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Beta_x")
                 B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Beta_y")
-                PTC_optfn_x  = ptcdata.Beta_x()
-                PTC_optfn_y  = ptcdata.Beta_y()
-                PTC_opterr_x = ptcdata.Sigma_beta_x()
-                PTC_opterr_y = ptcdata.Sigma_beta_y()
+                #PTC_optfn_x  = ptcdata.Beta_x()
+                #PTC_optfn_y  = ptcdata.Beta_y()
+                #PTC_opterr_x = ptcdata.Sigma_beta_x()
+                #PTC_opterr_y = ptcdata.Sigma_beta_y()
                 
                 #print 'LenMopt ',len(M_optfn_x),' LenMs ',len(M_s),' LenBs ',len(B_s),' LenBopt ',len(B_optfn_x)
                 
@@ -457,10 +457,10 @@ class LatticeTest:
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Alpha_y")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Alpha_x")
                 B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Alpha_y")
-                PTC_optfn_x  = ptcdata.Alph_x()
-                PTC_optfn_y  = ptcdata.Alph_y()
-                PTC_opterr_x = ptcdata.Sigma_alph_x()
-                PTC_opterr_y = ptcdata.Sigma_alph_y()
+                #PTC_optfn_x  = ptcdata.Alph_x()
+                #PTC_optfn_y  = ptcdata.Alph_y()
+                #PTC_opterr_x = ptcdata.Sigma_alph_x()
+                #PTC_opterr_y = ptcdata.Sigma_alph_y()
 
             elif (opt=='sigma_xy'):
                 fn_name      = r'\sigma'  
@@ -476,10 +476,10 @@ class LatticeTest:
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Sigma_y")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_x")
                 B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_y")
-                PTC_optfn_x  = ptcdata.Sigma_x()
-                PTC_optfn_y  = ptcdata.Sigma_y()
-                PTC_opterr_x = 0.000001 #not implemented in PTC yet
-                PTC_opterr_y = 0.000001
+                #PTC_optfn_x  = ptcdata.Sigma_x()
+                #PTC_optfn_y  = ptcdata.Sigma_y()
+                #PTC_opterr_x = 0.000001 #not implemented in PTC yet
+                #PTC_opterr_y = 0.000001
                 
             elif (opt=='sigma_xpyp'):
                 fn_name      = r'\sigma'
@@ -495,10 +495,10 @@ class LatticeTest:
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Sigma_yp")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_xp")
                 B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_yp")
-                PTC_optfn_x  = ptcdata.Sigma_xp()
-                PTC_optfn_y  = ptcdata.Sigma_yp()
-                PTC_opterr_x = 0.000001 #not implemented in PTC yet
-                PTC_opterr_y = 0.000001       
+                #PTC_optfn_x  = ptcdata.Sigma_xp()
+                #PTC_optfn_y  = ptcdata.Sigma_yp()
+                #PTC_opterr_x = 0.000001 #not implemented in PTC yet
+                #PTC_opterr_y = 0.000001       
 
             elif (opt=='emittance'):
                 fn_name      = r'\epsilon' #this is a raw string for Latex labels and titles
@@ -516,10 +516,10 @@ class LatticeTest:
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Emitt_y")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Emitt_x")
                 B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Emitt_y")
-                PTC_optfn_x  = ptcdata.Emitt_x()
-                PTC_optfn_y  = ptcdata.Emitt_y()
-                PTC_opterr_x = ptcdata.Sigma_emitt_x()
-                PTC_opterr_y = ptcdata.Sigma_emitt_y()
+                #PTC_optfn_x  = ptcdata.Emitt_x()
+                #PTC_optfn_y  = ptcdata.Emitt_y()
+                #PTC_opterr_x = ptcdata.Sigma_emitt_x()
+                #PTC_opterr_y = ptcdata.Sigma_emitt_y()
 
             elif (opt=='dispersion_xy'):
                 fn_name      = r'D'              #this is a raw string for Latex labels and titles
@@ -533,10 +533,10 @@ class LatticeTest:
                 M_optfn_y    = madx.GetColumn('DY')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Disp_x")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Disp_y")
-                PTC_optfn_x  = ptcdata.Disp_x()
-                PTC_optfn_y  = ptcdata.Disp_y()
-                PTC_opterr_x = 0 #error calculations for dispersion not implemented yet
-                PTC_opterr_y = 0
+                #PTC_optfn_x  = ptcdata.Disp_x()
+                #PTC_optfn_y  = ptcdata.Disp_y()
+                #PTC_opterr_x = 0 #error calculations for dispersion not implemented yet
+                #PTC_opterr_y = 0
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Disp_x")
                 B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Disp_y")
                 
@@ -553,10 +553,10 @@ class LatticeTest:
                 M_optfn_y    = madx.GetColumn('DPY')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Disp_xp")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Disp_yp")
-                PTC_optfn_x  = ptcdata.Disp_xp()
-                PTC_optfn_y  = ptcdata.Disp_yp()
-                PTC_opterr_x = 0 #error calculations for dispersion not implemented yet
-                PTC_opterr_y = 0
+                #PTC_optfn_x  = ptcdata.Disp_xp()
+                #PTC_optfn_y  = ptcdata.Disp_yp()
+                #PTC_opterr_x = 0 #error calculations for dispersion not implemented yet
+                #PTC_opterr_y = 0
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Disp_xp")
                 B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Disp_yp")
             else:
@@ -579,18 +579,18 @@ class LatticeTest:
             if(in_Tfs):
                 _plt.plot(M_s,M_optfn_x,'.',color='r',linestyle='dashed',linewidth=2.0,label=r'$'+fn_name+fn_subsc[0]+r'$MDX')
                 _plt.plot(M_s,M_optfn_y,'.',color='b',linestyle='dashed',linewidth=2.0,label=r'$'+fn_name+fn_subsc[1]+r'$MDX')
-            _plt.fill_between(PTC_s, PTC_optfn_x-PTC_opterr_x, PTC_optfn_x+PTC_opterr_x,alpha=0.3, facecolor='r',linewidth=0.0)
-            _plt.fill_between(PTC_s, PTC_optfn_y-PTC_opterr_y, PTC_optfn_y+PTC_opterr_y,alpha=0.3, facecolor='b',linewidth=0.0)
+            #_plt.fill_between(PTC_s, PTC_optfn_x-PTC_opterr_x, PTC_optfn_x+PTC_opterr_x,alpha=0.3, facecolor='r',linewidth=0.0)
+            #_plt.fill_between(PTC_s, PTC_optfn_y-PTC_opterr_y, PTC_optfn_y+PTC_opterr_y,alpha=0.3, facecolor='b',linewidth=0.0)
             _plt.errorbar(B_s,B_optfn_x, yerr=B_opterr_x,fmt='o',color='r',label=r'$'+fn_name+fn_subsc[0]+r'$BDS')
             _plt.errorbar(B_s,B_optfn_y, yerr=B_opterr_y,fmt='o',color='b',label=r'$'+fn_name+fn_subsc[1]+r'$BDS')
-            _plt.plot([], [], color='r', linewidth=10,alpha=0.3,label=r'$'+fn_name+fn_subsc[0]+r'$PTC')
-            _plt.plot([], [], color='b', linewidth=10,alpha=0.3,label=r'$'+fn_name+fn_subsc[1]+r'$PTC')
+            #_plt.plot([], [], color='r', linewidth=10,alpha=0.3,label=r'$'+fn_name+fn_subsc[0]+r'$PTC')
+            #_plt.plot([], [], color='b', linewidth=10,alpha=0.3,label=r'$'+fn_name+fn_subsc[1]+r'$PTC')
             _plt.xlabel(r'$S (m)$')
             _plt.ylabel(r'$'+fn_name+fn_units+r'$')
-            _plt.legend(numpoints=1,loc=7,fancybox=True, framealpha=0.5,prop={'size':15})
+            _plt.legend(numpoints=1,loc=10,fancybox=True, framealpha=1.0,prop={'size':15})
             _plt.grid(True)
             pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(),''+self.tfsfilename+'.tfs')
-            _plt.subplots_adjust(left=0.1,right=0.9,top=0.96, bottom=0.15, wspace=0.15, hspace=0.2)
+            #_plt.subplots_adjust(left=0.1,right=0.9,top=0.96, bottom=0.15, wspace=0.15, hspace=0.2)
 
         if showResiduals:
             #optical function residuals
