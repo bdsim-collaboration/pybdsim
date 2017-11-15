@@ -1,13 +1,12 @@
 import numpy as _np
-from scipy import constants as _con
 
-from pymadx import Builder as _mdBuilder
 from pybdsim import Builder as _pyBuilder
 from pybdsim import Options as _Options
 
 from pytransport.Elements import Elements as _Elements
 from pytransport import Reader as _Reader
 from pytransport import _General
+from pytransport.Data import ConversionData
 
 
 def Transport2Gmad(inputfile,
