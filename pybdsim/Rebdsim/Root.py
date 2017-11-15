@@ -27,7 +27,6 @@ class TTree :
 
 class TH1 :
     # TODO : TH1 Deal with under/overflows properly
-    # TODO : TH1 Equivalent of statistics box
     def __init__(self, hist):
         self.hist   = hist
 
@@ -47,6 +46,10 @@ class TH1 :
         self.contents = _np.zeros(nbinsx)
         self.errors   = _np.zeros(nbinsx)
 
+        #Extract statistics box data
+        self.mean  = hist.GetMean()
+        self.stdev = hist.GetStdDev()
+
         for i in range(nbinsx):
             self.widths[i]   = hist.GetXaxis().GetBinWidth(i)
             self.lowedge[i]  = hist.GetBinLowEdge(i+1)
@@ -55,12 +58,14 @@ class TH1 :
             self.contents[i] = hist.GetBinContent(i+1)
             self.errors[i]   = hist.GetBinError(i+1)
 
-    def Plot(self,opt ='hist'):
+    def Plot(self,opt ='hist', logx=False, logy=False, outputfilename=None):
         '''
         ROOT like plotting options for convenience
         :param opt: hist|e1
         :return:
         '''
+        _plt.figure(num=1, figsize=(11,7), facecolor="w", edgecolor="w")
+
         if opt.find('hist') != -1 :
             self.PlotHist()
         elif opt.find('line') != -1 :
@@ -68,7 +73,14 @@ class TH1 :
         elif opt.find('e1') != -1:
             self.PlotErrorbar()
 
-        self.SetLabels()
+        self._SetLabels()
+        self._StatBox()
+
+        if logx or logy:
+            self._LogAxes(logx, logy)
+
+        if outputfilename != None:
+            self._SaveFigure(outputfilename)
 
     def PlotPlot(self):
         _plt.plot(self.centres,self.contents)
@@ -82,9 +94,81 @@ class TH1 :
     def PlotHist(self, edgecolor='none', color='b', label=''):
         _plt.hist(self.centres, self.lowedge, weights=self.contents, edgecolor=edgecolor, color=color, label=label)
 
-    def SetLabels(self):
+    def _SetLabels(self):
         _plt.xlabel(self.labelX)
         _plt.ylabel(self.labelY)
+
+    def _StatBox(self):
+        _plt.plot([],[], linestyle="None", label=self.title)
+        _plt.plot([],[], linestyle="None", label=r"Entries".ljust(15)+self._LegNum(self.entries))
+        _plt.plot([],[], linestyle="None", label=r"Mean".ljust(15)+self._LegNum(self.mean))
+        _plt.plot([],[], linestyle="None", label=r"Std Dev".ljust(14)+self._LegNum(self.stdev))
+        leg = _plt.legend(loc=1, frameon=True, edgecolor="k",
+                    handlelength=0.05, fontsize="x-small")
+        if leg:
+            leg.draggable(True,update='bbox')
+
+    def _LogAxes(self, x=False, y=False):
+        ax = _plt.gca()
+        if x:
+            ax.set_xscale("log")
+        if y:
+            ax.set_yscale("log")
+
+    def _LegNum(self, number):
+        n = number #shortcut
+        l = str(n)
+
+        if "e" in l:              #Numbers that are already in scientific notation
+            ln  = l.split("e")[0]
+            le  = l.split("e")[1]
+            try:
+                lnr = ln[:7]
+            except:
+                lnr = ln
+
+            nas = lnr+r"x10$^{"+le+r"}$"
+
+        elif n > 1.e6:             #Large numbers (eg. 2375)
+            if l[:-1][-1]==("."):  #Take into account trailing .0s (eg. 2375.0)
+                ll = len(l)-2
+            else:
+                ll = len(l)        #ll is the power of 10 (e.g 3)
+            lf = l[0]              #The first number will be the integer base (eg. 2)
+            try:
+                ls = l[1:6]        #Get the fractional base (e.g 375)
+            except:
+                ls = l[1:]
+            if not ls:             #Or add a zero if no fractional base
+                ls = "0"
+            nas = lf+r"."+ls+r"x10$^{"+str(ll-1)+r"}$" #Put a decimal point and a power of 10
+
+        elif n < 1.e-6:               #Small numbers (eg. 0.0000456)
+            lsp  = l.split(".")[1]    #Get digits after the decimal point
+            lr   = lsp.split("0")[-1]         #Get the part with no leading zeros (e.g 456)
+            nz   = len(lsp.split("0")[-1])-1  #Count the leading zeros
+            lf   = lr[0]                      #Get the desired integer base
+
+            try:
+                ls   = lr[1:6]     #Geth the fractional base
+            except:
+                ls   = lr[1:]
+            if not ls:
+                ls = "0"           #If no fractional base add a zero
+            nas  = lf+r"."+ls+r"x10$^{-"+str(nz+2)+r"}$" #Put decimal point and neg power of 10
+        else:
+            try:
+                nas = l[:7]        #If number is small/big enough print without alteration
+            except:
+                nas = l
+
+        return nas.ljust(11)
+
+    def _SaveFigure(self, outputfilename):
+        if '.' in outputfilename:
+            outputfilename = outputfilename.split('.')[0]
+        _plt.savefig(outputfilename+'.pdf')
+        #_plt.savefig(outputfilename+'.png')
 
 
 class TH2 :
