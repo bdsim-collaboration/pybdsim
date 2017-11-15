@@ -73,7 +73,7 @@ class _Convert(_Elements):
         # instantiate the main data container and pass in to element class.
         # Explicitly specify as correct machine needs passing in.
         transportData = ConversionData(inputfile=inputfile, options=_Options.Options(), machine=_pyBuilder.Machine(),
-                                       particle=particle, debug=debug, distrType=distrType, gmad=False, gmadDir=gmadDir,
+                                       particle=particle, debug=debug, distrType=distrType, gmad=True, gmadDir=gmadDir,
                                        madx=False, madxDir='', auto=auto, dontSplit=dontSplit, keepName=keepName,
                                        combineDrifts=combineDrifts, outlog=outlog)
         _Elements.__init__(self, transportData)
@@ -150,8 +150,7 @@ class _Convert(_Elements):
         self.Writer.DebugPrintout("Adding beam to gmad machine:")
         self.Transport.AddBeam()
         self.Transport.AddOptions()
-        self.Transport.gmadmachine.AddSampler('all')
-        self.Transport.madxmachine.AddSampler('all')
+        self.Transport.machine.AddSampler('all')
         self.Writer.BeamDebugPrintout(self.Transport.beamprops, self.Transport.units)
         fname = _General.RemoveFileExt(self.Transport.convprops.file)
         if self.Transport.convprops.numberparts < 0:
