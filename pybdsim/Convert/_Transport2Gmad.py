@@ -65,16 +65,18 @@ def Transport2Gmad(inputfile,
         Output stream to a log file, default = True
     """
     # Explicitly specify. Auto is set to True to automatically convert, but is not an input argument. No madx conversion.
-    _Convert(inputfile=inputfile, particle=particle, debug=debug, distrType=distrType, gmad=True, gmadDir=outputDir,
-                 madx=False, auto=True, dontSplit=dontSplit, keepName=keepName, combineDrifts=combineDrifts, outlog=True)
+    _Convert(inputfile=inputfile, particle=particle, debug=debug, distrType=distrType, gmadDir=outputDir,
+             auto=True, dontSplit=dontSplit, keepName=keepName, combineDrifts=combineDrifts, outlog=True)
 
 
 class _Convert(_Elements):
-    def __init__(self, inputfile, particle, debug, distrType, gmad, gmadDir, madx, madxDir, auto, dontSplit, keepName,
-                 combineDrifts, outlog):
+    def __init__(self, inputfile, particle, debug, distrType, gmadDir, auto, dontSplit, keepName, combineDrifts, outlog):
         # instantiate the main data container and pass in to element class.
-        transportData = _Transport(inputfile, particle, debug, distrType, gmad, gmadDir, madx, madxDir,
-                                   auto, dontSplit, keepName, combineDrifts, outlog)
+        # Explicitly specify as correct machine needs passing in.
+        transportData = ConversionData(inputfile=inputfile, options=_Options.Options(), machine=_pyBuilder.Machine(),
+                                       particle=particle, debug=debug, distrType=distrType, gmad=False, gmadDir=gmadDir,
+                                       madx=False, madxDir='', auto=auto, dontSplit=dontSplit, keepName=keepName,
+                                       combineDrifts=combineDrifts, outlog=outlog)
         _Elements.__init__(self, transportData)
         # convert automatically
         if auto:
