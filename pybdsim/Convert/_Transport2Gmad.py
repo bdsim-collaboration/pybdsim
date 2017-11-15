@@ -6,22 +6,18 @@ from pybdsim import Builder as _pyBuilder
 from pybdsim import Options as _Options
 
 from pytransport.Elements import Elements as _Elements
-from pytransport import Reader as _reader
+from pytransport import Reader as _Reader
 from pytransport import _General
 
 
 def Transport2Gmad(inputfile,
                    particle='proton',
-                   debug=False,
                    distrType='gauss',
-                   gmad=True,
-                   gmadDir='gmad',
-                   madx=False,
-                   madxDir='madx',
+                   outputDir='gmad',
+                   debug=False,
                    dontSplit=False,
                    keepName=False,
-                   combineDrifts=False,
-                   outlog=True):
+                   combineDrifts=False):
     """
     A module for converting a TRANSPORT file into gmad for use in BDSIM.
 
@@ -68,13 +64,12 @@ def Transport2Gmad(inputfile,
     outlog: boolean
         Output stream to a log file, default = True
     """
-    # Explicitly specify. Auto is set to True to automatically convert, but is not an input argument.
-    _Pytransport(inputfile=inputfile, particle=particle, debug=debug, distrType=distrType, gmad=gmad, gmadDir=gmadDir,
-                 madx=madx, madxDir=madxDir, auto=True, dontSplit=dontSplit, keepName=keepName,
-                 combineDrifts=combineDrifts, outlog=outlog)
+    # Explicitly specify. Auto is set to True to automatically convert, but is not an input argument. No madx conversion.
+    _Convert(inputfile=inputfile, particle=particle, debug=debug, distrType=distrType, gmad=True, gmadDir=outputDir,
+                 madx=False, auto=True, dontSplit=dontSplit, keepName=keepName, combineDrifts=combineDrifts, outlog=True)
 
 
-class _Pytransport(_Elements):
+class _Convert(_Elements):
     def __init__(self, inputfile, particle, debug, distrType, gmad, gmadDir, madx, madxDir, auto, dontSplit, keepName,
                  combineDrifts, outlog):
         # instantiate the main data container and pass in to element class.
@@ -87,7 +82,7 @@ class _Pytransport(_Elements):
 
     def LoadFile(self, inputfile):
         # load file automatically
-        temp = _reader.reader()
+        temp = _Reader.Reader()
 
         if not isinstance(inputfile, _np.str):
             raise TypeError("Input must be a string")
