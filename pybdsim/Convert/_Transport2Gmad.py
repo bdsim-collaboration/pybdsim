@@ -18,50 +18,44 @@ def Transport2Gmad(inputfile,
                    keepName=False,
                    combineDrifts=False):
     """
-    A module for converting a TRANSPORT file into gmad for use in BDSIM.
+    **Transport2Gmad** convert a Transport input or output file into a gmad input file for bdsim
 
-    To use:
+    +-------------------------------+-------------------------------------------------------------------+
+    | **inputfile**                 | dtype = string                                                    |
+    |                               | path to the input file                                            |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **particle**                  | dtype = string. Optional, default = "proton"                      |
+    |                               | the particle species                                              |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **distrType**                 | dtype = string. Optional, Default = "gauss".                      |
+    |                               | the beam distribution type. Can be either gauss or gausstwiss.    |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **outputDir**                 | dtype=string. Optional, default = "gmad"                          |
+    |                               | the output directory where the files will be written              |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **debug**                     | dtype = bool. Optional, default = False                           |
+    |                               | output a log file (inputfile_conversion.log) detailing the        |
+    |                               | conversion process, element by element                            |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **dontSplit**                 | dtype = bool. Optional, default = False                           |
+    |                               | the converter splits the machine into multiple parts when a beam  |
+    |                               | is redefined in a Transport lattice. dontSplit overrides this and |
+    |                               | forces the machine to be written to a single file                 |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **keepName**                  | dtype = bool. Optional, default = False                           |
+    |                               | keep the names of elements as defined in the Transport inputfile  |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **combineDrifts**             | dtype = bool. Optional, default = False                           |
+    |                               | combine multiple consecutive drifts into a single drift           |
+    +-------------------------------+-------------------------------------------------------------------+
+
+    Example:
 
     >>> Transport2Gmad(inputfile)
 
-    Will output the lattice in the appropriate format.
+    Writes converted machine to disk. Reader automatically detects if the supplied input file is a Transport input
+    file or Transport output file.
 
-    Parameters:
-
-    particle: string
-        The particle type, default = 'proton'.
-
-    debug: boolean
-        Output debug strings, default = False.
-
-    distrType: string
-        The distribution type of the beam, default = 'gauss'.
-        Can only handle 'gauss' and 'gausstwiss'. If madx output is specified,
-        the madx beam distribution is 'madx'.
-
-    gmad: boolean
-        Write the converted output into gmad format, default = True.
-
-    gmadDir: string
-        Output directory for gmad format, default = 'gmad'
-
-    madx: boolean
-        write the converted output into madx format, dafault = False.
-
-    madxDir: string
-        Output directory for madx format, default = 'madx'
-
-    auto: boolean
-        Automatically convert and output the file, default = True.
-
-    keepName: boolean
-        Keep original element name if present, default = False
-
-    combineDrifts: boolean
-        Combine consecutive drifts into a single drift, default = False
-
-    outlog: boolean
-        Output stream to a log file, default = True
     """
     # Explicitly specify. Auto is set to True to automatically convert, but is not an input argument. No madx conversion.
     _Convert(inputfile=inputfile, particle=particle, debug=debug, distrType=distrType, gmadDir=outputDir,
@@ -82,7 +76,9 @@ class _Convert(_Elements):
             self.Transport2Gmad()
 
     def LoadFile(self, inputfile):
-        # load file automatically
+        """
+        Load a Transport file.
+        """
         temp = _Reader.Reader()
 
         if not isinstance(inputfile, _np.str):
@@ -94,8 +90,8 @@ class _Convert(_Elements):
         isOutput = _General.CheckIsOutput(inputfile)  # Is a TRANSPORT standard output file.
         self.Writer.DebugPrintout("File Read.")
         if isOutput:
-            lattice, output = temp._getLatticeAndOptics(inputfile)
-            fits, fitres = temp._getFits(inputfile)
+            lattice, output = temp.GetLatticeAndOptics(inputfile)
+            fits, fitres = temp.GetFits(inputfile)
             self.Transport = _General.OutputFitsToRegistry(self.Transport, fitres)
             self.Writer.DebugPrintout('Adding any fitting output to the fitting registry (self.FitRegistry)')
 
@@ -162,7 +158,7 @@ class _Convert(_Elements):
 
     def Transport2Gmad(self):
         """
-        Function to convert TRANSPORT file on a line by line basis.
+        Convert, process, and write.
         """
         self.LoadFile(self.Transport.convprops.file)
 
@@ -372,7 +368,7 @@ class _Convert(_Elements):
         """
         Function that loops over the lattice, adds the elements to the element registry,
         and updates any elements that have fitted parameters.
-        It then converts the registry elements into pybdsim format and add to the pybdsim builder.
+        It then converts the registry elements and adds to the gmad machine.
         """
         self.Writer.DebugPrintout('Processing tokenised lines from input file and adding to element registry.\n')
 
