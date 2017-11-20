@@ -3,7 +3,13 @@ Converts ROOT histogram to matplotlib figure
 """
 
 import matplotlib.pyplot as _plt
+import matplotlib.cm as _cm
 import numpy as _np
+import matplotlib.ticker as _ticker
+from matplotlib.colors import LogNorm
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
 
 '''
 Wrapper classes for ROOT data to be plotted properly in matplotlib
@@ -36,6 +42,10 @@ class TH1 :
         self.labelX = hist.GetXaxis().GetTitle()
         self.labelY = hist.GetYaxis().GetTitle()
 
+        #Extract statistics box data
+        self.mean  = hist.GetMean()
+        self.stdev = hist.GetStdDev()
+
         # extract data
         nbinsx   = hist.GetNbinsX()
         self.entries   = hist.GetEntries()
@@ -45,10 +55,6 @@ class TH1 :
         self.highedge = _np.zeros(nbinsx)
         self.contents = _np.zeros(nbinsx)
         self.errors   = _np.zeros(nbinsx)
-
-        #Extract statistics box data
-        self.mean  = hist.GetMean()
-        self.stdev = hist.GetStdDev()
 
         for i in range(nbinsx):
             self.widths[i]   = hist.GetXaxis().GetBinWidth(i)
@@ -77,10 +83,10 @@ class TH1 :
         self._StatBox()
 
         if logx or logy:
-            self._LogAxes(logx, logy)
+            _LogAxes(logx, logy)
 
         if outputfilename != None:
-            self._SaveFigure(outputfilename)
+            _SaveFigure(outputfilename)
 
     def PlotPlot(self):
         _plt.plot(self.centres,self.contents)
@@ -100,80 +106,18 @@ class TH1 :
 
     def _StatBox(self):
         _plt.plot([],[], linestyle="None", label=self.title)
-        _plt.plot([],[], linestyle="None", label=r"Entries".ljust(15)+self._LegNum(self.entries))
-        _plt.plot([],[], linestyle="None", label=r"Mean".ljust(15)+self._LegNum(self.mean))
-        _plt.plot([],[], linestyle="None", label=r"Std Dev".ljust(14)+self._LegNum(self.stdev))
+        _plt.plot([],[], linestyle="None", label=r"Entries".ljust(15)+_LegNum(self.entries))
+        _plt.plot([],[], linestyle="None", label=r"Mean".ljust(15)+_LegNum(self.mean))
+        _plt.plot([],[], linestyle="None", label=r"Std Dev".ljust(14)+_LegNum(self.stdev))
         leg = _plt.legend(loc=1, frameon=True, edgecolor="k",
-                    handlelength=0.05, fontsize="x-small")
+                    handlelength=0.05, fontsize="xx-small")
         if leg:
             leg.draggable(True,update='bbox')
 
-    def _LogAxes(self, x=False, y=False):
-        ax = _plt.gca()
-        if x:
-            ax.set_xscale("log")
-        if y:
-            ax.set_yscale("log")
-
-    def _LegNum(self, number):
-        n = number #shortcut
-        l = str(n)
-
-        if "e" in l:              #Numbers that are already in scientific notation
-            ln  = l.split("e")[0]
-            le  = l.split("e")[1]
-            try:
-                lnr = ln[:7]
-            except:
-                lnr = ln
-
-            nas = lnr+r"x10$^{"+le+r"}$"
-
-        elif n > 1.e6:             #Large numbers (eg. 2375)
-            if l[:-1][-1]==("."):  #Take into account trailing .0s (eg. 2375.0)
-                ll = len(l)-2
-            else:
-                ll = len(l)        #ll is the power of 10 (e.g 3)
-            lf = l[0]              #The first number will be the integer base (eg. 2)
-            try:
-                ls = l[1:6]        #Get the fractional base (e.g 375)
-            except:
-                ls = l[1:]
-            if not ls:             #Or add a zero if no fractional base
-                ls = "0"
-            nas = lf+r"."+ls+r"x10$^{"+str(ll-1)+r"}$" #Put a decimal point and a power of 10
-
-        elif n < 1.e-6:               #Small numbers (eg. 0.0000456)
-            lsp  = l.split(".")[1]    #Get digits after the decimal point
-            lr   = lsp.split("0")[-1]         #Get the part with no leading zeros (e.g 456)
-            nz   = len(lsp.split("0")[-1])-1  #Count the leading zeros
-            lf   = lr[0]                      #Get the desired integer base
-
-            try:
-                ls   = lr[1:6]     #Geth the fractional base
-            except:
-                ls   = lr[1:]
-            if not ls:
-                ls = "0"           #If no fractional base add a zero
-            nas  = lf+r"."+ls+r"x10$^{-"+str(nz+2)+r"}$" #Put decimal point and neg power of 10
-        else:
-            try:
-                nas = l[:7]        #If number is small/big enough print without alteration
-            except:
-                nas = l
-
-        return nas.ljust(11)
-
-    def _SaveFigure(self, outputfilename):
-        if '.' in outputfilename:
-            outputfilename = outputfilename.split('.')[0]
-        _plt.savefig(outputfilename+'.pdf')
-        #_plt.savefig(outputfilename+'.png')
 
 
 class TH2 :
     # TODO : TH2 Deal with under/overflows properly
-    # TODO : TH2 Equivalent of statistics box
     def __init__(self,hist):
         self.hist   = hist
 
@@ -183,8 +127,13 @@ class TH2 :
         self.labelX = hist.GetXaxis().GetTitle()
         self.labelY = hist.GetYaxis().GetTitle()
 
-        # extract data
+        #Extract statistics box data
+        self.meanx  = hist.GetMean(1)
+        self.stdevx = hist.GetStdDev(1)
+        self.meany  = hist.GetMean(2)
+        self.stdevy = hist.GetStdDev(2)
 
+        # extract data
         nbinsx   = hist.GetNbinsX()
         nbinsy   = hist.GetNbinsY()
         self.entries   = hist.GetEntries()
@@ -216,11 +165,139 @@ class TH2 :
                 self.contents[i,j] = hist.GetBinContent(i+1,j+1)
                 self.errors[i,j]   = hist.GetBinError(i+1,j+1)
 
-    def Plot(self):
-        pass
+    def Plot(self, logx=False, logy=False, logz=False, cmap="jet", axlabels=None, outputfilename=None):
+        _plt.figure(num=1, figsize=(12,6), facecolor="w", edgecolor="w")
 
-    def PlotColz(self):
+        self.PlotColz(logx,logy, logz, cmap, axlabels) #In the future there may be other plotting options
+
+        #self._SetLabels(axlabels) #TODO: Make the label setting more robust
+        self._StatBox()
+
+        if outputfilename != None:
+            _SaveFigure(outputfilename)
+
+    def PlotColz(self, logx=False, logy=False, logz=False, cmap="jet", axlabels=None):
+        _plt.figure(num=1, figsize=(12,6), facecolor="w", edgecolor="w")
+        ax = _plt.gca()
+        if axlabels:
+            _plt.xlabel(axlabels[0])
+            _plt.ylabel(axlabels[1])
+
         xx, yy = _np.meshgrid(self.xcentres,self.ycentres)
-        _plt.rcParams['image.cmap'] = 'coolwarm'
-        _plt.pcolormesh(xx,yy,self.contents)
-        # _plt.colorbar()
+        ccmap = _cm.get_cmap(cmap, 20)
+        cts = self.contents #shortcut
+        if logz:
+            _plt.pcolormesh(xx,yy,cts, cmap=ccmap, norm=LogNorm(vmin=1, vmax=cts.max()))
+            pdx = 0.005*(xx.max()-xx.min())
+            pdy = 0.005*(yy.max()-yy.min())
+            _plt.axis([xx.min()-pdx, xx.max()+pdx, yy.min()-pdy, yy.max()+pdy])
+            ax=_plt.gca()
+            if logx:
+                ax.set_xscale("log")
+            if logy:
+                ax.set_yscale("log")
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            cb = _plt.colorbar(cax=cax,format=_ticker.FuncFormatter(_fmtCbar),ticks=_ticker.LogLocator())
+        else:
+            _plt.pcolormesh(xx,yy,cts)
+            cb = _plt.colorbar(format=_ticker.FuncFormatter(_fmtCbar),ticks=_ticker.LogLocator())
+
+        cb.ax.tick_params(labelsize="xx-small")
+
+    def _SetLabels(self, axlabels):
+        if axlabels:
+            _plt.xlabel(axlabels[0])
+            _plt.ylabel(axlabels[1])
+        else:
+            _plt.xlabel(self.labelX)
+            _plt.ylabel(self.labelY)
+
+    def _StatBox(self):
+        _plt.plot([],[], linestyle="None", label=self.title)
+        _plt.plot([],[], linestyle="None", label=r"Entries".ljust(15)+_LegNum(self.entries))
+        _plt.plot([],[], linestyle="None", label=r"Mean x".ljust(15)+_LegNum(self.meanx))
+        _plt.plot([],[], linestyle="None", label=r"Mean y".ljust(15)+_LegNum(self.meany))
+        _plt.plot([],[], linestyle="None", label=r"Std Dev x".ljust(14)+_LegNum(self.stdevx))
+        _plt.plot([],[], linestyle="None", label=r"Std Dev y".ljust(14)+_LegNum(self.stdevy))
+        leg = _plt.legend(bbox_to_anchor=(0.68, 0.62), bbox_transform=_plt.gcf().transFigure,
+                          loc="lower left", frameon=True, edgecolor="k", handlelength=0.05,
+                          fontsize="xx-small", framealpha=1)
+        #if leg:
+        #    leg.draggable(True, update='loc')
+        #leg.set_zorder(20)
+
+#Unbound utility functions
+def _LogAxes(x=False, y=False):
+    ax = _plt.gca()
+    if x:
+        ax.set_xscale("log")
+    if y:
+        ax.set_yscale("log")
+
+def _LegNum(number): #TODO: make more elegant with string formatting
+    n = number #shortcut
+    l = str(n)
+
+    if "e" in l:              #Numbers that are already in scientific notation
+        ln  = l.split("e")[0]
+        le  = l.split("e")[1]
+        try:
+            lnr = ln[:7]
+        except:
+            lnr = ln
+
+        nas = lnr+r"x10$^{"+le+r"}$"
+
+    elif n > 1.e6:             #Large numbers (eg. 2375)
+        if l[:-1][-1]==("."):  #Take into account trailing .0s (eg. 2375.0)
+            ll = len(l)-2
+        else:
+            ll = len(l)        #ll is the power of 10 (e.g 3)
+        lf = l[0]              #The first number will be the integer base (eg. 2)
+        try:
+            ls = l[1:6]        #Get the fractional base (e.g 375)
+        except:
+            ls = l[1:]
+        if not ls:             #Or add a zero if no fractional base
+            ls = "0"
+        nas = lf+r"."+ls+r"x10$^{"+str(ll-1)+r"}$" #Put a decimal point and a power of 10
+
+    elif n < 1.e-6:               #Small numbers (eg. 0.0000456)
+        lsp  = l.split(".")[1]    #Get digits after the decimal point
+        lr   = lsp.split("0")[-1]         #Get the part with no leading zeros (e.g 456)
+        nz   = len(lsp.split("0")[-1])-1  #Count the leading zeros
+        lf   = lr[0]                      #Get the desired integer base
+
+        try:
+            ls   = lr[1:6]     #Geth the fractional base
+        except:
+            ls   = lr[1:]
+        if not ls:
+            ls = "0"           #If no fractional base add a zero
+        nas  = lf+r"."+ls+r"x10$^{-"+str(nz+2)+r"}$" #Put decimal point and neg power of 10
+
+    else:
+        try:
+            nas = l[:7]        #If number is small/big enough print without alteration
+        except:
+            nas = l
+
+    return nas.ljust(11)
+
+
+def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
+    if float(x) == 1.0:
+        fst = r"$1$" #For a histogram valuesa smalled that 1 are set to 0
+    else:            #Such values are set as dummies to allow log plots
+        a, b = '{:.0e}'.format(x).split('e')
+        b = int(b)
+        fst = r'$10^{{{}}}$'.format(b)
+    return fst
+
+def _SaveFigure(outputfilename):
+    if '.' in outputfilename:
+        outputfilename = outputfilename.split('.')[0]
+    _plt.savefig(outputfilename+'.pdf')
+    #_plt.savefig(outputfilename+'.png')
+
