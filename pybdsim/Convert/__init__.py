@@ -28,6 +28,14 @@ except ImportError:
     #warnings.warn(msg)
     #del warnings
 
+try:
+    from _Transport2Gmad import Transport2Gmad
+except ImportError:
+    import warnings
+    msg = "Missing pytransport dependency.  TRANSPORT conversion facilities excluded."
+    warnings.warn(msg)
+    del warnings
+
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Ptc
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Madx
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Mad8
