@@ -9,6 +9,7 @@ of BDSIM models.
 
    licence
    authorship
+   installation
    builder
    convert
    compare	     
