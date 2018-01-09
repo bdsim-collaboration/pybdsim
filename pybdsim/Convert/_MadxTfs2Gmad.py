@@ -165,7 +165,6 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     # test whether filepath or tfs instance supplied
     madx = _pymadx.Data.CheckItsTfs(tfs)
 
-    izlis  = ignorezerolengthitems
     factor = 1
     if flipmagnets != None:
         factor = -1 if flipmagnets else 1  #flipping magnets
@@ -263,18 +262,18 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             a.AddTKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
-            if zerolength and not izlis:
+            if zerolength and not ignorezerolengthitems:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of instrument'
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MARKER':
-            if not izlis:
+            if not ignorezerolengthitems:
                 a.AddMarker(rname)
         elif t == 'MONITOR':
             #most monitors are just markers
-            if zerolength and not izlis:
+            if zerolength and not ignorezerolengthitems:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of monitor'
@@ -300,7 +299,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                                    knl=(k1, k2, k3, k4, k5, k6),
                                    ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
                                    **kws)
-            elif zerolength and not izlis:
+            elif zerolength and not ignorezerolengthitems:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of multipole'
@@ -412,7 +411,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             a.AddDrift(rname,l,**kws)
         else:
             print 'unknown element type:', t, 'for element named: ', name
-            if zerolength and not izlis:
+            if zerolength and not ignorezerolengthitems:
                 print 'putting marker in instead as its zero length'
                 a.AddMarker(rname)
             else:
