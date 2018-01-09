@@ -531,14 +531,15 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
-    
-    if startname == None:
+
+    if startname is None:
         startindex = 0
-    elif type(startname) == int:
-        startindex = startname
     else:
-        startindex = tfs.IndexFromName(startname)
-        
+        try:
+            startindex = tfs.IndexFromName(startname)
+        except ValueError: # Then assume it's already an index.
+            startindex = startname
+
     #MADX defines parameters at the end of elements so need to go 1 element
     #back if we can.
 
