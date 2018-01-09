@@ -285,7 +285,10 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             tilt= item['TILT']
 
             if thinmultipoles and not linear :
-                a.AddThinMultipole(name, knl=(k1,k2,k3,k4,k5,k6), ksl=(k1s,k2s,k3s,k4s,k5s,k6s),**kws)
+                a.AddThinMultipole(name,
+                                   knl=(k1, k2, k3, k4, k5, k6),
+                                   ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
+                                   **kws)
             elif zerolength and not izlis:
                 a.AddMarker(rname)
                 if verbose:
