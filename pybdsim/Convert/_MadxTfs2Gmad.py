@@ -317,7 +317,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             e2    = item['E2']
             fint  = item['FINT']
             fintx = item['FINTX']
-            hgap  = item['HGAP']
+            hgap = item.get('HGAP', 0.0)
+
             if (e1 != 0):
                 kws['e1'] = e1
             if (e1 != 0):
@@ -371,7 +372,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             fint  = item['FINT']
             fintx = item['FINTX']
             k1l   = item['K1L']
-            hgap  = item['HGAP']
+            hgap = item.get('HGAP', 0.0)
             if (e1 != 0):
                 kws['e1'] = e1
             if (e2 != 0):
