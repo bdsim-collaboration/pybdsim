@@ -214,9 +214,14 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         if tilt != 0:
             kws['tilt'] = tilt
 
-        # append any user defined parameters for this element into the kws dictionary
+        # append any user defined parameters for this element into the
+        # kws dictionary
+
+        # name appears in the madx.  try this first.
         if name in userdict:
             kws.update(userdict[name])
+        elif rname in userdict: # rname appears in the gmad
+            kws.update(userdict[rname])
 
         if verbose:
             print 'Full set of key word arguments:'
