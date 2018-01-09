@@ -174,12 +174,16 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 flipmagnets = True
                 print 'Detected electron in TFS file - changing flipmagnets to True'
 
-    if type(biases) == XSecBias.XSecBias:
+    if isinstance(biases, XSecBias.XSecBias):
         a.AddBias(biases)
         b.AddBias(biases)
-    elif type(biases) == list:
-        [a.AddBias(bias) for bias in biases]
-        [b.AddBias(bias) for bias in biases]
+    else:
+        try:
+            [a.AddBias(bias) for bias in biases]
+            [b.AddBias(bias) for bias in biases]
+        except TypeError:
+            raise TypeError("Unknown biases!  Biases must be a XSecBias"
+                            "instance or an iterable of XSecBias instances.")
 
     # define utility function that does conversion
     def AddSingleElement(item, a, aperModel=None):
