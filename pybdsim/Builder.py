@@ -177,17 +177,15 @@ class Element(ElementBase):
             self.length += float(ll)
 
     def __repr__(self):
-        s = ''
-        s += self.name + ': '
-        s += self.category
-        if len(self._keysextra) > 0:
+        s = "{}: {}".format(self.name, self.category)
+        if self._keysextra:
             for key in self._keysextra:
                 if type(self[key]) == tuple and (self.category != 'thinmultipole') and (self.category != 'multipole'):
                     s += ', ' + key + '=' + str(self[key][0]) + '*' + str(self[key][1])
                 elif type(self[key]) == tuple and ((self.category == 'thinmultipole') or (self.category == 'multipole')):
                     s += ', ' + key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
                 else:
-                    s += ', ' + key + '=' + str(self[key])
+                    s += ", {}={}".format(key, self[key])
         s += ';\n'
         return s
 
@@ -576,8 +574,9 @@ class Machine:
             self.AddMarker(name)
         else:
             self.Append(Element(name,'drift',l=length,**kwargs))
-          
-    def AddDipole(self, name='dp', category='sbend', length=0.1, angle=None, b=None, **kwargs):
+
+    def AddDipole(self, name='dp', category='sbend', length=0.1,
+                  angle=None, b=None, **kwargs):
         """
         AddDipole(category='sbend')
 
@@ -587,7 +586,7 @@ class Machine:
         if category not in ['sbend','rbend']:
             s = 'Invalid category ' + category
             raise ValueError(s)
-        if (angle==None) and (b==None):
+        if angle is None and b is None:
             raise TypeError('angle or b must be specified for a dipole')
         elif angle != None:
             self.Append(Element(name,category,l=length,angle=angle,**kwargs))
