@@ -38,7 +38,8 @@ def ZeroMissingRequiredColumns(tfsinstance):
                        "\nThey have ALL been set to ZERO!")
 
 
-def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
+
+def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  ignorezerolengthitems=True, thinmultipoles=True, samplers='all',
                  aperturedict={},
                  collimatordict={},
@@ -48,13 +49,14 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                  defaultAperture='circular',
                  biases=None,
                  allelementdict={},
-                 optionsDict = {},
-                 linear = False):
+                 optionsDict={},
+                 linear=False,
+                 splitAt=None):
     """
-    **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
+    **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
     +-------------------------------+-------------------------------------------------------------------+
-    | **inputfilename**             | path to the input file                                            |
+    | **tfs**                       | path to the input tfs file or pymadx.Data.Tfs instance            |
     +-------------------------------+-------------------------------------------------------------------+
     | **outputfilename**            | requested output file                                             |
     +-------------------------------+-------------------------------------------------------------------+
@@ -160,8 +162,8 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     a = _Builder.Machine() # raw converted machine
     b = _Builder.Machine() # final machine, split with aperture
 
-    # test whether filpath or tfs instance supplied
-    madx = _pymadx.Data.CheckItsTfs(input)
+    # test whether filepath or tfs instance supplied
+    madx = _pymadx.Data.CheckItsTfs(tfs)
 
     izlis  = ignorezerolengthitems
     factor = 1
