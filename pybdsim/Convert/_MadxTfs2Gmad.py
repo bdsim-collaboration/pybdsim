@@ -49,8 +49,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  biases=None,
                  allelementdict={},
                  optionsDict={},
-                 linear=False,
-                 splitAt=None):
+                 linear=False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
