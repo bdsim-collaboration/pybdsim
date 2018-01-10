@@ -44,7 +44,6 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  aperturedict={},
                  collimatordict={},
                  userdict={},
-                 beampiperadius=5.0,
                  verbose=False, beam=True, flipmagnets=None, usemadxaperture=False,
                  defaultAperture='circular',
                  biases=None,
@@ -105,9 +104,6 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     |                               | have keys matching the exact element name in the Tfs file and     |
     |                               | contain a dictionary itself with key, value pairs of parameters   |
     |                               | and values to be added to that particular element.                |
-    +-------------------------------+-------------------------------------------------------------------+
-    | **beampiperadius**            | In metres.  Default beam pipe radius and collimator setting if    |
-    |                               | unspecified.                                                      |
     +-------------------------------+-------------------------------------------------------------------+
     | **verbose**                   | Print out lots of information when building the model.            |
     +-------------------------------+-------------------------------------------------------------------+
@@ -518,7 +514,6 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
         b.AddBeam(bm)
 
     options = _Options()
-    options.SetBeamPipeRadius(beampiperadius,unitsstring='cm')
     if (len(optionsDict) > 0):
         options.update(optionsDict) # expand with user supplied bdsim options
     a.AddOptions(options)
