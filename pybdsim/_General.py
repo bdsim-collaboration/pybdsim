@@ -85,10 +85,7 @@ def IsSurvey(file):
     else:
         raise IOError("Unknown input type - not BDSIM data")
 
-    if machine.names.count('SStart') != 0:
-        return True
-    else:
-        return False
+    return machine.names.count('SStart') != 0
 
 def IsRootFile(path):
     """Check if input is a ROOT file."""
