@@ -186,7 +186,8 @@ class Writer():
         #for any include lines that will be written in the main file.
         self._sectionsToBeWritten = []
 
-    def WriteMachine(self,machine, filename, singlefile = False, verbose = True, summary=True):
+    def WriteMachine(self,machine, filename, singlefile=False,
+                     verbose=True, summary=True, overwrite=True):
         """
         WriteMachine(machine(machine),filename(string),singlefile(bool),verbose(bool))
         
@@ -209,17 +210,21 @@ class Writer():
         | filename.gmad             | suitable main file with all sub        |
         |                           | files in correct order                 |
         +---------------------------+----------------------------------------+
-                          
+
         These are prefixed with the specified filename / path
 
-        The optional bool singlefile = True will write all the above sections 
+        The optional bool singlefile = True will write all the above sections
         into a single file:
-        
+
         filename.gmad
-        
+
+        kwargs:
+        overwrite : Do not append an integer to the basefilename if
+        already exists, instead overwrite existing files.
+
         """
-        self._checkFiles(filename)
-        
+        self._checkFiles(filename, overwrite)
+
         if singlefile:
             #set all sections to write in the main file
             self.Components.WriteInMain()
@@ -527,16 +532,17 @@ class Writer():
         if not isinstance(machine,_Builder.Machine):
             raise TypeError("Not a machine instance")
 
-    def _checkFiles(self,filename):
+    def _checkFiles(self,filename, overwrite=True):
         filename = self._checkExtensionAndPath(filename)
-    
-        #check if file already exists
-        ofilename = filename
-        filename = _General.GenUniqueFilename(filename)
-        if filename != ofilename:
-            print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
-        basefilename = filename[:-5] #everything before '.gmad'
 
+        if not overwrite:
+            #check if file already exists
+            originalFilename = filename
+            filename = _General.GenUniqueFilename(filename)
+            if filename != originalFilename:
+                print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
+
+        basefilename = filename[:-5] #everything before '.gmad'
         #new default section names
         self._defaultSectionFilenames['components'] = basefilename + '_components.gmad'
         self._defaultSectionFilenames['sequence']   = basefilename + '_sequence.gmad'

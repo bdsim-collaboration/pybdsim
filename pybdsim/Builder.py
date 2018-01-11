@@ -523,9 +523,14 @@ class Machine:
                 pass
             ielement += 1
 
-    def Write(self,filename,verbose=False):
+    def Write(self, filename, verbose=False, overwrite=True):
         """
         Write the machine to a series of gmad files.
+
+        kwargs:
+        overwrite : Do not append an integer to the basefilename if
+        already exists, instead overwrite existing files.
+
         """
         if self.sr :
             self.SynchrotronRadiationRescale()

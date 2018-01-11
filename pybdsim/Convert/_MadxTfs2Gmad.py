@@ -49,7 +49,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  biases=None,
                  allelementdict={},
                  optionsDict={},
-                 linear=False):
+                 linear=False,
+                 overwrite=True):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -137,7 +138,10 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     +-------------------------------+-------------------------------------------------------------------+
     | **linear**                    | Only linear optical components                                    |
     +-------------------------------+-------------------------------------------------------------------+
-    
+    | **overwrite**                 | Do not append an integer to the base file name if it already      |
+    |                               | exists.  Instead overwrite the files.                             |
+    +-------------------------------+-------------------------------------------------------------------+
+
     Example:
 
     >>> a,o = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
@@ -518,9 +522,9 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     a.AddOptions(options)
     b.AddOptions(options)
 
-    b.Write(outputfilename)
+    b.Write(outputfilename, overwrite=overwrite)
     if verbose:
-        a.Write(outputfilename+"_raw")
+        a.Write(outputfilename + "_raw", overwrite=overwrite)
         print 'Total length: ',a.GetIntegratedLength()
         print 'Total angle:  ',a.GetIntegratedAngle()
         print 'items omitted: '
