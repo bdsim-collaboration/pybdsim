@@ -11,6 +11,8 @@ import os
 import pybdsim.Data
 import re as _re
 import numpy as _np
+import subprocess
+import uuid
 
 def GenUniqueFilename(filename):
     i = 1
@@ -92,3 +94,59 @@ def IsRootFile(path):
     # First four bytes of a ROOT file is the word "root"
     with open(path, "rb") as f:
         return f.read()[:4] == "root"
+
+def RunBdsim(gmadpath, outfile, ngenerate=10000, batch=True,
+             silent=False, options=None):
+    """Runs bdsim with gmadpath as inputfile and outfile as outfile.
+    Runs in batch mode by default, with 10,000 particles.  Any extra
+    options should be provided as a string or iterable of strings of
+    the form "--vis_debug" or "--vis_mac=vis.mac", etc.
+
+    """
+    args = ["bdsim",
+            "--file={}".format(gmadpath),
+            "--outfile={}".format(outfile),
+            "--ngenerate={}".format(ngenerate)]
+    if batch:
+        args.append("--batch")
+
+    if isinstance(options, basestring):
+        args.append(options)
+    elif options is not None:
+        args.extend(options)
+
+    if not silent:
+        return subprocess.call(args)
+    else:
+        return subprocess.call(args, stdout=open(os.devnull, 'wb'))
+
+def RunRebdsimOptics(rootpath, outpath, silent=False):
+    """Run rebdsimOptics"""
+    if not IsRootFile(rootpath):
+        raise IOError("Not a ROOT file")
+    if not silent:
+        return subprocess.call(["rebdsimOptics", rootpath, outpath])
+    else:
+        return subprocess.call(["rebdsimOptics", rootpath, outpath],
+                               stdout=open(os.devnull, 'wb'))
+
+def GetOptics(gmad, write_optics=False):
+    """Run the input gmadfile, and get the optics from the output as a
+    BDSAsciiData instance.  If write_optics is true then the rebdsim
+    optics file will be kept."""
+    tmpdir = "/tmp/pybdsim-get-optics-{}/".format(uuid.uuid4())
+    gmadname = os.path.splitext(os.path.basename(gmad))[0]
+    os.mkdir(tmpdir)
+
+    RunBdsim(gmad,
+             "{}/{}".format(tmpdir, gmadname), silent=False,
+             ngenerate=10000)
+    bdsim_output_path = "{}/{}.root".format(tmpdir, gmadname)
+    if write_optics: # write output root file locally.
+        RunRebdsimOptics(bdsim_output_path,
+                         "./{}-optics.root".format(gmadname))
+        return pybdsim.Data.Load("./{}-optics.root".format(gmadname))
+    else: # do it in /tmp/
+        RunRebdsimOptics(bdsim_output_path,
+                         "{}/{}-optics.root".format(tmpdir, gmadname))
+        return pybdsim.Data.Load("{}/{}-optics.root".format(tmpdir, gmadname))
