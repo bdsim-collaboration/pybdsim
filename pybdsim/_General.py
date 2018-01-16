@@ -124,16 +124,17 @@ def RunRebdsimOptics(rootpath, outpath, silent=False):
     """Run rebdsimOptics"""
     if not IsRootFile(rootpath):
         raise IOError("Not a ROOT file")
-    if not silent:
-        return subprocess.call(["rebdsimOptics", rootpath, outpath])
-    else:
+    if silent:
         return subprocess.call(["rebdsimOptics", rootpath, outpath],
                                stdout=open(os.devnull, 'wb'))
+    else:
+        return subprocess.call(["rebdsimOptics", rootpath, outpath])
 
-def GetOptics(gmad, write_optics=False):
-    """Run the input gmadfile, and get the optics from the output as a
-    BDSAsciiData instance.  If write_optics is true then the rebdsim
-    optics file will be kept."""
+def GetOpticsFromGMAD(gmad, keep_optics=False):
+    """Get the optical functions as a BDSAsciiData instance from this
+    GMAD file. If keep_optics is false then all intermediate files are
+    discarded, otherwise the final optics ROOT file is written to ./
+    """
     tmpdir = "/tmp/pybdsim-get-optics-{}/".format(uuid.uuid4())
     gmadname = os.path.splitext(os.path.basename(gmad))[0]
     os.mkdir(tmpdir)
@@ -142,7 +143,7 @@ def GetOptics(gmad, write_optics=False):
              "{}/{}".format(tmpdir, gmadname), silent=False,
              ngenerate=10000)
     bdsim_output_path = "{}/{}.root".format(tmpdir, gmadname)
-    if write_optics: # write output root file locally.
+    if keep_optics: # write output root file locally.
         RunRebdsimOptics(bdsim_output_path,
                          "./{}-optics.root".format(gmadname))
         return pybdsim.Data.Load("./{}-optics.root".format(gmadname))
