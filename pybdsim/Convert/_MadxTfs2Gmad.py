@@ -177,7 +177,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     if isinstance(biases, XSecBias.XSecBias):
         a.AddBias(biases)
         b.AddBias(biases)
-    else:
+    elif biases is not None:
         try:
             [a.AddBias(bias) for bias in biases]
             [b.AddBias(bias) for bias in biases]
