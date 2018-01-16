@@ -3,8 +3,11 @@ import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile
+from matplotlib.backends.backend_pdf import PdfPages
+import datetime
 
-def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
+                postfunctions=None, figsize=(12, 5), saveAll=True):
     """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
@@ -39,21 +42,54 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, fig
     if survey is None:
         survey = tfsinst
 
-    PlotBetas(tfsopt, bdsopt, survey=survey,
-              functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotAlphas(tfsopt, bdsopt, survey=survey,
-               functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotDs(tfsopt, bdsopt, survey=survey,
-           functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotDps(tfsopt, bdsopt, survey=survey,
-            functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotSigmas(tfsopt, bdsopt, survey=survey,
-               functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotSigmasP(tfsopt, bdsopt, survey=survey,
-               functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotMeans(tfsopt, bdsopt, survey=survey,
-              functions=functions, postfunctions=postfunctions, figsize=figsize)
+    if saveAll:
+        # A4 size with quarter inch margin on sides and on top to
+        # ensure figures don't come out looking cramped and bad.
+        figsize=(11.44, 8.02)
 
+    figures = [PlotBetas(tfsopt, bdsopt, survey=survey,
+                         functions=functions,
+                         postfunctions=postfunctions,
+                         figsize=figsize),
+               PlotAlphas(tfsopt, bdsopt, survey=survey,
+                          functions=functions,
+                          postfunctions=postfunctions,
+                          figsize=figsize),
+               PlotDs(tfsopt, bdsopt, survey=survey,
+                      functions=functions,
+                      postfunctions=postfunctions,
+                      figsize=figsize),
+               PlotDps(tfsopt, bdsopt, survey=survey,
+                       functions=functions,
+                       postfunctions=postfunctions,
+                       figsize=figsize),
+               PlotSigmas(tfsopt, bdsopt, survey=survey,
+                          functions=functions,
+                          postfunctions=postfunctions,
+                          figsize=figsize),
+               PlotSigmasP(tfsopt, bdsopt, survey=survey,
+                           functions=functions,
+                           postfunctions=postfunctions,
+                           figsize=figsize),
+               PlotMeans(tfsopt, bdsopt, survey=survey,
+                         functions=functions,
+                         postfunctions=postfunctions,
+                         figsize=figsize)]
+
+    if saveAll:
+        tfsname = repr(tfsinst)
+        bdsname = repr(bdsinst)
+        output_filename = "optics-report.pdf"
+        # Should have a more descriptive name really.
+        with PdfPages(output_filename) as pdf:
+            for figure in figures:
+                pdf.savefig(figure)
+            d = pdf.infodict()
+            d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(
+                tfsname, bdsname)
+            d['CreationDate'] = datetime.datetime.today()
+
+        print "Written ", output_filename
 
 def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None, postfunctions=None):
 
