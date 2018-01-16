@@ -434,13 +434,17 @@ def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None
 def _AddSurvey(figure, survey):
     if survey is None:
         return
-    if isinstance(survey, basestring):
+    if isinstance(survey, basestring): # If BDSIM ASCII survey file
         if survey.split(".")[-1] == 'dat':
             _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
+    # If BDSIM ASCII survey instance
     elif isinstance(survey, _pybdsim.Data.BDSAsciiData):
         _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
-    elif isinstance(survey, _pymadx.Data.Tfs):
+    elif isinstance(survey, _pymadx.Data.Tfs): # If TFS
         _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
+    # if a (BDSIM) ROOT file
+    elif pybdsim._General.IsROOTFile(survey):
+        pass
 
 def _ProcessInput(tfsOptics, bdsimOptics):
 
