@@ -20,6 +20,7 @@ import matplotlib.patches as mpatches
 import subprocess
 import time
 import string as _string
+import threading
 
 try:
     from scipy.stats import binned_statistic
@@ -252,7 +253,22 @@ class LatticeTest:
         
         _pymadx.Convert.TfsToPtc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
 
-        _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --seed=1993 --output=rootevent --outfile="+self.filename+"> bdsim.log")
+        # run process through subprocess module. Safer than running BDSIM through os.system which can cause problems.
+        process = subprocess.Popen([bdsim,
+                        "--file=" + self.filename + ".gmad",
+                        "--outfile="+self.filename,
+                        "--ngenerate="+str(self.nparticles),
+                        "--batch",
+                        "--seed=1993"],
+                        stdout=open('bdsim.log', 'a'),
+                        stderr=openopen('bdsim.log', 'a'))
+
+        # Method of communicating with BDSIM process. Start and apply the timeout via joining
+        processThread = threading.Thread(target=process.communicate)
+        processThread.start()
+        processThread.join()
+
+        #_os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --seed=1993 --output=rootevent --outfile="+self.filename+"> bdsim.log")
 
         pybdsim.Convert.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
@@ -381,7 +397,13 @@ class LatticeTest:
             outfile.writelines("{:<40s}".format('emittanceOnTheFly')+'\t 1 \n')
 
         #Calculates optical functions and produces .root and .dat files for analysis 
-        _os.system(rebdsim+" "+self.filename+"_analConfig.txt")
+        #_os.system(rebdsim+" "+self.filename+"_analConfig.txt")
+        process = subprocess.Popen([rebdsim, self.filename+"_analConfig.txt"])
+
+        # Method of communicating with BDSIM process. Start and apply the timeout via joining
+        processThread = threading.Thread(target=process.communicate)
+        processThread.start()
+        processThread.join()
 
         if noPlots:
             return
