@@ -32,11 +32,11 @@ def ZeroMissingRequiredColumns(tfsinstance):
         for key, data in tfsinstance.data.iteritems():
             data.append(0.0)
 
-        warningString = "\n- ".join(missingColumns)
-        _warnings.warn("\n\x1b[0;37;41mWARNING:"
-                       "Columns missing from TFS file:\x1b[0m\n- " +  warningString +
-                       "\nThey have ALL been set to ZERO!")
-
+    missingColsString = ", ".join(["\"{}\"".format(col)
+                                   for col in missingColumns])
+    msg = ("Columns missing from TFS: {}.  All have been set"
+           " to zero.").format(missingColsString)
+    print msg
 
 
 def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
