@@ -179,11 +179,17 @@ class Element(ElementBase):
     def __repr__(self):
         s = "{}: {}".format(self.name, self.category)
         if self._keysextra:
-            for key in self._keysextra:
-                if type(self[key]) == tuple and (self.category != 'thinmultipole') and (self.category != 'multipole'):
-                    s += ', ' + key + '=' + str(self[key][0]) + '*' + str(self[key][1])
-                elif type(self[key]) == tuple and ((self.category == 'thinmultipole') or (self.category == 'multipole')):
-                    s += ', ' + key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
+            for key in sorted(self._keysextra):
+                if (type(self[key]) == tuple
+                    and (self.category != 'thinmultipole')
+                    and (self.category != 'multipole')):
+                    s += (', ' + key + '=' + str(self[key][0])
+                          + '*' + str(self[key][1]))
+                elif (type(self[key]) == tuple
+                      and ((self.category == 'thinmultipole')
+                           or (self.category == 'multipole'))):
+                    s += (', ' + key + '=' + '{'
+                          + (','.join([str(s) for s in self[key]]))+'}')
                 else:
                     s += ", {}={}".format(key, self[key])
         s += ';\n'
