@@ -220,7 +220,7 @@ class Lattice(object):
 
     def __getitem__(self,index):
         if type(index) == str:
-            ind = GetIndexOfElementNamed(index)
+            ind = self.GetIndexOfElementNamed(index)
             return self.lattice[ind]
         else:
             return self.lattice[index]
