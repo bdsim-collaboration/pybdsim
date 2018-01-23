@@ -50,7 +50,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  allelementdict={},
                  optionsDict={},
                  linear=False,
-                 overwrite=True):
+                 overwrite=True,
+                 allNamesUnique=False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -141,6 +142,11 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     | **overwrite**                 | Do not append an integer to the base file name if it already      |
     |                               | exists.  Instead overwrite the files.                             |
     +-------------------------------+-------------------------------------------------------------------+
+    | **allNamesUnique              | Treat every row in the TFS file/instance as a unique element.     |
+    |                               | This makes it easier to edit individual components as they are    |
+    |                               | guaranteed to appear only once in the entire resulting GMAD       |
+    |                               | lattice.                                                          |
+    +-------------------------------+-------------------------------------------------------------------+
 
     Example:
 
@@ -216,7 +222,9 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
 
         name  = item['NAME']
         # remove special characters like $, % etc 'reduced' name - rname:
-        rname = pybdsim._General.PrepareReducedName(name)
+        rname = pybdsim._General.PrepareReducedName(name
+                                                    if not allNamesUnique
+                                                    else item["UNIQUENAME"])
         t     = item['KEYWORD']
         l     = item['L']
         ang   = item['ANGLE']
