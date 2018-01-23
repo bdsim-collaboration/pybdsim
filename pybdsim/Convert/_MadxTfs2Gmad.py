@@ -178,9 +178,9 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     # If we have collimators but no collimator dict then inform that
     # they will be converted to drifts.  should really check
     # tfs[startname..]
-    if (("RCOLLIMATOR" in tfs.GetColumn("APERTYPE")
-        or "ECOLLIMATOR" in tfs.GetColumn("APERTYPE"))
-         and not collimatordict):
+    if (("RCOLLIMATOR" in madx.GetColumn("APERTYPE")
+        or "ECOLLIMATOR" in madx.GetColumn("APERTYPE"))
+        and not collimatordict):
         warning.warn("No collimatordict provided.  ALL collimators"
                      " will be converted to DRIFTs.")
 
