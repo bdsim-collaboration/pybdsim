@@ -92,7 +92,7 @@ class TH1 :
         _plt.plot(self.centres,self.contents)
 
     def PlotErrorbar(self, edgecolor='none', color='b', label=''):
-        _plt.errorbar(self.centres,self.contents, self.errors, color=color, label=label)
+        _plt.errorbar(self.centres, self.contents, self.errors, color=color, label=label, fmt='.')
 
     def PlotBar(self, edgecolor='none', color='b', label=''):
         _plt.bar(self.lowedge, self.contents, self.widths, edgecolor=edgecolor, color=color, label=label)
