@@ -32,11 +32,11 @@ def ZeroMissingRequiredColumns(tfsinstance):
         for key, data in tfsinstance.data.iteritems():
             data.append(0.0)
 
-        warningString = "\n- ".join(missingColumns)
-        _warnings.warn("\n\x1b[0;37;41mWARNING:"
-                       "Columns missing from TFS file:\x1b[0m\n- " +  warningString +
-                       "\nThey have ALL been set to ZERO!")
-
+    missingColsString = ", ".join(["\"{}\"".format(col)
+                                   for col in missingColumns])
+    msg = ("Columns missing from TFS: {}.  All have been set"
+           " to zero.").format(missingColsString)
+    print msg
 
 
 def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
@@ -173,6 +173,16 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             if particleName == "ELECTRON":
                 flipmagnets = True
                 print 'Detected electron in TFS file - changing flipmagnets to True'
+
+
+    # If we have collimators but no collimator dict then inform that
+    # they will be converted to drifts.  should really check
+    # tfs[startname..]
+    if (("RCOLLIMATOR" in tfs.GetColumn("APERTYPE")
+        or "ECOLLIMATOR" in tfs.GetColumn("APERTYPE"))
+         and not collimatordict):
+        warning.warn("No collimatordict provided.  ALL collimators"
+                     " will be converted to DRIFTs.")
 
     if isinstance(biases, XSecBias.XSecBias):
         a.AddBias(biases)
@@ -370,6 +380,13 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                         a.AddRCol(rname,l,xsize,ysize,**kws)
                     else:
                         a.AddECol(rname,l,xsize,ysize,**kws)
+            # if user provided an incomplete collimatordict.
+            elif collimatordict != {}:
+                msg = ("{} {} not found in collimatordict."
+                       " Will instead convert to a DRIFT!".format(t, name))
+                _warnings.warn(msg)
+                a.AddDrift(rname,l)
+            # if user didn't provide a collimatordict at all.
             else:
                 a.AddDrift(rname,l)
         elif t == 'RFCAVITY':
