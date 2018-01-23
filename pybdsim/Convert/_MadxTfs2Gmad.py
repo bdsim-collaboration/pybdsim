@@ -50,7 +50,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  allelementdict={},
                  optionsDict={},
                  linear=False,
-                 overwrite=True):
+                 overwrite=True,
+                 allNamesUnique=False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -141,6 +142,11 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     | **overwrite**                 | Do not append an integer to the base file name if it already      |
     |                               | exists.  Instead overwrite the files.                             |
     +-------------------------------+-------------------------------------------------------------------+
+    | **allNamesUnique              | Treat every row in the TFS file/instance as a unique element.     |
+    |                               | This makes it easier to edit individual components as they are    |
+    |                               | guaranteed to appear only once in the entire resulting GMAD       |
+    |                               | lattice.                                                          |
+    +-------------------------------+-------------------------------------------------------------------+
 
     Example:
 
@@ -178,11 +184,12 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     # If we have collimators but no collimator dict then inform that
     # they will be converted to drifts.  should really check
     # tfs[startname..]
-    if (("RCOLLIMATOR" in tfs.GetColumn("APERTYPE")
-        or "ECOLLIMATOR" in tfs.GetColumn("APERTYPE"))
-         and not collimatordict):
-        warning.warn("No collimatordict provided.  ALL collimators"
-                     " will be converted to DRIFTs.")
+    if "APERTYPE" in madx.columns:
+        if (("RCOLLIMATOR" in madx.GetColumn("APERTYPE")
+            or "ECOLLIMATOR" in madx.GetColumn("APERTYPE"))
+            and not collimatordict):
+            warning.warn("No collimatordict provided.  ALL collimators"
+                         " will be converted to DRIFTs.")
 
     if isinstance(biases, XSecBias.XSecBias):
         a.AddBias(biases)
@@ -215,7 +222,9 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
 
         name  = item['NAME']
         # remove special characters like $, % etc 'reduced' name - rname:
-        rname = pybdsim._General.PrepareReducedName(name)
+        rname = pybdsim._General.PrepareReducedName(name
+                                                    if not allNamesUnique
+                                                    else item["UNIQUENAME"])
         t     = item['KEYWORD']
         l     = item['L']
         ang   = item['ANGLE']
@@ -304,7 +313,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             tilt= item['TILT']
 
             if thinmultipoles and not linear :
-                a.AddThinMultipole(name,
+                a.AddThinMultipole(rname,
                                    knl=(k1, k2, k3, k4, k5, k6),
                                    ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
                                    **kws)
