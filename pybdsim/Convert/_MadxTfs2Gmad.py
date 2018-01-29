@@ -349,6 +349,9 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 kws['fintx'] = fintx
             if (hgap != 0):
                 kws['hgap'] = hgap
+            if k1l != 0:
+                k1 = k1l / l
+                kws['k1'] = k1
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
         elif t == 'RCOLLIMATOR' or t == 'ECOLLIMATOR':
             #only use xsize as only have half gap
@@ -405,7 +408,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             if (e2 != 0):
                 kws['e2'] = e2
             if k1l != 0:
-                k1 = k1l / l * factor
+                k1 = k1l / l
                 kws['k1'] = k1
             if (fint != 0):
                 kws['fint']  = fint
