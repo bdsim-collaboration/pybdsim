@@ -261,7 +261,7 @@ class LatticeTest:
                         "--batch",
                         "--seed=1993"],
                         stdout=open('bdsim.log', 'a'),
-                        stderr=openopen('bdsim.log', 'a'))
+                        stderr=open('bdsim.log', 'a'))
 
         # Method of communicating with BDSIM process. Start and apply the timeout via joining
         processThread = threading.Thread(target=process.communicate)
@@ -337,9 +337,14 @@ class LatticeTest:
             fresyp = Myp - Byp
             self.residuals = {'x':fresx,'y':fresy,'xp':fresxp,'yp':fresyp}
     
+            rmsx = "%.6E" % _np.sqrt(_np.average(fresx*fresx))
+            rmsy = "%.6E" % _np.sqrt(_np.average(fresy*fresy))
+            rmsxp = "%.6E" % _np.sqrt(_np.average(fresxp*fresxp))
+            rmsyp = "%.6E" % _np.sqrt(_np.average(fresyp*fresyp))
 
-            print "Average residuals:"," x(m): ",_np.mean(fresx)," y(m): ",_np.mean(fresy)
-            print " xp(rad): ",_np.mean(fresxp)," yp(rad): ",_np.mean(fresyp)
+            print "Rms residuals:"
+            print " x(m):    ", rmsx,  " y(m):    ", rmsy
+            print " xp(rad): ", rmsxp, " yp(rad): ", rmsyp
             
             #standard deviation
             stdMx  = _np.std(Mx)
@@ -492,8 +497,8 @@ class LatticeTest:
                 plotNr      += 1
                 
                 in_Tfs       = True
-                M_optfn_x    = _np.sqrt(madx.GetColumn('BETX')*M_emittx) 
-                M_optfn_y    = _np.sqrt(madx.GetColumn('BETY')*M_emitty)
+                M_optfn_x    = madx.GetColumn('SIGMAX')
+                M_optfn_y    = madx.GetColumn('SIGMAY')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Sigma_x")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Sigma_y")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_x")
@@ -511,8 +516,8 @@ class LatticeTest:
                 plotNr      += 1
 
                 in_Tfs       = True
-                M_optfn_x    = _np.sqrt(M_emittx/madx.GetColumn('BETX')) 
-                M_optfn_y    = _np.sqrt(M_emittx/madx.GetColumn('BETY'))
+                M_optfn_x    = madx.GetColumn('SIGMAXP')
+                M_optfn_y    = madx.GetColumn('SIGMAYP')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Sigma_xp")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Sigma_yp")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_xp")
