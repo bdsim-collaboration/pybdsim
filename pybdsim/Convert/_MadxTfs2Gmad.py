@@ -346,6 +346,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             fint  = item['FINT']
             fintx = item['FINTX']
             hgap = item.get('HGAP', 0.0)
+            k1l = item["K1L"]
 
             if (e1 != 0):
                 kws['e1'] = e1
