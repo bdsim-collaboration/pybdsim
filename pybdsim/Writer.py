@@ -22,7 +22,7 @@ import Builder as _Builder
 import time as _time
 import os as _os
 import numpy as _np
-
+import textwrap as _textwrap
 sections = ['components',
             'sequence',
             'samplers',
@@ -472,7 +472,10 @@ class Writer():
         #write lattice sequence
         if self.Sequence._writeInMain:
             for line in _General.Chunks(machine.sequence,self._elementsperline):
-                self._mainFileLines.append('l'+str(ti)+': line = ('+', '.join(line)+');\n')
+                # Use _textwrap.wrap to wrap very long lines
+                linetxt = '\n\t'.join(_textwrap.wrap(
+                    "l{}: line = ({});".format(ti, ', '.join(line))))
+                self._mainFileLines.append("{}\n".format(linetxt))
                 linelist.append('l'+str(ti))
                 ti += 1
             self._mainFileLines.append('lattice: line = ('+', '.join(linelist)+');\n')
@@ -484,9 +487,13 @@ class Writer():
             f.write('! pybdsim.Builder \n')
             f.write('! LATTICE SEQUENCE DEFINITION\n\n')
             for line in _General.Chunks(machine.sequence,self._elementsperline):
-                f.write('l'+str(ti)+': line = ('+', '.join(line)+');\n')
+                # Use _textwrap.wrap to wrap very long lines
+                linetxt = '\n\t'.join(_textwrap.wrap(
+                    "l{}: line = ({});".format(ti, ', '.join(line))))
+                f.write("{}\n".format(linetxt))
                 linelist.append('l'+str(ti))
                 ti += 1
+
             f.write('lattice: line = ('+', '.join(linelist)+');\n')
             f.write('use, period=lattice;\n')
             f.close()
