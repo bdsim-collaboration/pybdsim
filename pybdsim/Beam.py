@@ -164,10 +164,10 @@ class Beam(dict) :
         self['dispy'] = str(dispy) + '*' + unitsstring
 
     def _SetDispXP(self,dispxp=1.0):
-        self['dispxp'] = str(dispxp) + '*' + unitsstring
+        self['dispxp'] = str(dispxp)
 
     def _SetDispYP(self,dispyp=1.0):
-        self['dispyp'] = str(dispyp) + '*' + unitsstring
+        self['dispyp'] = str(dispyp)
 
     def _SetEmittanceX(self,emitx=1.0e-9,unitsstring='um'):
         self['emitx'] = str(emitx) + '*' + unitsstring
