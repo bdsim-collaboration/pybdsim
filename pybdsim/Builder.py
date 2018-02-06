@@ -55,7 +55,8 @@ bdsimcategories = [
     'gas',
     'spec',
     'degrader',
-    'shield'
+    'shield',
+    'gap',
     ]
 
 class ElementBase(dict):
@@ -684,6 +685,9 @@ class Machine:
 
     def AddElement(self, name='el', length=0.1, outerDiameter=1, geometryFile="geometry.gdml", **kwargs):
         self.Append(Element(name, 'element',l=length,outerDiameter=outerDiameter,geometryFile=geometryFile, **kwargs))
+
+    def AddGap(self, name='gp', length=1.0, **kwargs):
+        self.Append(Element(name, 'gap', l=length, **kwargs))
 
     def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=0.2,**kwargs):
         """
