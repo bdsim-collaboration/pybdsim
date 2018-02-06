@@ -26,6 +26,7 @@ import time as _time
 import os as _os
 import numpy as _np
 import copy as _copy
+import textwrap as _textwrap
 
 bdsimcategories = [
     'marker',
@@ -193,6 +194,7 @@ class Element(ElementBase):
                           + (','.join([str(s) for s in self[key]]))+'}')
                 else:
                     s += ", {}={}".format(key, self[key])
+        s = '\n\t'.join(_textwrap.wrap(s))
         s += ';\n'
         return s
 
@@ -263,7 +265,10 @@ class Line(list):
         for item in self:
             s += str(item)+'\n' #uses elements __repr__ function
         s += self.name+ ': line=('
-        s += ', '.join([item.name for item in self]) + ');\n'
+
+        s += ', '.join([item.name for item in self]) + ');'
+        s = '\n\t'.join(_textwrap.wrap(s))
+        s += "\n"
         return s
 
     def DefineConstituentElements(self):
