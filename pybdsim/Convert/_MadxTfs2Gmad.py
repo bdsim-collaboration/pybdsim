@@ -620,6 +620,10 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetBetaY(data['BETY'])
     beam.SetAlphaX(data['ALFX'])
     beam.SetAlphaY(data['ALFY'])
+    beam.SetDispX(data['DX'])
+    beam.SetDispY(data['DY'])
+    beam.SetDispXP(data['DPX'])
+    beam.SetDispYP(data['DPY'])
     beam.SetEmittanceX(ex,'m')
     beam.SetEmittanceY(ey,'m')
     beam.SetSigmaE(sigmae)
@@ -627,4 +631,5 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetYP0(data['PY'])
     beam.SetX0(data['X'])
     beam.SetY0(data['Y'])
+    
     return beam

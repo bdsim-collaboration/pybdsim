@@ -153,6 +153,18 @@ class Beam(dict) :
     def _SetAlphaY(self,alphay=1.0,unitsstring='m'):
         self['alfy'] = str(alphay)
 
+    def _SetDispX(self,dispx=1.0,unitsstring='m'):
+        self['dispy'] = str(dispx) + '*' + unitsstring
+
+    def _SetDispY(self,dispy=1.0,unitsstring='m'):
+        self['dispx'] = str(dispy) + '*' + unitsstring
+
+    def _SetDispXP(self,dispxp=1.0,unitsstring='mrad'):
+        self['dispyp'] = str(dispxp) + '*' + unitsstring
+
+    def _SetDispYP(self,dispyp=1.0,unitsstring='mrad'):
+        self['dispxp'] = str(dispyp) + '*' + unitsstring
+
     def _SetEmittanceX(self,emitx=1.0e-9,unitsstring='um'):
         self['emitx'] = str(emitx) + '*' + unitsstring
    
