@@ -58,6 +58,10 @@ class Beam(dict) :
             setattr(self, 'SetEmittanceY', self._SetEmittanceY)
             setattr(self, 'SetSigmaE',     self._SetSigmaE)
             setattr(self, 'SetSigmaT',     self._SetSigmaT)
+            setattr(self, 'SetDispX',      self._SetDispX)
+            setattr(self, 'SetDispY',      self._SetDispY)
+            setattr(self, 'SetDispXP',      self._SetDispXP)
+            setattr(self, 'SetDispYP',      self._SetDispYP)
         elif distrtype == 'eshell':
             setattr(self, 'SetShellX',     self._SetShellX)
             setattr(self, 'SetShellY',     self._SetShelly)
