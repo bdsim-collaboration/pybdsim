@@ -58,6 +58,10 @@ class Beam(dict) :
             setattr(self, 'SetEmittanceY', self._SetEmittanceY)
             setattr(self, 'SetSigmaE',     self._SetSigmaE)
             setattr(self, 'SetSigmaT',     self._SetSigmaT)
+            setattr(self, 'SetDispX',      self._SetDispX)
+            setattr(self, 'SetDispY',      self._SetDispY)
+            setattr(self, 'SetDispXP',      self._SetDispXP)
+            setattr(self, 'SetDispYP',      self._SetDispYP)
         elif distrtype == 'eshell':
             setattr(self, 'SetShellX',     self._SetShellX)
             setattr(self, 'SetShellY',     self._SetShelly)
@@ -152,6 +156,18 @@ class Beam(dict) :
 
     def _SetAlphaY(self,alphay=1.0,unitsstring='m'):
         self['alfy'] = str(alphay)
+
+    def _SetDispX(self,dispx=1.0,unitsstring='m'):
+        self['dispx'] = str(dispx) + '*' + unitsstring
+
+    def _SetDispY(self,dispy=1.0,unitsstring='m'):
+        self['dispy'] = str(dispy) + '*' + unitsstring
+
+    def _SetDispXP(self,dispxp=1.0):
+        self['dispxp'] = str(dispxp)
+
+    def _SetDispYP(self,dispyp=1.0):
+        self['dispyp'] = str(dispyp)
 
     def _SetEmittanceX(self,emitx=1.0e-9,unitsstring='um'):
         self['emitx'] = str(emitx) + '*' + unitsstring
