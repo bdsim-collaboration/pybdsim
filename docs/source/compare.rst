@@ -70,6 +70,14 @@ with the following command in Python (for example)::
 This will produce a series of plots comparing the orbit, beam size, and linear
 optical functions.
 
+The MADX twiss file (in tfs format) should contain all the possible columns in
+the Twiss Module table. This can be prepared in a similar way as we would do
+for converting to BDSIM GMAD syntax::
+
+  select,flag=twiss, clear;
+  twiss,sequence=SEQUENCENAME, file=twiss.tfs;
+
+
 Comparing to MAD8
 -----------------
 
