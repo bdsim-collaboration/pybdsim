@@ -209,3 +209,11 @@ def GetOpticsFromGMAD(gmad, keep_optics=False):
         RunRebdsimOptics(bdsim_output_path,
                          "{}/{}-optics.root".format(tmpdir, gmadname))
         return pybdsim.Data.Load("{}/{}-optics.root".format(tmpdir, gmadname))
+
+def GetModelFromGMAD(gmad):
+    out_dir = "/tmp/pybdsim-survey-{}/".format(uuid.uuid4())
+    os.mkdir(out_dir)
+    out_path = "{}/output".format(out_dir)
+    RunBdsim(gmad, out_path, ngenerate=1)
+    import rootevent
+    return rootevent.Lattice("{}.root".format(out_path))
