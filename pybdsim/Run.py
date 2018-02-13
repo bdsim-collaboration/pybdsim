@@ -216,4 +216,4 @@ def GetModelFromGMAD(gmad):
     out_path = "{}/output".format(out_dir)
     RunBdsim(gmad, out_path, ngenerate=1)
     import rootevent
-    return rootevent.Lattice("{}.root".format(out_path))
+    return rootevent.Model("{}.root".format(out_path))
