@@ -20,6 +20,7 @@ import matplotlib.patches as mpatches
 import subprocess
 import time
 import string as _string
+import threading
 
 try:
     from scipy.stats import binned_statistic
@@ -252,7 +253,22 @@ class LatticeTest:
         
         _pymadx.Convert.TfsToPtc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
 
-        _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --seed=1993 --output=rootevent --outfile="+self.filename+"> bdsim.log")
+        # run process through subprocess module. Safer than running BDSIM through os.system which can cause problems.
+        process = subprocess.Popen([bdsim,
+                        "--file=" + self.filename + ".gmad",
+                        "--outfile="+self.filename,
+                        "--ngenerate="+str(self.nparticles),
+                        "--batch",
+                        "--seed=1993"],
+                        stdout=open('bdsim.log', 'a'),
+                        stderr=open('bdsim.log', 'a'))
+
+        # Method of communicating with BDSIM process. Start and apply the timeout via joining
+        processThread = threading.Thread(target=process.communicate)
+        processThread.start()
+        processThread.join()
+
+        #_os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --seed=1993 --output=rootevent --outfile="+self.filename+"> bdsim.log")
 
         pybdsim.Convert.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
@@ -321,9 +337,14 @@ class LatticeTest:
             fresyp = Myp - Byp
             self.residuals = {'x':fresx,'y':fresy,'xp':fresxp,'yp':fresyp}
     
+            rmsx = "%.6E" % _np.sqrt(_np.average(fresx*fresx))
+            rmsy = "%.6E" % _np.sqrt(_np.average(fresy*fresy))
+            rmsxp = "%.6E" % _np.sqrt(_np.average(fresxp*fresxp))
+            rmsyp = "%.6E" % _np.sqrt(_np.average(fresyp*fresyp))
 
-            print "Average residuals:"," x(m): ",_np.mean(fresx)," y(m): ",_np.mean(fresy)
-            print " xp(rad): ",_np.mean(fresxp)," yp(rad): ",_np.mean(fresyp)
+            print "Rms residuals:"
+            print " x(m):    ", rmsx,  " y(m):    ", rmsy
+            print " xp(rad): ", rmsxp, " yp(rad): ", rmsyp
             
             #standard deviation
             stdMx  = _np.std(Mx)
@@ -381,7 +402,13 @@ class LatticeTest:
             outfile.writelines("{:<40s}".format('emittanceOnTheFly')+'\t 1 \n')
 
         #Calculates optical functions and produces .root and .dat files for analysis 
-        _os.system(rebdsim+" "+self.filename+"_analConfig.txt")
+        #_os.system(rebdsim+" "+self.filename+"_analConfig.txt")
+        process = subprocess.Popen([rebdsim, self.filename+"_analConfig.txt"])
+
+        # Method of communicating with BDSIM process. Start and apply the timeout via joining
+        processThread = threading.Thread(target=process.communicate)
+        processThread.start()
+        processThread.join()
 
         if noPlots:
             return
@@ -470,8 +497,8 @@ class LatticeTest:
                 plotNr      += 1
                 
                 in_Tfs       = True
-                M_optfn_x    = _np.sqrt(madx.GetColumn('BETX')*M_emittx) 
-                M_optfn_y    = _np.sqrt(madx.GetColumn('BETY')*M_emitty)
+                M_optfn_x    = madx.GetColumn('SIGMAX')
+                M_optfn_y    = madx.GetColumn('SIGMAY')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Sigma_x")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Sigma_y")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_x")
@@ -489,8 +516,8 @@ class LatticeTest:
                 plotNr      += 1
 
                 in_Tfs       = True
-                M_optfn_x    = _np.sqrt(M_emittx/madx.GetColumn('BETX')) 
-                M_optfn_y    = _np.sqrt(M_emittx/madx.GetColumn('BETY'))
+                M_optfn_x    = madx.GetColumn('SIGMAXP')
+                M_optfn_y    = madx.GetColumn('SIGMAYP')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Sigma_xp")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Sigma_yp")
                 B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_xp")

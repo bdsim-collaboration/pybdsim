@@ -22,7 +22,7 @@ import Builder as _Builder
 import time as _time
 import os as _os
 import numpy as _np
-
+import textwrap as _textwrap
 sections = ['components',
             'sequence',
             'samplers',
@@ -186,7 +186,8 @@ class Writer():
         #for any include lines that will be written in the main file.
         self._sectionsToBeWritten = []
 
-    def WriteMachine(self,machine, filename, singlefile = False, verbose = True, summary=True):
+    def WriteMachine(self,machine, filename, singlefile=False,
+                     verbose=True, summary=True, overwrite=True):
         """
         WriteMachine(machine(machine),filename(string),singlefile(bool),verbose(bool))
         
@@ -209,17 +210,21 @@ class Writer():
         | filename.gmad             | suitable main file with all sub        |
         |                           | files in correct order                 |
         +---------------------------+----------------------------------------+
-                          
+
         These are prefixed with the specified filename / path
 
-        The optional bool singlefile = True will write all the above sections 
+        The optional bool singlefile = True will write all the above sections
         into a single file:
-        
+
         filename.gmad
-        
+
+        kwargs:
+        overwrite : Do not append an integer to the basefilename if
+        already exists, instead overwrite existing files.
+
         """
-        self._checkFiles(filename)
-        
+        self._checkFiles(filename, overwrite)
+
         if singlefile:
             #set all sections to write in the main file
             self.Components.WriteInMain()
@@ -467,7 +472,10 @@ class Writer():
         #write lattice sequence
         if self.Sequence._writeInMain:
             for line in _General.Chunks(machine.sequence,self._elementsperline):
-                self._mainFileLines.append('l'+str(ti)+': line = ('+', '.join(line)+');\n')
+                # Use _textwrap.wrap to wrap very long lines
+                linetxt = '\n\t'.join(_textwrap.wrap(
+                    "l{}: line = ({});".format(ti, ', '.join(line))))
+                self._mainFileLines.append("{}\n".format(linetxt))
                 linelist.append('l'+str(ti))
                 ti += 1
             self._mainFileLines.append('lattice: line = ('+', '.join(linelist)+');\n')
@@ -479,9 +487,13 @@ class Writer():
             f.write('! pybdsim.Builder \n')
             f.write('! LATTICE SEQUENCE DEFINITION\n\n')
             for line in _General.Chunks(machine.sequence,self._elementsperline):
-                f.write('l'+str(ti)+': line = ('+', '.join(line)+');\n')
+                # Use _textwrap.wrap to wrap very long lines
+                linetxt = '\n\t'.join(_textwrap.wrap(
+                    "l{}: line = ({});".format(ti, ', '.join(line))))
+                f.write("{}\n".format(linetxt))
                 linelist.append('l'+str(ti))
                 ti += 1
+
             f.write('lattice: line = ('+', '.join(linelist)+');\n')
             f.write('use, period=lattice;\n')
             f.close()
@@ -527,16 +539,17 @@ class Writer():
         if not isinstance(machine,_Builder.Machine):
             raise TypeError("Not a machine instance")
 
-    def _checkFiles(self,filename):
+    def _checkFiles(self,filename, overwrite=True):
         filename = self._checkExtensionAndPath(filename)
-    
-        #check if file already exists
-        ofilename = filename
-        filename = _General.GenUniqueFilename(filename)
-        if filename != ofilename:
-            print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
-        basefilename = filename[:-5] #everything before '.gmad'
 
+        if not overwrite:
+            #check if file already exists
+            originalFilename = filename
+            filename = _General.GenUniqueFilename(filename)
+            if filename != originalFilename:
+                print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
+
+        basefilename = filename[:-5] #everything before '.gmad'
         #new default section names
         self._defaultSectionFilenames['components'] = basefilename + '_components.gmad'
         self._defaultSectionFilenames['sequence']   = basefilename + '_sequence.gmad'

@@ -32,29 +32,31 @@ def ZeroMissingRequiredColumns(tfsinstance):
         for key, data in tfsinstance.data.iteritems():
             data.append(0.0)
 
-        warningString = "\n- ".join(missingColumns)
-        _warnings.warn("\n\x1b[0;37;41mWARNING:"
-                       "Columns missing from TFS file:\x1b[0m\n- " +  warningString +
-                       "\nThey have ALL been set to ZERO!")
+    missingColsString = ", ".join(["\"{}\"".format(col)
+                                   for col in missingColumns])
+    msg = ("Columns missing from TFS: {}.  All have been set"
+           " to zero.").format(missingColsString)
+    print msg
 
 
-def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=1,
+def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  ignorezerolengthitems=True, thinmultipoles=True, samplers='all',
                  aperturedict={},
                  collimatordict={},
                  userdict={},
-                 beampiperadius=5.0,
                  verbose=False, beam=True, flipmagnets=None, usemadxaperture=False,
                  defaultAperture='circular',
                  biases=None,
                  allelementdict={},
-                 optionsDict = {},
-                 linear = False):
+                 optionsDict={},
+                 linear=False,
+                 overwrite=True,
+                 allNamesUnique=False):
     """
-    **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad input file for bdsim
+    **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
     +-------------------------------+-------------------------------------------------------------------+
-    | **inputfilename**             | path to the input file                                            |
+    | **tfs**                       | path to the input tfs file or pymadx.Data.Tfs instance            |
     +-------------------------------+-------------------------------------------------------------------+
     | **outputfilename**            | requested output file                                             |
     +-------------------------------+-------------------------------------------------------------------+
@@ -104,9 +106,6 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     |                               | contain a dictionary itself with key, value pairs of parameters   |
     |                               | and values to be added to that particular element.                |
     +-------------------------------+-------------------------------------------------------------------+
-    | **beampiperadius**            | In metres.  Default beam pipe radius and collimator setting if    |
-    |                               | unspecified.                                                      |
-    +-------------------------------+-------------------------------------------------------------------+
     | **verbose**                   | Print out lots of information when building the model.            |
     +-------------------------------+-------------------------------------------------------------------+
     | **beam**                      | True \| False - generate an input gauss Twiss beam based on the   |
@@ -140,7 +139,15 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     +-------------------------------+-------------------------------------------------------------------+
     | **linear**                    | Only linear optical components                                    |
     +-------------------------------+-------------------------------------------------------------------+
-    
+    | **overwrite**                 | Do not append an integer to the base file name if it already      |
+    |                               | exists.  Instead overwrite the files.                             |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **allNamesUnique              | Treat every row in the TFS file/instance as a unique element.     |
+    |                               | This makes it easier to edit individual components as they are    |
+    |                               | guaranteed to appear only once in the entire resulting GMAD       |
+    |                               | lattice.                                                          |
+    +-------------------------------+-------------------------------------------------------------------+
+
     Example:
 
     >>> a,o = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
@@ -160,10 +167,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
     a = _Builder.Machine() # raw converted machine
     b = _Builder.Machine() # final machine, split with aperture
 
-    # test whether filpath or tfs instance supplied
-    madx = _pymadx.Data.CheckItsTfs(input)
+    # test whether filepath or tfs instance supplied
+    madx = _pymadx.Data.CheckItsTfs(tfs)
 
-    izlis  = ignorezerolengthitems
     factor = 1
     if flipmagnets != None:
         factor = -1 if flipmagnets else 1  #flipping magnets
@@ -174,12 +180,27 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 flipmagnets = True
                 print 'Detected electron in TFS file - changing flipmagnets to True'
 
-    if type(biases) == XSecBias.XSecBias:
+
+    # If we have collimators but no collimator dict then inform that
+    # they will be converted to drifts.  should really check
+    # tfs[startname..]
+    if "APERTYPE" in madx.columns:
+        if (("RCOLLIMATOR" in madx.GetColumn("APERTYPE")
+            or "ECOLLIMATOR" in madx.GetColumn("APERTYPE"))
+            and not collimatordict):
+            warning.warn("No collimatordict provided.  ALL collimators"
+                         " will be converted to DRIFTs.")
+
+    if isinstance(biases, XSecBias.XSecBias):
         a.AddBias(biases)
         b.AddBias(biases)
-    elif type(biases) == list:
-        [a.AddBias(bias) for bias in biases]
-        [b.AddBias(bias) for bias in biases]
+    elif biases is not None:
+        try:
+            [a.AddBias(bias) for bias in biases]
+            [b.AddBias(bias) for bias in biases]
+        except TypeError:
+            raise TypeError("Unknown biases!  Biases must be a XSecBias"
+                            "instance or an iterable of XSecBias instances.")
 
     # define utility function that does conversion
     def AddSingleElement(item, a, aperModel=None):
@@ -201,7 +222,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
         name  = item['NAME']
         # remove special characters like $, % etc 'reduced' name - rname:
-        rname = pybdsim._General.PrepareReducedName(name)
+        rname = pybdsim._General.PrepareReducedName(name
+                                                    if not allNamesUnique
+                                                    else item["UNIQUENAME"])
         t     = item['KEYWORD']
         l     = item['L']
         ang   = item['ANGLE']
@@ -210,9 +233,14 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         if tilt != 0:
             kws['tilt'] = tilt
 
-        # append any user defined parameters for this element into the kws dictionary
+        # append any user defined parameters for this element into the
+        # kws dictionary
+
+        # name appears in the madx.  try this first.
         if name in userdict:
             kws.update(userdict[name])
+        elif rname in userdict: # rname appears in the gmad
+            kws.update(userdict[rname])
 
         if verbose:
             print 'Full set of key word arguments:'
@@ -252,18 +280,18 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddTKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
-            if zerolength and not izlis:
+            if zerolength and not ignorezerolengthitems:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of instrument'
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MARKER':
-            if not izlis:
+            if not ignorezerolengthitems:
                 a.AddMarker(rname)
         elif t == 'MONITOR':
             #most monitors are just markers
-            if zerolength and not izlis:
+            if zerolength and not ignorezerolengthitems:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of monitor'
@@ -285,8 +313,11 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             tilt= item['TILT']
 
             if thinmultipoles and not linear :
-                a.AddThinMultipole(name, knl=(k1,k2,k3,k4,k5,k6), ksl=(k1s,k2s,k3s,k4s,k5s,k6s),**kws)
-            elif zerolength and not izlis:
+                a.AddThinMultipole(rname,
+                                   knl=(k1, k2, k3, k4, k5, k6),
+                                   ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
+                                   **kws)
+            elif zerolength and not ignorezerolengthitems:
                 a.AddMarker(rname)
                 if verbose:
                     print name,' -> marker instead of multipole'
@@ -314,7 +345,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             e2    = item['E2']
             fint  = item['FINT']
             fintx = item['FINTX']
-            hgap  = item['HGAP']
+            hgap = item.get('HGAP', 0.0)
+            k1l = item["K1L"]
+
             if (e1 != 0):
                 kws['e1'] = e1
             if (e1 != 0):
@@ -325,6 +358,9 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                 kws['fintx'] = fintx
             if (hgap != 0):
                 kws['hgap'] = hgap
+            if k1l != 0:
+                k1 = k1l / l
+                kws['k1'] = k1
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
         elif t == 'RCOLLIMATOR' or t == 'ECOLLIMATOR':
             #only use xsize as only have half gap
@@ -357,6 +393,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
                         a.AddRCol(rname,l,xsize,ysize,**kws)
                     else:
                         a.AddECol(rname,l,xsize,ysize,**kws)
+            # if user provided an incomplete collimatordict.
+            elif collimatordict != {}:
+                msg = ("{} {} not found in collimatordict."
+                       " Will instead convert to a DRIFT!".format(t, name))
+                _warnings.warn(msg)
+                a.AddDrift(rname,l)
+            # if user didn't provide a collimatordict at all.
             else:
                 a.AddDrift(rname,l)
         elif t == 'RFCAVITY':
@@ -368,13 +411,13 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             fint  = item['FINT']
             fintx = item['FINTX']
             k1l   = item['K1L']
-            hgap  = item['HGAP']
+            hgap = item.get('HGAP', 0.0)
             if (e1 != 0):
                 kws['e1'] = e1
             if (e2 != 0):
                 kws['e2'] = e2
             if k1l != 0:
-                k1 = k1l / l * factor
+                k1 = k1l / l
                 kws['k1'] = k1
             if (fint != 0):
                 kws['fint']  = fint
@@ -397,7 +440,7 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
             a.AddDrift(rname,l,**kws)
         else:
             print 'unknown element type:', t, 'for element named: ', name
-            if zerolength and not izlis:
+            if zerolength and not ignorezerolengthitems:
                 print 'putting marker in instead as its zero length'
                 a.AddMarker(rname)
             else:
@@ -504,15 +547,14 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
         b.AddBeam(bm)
 
     options = _Options()
-    options.SetBeamPipeRadius(beampiperadius,unitsstring='cm')
     if (len(optionsDict) > 0):
         options.update(optionsDict) # expand with user supplied bdsim options
     a.AddOptions(options)
     b.AddOptions(options)
 
-    b.Write(outputfilename)
+    b.Write(outputfilename, overwrite=overwrite)
     if verbose:
-        a.Write(outputfilename+"_raw")
+        a.Write(outputfilename + "_raw", overwrite=overwrite)
         print 'Total length: ',a.GetIntegratedLength()
         print 'Total angle:  ',a.GetIntegratedAngle()
         print 'items omitted: '
@@ -523,14 +565,15 @@ def MadxTfs2Gmad(input, outputfilename, startname=None, stopname=None, stepsize=
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
-    
-    if startname == None:
+
+    if startname is None:
         startindex = 0
-    elif type(startname) == int:
-        startindex = startname
     else:
-        startindex = tfs.IndexFromName(startname)
-        
+        try:
+            startindex = tfs.IndexFromName(startname)
+        except ValueError: # Then assume it's already an index.
+            startindex = startname
+
     #MADX defines parameters at the end of elements so need to go 1 element
     #back if we can.
 
@@ -577,6 +620,10 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetBetaY(data['BETY'])
     beam.SetAlphaX(data['ALFX'])
     beam.SetAlphaY(data['ALFY'])
+    beam.SetDispX(data['DX'])
+    beam.SetDispY(data['DY'])
+    beam.SetDispXP(data['DPX'])
+    beam.SetDispYP(data['DPY'])
     beam.SetEmittanceX(ex,'m')
     beam.SetEmittanceY(ey,'m')
     beam.SetSigmaE(sigmae)
@@ -584,4 +631,5 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetYP0(data['PY'])
     beam.SetX0(data['X'])
     beam.SetY0(data['Y'])
+    
     return beam

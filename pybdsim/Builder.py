@@ -26,6 +26,7 @@ import time as _time
 import os as _os
 import numpy as _np
 import copy as _copy
+import textwrap as _textwrap
 
 bdsimcategories = [
     'marker',
@@ -55,7 +56,8 @@ bdsimcategories = [
     'gas',
     'spec',
     'degrader',
-    'shield'
+    'shield',
+    'gap',
     ]
 
 class ElementBase(dict):
@@ -177,17 +179,22 @@ class Element(ElementBase):
             self.length += float(ll)
 
     def __repr__(self):
-        s = ''
-        s += self.name + ': '
-        s += self.category
-        if len(self._keysextra) > 0:
-            for key in self._keysextra:
-                if type(self[key]) == tuple and (self.category != 'thinmultipole') and (self.category != 'multipole'):
-                    s += ', ' + key + '=' + str(self[key][0]) + '*' + str(self[key][1])
-                elif type(self[key]) == tuple and ((self.category == 'thinmultipole') or (self.category == 'multipole')):
-                    s += ', ' + key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
+        s = "{}: {}".format(self.name, self.category)
+        if self._keysextra:
+            for key in sorted(self._keysextra):
+                if (type(self[key]) == tuple
+                    and (self.category != 'thinmultipole')
+                    and (self.category != 'multipole')):
+                    s += (', ' + key + '=' + str(self[key][0])
+                          + '*' + str(self[key][1]))
+                elif (type(self[key]) == tuple
+                      and ((self.category == 'thinmultipole')
+                           or (self.category == 'multipole'))):
+                    s += (', ' + key + '=' + '{'
+                          + (','.join([str(s) for s in self[key]]))+'}')
                 else:
-                    s += ', ' + key + '=' + str(self[key])
+                    s += ", {}={}".format(key, self[key])
+        s = '\n\t'.join(_textwrap.wrap(s))
         s += ';\n'
         return s
 
@@ -258,7 +265,10 @@ class Line(list):
         for item in self:
             s += str(item)+'\n' #uses elements __repr__ function
         s += self.name+ ': line=('
-        s += ', '.join([item.name for item in self]) + ');\n'
+
+        s += ', '.join([item.name for item in self]) + ');'
+        s = '\n\t'.join(_textwrap.wrap(s))
+        s += "\n"
         return s
 
     def DefineConstituentElements(self):
@@ -525,9 +535,14 @@ class Machine:
                 pass
             ielement += 1
 
-    def Write(self,filename,verbose=False):
+    def Write(self, filename, verbose=False, overwrite=True):
         """
         Write the machine to a series of gmad files.
+
+        kwargs:
+        overwrite : Do not append an integer to the basefilename if
+        already exists, instead overwrite existing files.
+
         """
         if self.sr :
             self.SynchrotronRadiationRescale()
@@ -576,8 +591,9 @@ class Machine:
             self.AddMarker(name)
         else:
             self.Append(Element(name,'drift',l=length,**kwargs))
-          
-    def AddDipole(self, name='dp', category='sbend', length=0.1, angle=None, b=None, **kwargs):
+
+    def AddDipole(self, name='dp', category='sbend', length=0.1,
+                  angle=None, b=None, **kwargs):
         """
         AddDipole(category='sbend')
 
@@ -587,7 +603,7 @@ class Machine:
         if category not in ['sbend','rbend']:
             s = 'Invalid category ' + category
             raise ValueError(s)
-        if (angle==None) and (b==None):
+        if angle is None and b is None:
             raise TypeError('angle or b must be specified for a dipole')
         elif angle != None:
             self.Append(Element(name,category,l=length,angle=angle,**kwargs))
@@ -674,6 +690,9 @@ class Machine:
 
     def AddElement(self, name='el', length=0.1, outerDiameter=1, geometryFile="geometry.gdml", **kwargs):
         self.Append(Element(name, 'element',l=length,outerDiameter=outerDiameter,geometryFile=geometryFile, **kwargs))
+
+    def AddGap(self, name='gp', length=1.0, **kwargs):
+        self.Append(Element(name, 'gap', l=length, **kwargs))
 
     def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=0.2,**kwargs):
         """

@@ -3,8 +3,11 @@ import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile
+from matplotlib.backends.backend_pdf import PdfPages
+import datetime
 
-def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
+                postfunctions=None, figsize=(12, 5), saveAll=True):
     """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
@@ -39,21 +42,54 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None, postfunctions=None, fig
     if survey is None:
         survey = tfsinst
 
-    PlotBetas(tfsopt, bdsopt, survey=survey,
-              functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotAlphas(tfsopt, bdsopt, survey=survey,
-               functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotDs(tfsopt, bdsopt, survey=survey,
-           functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotDps(tfsopt, bdsopt, survey=survey,
-            functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotSigmas(tfsopt, bdsopt, survey=survey,
-               functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotSigmasP(tfsopt, bdsopt, survey=survey,
-               functions=functions, postfunctions=postfunctions, figsize=figsize)
-    PlotMeans(tfsopt, bdsopt, survey=survey,
-              functions=functions, postfunctions=postfunctions, figsize=figsize)
+    if saveAll:
+        # A4 size with quarter inch margin on sides and on top to
+        # ensure figures don't come out looking cramped and bad.
+        figsize=(11.44, 8.02)
 
+    figures = [PlotBetas(tfsopt, bdsopt, survey=survey,
+                         functions=functions,
+                         postfunctions=postfunctions,
+                         figsize=figsize),
+               PlotAlphas(tfsopt, bdsopt, survey=survey,
+                          functions=functions,
+                          postfunctions=postfunctions,
+                          figsize=figsize),
+               PlotDs(tfsopt, bdsopt, survey=survey,
+                      functions=functions,
+                      postfunctions=postfunctions,
+                      figsize=figsize),
+               PlotDps(tfsopt, bdsopt, survey=survey,
+                       functions=functions,
+                       postfunctions=postfunctions,
+                       figsize=figsize),
+               PlotSigmas(tfsopt, bdsopt, survey=survey,
+                          functions=functions,
+                          postfunctions=postfunctions,
+                          figsize=figsize),
+               PlotSigmasP(tfsopt, bdsopt, survey=survey,
+                           functions=functions,
+                           postfunctions=postfunctions,
+                           figsize=figsize),
+               PlotMeans(tfsopt, bdsopt, survey=survey,
+                         functions=functions,
+                         postfunctions=postfunctions,
+                         figsize=figsize)]
+
+    if saveAll:
+        tfsname = repr(tfsinst)
+        bdsname = repr(bdsinst)
+        output_filename = "optics-report.pdf"
+        # Should have a more descriptive name really.
+        with PdfPages(output_filename) as pdf:
+            for figure in figures:
+                pdf.savefig(figure)
+            d = pdf.infodict()
+            d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(
+                tfsname, bdsname)
+            d['CreationDate'] = datetime.datetime.today()
+
+        print "Written ", output_filename
 
 def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None, postfunctions=None):
 
@@ -104,6 +140,22 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
     return tfsdata
 
     
+def MadxVsBDSIMFromGMAD(tfs, gmad):
+    """Runs the BDSIM model provided by the gmad file given, gets the
+    optics, and then compares them with TFS.
+
+    tfs - path to TFS file or a pymadx.Data.Tfs instance
+    gmad - path to gmad file to be run.
+
+    """
+
+    bdsimOptics = _pybdsim.Run.GetOpticsFromGMAD(gmad)
+    # Use TFS for survey but perhaps one day can directly get the
+    # model from the ROOT output (having modified the above
+    # function..  Currently there's no interface for this.
+    MadxVsBDSIM(tfs, bdsimOptics, survey=tfs)
+
+
 def _GetBDSIMOptics(optics):
     '''
     Takes a BDSAscii instance.
@@ -434,13 +486,17 @@ def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None
 def _AddSurvey(figure, survey):
     if survey is None:
         return
-    if isinstance(survey, basestring):
+    if isinstance(survey, basestring): # If BDSIM ASCII survey file
         if survey.split(".")[-1] == 'dat':
             _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
+    # If BDSIM ASCII survey instance
     elif isinstance(survey, _pybdsim.Data.BDSAsciiData):
         _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
-    elif isinstance(survey, _pymadx.Data.Tfs):
+    elif isinstance(survey, _pymadx.Data.Tfs): # If TFS
         _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
+    # if a (BDSIM) ROOT file
+    elif pybdsim._General.IsROOTFile(survey):
+        pass
 
 def _ProcessInput(tfsOptics, bdsimOptics):
 

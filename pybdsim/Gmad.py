@@ -220,7 +220,7 @@ class Lattice(object):
 
     def __getitem__(self,index):
         if type(index) == str:
-            ind = GetIndexOfElementNamed(index)
+            ind = self.GetIndexOfElementNamed(index)
             return self.lattice[ind]
         else:
             return self.lattice[index]
@@ -386,9 +386,11 @@ class Lattice(object):
 
         return the index of the beamline element clostest to S
         """
-        sMid = self.GetColumn('SPosMid')
-        closestS = min(sMid, key=lambda x:abs(x-S))
-        return sMid.index(closestS)
+        if S < 0 or S > self.smax:
+            raise ValueError("S is out of bounds!")
+        for index, _ in enumerate(self):
+            if S > self[index]["SPosStart"] and S < self[index]["SPosEnd"]:
+                return index
 
     def GetColumn(self, column):
         data = []
