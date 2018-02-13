@@ -115,7 +115,7 @@ class Model(list):
 
     def position_from_s(self, s):
         """Return the global coordinate position of the position at S."""
-        index = self.index_from_s(self)
+        index = self.index_from_s(s)
         if (self[index].staRot != self[index].endRot
             or self[index].staRot != self[index].midRot):
             raise ValueError("Element at S is not straight!")
