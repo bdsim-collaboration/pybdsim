@@ -51,7 +51,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  optionsDict={},
                  linear=False,
                  overwrite=True,
-                 allNamesUnique=False):
+                 allNamesUnique=False,
+                 gaussmatrix=False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -542,7 +543,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
 
     # Make beam file
     if beam:
-        bm = MadxTfs2GmadBeam(madx, startname, verbose)
+        bm = MadxTfs2GmadBeam(madx, startname, verbose, gaussmatrix)
         a.AddBeam(bm)
         b.AddBeam(bm)
 
@@ -563,7 +564,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
 
     return b,a,itemsomitted
 
-def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
+def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, gaussmatrix=False):
     print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
 
     if startname is None:
@@ -615,18 +616,28 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     #note, in the main pybdsim.__init__.py Beam class is imported from Beam.py
     #so in this submodule when we do from .. import Beam it's actually the
     #already imported class that's being imported
-    beam   = _Beam.Beam(particle,energy,'gausstwiss')
-    beam.SetBetaX(data['BETX'])
-    beam.SetBetaY(data['BETY'])
-    beam.SetAlphaX(data['ALFX'])
-    beam.SetAlphaY(data['ALFY'])
-    beam.SetDispX(data['DX'])
-    beam.SetDispY(data['DY'])
-    beam.SetDispXP(data['DPX'])
-    beam.SetDispYP(data['DPY'])
-    beam.SetEmittanceX(ex,'m')
-    beam.SetEmittanceY(ey,'m')
-    beam.SetSigmaE(sigmae)
+    if gaussmatrix:
+        beam   = _Beam.Beam(particle,energy,'gaussmatrix')
+        for i, j in  [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6),
+                              (2, 2), (2, 3), (2, 4), (2, 5), (2, 6),
+                                      (3, 3), (3, 4), (3, 5), (3, 6),
+                                              (4, 4), (4, 5), (4, 6),
+                                                      (5, 5), (5, 6),
+                                                              (6, 6)]:
+            beam["sigma{}{}".format(i, j)] = data["SIG{}{}".format(i, j)]
+    else:
+        beam   = _Beam.Beam(particle,energy,'gausstwiss')
+        beam.SetBetaX(data['BETX'])
+        beam.SetBetaY(data['BETY'])
+        beam.SetAlphaX(data['ALFX'])
+        beam.SetAlphaY(data['ALFY'])
+        beam.SetDispX(data['DX'])
+        beam.SetDispY(data['DY'])
+        beam.SetDispXP(data['DPX'])
+        beam.SetDispYP(data['DPY'])
+        beam.SetEmittanceX(ex,'m')
+        beam.SetEmittanceY(ey,'m')
+        beam.SetSigmaE(sigmae)
     beam.SetXP0(data['PX'])
     beam.SetYP0(data['PY'])
     beam.SetX0(data['X'])
