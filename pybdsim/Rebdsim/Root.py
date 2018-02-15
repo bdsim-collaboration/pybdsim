@@ -64,7 +64,7 @@ class TH1 :
             self.contents[i] = hist.GetBinContent(i+1)
             self.errors[i]   = hist.GetBinError(i+1)
 
-    def Plot(self,opt ='hist', logx=False, logy=False, outputfilename=None):
+    def Plot(self,opt ='hist', logx=False, logy=False, outputfilename=None, axlabels=None, color='b'):
         '''
         ROOT like plotting options for convenience
         :param opt: hist|e1
@@ -77,9 +77,9 @@ class TH1 :
         elif opt.find('line') != -1 :
             self.PlotPlot()
         elif opt.find('e1') != -1:
-            self.PlotErrorbar()
+            self.PlotErrorbar(color)
 
-        self._SetLabels()
+        self._SetLabels(axlabels)
         self._StatBox()
 
         if logx or logy:
@@ -91,8 +91,9 @@ class TH1 :
     def PlotPlot(self):
         _plt.plot(self.centres,self.contents)
 
-    def PlotErrorbar(self, edgecolor='none', color='b', label=''):
-        _plt.errorbar(self.centres, self.contents, self.errors, color=color, label=label, fmt='.')
+    def PlotErrorbar(self, edgecolor='none', color='b', label='', colorin='b'):
+        p = _plt.plot(self.centres+self.widths/2, self.contents, ls="steps", color=colorin)
+        _plt.errorbar(self.centres,self.contents, self.errors, fmt="", color=colorin, label=label)
 
     def PlotBar(self, edgecolor='none', color='b', label=''):
         _plt.bar(self.lowedge, self.contents, self.widths, edgecolor=edgecolor, color=color, label=label)
@@ -100,9 +101,13 @@ class TH1 :
     def PlotHist(self, edgecolor='none', color='b', label=''):
         _plt.hist(self.centres, self.lowedge, weights=self.contents, edgecolor=edgecolor, color=color, label=label)
 
-    def _SetLabels(self):
-        _plt.xlabel(self.labelX)
-        _plt.ylabel(self.labelY)
+    def _SetLabels(self, axlabels):
+        if axlabels:
+            _plt.xlabel(axlabels[0])
+            _plt.ylabel(axlabels[1])
+        else:
+            _plt.xlabel(self.labelX)
+            _plt.ylabel(self.labelY)
 
     def _StatBox(self):
         _plt.plot([],[], linestyle="None", label=self.title)
@@ -231,9 +236,9 @@ class TH2 :
 def _LogAxes(x=False, y=False):
     ax = _plt.gca()
     if x:
-        ax.set_xscale("log")
+        ax.set_xscale("log", nonposy='clip')
     if y:
-        ax.set_yscale("log")
+        ax.set_yscale("log", nonposy='clip')
 
 def _LegNum(number): #TODO: make more elegant with string formatting
     n = number #shortcut
