@@ -10,8 +10,7 @@ BDSIMDistributionTypes = [
     'eshell',
     'ring',
     'ptc',
-    'halo',
-    'gaussmatrix'
+    'halo'
 ]
 
 BDSIMParticleTypes = [
