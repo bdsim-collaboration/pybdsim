@@ -182,8 +182,11 @@ class RebdsimFile(object):
 
     If optics data is present, this is loaded into self.Optics which is
     BDSAsciiData instance.
+
+    If convert=True (default), root histograms are automatically converted
+    to classes provided here with numpy data.
     """
-    def __init__(self, filename):
+    def __init__(self, filename, convert=True):
         _LoadROOTLibraries()
         self.filename = filename
         self._f = _ROOT.TFile(filename)
@@ -193,6 +196,8 @@ class RebdsimFile(object):
         self.histograms3d = {}
         dirs = self.ListOfDirectories()
         self._Map("", self._f)
+        if convert:
+            self.ConvertToPybdsimHistograms()
 
         def _prepare_data(branches, treedata):
             data = BDSAsciiData()
