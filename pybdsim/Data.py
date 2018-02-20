@@ -18,15 +18,50 @@ import Constants as _Constants
 import _General
 import os as _os
 
-useRootNumpy = True
+_useRoot      = True
+_useRootNumpy = True
+_libsLoaded   = False
 
 try:
     import root_numpy as _rnp
 except ImportError:
-    useRootNumpy = False
+    _useRootNumpy = False
     pass
 
+try:
+    import ROOT as _ROOT
+except ImportError:
+    _useRoot = False
+    pass
+
+def _LoadROOTLibraries():
+    """
+    Load root libraries. Only works once to prevent errors.
+    """
+    global _libsLoaded
+    if _libsLoaded:
+        return #only load once
+    try:
+        import ROOT as _ROOT
+    except ImportError:
+        raise Warning("ROOT in python not available")
+    reLoad  = _ROOT.gSystem.Load("libRebdsim")
+    bdsLoad = _ROOT.gSystem.Load("libBdsimRootEvent")
+    if reLoad is not 0:
+        raise Warning("libRebdsim not found")
+    if bdsLoad is not 0:
+        raise Warning("libBdsimRootEvent not found")
+    _libsLoaded = True
+
 def Load(filepath):
+    """
+    Load the data with the appropriate loader.
+
+    ASCII file   - returns BDSAsciiData instance.
+    BDSIM file   - uses ROOT, returns BDSIM DataLoader instance.
+    REBDISM file - uses ROOT, returns RebdsimFile instance.
+
+    """
     extension = filepath.split('.')[-1]
     if not _os.path.isfile(filepath):
         raise IOError("File does not exist")
@@ -37,6 +72,7 @@ def Load(filepath):
     elif extension == 'txt':
         return _LoadAscii(filepath)
     elif extension == 'root':
+        return _LoadRoot(filepath)
         try:
             return _LoadRoot(filepath)
         except NameError:
@@ -87,28 +123,43 @@ def _LoadAsciiHistogram(filepath):
     f.close()
     return data
 
-def _LoadRoot(filepath):
-    if not useRootNumpy:
-        raise IOError("root_numpy not available - can't load ROOT file")
-    data = BDSAsciiData()
-    trees = _rnp.list_trees(filepath)
+def _ROOTFileType(filepath):
+    """
+    Determine BDSIM file type by loading header and extracting fileType.
+    """
+    f = _ROOT.TFile(filepath)
+    htree = f.Get("Header")
+    if not htree:
+        raise Warning("ROOT file is not a BDSIM one")
+    h = _ROOT.Header()
+    h.SetBranchAddress(htree)
+    htree.GetEntry(0)
+    result = str(h.header.fileType)
+    f.Close()
+    return result
 
-    if 'optics' in trees:
-        branches = _rnp.list_branches(filepath,'optics')
-        treedata = _rnp.root2array(filepath,'optics')
-    elif 'orbit' in trees:
-        branches = _rnp.list_branches(filepath, 'orbit')
-        treedata = _rnp.root2array(filepath, 'orbit')
+def _LoadRoot(filepath):
+    """
+    Inspect file and check it's a BDSIM file of some kind and load.
+    """
+    if not _useRoot:
+        raise IOError("ROOT in python not available - can't load ROOT file")
+    if not _useRootNumpy:
+        raise IOError("root_numpy not available - can't load ROOT file")
+
+    _LoadROOTLibraries()
+    
+    fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
+
+    if fileType == "BDSIM":
+        print 'BDSIM output file - using DataLoader'
+        d = _ROOT.DataLoader(filepath)
+        return d # just return the DataLoader instance
+    elif fileType == "REBDSIM":
+        print 'REBDSIM analysis file - using RebdsimFile'
+        return RebdsimFile(filepath)      
     else:
-        raise IOError("This file doesn't have the required tree 'optics'.")
-    for element in range(len(treedata[branches[0]])):
-        elementlist=[]
-        for branch in branches:
-            if element == 0:
-                data._AddProperty(branch)
-            elementlist.append(treedata[branch][element])
-        data.append(elementlist)
-    return data
+        raise IOError("This file type "+fileType+" isn't supported")
 
 def _ParseHeaderLine(line):
     names = []
@@ -121,7 +172,115 @@ def _ParseHeaderLine(line):
             names.append(word)
             units.append('NA')
     return names, units
-                
+
+class RebdsimFile(object):
+    """
+    Class to represent data in rebdsim output file.
+
+    Contains histograms as root objects. Conversion function converts
+    to pybdsim.Rebdsim.THX classes holding numpy data.
+
+    If optics data is present, this is loaded into self.Optics which is
+    BDSAsciiData instance.
+    """
+    def __init__(self, filename):
+        _LoadROOTLibraries()
+        self.filename = filename
+        self._f = _ROOT.TFile(filename)
+        self.histograms   = {}
+        self.histograms1d = {}
+        self.histograms2d = {}
+        self.histograms3d = {}
+        dirs = self.ListOfDirectories()
+        self._Map("", self._f)
+
+        def _prepare_data(branches, treedata):
+            data = BDSAsciiData()
+            for element in range(len(treedata[branches[0]])):
+                elementlist=[]
+                for branch in branches:
+                    if element == 0:
+                        data._AddProperty(branch)
+                    elementlist.append(treedata[branch][element])
+                    data.append(elementlist)
+            return data
+
+        trees = _rnp.list_trees(self.filename)            
+        if 'Optics' in trees:
+            branches = _rnp.list_branches(self.filename,'Optics')
+            treedata = _rnp.root2array(self.filename,'Optics')
+            self.optics = _prepare_data(branches, treedata)
+        if 'Orbit' in trees:
+            branches = _rnp.list_branches(self.filename, 'Orbit')
+            treedata = _rnp.root2array(self.filename, 'Orbit')
+            self.orbit = _prepare_data(branches, treedata)
+
+    def _Map(self, currentDirName, currentDir):
+        h1d = self._ListType(currentDir, "TH1D")
+        h2d = self._ListType(currentDir, "TH2D")
+        h3d = self._ListType(currentDir, "TH3D")
+        for h in h1d:
+            name = currentDirName + '/' + h
+            name = name.strip('/') # protect against starting /
+            hob = currentDir.Get(h)
+            self.histograms[name] = hob
+            self.histograms1d[name] = hob
+        for h in h2d:
+            name = currentDirName + '/' + h
+            name = name.strip('/') # protect against starting /
+            hob = currentDir.Get(h)
+            self.histograms[name] = hob
+            self.histograms2d[name] = hob
+        for h in h3d:
+            name = currentDirName + '/' + h
+            name = name.strip('/') # protect against starting /
+            hob = currentDir.Get(h)
+            self.histograms[name] = hob
+            self.histograms3d[name] = hob
+        subDirs = self._ListType(currentDir, "Directory")
+        for d in subDirs:
+            dName = currentDirName + '/' + d
+            dName = dName.strip('/') # protect against starting /
+            dob = currentDir.Get(d)
+            self._Map(dName, dob)      
+
+    def _ListType(self, ob, typeName):
+        keys = ob.GetListOfKeys()
+        result = []
+        for i in range(keys.GetEntries()):
+            if typeName in keys.At(i).GetClassName():
+                result.append(keys.At(i).GetName())
+        return result
+    
+    def ListOfDirectories(self):
+        """
+        List all directories inside the root file.
+        """
+        return self._ListType(self._f, 'Directory')
+
+    def ListOfTrees(self):
+        """
+        List all trees inside the root file.
+        """
+        return self._ListType(self._f, 'Tree')
+
+    def ConvertToPybdsimHistograms(self):
+        """
+        Convert all root histograms into numpy arrays.
+        """
+        import Rebdsim as _Rebdsim
+        self.histogramspy = {}
+        self.histograms1dpy = {}
+        self.histograms2dpy = {}
+        self.histograms3dpy = {}
+        for path,hist in self.histograms1d.iteritems():
+            hpy = _Rebdsim.TH1(hist)
+            self.histograms1dpy[path] = hpy
+            self.histogramspy[path] = hpy
+        for path,hist in self.histograms2d.iteritems():
+            hpy = _Rebdsim.TH2(hist)
+            self.histograms2dpy[path] = hpy
+            self.histogramspy[path] = hpy
 
 class BDSAsciiData(list):
     """
