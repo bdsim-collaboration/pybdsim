@@ -484,6 +484,8 @@ class ROOTHist(object):
         self.hist = hist
         self.name   = hist.GetName()
         self.title  = hist.GetTitle()
+        self.xlabel = hist.GetXaxis().GetTitle()
+        self.ylabel = hist.GetYaxis().GetTitle()
 
 class TH1(ROOTHist):
     """
@@ -494,8 +496,6 @@ class TH1(ROOTHist):
     """
     def __init__(self, hist, extractData=True):
         super(TH1, self).__init__(hist)
-        self.hist       = hist
-        self.xlabel     = hist.GetXaxis().GetTitle()
         self.nbinsx     = hist.GetNbinsX()
         self.entries    = hist.GetEntries()
         self.xwidths    = _np.zeros(self.nbinsx)
@@ -533,7 +533,6 @@ class TH2(TH1):
     """
     def __init__(self, hist, extractData=True):
         super(TH2, self).__init__(hist, False)
-        self.ylabel    = hist.GetYaxis().GetTitle()
         self.nbinsy    = hist.GetNbinsY()
         self.ywidths   = _np.zeros(self.nbinsy)
         self.ycentres  = _np.zeros(self.nbinsy)
