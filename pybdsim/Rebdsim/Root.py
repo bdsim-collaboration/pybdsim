@@ -175,7 +175,7 @@ class TH2 :
 
         self.PlotColz(logx,logy, logz, cmap, axlabels) #In the future there may be other plotting options
 
-        #self._SetLabels(axlabels) #TODO: Make the label setting more robust
+        self._SetLabels(axlabels) #TODO: Make the label setting more robust
         self._StatBox()
 
         if outputfilename != None:
