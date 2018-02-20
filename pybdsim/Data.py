@@ -268,18 +268,21 @@ class RebdsimFile(object):
         """
         Convert all root histograms into numpy arrays.
         """
-        import Rebdsim as _Rebdsim
         self.histogramspy = {}
         self.histograms1dpy = {}
         self.histograms2dpy = {}
         self.histograms3dpy = {}
         for path,hist in self.histograms1d.iteritems():
-            hpy = _Rebdsim.TH1(hist)
+            hpy = TH1(hist)
             self.histograms1dpy[path] = hpy
             self.histogramspy[path] = hpy
         for path,hist in self.histograms2d.iteritems():
-            hpy = _Rebdsim.TH2(hist)
+            hpy = TH2(hist)
             self.histograms2dpy[path] = hpy
+            self.histogramspy[path] = hpy
+        for path,hist in self.histograms3d.iteritems():
+            hpy = TH3(hist)
+            self.histograms3dpy[path] = hpy
             self.histogramspy[path] = hpy
 
 class BDSAsciiData(list):
@@ -467,3 +470,122 @@ class BDSAsciiData(list):
         s += 'pybdsim.Data.BDSAsciiData instance\n'
         s += str(len(self)) + ' entries'
         return s
+
+class ROOTHist(object):
+    """
+    Base class for histogram wrappers.
+    """
+    def __init__(self, hist):
+        self.hist = hist
+        self.name   = hist.GetName()
+        self.title  = hist.GetTitle()
+
+class TH1(ROOTHist):
+    """
+    Wrapper for a ROOT TH1 instance. Converts to numpy data.
+
+    >>> h = file.Get("histogramName")
+    >>> hpy = TH1(h)
+    """
+    def __init__(self, hist, extractData=True):
+        super(TH1, self).__init__(hist)
+        self.hist       = hist
+        self.xlabel     = hist.GetXaxis().GetTitle()
+        self.nbinsx     = hist.GetNbinsX()
+        self.entries    = hist.GetEntries()
+        self.xwidths    = _np.zeros(self.nbinsx)
+        self.xcentres   = _np.zeros(self.nbinsx)
+        self.xlowedge   = _np.zeros(self.nbinsx)
+        self.xhighedge  = _np.zeros(self.nbinsx)
+
+        # data holders
+        self.contents  = _np.zeros(self.nbinsx)
+        self.errors    = _np.zeros(self.nbinsx)
+        self.xunderflow = hist.GetBinContent(0)
+        self.xoverflow  = hist.GetBinContent(self.nbinsx+1)      
+
+        for i in range(self.nbinsx):
+            xaxis = hist.GetXaxis()
+            self.xwidths[i]   = xaxis.GetBinWidth(i)
+            self.xlowedge[i]  = xaxis.GetBinLowEdge(i+1)
+            self.xhighedge[i] = xaxis.GetBinLowEdge(i+1)
+            self.xcentres[i]  = xaxis.GetBinCenter(i+1)
+
+        if extractData:
+            self._GetContents()
+
+    def _GetContents(self):
+        for i in range(self.nbinsx):
+            self.contents[i] = self.hist.GetBinContent(i+1)
+            self.errors[i]   = self.hist.GetBinError(i+1)
+
+class TH2(TH1):
+    """
+    Wrapper for a ROOT TH2 instance. Converts to numpy data.
+
+    >>> h = file.Get("histogramName")
+    >>> hpy = TH2(h)
+    """
+    def __init__(self, hist, extractData=True):
+        super(TH2, self).__init__(hist, False)
+        self.ylabel    = hist.GetYaxis().GetTitle()
+        self.nbinsy    = hist.GetNbinsY()
+        self.ywidths   = _np.zeros(self.nbinsy)
+        self.ycentres  = _np.zeros(self.nbinsy)
+        self.ylowedge  = _np.zeros(self.nbinsy)
+        self.yhighedge = _np.zeros(self.nbinsy)
+
+        self.contents = _np.zeros((self.nbinsx,self.nbinsy))
+        self.errors   = _np.zeros((self.nbinsx,self.nbinsy))
+
+        for i in range(self.nbinsy):
+            yaxis = hist.GetYaxis()
+            self.ywidths[i]   = yaxis.GetBinWidth(i+1)
+            self.ylowedge[i]  = yaxis.GetBinLowEdge(i+1)
+            self.yhighedge[i] = yaxis.GetBinLowEdge(i+2)
+            self.ycentres[i]  = yaxis.GetBinCenter(i+1)
+
+        if extractData:
+            self._GetContents()   
+        
+    def _GetContents(self):
+        for i in range(self.nbinsx) :
+            for j in range(self.nbinsy) :
+                self.contents[i,j] = self.hist.GetBinContent(i+1,j+1)
+                self.errors[i,j]   = self.hist.GetBinError(i+1,j+1)
+
+class TH3(TH2):
+    """
+    Wrapper for a ROOT TH3 instance. Converts to numpy data.
+
+    >>> h = file.Get("histogramName")
+    >>> hpy = TH3(h)
+    """
+    def __init__(self, hist, extractData=True):
+        super(TH3, self).__init__(hist, False)
+        self.zlabel    = hist.GetZaxis().GetTitle()
+        self.nbinsz    = hist.GetNbinsZ()
+        self.zwidths   = _np.zeros(self.nbinsz)
+        self.zcentres  = _np.zeros(self.nbinsz)
+        self.zlowedge  = _np.zeros(self.nbinsz)
+        self.zhighedge = _np.zeros(self.nbinsz)
+
+        self.contents = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
+        self.errors   = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
+
+        for i in range(self.nbinsz):
+            zaxis = hist.GetZaxis()
+            self.zwidths[i]   = zaxis.GetBinWidth(i+1)
+            self.zlowedge[i]  = zaxis.GetBinLowEdge(i+1)
+            self.zhighedge[i] = zaxis.GetBinLowEdge(i+2)
+            self.zcentres[i]  = zaxis.GetBinCenter(i+1)
+
+        if extractData:
+            self._GetContents()   
+        
+    def _GetContents(self):
+        for i in range(self.nbinsx):
+            for j in range(self.nbinsy):
+                for k in range(self.nbinsz):
+                    self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
+                    self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
