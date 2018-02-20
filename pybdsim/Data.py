@@ -202,7 +202,7 @@ class RebdsimFile(object):
                     if element == 0:
                         data._AddProperty(branch)
                     elementlist.append(treedata[branch][element])
-                    data.append(elementlist)
+                data.append(elementlist)
             return data
 
         trees = _rnp.list_trees(self.filename)            
