@@ -18,15 +18,50 @@ import Constants as _Constants
 import _General
 import os as _os
 
-useRootNumpy = True
+_useRoot      = True
+_useRootNumpy = True
+_libsLoaded   = False
 
 try:
     import root_numpy as _rnp
 except ImportError:
-    useRootNumpy = False
+    _useRootNumpy = False
     pass
 
+try:
+    import ROOT as _ROOT
+except ImportError:
+    _useRoot = False
+    pass
+
+def _LoadROOTLibraries():
+    """
+    Load root libraries. Only works once to prevent errors.
+    """
+    global _libsLoaded
+    if _libsLoaded:
+        return #only load once
+    try:
+        import ROOT as _ROOT
+    except ImportError:
+        raise Warning("ROOT in python not available")
+    reLoad  = _ROOT.gSystem.Load("libRebdsim")
+    bdsLoad = _ROOT.gSystem.Load("libBdsimRootEvent")
+    if reLoad is not 0:
+        raise Warning("libRebdsim not found")
+    if bdsLoad is not 0:
+        raise Warning("libBdsimRootEvent not found")
+    _libsLoaded = True
+
 def Load(filepath):
+    """
+    Load the data with the appropriate loader.
+
+    ASCII file   - returns BDSAsciiData instance.
+    BDSIM file   - uses ROOT, returns BDSIM DataLoader instance.
+    REBDISM file - uses ROOT, returns RebdsimFile instance.
+
+    """
     extension = filepath.split('.')[-1]
     if not _os.path.isfile(filepath):
         raise IOError("File does not exist")
@@ -37,6 +72,7 @@ def Load(filepath):
     elif extension == 'txt':
         return _LoadAscii(filepath)
     elif extension == 'root':
+        return _LoadRoot(filepath)
         try:
             return _LoadRoot(filepath)
         except NameError:
@@ -87,28 +123,43 @@ def _LoadAsciiHistogram(filepath):
     f.close()
     return data
 
-def _LoadRoot(filepath):
-    if not useRootNumpy:
-        raise IOError("root_numpy not available - can't load ROOT file")
-    data = BDSAsciiData()
-    trees = _rnp.list_trees(filepath)
+def _ROOTFileType(filepath):
+    """
+    Determine BDSIM file type by loading header and extracting fileType.
+    """
+    f = _ROOT.TFile(filepath)
+    htree = f.Get("Header")
+    if not htree:
+        raise Warning("ROOT file is not a BDSIM one")
+    h = _ROOT.Header()
+    h.SetBranchAddress(htree)
+    htree.GetEntry(0)
+    result = str(h.header.fileType)
+    f.Close()
+    return result
 
-    if 'Optics' in trees:
-        branches = _rnp.list_branches(filepath,'Optics')
-        treedata = _rnp.root2array(filepath,'Optics')
-    elif 'orbit' in trees:
-        branches = _rnp.list_branches(filepath, 'orbit')
-        treedata = _rnp.root2array(filepath, 'orbit')
+def _LoadRoot(filepath):
+    """
+    Inspect file and check it's a BDSIM file of some kind and load.
+    """
+    if not _useRoot:
+        raise IOError("ROOT in python not available - can't load ROOT file")
+    if not _useRootNumpy:
+        raise IOError("root_numpy not available - can't load ROOT file")
+
+    _LoadROOTLibraries()
+    
+    fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
+
+    if fileType == "BDSIM":
+        print 'BDSIM output file - using DataLoader'
+        d = _ROOT.DataLoader(filepath)
+        return d # just return the DataLoader instance
+    elif fileType == "REBDSIM":
+        print 'REBDSIM analysis file - using RebdsimFile'
+        return RebdsimFile(filepath)      
     else:
-        raise IOError("This file doesn't have the required tree 'Optics'.")
-    for element in range(len(treedata[branches[0]])):
-        elementlist=[]
-        for branch in branches:
-            if element == 0:
-                data._AddProperty(branch)
-            elementlist.append(treedata[branch][element])
-        data.append(elementlist)
-    return data
+        raise IOError("This file type "+fileType+" isn't supported")
 
 def _ParseHeaderLine(line):
     names = []
@@ -121,7 +172,123 @@ def _ParseHeaderLine(line):
             names.append(word)
             units.append('NA')
     return names, units
-                
+
+class RebdsimFile(object):
+    """
+    Class to represent data in rebdsim output file.
+
+    Contains histograms as root objects. Conversion function converts
+    to pybdsim.Rebdsim.THX classes holding numpy data.
+
+    If optics data is present, this is loaded into self.Optics which is
+    BDSAsciiData instance.
+
+    If convert=True (default), root histograms are automatically converted
+    to classes provided here with numpy data.
+    """
+    def __init__(self, filename, convert=True):
+        _LoadROOTLibraries()
+        self.filename = filename
+        self._f = _ROOT.TFile(filename)
+        self.histograms   = {}
+        self.histograms1d = {}
+        self.histograms2d = {}
+        self.histograms3d = {}
+        dirs = self.ListOfDirectories()
+        self._Map("", self._f)
+        if convert:
+            self.ConvertToPybdsimHistograms()
+
+        def _prepare_data(branches, treedata):
+            data = BDSAsciiData()
+            for element in range(len(treedata[branches[0]])):
+                elementlist=[]
+                for branch in branches:
+                    if element == 0:
+                        data._AddProperty(branch)
+                    elementlist.append(treedata[branch][element])
+                data.append(elementlist)
+            return data
+
+        trees = _rnp.list_trees(self.filename)            
+        if 'Optics' in trees:
+            branches = _rnp.list_branches(self.filename,'Optics')
+            treedata = _rnp.root2array(self.filename,'Optics')
+            self.optics = _prepare_data(branches, treedata)
+        if 'Orbit' in trees:
+            branches = _rnp.list_branches(self.filename, 'Orbit')
+            treedata = _rnp.root2array(self.filename, 'Orbit')
+            self.orbit = _prepare_data(branches, treedata)
+
+    def _Map(self, currentDirName, currentDir):
+        h1d = self._ListType(currentDir, "TH1D")
+        h2d = self._ListType(currentDir, "TH2D")
+        h3d = self._ListType(currentDir, "TH3D")
+        for h in h1d:
+            name = currentDirName + '/' + h
+            name = name.strip('/') # protect against starting /
+            hob = currentDir.Get(h)
+            self.histograms[name] = hob
+            self.histograms1d[name] = hob
+        for h in h2d:
+            name = currentDirName + '/' + h
+            name = name.strip('/') # protect against starting /
+            hob = currentDir.Get(h)
+            self.histograms[name] = hob
+            self.histograms2d[name] = hob
+        for h in h3d:
+            name = currentDirName + '/' + h
+            name = name.strip('/') # protect against starting /
+            hob = currentDir.Get(h)
+            self.histograms[name] = hob
+            self.histograms3d[name] = hob
+        subDirs = self._ListType(currentDir, "Directory")
+        for d in subDirs:
+            dName = currentDirName + '/' + d
+            dName = dName.strip('/') # protect against starting /
+            dob = currentDir.Get(d)
+            self._Map(dName, dob)      
+
+    def _ListType(self, ob, typeName):
+        keys = ob.GetListOfKeys()
+        result = []
+        for i in range(keys.GetEntries()):
+            if typeName in keys.At(i).GetClassName():
+                result.append(keys.At(i).GetName())
+        return result
+    
+    def ListOfDirectories(self):
+        """
+        List all directories inside the root file.
+        """
+        return self._ListType(self._f, 'Directory')
+
+    def ListOfTrees(self):
+        """
+        List all trees inside the root file.
+        """
+        return self._ListType(self._f, 'Tree')
+
+    def ConvertToPybdsimHistograms(self):
+        """
+        Convert all root histograms into numpy arrays.
+        """
+        self.histogramspy = {}
+        self.histograms1dpy = {}
+        self.histograms2dpy = {}
+        self.histograms3dpy = {}
+        for path,hist in self.histograms1d.iteritems():
+            hpy = TH1(hist)
+            self.histograms1dpy[path] = hpy
+            self.histogramspy[path] = hpy
+        for path,hist in self.histograms2d.iteritems():
+            hpy = TH2(hist)
+            self.histograms2dpy[path] = hpy
+            self.histogramspy[path] = hpy
+        for path,hist in self.histograms3d.iteritems():
+            hpy = TH3(hist)
+            self.histograms3dpy[path] = hpy
+            self.histogramspy[path] = hpy
 
 class BDSAsciiData(list):
     """
@@ -308,3 +475,121 @@ class BDSAsciiData(list):
         s += 'pybdsim.Data.BDSAsciiData instance\n'
         s += str(len(self)) + ' entries'
         return s
+
+class ROOTHist(object):
+    """
+    Base class for histogram wrappers.
+    """
+    def __init__(self, hist):
+        self.hist = hist
+        self.name   = hist.GetName()
+        self.title  = hist.GetTitle()
+        self.xlabel = hist.GetXaxis().GetTitle()
+        self.ylabel = hist.GetYaxis().GetTitle()
+
+class TH1(ROOTHist):
+    """
+    Wrapper for a ROOT TH1 instance. Converts to numpy data.
+
+    >>> h = file.Get("histogramName")
+    >>> hpy = TH1(h)
+    """
+    def __init__(self, hist, extractData=True):
+        super(TH1, self).__init__(hist)
+        self.nbinsx     = hist.GetNbinsX()
+        self.entries    = hist.GetEntries()
+        self.xwidths    = _np.zeros(self.nbinsx)
+        self.xcentres   = _np.zeros(self.nbinsx)
+        self.xlowedge   = _np.zeros(self.nbinsx)
+        self.xhighedge  = _np.zeros(self.nbinsx)
+
+        # data holders
+        self.contents  = _np.zeros(self.nbinsx)
+        self.errors    = _np.zeros(self.nbinsx)
+        self.xunderflow = hist.GetBinContent(0)
+        self.xoverflow  = hist.GetBinContent(self.nbinsx+1)      
+
+        for i in range(self.nbinsx):
+            xaxis = hist.GetXaxis()
+            self.xwidths[i]   = xaxis.GetBinWidth(i)
+            self.xlowedge[i]  = xaxis.GetBinLowEdge(i+1)
+            self.xhighedge[i] = xaxis.GetBinLowEdge(i+1)
+            self.xcentres[i]  = xaxis.GetBinCenter(i+1)
+
+        if extractData:
+            self._GetContents()
+
+    def _GetContents(self):
+        for i in range(self.nbinsx):
+            self.contents[i] = self.hist.GetBinContent(i+1)
+            self.errors[i]   = self.hist.GetBinError(i+1)
+
+class TH2(TH1):
+    """
+    Wrapper for a ROOT TH2 instance. Converts to numpy data.
+
+    >>> h = file.Get("histogramName")
+    >>> hpy = TH2(h)
+    """
+    def __init__(self, hist, extractData=True):
+        super(TH2, self).__init__(hist, False)
+        self.nbinsy    = hist.GetNbinsY()
+        self.ywidths   = _np.zeros(self.nbinsy)
+        self.ycentres  = _np.zeros(self.nbinsy)
+        self.ylowedge  = _np.zeros(self.nbinsy)
+        self.yhighedge = _np.zeros(self.nbinsy)
+
+        self.contents = _np.zeros((self.nbinsx,self.nbinsy))
+        self.errors   = _np.zeros((self.nbinsx,self.nbinsy))
+
+        for i in range(self.nbinsy):
+            yaxis = hist.GetYaxis()
+            self.ywidths[i]   = yaxis.GetBinWidth(i+1)
+            self.ylowedge[i]  = yaxis.GetBinLowEdge(i+1)
+            self.yhighedge[i] = yaxis.GetBinLowEdge(i+2)
+            self.ycentres[i]  = yaxis.GetBinCenter(i+1)
+
+        if extractData:
+            self._GetContents()   
+        
+    def _GetContents(self):
+        for i in range(self.nbinsx) :
+            for j in range(self.nbinsy) :
+                self.contents[i,j] = self.hist.GetBinContent(i+1,j+1)
+                self.errors[i,j]   = self.hist.GetBinError(i+1,j+1)
+
+class TH3(TH2):
+    """
+    Wrapper for a ROOT TH3 instance. Converts to numpy data.
+
+    >>> h = file.Get("histogramName")
+    >>> hpy = TH3(h)
+    """
+    def __init__(self, hist, extractData=True):
+        super(TH3, self).__init__(hist, False)
+        self.zlabel    = hist.GetZaxis().GetTitle()
+        self.nbinsz    = hist.GetNbinsZ()
+        self.zwidths   = _np.zeros(self.nbinsz)
+        self.zcentres  = _np.zeros(self.nbinsz)
+        self.zlowedge  = _np.zeros(self.nbinsz)
+        self.zhighedge = _np.zeros(self.nbinsz)
+
+        self.contents = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
+        self.errors   = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
+
+        for i in range(self.nbinsz):
+            zaxis = hist.GetZaxis()
+            self.zwidths[i]   = zaxis.GetBinWidth(i+1)
+            self.zlowedge[i]  = zaxis.GetBinLowEdge(i+1)
+            self.zhighedge[i] = zaxis.GetBinLowEdge(i+2)
+            self.zcentres[i]  = zaxis.GetBinCenter(i+1)
+
+        if extractData:
+            self._GetContents()   
+        
+    def _GetContents(self):
+        for i in range(self.nbinsx):
+            for j in range(self.nbinsy):
+                for k in range(self.nbinsz):
+                    self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
+                    self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)

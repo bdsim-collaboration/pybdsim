@@ -294,14 +294,47 @@ PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP
 PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
 
-def PlotBdsimOptics(bdsdata, outputfilename=None, survey=None, **kwargs):
+def PlotBdsimOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
     """
     Display all the optical function plots for a rebdsim optics root file.
     """
-    PlotBeta(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotAlpha(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDisp(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDispP(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigma(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
+    bdsdata = rebdsimOpticsOutput # shortcut
+    PlotBeta(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotAlpha(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotDisp(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotDispP(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotSigma(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
     PlotSigmaP(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotMean(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotMean(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
+
+def PlotPhaseSpace(bdsimOutput, outputfilename=None):
+    _LoadROOTLibraries()
+
+
+    
+def Histogram1D(histogram, **errorbarKwargs):
+    h = histogram
+    f = _plt.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, fmt='.', **errorbarKwargs)
+    _plt.xlabel(h.xlabel)
+    _plt.ylabel(h.ylabel)
+    _plt.title(h.title)
+    return f
+    
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False):
+    h = histogram
+    x, y = _np.meshgrid(h.xcentres,h.ycentres)
+    if logNorm:
+        f = _plt.pcolormesh(x,y,h.contents.transpose(),norm=_LogNorm())
+    else:
+        f = _plt.pcolormesh(x,y,h.contents.transpose())
+        _plt.colorbar(format='%.0e')
+
+    if xlogscale:
+        _plt.xscale('log')
+    if ylocscale:
+        _plt.yscale('log')
+
+    _plt.xlabel(h.xlabel)
+    _plt.ylabel(h.ylabel)
+    _plt.title(h.title)
+    return f
