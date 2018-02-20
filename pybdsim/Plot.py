@@ -312,3 +312,29 @@ def PlotPhaseSpace(bdsimOutput, outputfilename=None):
 
 
     
+def Histogram1D(histogram, **errorbarKwargs):
+    h = histogram
+    f = _plt.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, fmt='.', **errorbarKwargs)
+    _plt.xlabel(h.xlabel)
+    _plt.ylabel(h.ylabel)
+    _plt.title(h.title)
+    return f
+    
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False):
+    h = histogram
+    x, y = _np.meshgrid(h.xcentres,h.ycentres)
+    if logNorm:
+        f = _plt.pcolormesh(x,y,h.contents.transpose(),norm=_LogNorm())
+    else:
+        f = _plt.pcolormesh(x,y,h.contents.transpose())
+        _plt.colorbar(format='%.0e')
+
+    if xlogscale:
+        _plt.xscale('log')
+    if ylocscale:
+        _plt.yscale('log')
+
+    _plt.xlabel(h.xlabel)
+    _plt.ylabel(h.ylabel)
+    _plt.title(h.title)
+    return f
