@@ -189,24 +189,27 @@ class TH2 :
             _plt.ylabel(axlabels[1])
 
         xx, yy = _np.meshgrid(self.xcentres,self.ycentres)
-        ccmap = _cm.get_cmap(cmap, 20)
-        cts = self.contents #shortcut
+        ccmap = _cm.get_cmap(cmap, 20)  #Get 20 discrete colors from the colormap - looks nicer
+        cts = self.contents.transpose() #shortcut
+        minVal = _np.min(cts[_np.nonzero(cts)])
+
         if logz:
-            _plt.pcolormesh(xx,yy,cts, cmap=ccmap, norm=LogNorm(vmin=1, vmax=cts.max()))
-            pdx = 0.005*(xx.max()-xx.min())
-            pdy = 0.005*(yy.max()-yy.min())
-            _plt.axis([xx.min()-pdx, xx.max()+pdx, yy.min()-pdy, yy.max()+pdy])
-            ax=_plt.gca()
-            if logx:
-                ax.set_xscale("log")
-            if logy:
-                ax.set_yscale("log")
+            _plt.pcolormesh(xx,yy,cts, cmap=ccmap, norm=LogNorm(vmin=minVal, vmax=cts.max()))
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
             cb = _plt.colorbar(cax=cax,format=_ticker.FuncFormatter(_fmtCbar),ticks=_ticker.LogLocator())
         else:
             _plt.pcolormesh(xx,yy,cts)
-            cb = _plt.colorbar(format=_ticker.FuncFormatter(_fmtCbar),ticks=_ticker.LogLocator())
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            cb = _plt.colorbar(cax=cax, format=_ticker.FuncFormatter(_fmtCbar))
+
+        _plt.axes(ax) #Make the plot axes active again
+
+        if logx:
+            ax.set_xscale("log", nonposy="clip", nonposx="clip")
+        if logy:
+            ax.set_yscale("log", nonposy="clip", nonposx="clip")
 
         cb.ax.tick_params(labelsize="xx-small")
 
