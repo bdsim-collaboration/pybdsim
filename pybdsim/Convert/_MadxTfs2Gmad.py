@@ -142,7 +142,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     | **overwrite**                 | Do not append an integer to the base file name if it already      |
     |                               | exists.  Instead overwrite the files.                             |
     +-------------------------------+-------------------------------------------------------------------+
-    | **allNamesUnique              | Treat every row in the TFS file/instance as a unique element.     |
+    | **allNamesUnique**            | Treat every row in the TFS file/instance as a unique element.     |
     |                               | This makes it easier to edit individual components as they are    |
     |                               | guaranteed to appear only once in the entire resulting GMAD       |
     |                               | lattice.                                                          |
