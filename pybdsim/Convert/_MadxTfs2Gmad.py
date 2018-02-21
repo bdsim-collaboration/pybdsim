@@ -331,9 +331,10 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
             if zerolength:
-                a.AddMarker(rname)
-                if verbose:
-                    print name,' -> marker instead of placeholder'
+                if not ignorezerolengthitems:
+                    a.AddMarker(rname)
+                    if verbose:
+                        print name,' -> marker instead of placeholder'
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'QUADRUPOLE':
