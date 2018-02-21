@@ -298,21 +298,18 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
-            k1  = item['K1L'] * factor
-            k2  = item['K2L'] * factor
-            k3  = item['K3L'] * factor
-            k4  = item['K4L'] * factor
-            k5  = item['K5L'] * factor
-            k6  = item['K6L'] * factor
-            k1s = item['K1SL'] * factor
-            k2s = item['K2SL'] * factor
-            k3s = item['K3SL'] * factor
-            k4s = item['K4SL'] * factor
-            k5s = item['K5SL'] * factor
-            k6s = item['K6SL'] * factor
-            tilt= item['TILT']
-
-            if thinmultipoles and not linear :
+            k1  = item['K1L'] * -factor
+            k2  = item['K2L'] * -factor
+            k3  = item['K3L'] * -factor
+            k4  = item['K4L'] * -factor
+            k5  = item['K5L'] * -factor
+            k6  = item['K6L'] * -factor
+            k1s = item['K1SL'] * -factor
+            k2s = item['K2SL'] * -factor
+            k3s = item['K3SL'] * -factor
+            k4s = item['K4SL'] * -factor
+            k5s = item['K5SL'] * -factor
+            k6s = item['K6SL'] * -factor
 
             if linear and zerolength:
                 pass # thin multipole - ignore
