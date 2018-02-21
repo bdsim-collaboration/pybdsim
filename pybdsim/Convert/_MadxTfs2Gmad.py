@@ -368,6 +368,29 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 k1 = k1l / l
                 kws['k1'] = k1
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
+        elif t == 'SBEND':
+            angle = item['ANGLE']
+            e1    = item['E1']
+            e2    = item['E2']
+            fint  = item['FINT']
+            fintx = item['FINTX']
+            k1l   = item['K1L']
+            hgap = item.get('HGAP', 0.0)
+            if (e1 != 0):
+                kws['e1'] = e1
+            if (e2 != 0):
+                kws['e2'] = e2
+            if k1l != 0:
+                # NOTE we're not using factor for magnet flipping here
+                k1 = k1l / l
+                kws['k1'] = k1
+            if (fint != 0):
+                kws['fint']  = fint
+            if (fintx != 0):
+                kws['fintx'] = fintx
+            if (hgap != 0):
+                kws['hgap'] = hgap
+            a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t is 'RCOLLIMATOR' or t is 'ECOLLIMATOR' or t is 'COLLIMATOR':
             #only use xsize as only have half gap
             if name in collimatordict:
@@ -410,29 +433,6 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 a.AddDrift(rname,l)
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
-        elif t == 'SBEND':
-            angle = item['ANGLE']
-            e1    = item['E1']
-            e2    = item['E2']
-            fint  = item['FINT']
-            fintx = item['FINTX']
-            k1l   = item['K1L']
-            hgap = item.get('HGAP', 0.0)
-            if (e1 != 0):
-                kws['e1'] = e1
-            if (e2 != 0):
-                kws['e2'] = e2
-            if k1l != 0:
-                # NOTE we're not using factor for magnet flipping here
-                k1 = k1l / l
-                kws['k1'] = k1
-            if (fint != 0):
-                kws['fint']  = fint
-            if (fintx != 0):
-                kws['fintx'] = fintx
-            if (hgap != 0):
-                kws['hgap'] = hgap
-            a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t == 'SEXTUPOLE':
             if linear :
                 k2 = 0.0
