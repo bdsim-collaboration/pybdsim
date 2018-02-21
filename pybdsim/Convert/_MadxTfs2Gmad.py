@@ -348,10 +348,13 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             hgap = item.get('HGAP', 0.0)
             k1l = item["K1L"]
 
-            if (e1 != 0):
-                kws['e1'] = e1
-            if (e2 != 0):
-                kws['e2'] = e2
+            # subtract dipole angle/2 added on to poleface angles internally by madx
+            poleInAngle = e1 - 0.5*angle
+            poleOutAngle = e2 - 0.5*angle
+            if (poleInAngle != 0):
+                kws['e1'] = poleInAngle
+            if (poleOutAngle != 0):
+                kws['e2'] = poleOutAngle
             if (fint != 0):
                 kws['fint']  = fint
             if (fintx != 0):
