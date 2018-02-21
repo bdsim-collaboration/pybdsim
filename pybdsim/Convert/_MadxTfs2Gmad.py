@@ -171,15 +171,15 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     madx = _pymadx.Data.CheckItsTfs(tfs)
 
     factor = 1
+    if madx.header.has_key('PARTICLE') and flipmagnets is None:
+        # try to check automatically
+        particleName = madx.header['PARTICLE']
+        if particleName == "ELECTRON":
+            flipmagnets = True
+            print 'Detected electron in TFS file - changing flipmagnets to True'
+
     if flipmagnets != None:
         factor = -1 if flipmagnets else 1  #flipping magnets
-    else:
-        if madx.header.has_key('PARTICLE'):
-            particleName = madx.header['PARTICLE']
-            if particleName == "ELECTRON":
-                flipmagnets = True
-                print 'Detected electron in TFS file - changing flipmagnets to True'
-
 
     # If we have collimators but no collimator dict then inform that
     # they will be converted to drifts.  should really check
