@@ -360,6 +360,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             if (hgap != 0):
                 kws['hgap'] = hgap
             if k1l != 0:
+                # NOTE we don't use factor here for magnet flipping
                 k1 = k1l / l
                 kws['k1'] = k1
             a.AddDipole(rname,'rbend',l,angle=angle,**kws)
@@ -418,6 +419,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             if (e2 != 0):
                 kws['e2'] = e2
             if k1l != 0:
+                # NOTE we're not using factor for magnet flipping here
                 k1 = k1l / l
                 kws['k1'] = k1
             if (fint != 0):
