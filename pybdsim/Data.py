@@ -128,7 +128,10 @@ def _ROOTFileType(filepath):
     Determine BDSIM file type by loading header and extracting fileType.
     """
     files = _glob.glob(filepath) # works even if just 1 file
-    fileToCheck = files[0] # just check first file
+    try:
+        fileToCheck = files[0] # just check first file
+    except IndexError:
+        raise IOError("File(s) not found.")
     f = _ROOT.TFile(fileToCheck)
     htree = f.Get("Header")
     if not htree:
