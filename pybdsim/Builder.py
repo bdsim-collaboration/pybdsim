@@ -625,8 +625,8 @@ class Machine:
     def AddMultipole(self, name='mp', length=0.1, knl=(0), ksl=(0), tilt=0.0, **kwargs):
         if length > 1e-12:
             self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, tilt=tilt, **kwargs))
-        else :
-            self.AddMarker(name)
+        else:
+            self.AddThinMultipole(name, knl, ksl, tilt, kwargs)
 
     def AddThinMultipole(self, name='mp', knl=(0), ksl=(0), tilt=0.0, **kwargs):
         self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, tilt=tilt, **kwargs))
@@ -923,7 +923,7 @@ def WriteMachine(machine, filename, verbose=False):
     filename_components.gmad - component files (max 10k per file)
     filename_sequence.gmad   - lattice definition
     filename_samplers.gmad   - sampler definitions (max 10k per file)
-    filename_options.gmad    - options (TO BE IMPLEMENTED)
+    filename_options.gmad    - options
     filename.gmad            - suitable main file with all sub 
                                files in correct order
     

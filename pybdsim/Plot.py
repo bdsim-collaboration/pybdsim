@@ -11,8 +11,10 @@ import Data as _Data
 import pymadx as _pymadx
 
 import matplotlib as _matplotlib
+from matplotlib.colors import LogNorm as _LogNorm
 import matplotlib.pyplot as _plt
 import matplotlib.patches as _patches
+import matplotlib.ticker as _ticker
 import numpy as _np
 import string as _string
 
@@ -306,13 +308,11 @@ def PlotBdsimOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwa
     PlotSigma(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
     PlotSigmaP(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
     PlotMean(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
-
-def PlotPhaseSpace(bdsimOutput, outputfilename=None):
-    _LoadROOTLibraries()
-
-
     
 def Histogram1D(histogram, **errorbarKwargs):
+    """
+    Plot a pybdsim.Data.TH1 instance.
+    """
     h = histogram
     f = _plt.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, fmt='.', **errorbarKwargs)
     _plt.xlabel(h.xlabel)
@@ -321,6 +321,9 @@ def Histogram1D(histogram, **errorbarKwargs):
     return f
     
 def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False):
+    """
+    Plot a pybdsim.Data.TH2 instance.
+    """
     h = histogram
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     if logNorm:
@@ -338,3 +341,118 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False):
     _plt.ylabel(h.ylabel)
     _plt.title(h.title)
     return f
+
+def Histogram3D(th3):
+    """
+    Plot a pybdsim.Data.TH1 instance - TBC
+    """
+    pass
+
+def PrimaryPhaseSpace(filename, outputfilename=None):
+    import Data as _Data
+    d = _Data.Load(filename)
+    psd = _Data.PhaseSpaceData(d)
+    PhaseSpace(psd, outputfilename)
+
+def PhaseSpace(data, nbins=None, outputfilename=None):
+    """
+    Make two figures for coordinates and correlations.
+
+    Number of bins chosen depending on number of samples.
+
+    'outputfilename' is name without extension.
+    """
+    if nbins == None:
+        entries = data._entries
+        nbins = int(_np.ceil(25*(entries/100.)**0.2))
+        print 'Automatic number of bins> ',nbins
+    
+    d = data.data #shortcut
+    f = _plt.figure(figsize=(12,6))
+
+    axX = f.add_subplot(241)
+    axX.hist(d['x'],nbins)
+    axX.set_xlabel('X (m)')
+
+    axY = f.add_subplot(242)
+    axY.hist(d['y'],nbins)
+    axY.set_xlabel('Y (m)')
+
+    axZ = f.add_subplot(243)
+    axZ.hist(d['z'],nbins)
+    axZ.set_xlabel('Z (m)')
+
+    axE = f.add_subplot(244)
+    axE.hist(d['energy'],nbins)
+    axE.set_xlabel('E (GeV)')
+
+    axXp = f.add_subplot(245)
+    axXp.hist(d['xp'],nbins)
+    axXp.set_xlabel('X$^{\prime}$')
+
+    axYp = f.add_subplot(246)
+    axYp.hist(d['yp'],nbins)
+    axYp.set_xlabel('Y$^{\prime}$')
+
+    axZp = f.add_subplot(247)
+    axZp.hist(d['zp'],nbins)
+    axZp.set_xlabel('Z$^{\prime}$')
+
+    axT = f.add_subplot(248)
+    axT.hist(d['t'],nbins)
+    axT.set_xlabel('T (ns)')
+
+    _plt.suptitle('Coordinates at '+data.samplerName,fontsize='xx-large')
+    _plt.tight_layout()
+    _plt.subplots_adjust(top=0.92)
+
+    f2 = _plt.figure(figsize=(10,6))
+
+    axXXP = f2.add_subplot(231)
+    axXXP.hist2d(d['x'],d['xp'],bins=nbins,cmin=1)
+    axXXP.set_xlabel('X (m)')
+    axXXP.set_ylabel('X$^{\prime}$')
+
+    axYYP = f2.add_subplot(232)
+    axYYP.hist2d(d['y'],d['yp'],bins=nbins,cmin=1)
+    axYYP.set_xlabel('Y (m)')
+    axYYP.set_ylabel('Y$^{\prime}$')
+
+    axYPYP = f2.add_subplot(233)
+    axYPYP.hist2d(d['xp'],d['yp'],bins=nbins,cmin=1)
+    axYPYP.set_xlabel('X$^{\prime}$')
+    axYPYP.set_ylabel('Y$^{\prime}$')
+    
+    axXY = f2.add_subplot(234)
+    axXY.hist2d(d['x'],d['y'],bins=nbins,cmin=1)
+    axXY.set_xlabel('X (m)')
+    axXY.set_ylabel('Y (m)')
+
+    axXE = f2.add_subplot(235)
+    axXE.hist2d(d['energy'],d['x'],bins=nbins,cmin=1)
+    axXE.set_xlabel('Energy (GeV)')
+    axXE.set_ylabel('X (m)')
+
+    axYE = f2.add_subplot(236)
+    axYE.hist2d(d['energy'],d['y'],bins=nbins,cmin=1)
+    axYE.set_xlabel('Energy (GeV)')
+    axYE.set_ylabel('Y (m)')
+    
+    _plt.suptitle('Correlations at '+data.samplerName,fontsize='xx-large')
+    _plt.tight_layout()
+    _plt.subplots_adjust(top=0.92)
+
+    if outputfilename != None:
+        if '.' in outputfilename:
+            outputfilename = outputfilename.split('.')[0]
+        _plt.savefig(outputfilename + '.pdf')
+        _plt.savefig(outputfilename + '.png')
+
+def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
+    if float(x) == 1.0:
+        fst = r"$1$" #For a histogram valuesa smalled that 1 are set to 0
+    else:            #Such values are set as dummies to allow log plots
+        a, b = '{:.0e}'.format(x).split('e')
+        b = int(b)
+        fst = r'$10^{{{}}}$'.format(b)
+    return fst

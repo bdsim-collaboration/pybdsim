@@ -13,9 +13,11 @@ Data - read various output files
 
 
 """
-import numpy as _np
 import Constants as _Constants
 import _General
+
+import glob as _glob
+import numpy as _np
 import os as _os
 
 _useRoot      = True
@@ -63,8 +65,6 @@ def Load(filepath):
 
     """
     extension = filepath.split('.')[-1]
-    if not _os.path.isfile(filepath):
-        raise IOError("File does not exist")
     if ("elosshist" in filepath) or (".hist" in filepath):
         return _LoadAsciiHistogram(filepath)
     elif "eloss" in filepath:
@@ -127,7 +127,12 @@ def _ROOTFileType(filepath):
     """
     Determine BDSIM file type by loading header and extracting fileType.
     """
-    f = _ROOT.TFile(filepath)
+    files = _glob.glob(filepath) # works even if just 1 file
+    try:
+        fileToCheck = files[0] # just check first file
+    except IndexError:
+        raise IOError("File(s) not found.")
+    f = _ROOT.TFile(fileToCheck)
     htree = f.Get("Header")
     if not htree:
         raise Warning("ROOT file is not a BDSIM one")
@@ -593,3 +598,54 @@ class TH3(TH2):
                 for k in range(self.nbinsz):
                     self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
                     self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
+
+
+class PhaseSpaceData(object):
+    def __init__(self, data, samplerIndex=0):
+        self._et = data.GetEventTree()
+        self._ev = data.GetEvent()
+        self._samplerNames = list(data.GetSamplerNames())
+        self._samplerNames.insert(0,'Primary')
+        self._samplers = list(self._ev.Samplers)
+        self._samplers.insert(0,self._ev.GetPrimaries())
+        self._entries = int(self._et.GetEntries())
+
+        params = ['x','xp','y','yp','z','zp','energy','t']
+        self.data = self._GetVariables(samplerIndex, params)
+
+        self.samplerName = self._samplerNames[samplerIndex]
+
+    def _SamplerIndex(self, samplerName):
+        try:
+            return self._samplerNames.index(samplerName)
+        except ValueError:
+            raise ValueError("Invalid sampler name")
+        
+    def _GetVariable(self, samplerIndex, var):
+        result = []
+        s = self._samplers[samplerIndex]
+        for i in range(self._entries):
+            self._et.GetEntry(i)
+            v = getattr(s, var)
+            try:
+                res = list(v)
+            except TypeError:
+                res = list([v])
+            result.extend(res)
+
+        return result
+
+    def _GetVariables(self, samplerIndex, vs):
+        result = {v:[] for v in vs}
+        s = self._samplers[samplerIndex]
+        for i in range(self._entries):
+            self._et.GetEntry(i) # loading is the heavy bit
+            for v in vs:
+                r = getattr(s, v)
+                try:
+                    res = list(r)
+                except TypeError:
+                    res = list([r])
+                result[v].extend(res)
+
+        return result

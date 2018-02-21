@@ -161,6 +161,7 @@ def _GetBDSIMOptics(optics):
     Takes a BDSAscii instance.
     Return a dictionary of lists matching the variable with the list of values.
     '''
+    
     optvars = {}
     for variable in optics.names:
         datum = getattr(optics, variable)()
