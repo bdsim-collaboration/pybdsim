@@ -313,16 +313,23 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             tilt= item['TILT']
 
             if thinmultipoles and not linear :
+
+            if linear and zerolength:
+                pass # thin multipole - ignore
+            elif linear and not zerolength:
+                a.AddDrift(rname,l,**kws) # thick multipole - replace with drift
+            elif zerolength and thinmultipoles:
+                # allow non-linear & it's a thin multipole
                 a.AddThinMultipole(rname,
                                    knl=(k1, k2, k3, k4, k5, k6),
                                    ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
                                    **kws)
-            elif zerolength and not ignorezerolengthitems:
-                a.AddMarker(rname)
-                if verbose:
-                    print name,' -> marker instead of multipole'
             else:
-                a.AddDrift(rname,l,**kws)
+                # allow non-linear & it's a thick multipole
+                AddMultipole(rname,l,
+                             knl=(k1, k2, k3, k4, k5, k6),
+                             ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
+                             **kws)
         elif t == 'OCTUPOLE':
             if linear :
                 k3 = 0.0
@@ -469,6 +476,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     # keep list of omitted zero length items
     itemsomitted = []
 
+    ignoreableThinElements = ['MONITOR', 'PLACEHOLDER', 'MARKER']
+
     # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
         name = item['NAME']
@@ -479,7 +488,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
         if madx.ElementPerturbs(item):
             pass #ie proceed normally
-        elif zerolength and ignorezerolengthitems:
+        elif zerolength and ignorezerolengthitems and t in ignoreableThinElements:
             itemsomitted.append(name)
             if verbose:
                 print 'skipping this item'
