@@ -188,7 +188,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
         if (("RCOLLIMATOR" in madx.GetColumn("APERTYPE")
             or "ECOLLIMATOR" in madx.GetColumn("APERTYPE"))
             and not collimatordict):
-            warning.warn("No collimatordict provided.  ALL collimators"
+            _warnings.warn("No collimatordict provided.  ALL collimators"
                          " will be converted to DRIFTs.")
 
     if isinstance(biases, XSecBias.XSecBias):
