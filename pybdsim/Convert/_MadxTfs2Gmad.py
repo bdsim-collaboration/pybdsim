@@ -310,9 +310,6 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             k4s = item['K4SL'] * factor
             k5s = item['K5SL'] * factor
             k6s = item['K6SL'] * factor
-            tilt= item['TILT']
-
-            if thinmultipoles and not linear :
 
             if linear and zerolength:
                 pass # thin multipole - ignore
