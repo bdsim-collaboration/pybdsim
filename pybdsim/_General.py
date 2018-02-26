@@ -61,6 +61,8 @@ def CheckItsBDSAsciiData(bfile):
         data = d.optics
     elif type(bfile) == pybdsim.Data.BDSAsciiData:
         data = bfile
+    elif type(bfile) == pybdsim.Data.RebdsimFile:
+        data = bfile.optics
     else:
         raise IOError("Not pybdsim.Data.BDSAsciiData file type: "+str(bfile))
     return data
