@@ -352,7 +352,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             fintx = item['FINTX']
             hgap = item.get('HGAP', 0.0)
             k1l = item["K1L"]
-
+            # set element length to be the chord length - tfs output rbend length is arc length
+            chordLength = 2 * (l/angle) * _np.sin(angle/2)
             # subtract dipole angle/2 added on to poleface angles internally by madx
             poleInAngle = e1 - 0.5*angle
             poleOutAngle = e2 - 0.5*angle
@@ -370,7 +371,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 # NOTE we don't use factor here for magnet flipping
                 k1 = k1l / l
                 kws['k1'] = k1
-            a.AddDipole(rname,'rbend',l,angle=angle,**kws)
+            a.AddDipole(rname,'rbend',chordLength,angle=angle,**kws)
         elif t == 'SBEND':
             angle = item['ANGLE']
             e1    = item['E1']
