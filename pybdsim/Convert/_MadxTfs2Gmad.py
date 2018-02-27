@@ -1,6 +1,5 @@
 from copy import deepcopy as _deepcopy
 import numpy as _np
-import re as _re
 import pymadx as _pymadx
 import warnings as _warnings
 from .. import Builder as _Builder
