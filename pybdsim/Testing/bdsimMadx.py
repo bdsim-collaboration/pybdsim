@@ -414,7 +414,7 @@ class LatticeTest:
             return
 
         boptfile  = _ROOT.TFile(self.filename+'_optics.root') #TODO(aabramov): change to use pickled root output
-        bdata     = boptfile.Get('optics')
+        bdata     = boptfile.Get('Optics')
 
         #ptcfile  = 'ptc_'+self.filename+'_opticalfns.dat'
         #print "ptcCalculateOpticalFunctions> processing... " , ptcfile 

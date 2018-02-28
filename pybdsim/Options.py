@@ -65,7 +65,7 @@ class Options(dict):
     def ReturnOptionsString(self):
         s = ''
         if len(self.keys()) == 0:
-            print 'No options set - empty string'
+            #print 'No options set - empty string'
             return s
         
         numOptions=0

@@ -1,6 +1,5 @@
 from copy import deepcopy as _deepcopy
 import numpy as _np
-import re as _re
 import pymadx as _pymadx
 import warnings as _warnings
 from .. import Builder as _Builder
@@ -51,8 +50,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  optionsDict={},
                  linear=False,
                  overwrite=True,
-                 allNamesUnique=False,
-                 gaussmatrix=False):
+                 allNamesUnique=False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -143,7 +141,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     | **overwrite**                 | Do not append an integer to the base file name if it already      |
     |                               | exists.  Instead overwrite the files.                             |
     +-------------------------------+-------------------------------------------------------------------+
-    | **allNamesUnique              | Treat every row in the TFS file/instance as a unique element.     |
+    | **allNamesUnique**            | Treat every row in the TFS file/instance as a unique element.     |
     |                               | This makes it easier to edit individual components as they are    |
     |                               | guaranteed to appear only once in the entire resulting GMAD       |
     |                               | lattice.                                                          |
@@ -172,15 +170,15 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     madx = _pymadx.Data.CheckItsTfs(tfs)
 
     factor = 1
+    if madx.header.has_key('PARTICLE') and flipmagnets is None:
+        # try to check automatically
+        particleName = madx.header['PARTICLE']
+        if particleName == "ELECTRON":
+            flipmagnets = True
+            print 'Detected electron in TFS file - changing flipmagnets to True'
+
     if flipmagnets != None:
         factor = -1 if flipmagnets else 1  #flipping magnets
-    else:
-        if madx.header.has_key('PARTICLE'):
-            particleName = madx.header['PARTICLE']
-            if particleName == "ELECTRON":
-                flipmagnets = True
-                print 'Detected electron in TFS file - changing flipmagnets to True'
-
 
     # If we have collimators but no collimator dict then inform that
     # they will be converted to drifts.  should really check
@@ -189,7 +187,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
         if (("RCOLLIMATOR" in madx.GetColumn("APERTYPE")
             or "ECOLLIMATOR" in madx.GetColumn("APERTYPE"))
             and not collimatordict):
-            warning.warn("No collimatordict provided.  ALL collimators"
+            _warnings.warn("No collimatordict provided.  ALL collimators"
                          " will be converted to DRIFTs.")
 
     if isinstance(biases, XSecBias.XSecBias):
@@ -304,26 +302,30 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             k3  = item['K3L'] * factor
             k4  = item['K4L'] * factor
             k5  = item['K5L'] * factor
-            k6  = item['K6L'] * factor
+            k6  = item.get('K6L', 0.0) * factor
             k1s = item['K1SL'] * factor
             k2s = item['K2SL'] * factor
             k3s = item['K3SL'] * factor
             k4s = item['K4SL'] * factor
             k5s = item['K5SL'] * factor
-            k6s = item['K6SL'] * factor
-            tilt= item['TILT']
+            k6s  = item.get('K6SL', 0.0) * factor
 
-            if thinmultipoles and not linear :
+            if linear and zerolength:
+                pass # thin multipole - ignore
+            elif linear and not zerolength:
+                a.AddDrift(rname,l,**kws) # thick multipole - replace with drift
+            elif zerolength and thinmultipoles:
+                # allow non-linear & it's a thin multipole
                 a.AddThinMultipole(rname,
                                    knl=(k1, k2, k3, k4, k5, k6),
                                    ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
                                    **kws)
-            elif zerolength and not ignorezerolengthitems:
-                a.AddMarker(rname)
-                if verbose:
-                    print name,' -> marker instead of multipole'
             else:
-                a.AddDrift(rname,l,**kws)
+                # allow non-linear & it's a thick multipole
+                AddMultipole(rname,l,
+                             knl=(k1, k2, k3, k4, k5, k6),
+                             ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
+                             **kws)
         elif t == 'OCTUPOLE':
             if linear :
                 k3 = 0.0
@@ -332,9 +334,10 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
             if zerolength:
-                a.AddMarker(rname)
-                if verbose:
-                    print name,' -> marker instead of placeholder'
+                if not ignorezerolengthitems:
+                    a.AddMarker(rname)
+                    if verbose:
+                        print name,' -> marker instead of placeholder'
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'QUADRUPOLE':
@@ -348,11 +351,15 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             fintx = item['FINTX']
             hgap = item.get('HGAP', 0.0)
             k1l = item["K1L"]
-
-            if (e1 != 0):
-                kws['e1'] = e1
-            if (e2 != 0):
-                kws['e2'] = e2
+            # set element length to be the chord length - tfs output rbend length is arc length
+            chordLength = 2 * (l/angle) * _np.sin(angle/2)
+            # subtract dipole angle/2 added on to poleface angles internally by madx
+            poleInAngle = e1 - 0.5*angle
+            poleOutAngle = e2 - 0.5*angle
+            if (poleInAngle != 0):
+                kws['e1'] = poleInAngle
+            if (poleOutAngle != 0):
+                kws['e2'] = poleOutAngle
             if (fint != 0):
                 kws['fint']  = fint
             if (fintx != 0):
@@ -360,10 +367,34 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             if (hgap != 0):
                 kws['hgap'] = hgap
             if k1l != 0:
+                # NOTE we don't use factor here for magnet flipping
                 k1 = k1l / l
                 kws['k1'] = k1
-            a.AddDipole(rname,'rbend',l,angle=angle,**kws)
-        elif t == 'RCOLLIMATOR' or t == 'ECOLLIMATOR':
+            a.AddDipole(rname,'rbend',chordLength,angle=angle,**kws)
+        elif t == 'SBEND':
+            angle = item['ANGLE']
+            e1    = item['E1']
+            e2    = item['E2']
+            fint  = item['FINT']
+            fintx = item['FINTX']
+            k1l   = item['K1L']
+            hgap = item.get('HGAP', 0.0)
+            if (e1 != 0):
+                kws['e1'] = e1
+            if (e2 != 0):
+                kws['e2'] = e2
+            if k1l != 0:
+                # NOTE we're not using factor for magnet flipping here
+                k1 = k1l / l
+                kws['k1'] = k1
+            if (fint != 0):
+                kws['fint']  = fint
+            if (fintx != 0):
+                kws['fintx'] = fintx
+            if (hgap != 0):
+                kws['hgap'] = hgap
+            a.AddDipole(rname,'sbend',l,angle=angle,**kws)
+        elif t in {'RCOLLIMATOR', 'ECOLLIMATOR', 'COLLIMATOR'}:
             #only use xsize as only have half gap
             if name in collimatordict:
                 #gets a dictionary then extends kws dict with that dictionary
@@ -405,28 +436,6 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 a.AddDrift(rname,l)
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
-        elif t == 'SBEND':
-            angle = item['ANGLE']
-            e1    = item['E1']
-            e2    = item['E2']
-            fint  = item['FINT']
-            fintx = item['FINTX']
-            k1l   = item['K1L']
-            hgap = item.get('HGAP', 0.0)
-            if (e1 != 0):
-                kws['e1'] = e1
-            if (e2 != 0):
-                kws['e2'] = e2
-            if k1l != 0:
-                k1 = k1l / l
-                kws['k1'] = k1
-            if (fint != 0):
-                kws['fint']  = fint
-            if (fintx != 0):
-                kws['fintx'] = fintx
-            if (hgap != 0):
-                kws['hgap'] = hgap
-            a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t == 'SEXTUPOLE':
             if linear :
                 k2 = 0.0
@@ -467,6 +476,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     # keep list of omitted zero length items
     itemsomitted = []
 
+    ignoreableThinElements = ['MONITOR', 'PLACEHOLDER', 'MARKER']
+
     # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
         name = item['NAME']
@@ -477,7 +488,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             print 'zerolength? ',str(name).ljust(20),str(l).ljust(20),' ->',zerolength
         if madx.ElementPerturbs(item):
             pass #ie proceed normally
-        elif zerolength and ignorezerolengthitems:
+        elif zerolength and ignorezerolengthitems and t in ignoreableThinElements:
             itemsomitted.append(name)
             if verbose:
                 print 'skipping this item'
@@ -543,7 +554,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
 
     # Make beam file
     if beam:
-        bm = MadxTfs2GmadBeam(madx, startname, verbose, gaussmatrix)
+        bm = MadxTfs2GmadBeam(madx, startname, verbose)
         a.AddBeam(bm)
         b.AddBeam(bm)
 
@@ -564,7 +575,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
 
     return b,a,itemsomitted
 
-def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, gaussmatrix=False):
+def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
 
     if startname is None:
@@ -616,28 +627,18 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, gaussmatrix=False):
     #note, in the main pybdsim.__init__.py Beam class is imported from Beam.py
     #so in this submodule when we do from .. import Beam it's actually the
     #already imported class that's being imported
-    if gaussmatrix:
-        beam   = _Beam.Beam(particle,energy,'gaussmatrix')
-        for i, j in  [(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6),
-                              (2, 2), (2, 3), (2, 4), (2, 5), (2, 6),
-                                      (3, 3), (3, 4), (3, 5), (3, 6),
-                                              (4, 4), (4, 5), (4, 6),
-                                                      (5, 5), (5, 6),
-                                                              (6, 6)]:
-            beam["sigma{}{}".format(i, j)] = data["SIG{}{}".format(i, j)]
-    else:
-        beam   = _Beam.Beam(particle,energy,'gausstwiss')
-        beam.SetBetaX(data['BETX'])
-        beam.SetBetaY(data['BETY'])
-        beam.SetAlphaX(data['ALFX'])
-        beam.SetAlphaY(data['ALFY'])
-        beam.SetDispX(data['DX'])
-        beam.SetDispY(data['DY'])
-        beam.SetDispXP(data['DPX'])
-        beam.SetDispYP(data['DPY'])
-        beam.SetEmittanceX(ex,'m')
-        beam.SetEmittanceY(ey,'m')
-        beam.SetSigmaE(sigmae)
+    beam   = _Beam.Beam(particle,energy,'gausstwiss')
+    beam.SetBetaX(data['BETX'])
+    beam.SetBetaY(data['BETY'])
+    beam.SetAlphaX(data['ALFX'])
+    beam.SetAlphaY(data['ALFY'])
+    beam.SetDispX(data['DX'])
+    beam.SetDispY(data['DY'])
+    beam.SetDispXP(data['DPX'])
+    beam.SetDispYP(data['DPY'])
+    beam.SetEmittanceX(ex,'m')
+    beam.SetEmittanceY(ey,'m')
+    beam.SetSigmaE(sigmae)
     beam.SetXP0(data['PX'])
     beam.SetYP0(data['PY'])
     beam.SetX0(data['X'])
