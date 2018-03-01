@@ -226,7 +226,7 @@ class LatticeTest:
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
-    def Run(self, bdsim='bdsim', madx='madx', integratorSet="bdsim"):
+    def Run(self, bdsim='bdsim', madx='madx', integratorSet=None):
         print 'Test> Lattice: ', self.filename 
         print 'Test> Destination filepath: ', self.filepath
 
@@ -247,9 +247,13 @@ class LatticeTest:
         particle = tfs.header['PARTICLE']
         if particle == 'ELECTRON' :
             self.flipmagnets = True
-        
+
+        optionsDict = {}
+        beamParmsDict = {'offsetSampleMean':1}
+        if integratorSet is not None:
+            optionsDict['integratorSet'] = '"'+integratorSet+'"'
         #pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose)
-        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, thinmultipoles=True, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict={'integratorSet': '"'+integratorSet+'"','includeFringeFields':1})
+        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict=optionsDict, beamParmsDict=beamParmsDict)
         
         _pymadx.Convert.TfsToPtc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
 
