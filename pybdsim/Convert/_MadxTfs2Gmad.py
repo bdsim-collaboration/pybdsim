@@ -49,6 +49,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  biases=None,
                  allelementdict={},
                  optionsDict={},
+                 beamParmsDict={},
                  linear=False,
                  overwrite=True,
                  allNamesUnique=False):
@@ -316,7 +317,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                                        ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
                                        **kws)
                 else:
-                    return # dont' write it if all strengths are zero
+                    return # don't write it if all strengths are zero
                     
             else:
                 if finiteStrength:
@@ -549,6 +550,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     # Make beam file
     if beam:
         bm = MadxTfs2GmadBeam(madx, startname, verbose)
+        for k,v in beamParmsDict.iteritems():
+            bm[k] = v
         a.AddBeam(bm)
         b.AddBeam(bm)
 
