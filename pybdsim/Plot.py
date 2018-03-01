@@ -346,7 +346,7 @@ def Histogram3D(th3):
     """
     Plot a pybdsim.Data.TH1 instance - TBC
     """
-    pass
+    print 'Not written yet - TBC'
 
 def PrimaryPhaseSpace(filename, outputfilename=None):
     import Data as _Data
