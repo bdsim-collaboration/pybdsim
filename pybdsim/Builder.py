@@ -194,7 +194,7 @@ class Element(ElementBase):
                           + (','.join([str(s) for s in self[key]]))+'}')
                 else:
                     s += ", {}={}".format(key, self[key])
-        s = '\n\t'.join(_textwrap.wrap(s))
+        s = '\n\t'.join(_textwrap.wrap(s,100)) # wrap at 100 characters
         s += ';\n'
         return s
 
