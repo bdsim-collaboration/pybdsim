@@ -326,10 +326,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 else:
                     a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
-            if linear :
-                k3 = 0.0
-            else :
-                k3 = item['K3L'] / l * factor
+            k3 = item['K3L'] / l * factor if not linear else 0
             a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
             if zerolength:
@@ -436,10 +433,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SEXTUPOLE':
-            if linear :
-                k2 = 0.0
-            else :
-                k2 = item['K2L'] / l * factor
+            k2 = item['K2L'] / l * factor if not linear else 0
             a.AddSextupole(rname,l,k2=k2,**kws)
         elif t == 'SOLENOID':
             #ks = item['KSI'] / l
