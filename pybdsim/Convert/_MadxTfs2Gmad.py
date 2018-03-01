@@ -9,7 +9,8 @@ import pybdsim._General
 from .. import XSecBias
 
 _requiredKeys = frozenset([
-    'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
+    'L', 'ANGLE', 'KSI',
+    'K1L',  'K2L',  'K3L',  'K4L',  'K5L',  'K6L',
     'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
     'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX'])
