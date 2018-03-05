@@ -44,12 +44,12 @@ def BdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
     outfile.writelines(headstr)
     for n in range(0,nentries):                  # n denotes a given particle
         s    =  'ptc_start'
-        s   += ', x='  + str(primary_coords[0][n][0])
-        s   += ', px=' + str(primary_coords[1][n][0])
-        s   += ', y='  + str(primary_coords[2][n][0])
-        s   += ', py=' + str(primary_coords[3][n][0])
-        s   += ', t='  + str(primary_coords[4][n][0])
-        s   += ', pt=' + str(primary_coords[5][n][0])   
+        s   += ', x='  + repr(primary_coords[0][n][0])
+        s   += ', px=' + repr(primary_coords[1][n][0])
+        s   += ', y='  + repr(primary_coords[2][n][0])
+        s   += ', py=' + repr(primary_coords[3][n][0])
+        s   += ', t='  + repr(primary_coords[4][n][0])
+        s   += ', pt=' + repr(primary_coords[5][n])   
         s   += ';\n'
         outfile.writelines(s)
 
@@ -78,12 +78,12 @@ def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     outfile.writelines(headstr)
     for n in range(0,nentries):               # n denotes a given particle
         s  =  'start'
-        s += ', x='  + str(primary_coords[0][n][0])
-        s += ', px=' + str(primary_coords[1][n][0])
-        s += ', y='  + str(primary_coords[2][n][0])
-        s += ', py=' + str(primary_coords[3][n][0])
-        s += ', t='  + str(primary_coords[4][n][0])
-        s += ', pt=' + str(primary_coords[5][n][0])   
+        s += ', x='  + repr(primary_coords[0][n][0])
+        s += ', px=' + repr(primary_coords[1][n][0])
+        s += ', y='  + repr(primary_coords[2][n][0])
+        s += ', py=' + repr(primary_coords[3][n][0])
+        s += ', t='  + repr(primary_coords[4][n][0])
+        s += ', pt=' + repr(primary_coords[5][n][0])   
         s += ';\n'
         outfile.writelines(s)
         
@@ -106,19 +106,19 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     outfile = open(outfile,'w' )
 
     nentries =  len(primary_coords[0])
-    headstr  = "! Mad8 format inrays file of "+str(nentries)
+    headstr  = "! Mad8 format inrays file of "+repr(nentries)
     headstr += " initial coordinates generated from BDSIM output on "+time.strftime("%c")+"\n"
 
     outfile.writelines(headstr)
     for n in range(0,nentries):    #n denotes a given particle
         s  =  'START'
-        s += ', X='  + str(primary_coords[0][n][0])
-        s += ', PX=' + str(primary_coords[1][n][0])
-        s += ', Y='  + str(primary_coords[2][n][0])
+        s += ', X='  + repr(primary_coords[0][n][0])
+        s += ', PX=' + repr(primary_coords[1][n][0])
+        s += ', Y='  + repr(primary_coords[2][n][0])
         s += ', &\n'                             #line continuation needed to obey FORTRAN 80 char input limit
-        s += 'PY=' + str(primary_coords[3][n][0])
-        s += ', T='  + str(primary_coords[4][n][0])
-        s += ', DELTAP=' + str(primary_coords[5][n][0])   
+        s += 'PY=' + repr(primary_coords[3][n][0])
+        s += ', T='  + repr(primary_coords[4][n][0])
+        s += ', DELTAP=' + repr(primary_coords[5][n][0])   
         s += '\n'
         outfile.writelines(s)
         
@@ -163,11 +163,15 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
         raise ValueError('Unknown primary particle species.')
 
     npart       = len(x)
+    E = _np.array([val[0] for val in E])
     Em          = _np.mean(E)
-    p           = _np.sqrt(Em**2 - mass**2)
+
+    p           = _np.sqrt(E**2 - _np.full_like(E, mass)**2)
+    p0          = _np.sqrt(Em**2 - mass**2)
     tofm        = _np.mean(tof)
-    
-    dE          = (E -_np.full(npart,Em))/(p*c)         # energy spread from MAD-X Manual V 5.03.00, pg 16.
+
+    #dE          = (E -_np.full(npart,Em))/(p*c)         # energy spread from MAD-X Manual V 5.03.00, pg 16.
+    dE          = (p-p0)/p0
     t           = (tof-_np.full(npart,tofm))*1.e-9*c    #c is sof and the 1.e-9 factor is nm to m conversion
 
     #Truncate the arrays to the desired lenght

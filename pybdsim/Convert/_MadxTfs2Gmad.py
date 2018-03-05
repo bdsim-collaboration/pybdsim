@@ -9,7 +9,8 @@ import pybdsim._General
 from .. import XSecBias
 
 _requiredKeys = frozenset([
-    'L', 'ANGLE', 'KSI', 'K1L', 'K2L', 'K3L', 'K4L', 'K5L',
+    'L', 'ANGLE', 'KSI',
+    'K1L',  'K2L',  'K3L',  'K4L',  'K5L',  'K6L',
     'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
     'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX'])
@@ -39,7 +40,7 @@ def ZeroMissingRequiredColumns(tfsinstance):
 
 
 def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
-                 ignorezerolengthitems=True, thinmultipoles=True, samplers='all',
+                 ignorezerolengthitems=True, samplers='all',
                  aperturedict={},
                  collimatordict={},
                  userdict={},
@@ -48,6 +49,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                  biases=None,
                  allelementdict={},
                  optionsDict={},
+                 beamParmsDict={},
                  linear=False,
                  overwrite=True,
                  allNamesUnique=False):
@@ -74,9 +76,6 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     |                               | have some finite size.  Markers, etc are acceptable but for large |
     |                               | lattices this can slow things down. True allows to ignore these   |
     |                               | altogether, which doesn't affect the length of the machine.       |
-    +-------------------------------+-------------------------------------------------------------------+
-    | **thinmultipoles**            | will convert thin multipoles to ~1um thick finite length          |
-    |                               | multipoles with upscaled k values - experimental feature          |
     +-------------------------------+-------------------------------------------------------------------+
     | **samplers**                  | can specify where to set samplers - options are None, 'all', or a |
     |                               | list of names of elements (normal python list of strings). Note   |
@@ -115,7 +114,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     +-------------------------------+-------------------------------------------------------------------+
     | **flipmagnets**               | True \| False - flip the sign of all k values for magnets - MADX  |
     |                               | currently tracks particles agnostic of the particle charge -      |
-    |                               | BDISM however, follows their manual definition strictly -         |
+    |                               | BDISM however, follows the definition strictly -                  |
     |                               | positive k -> horizontal focussing for positive particles         |
     |                               | therefore, positive k -> vertical focussing for negative          |
     |                               | particles. Use this flag to flip the sign of all magnets.         |
@@ -297,40 +296,39 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'MULTIPOLE':
-            k1  = item['K1L'] * factor
-            k2  = item['K2L'] * factor
-            k3  = item['K3L'] * factor
-            k4  = item['K4L'] * factor
-            k5  = item['K5L'] * factor
-            k6  = item.get('K6L', 0.0) * factor
+            k1  = item['K1L']  * factor
+            k2  = item['K2L']  * factor if not linear else 0
+            k3  = item['K3L']  * factor if not linear else 0
+            k4  = item['K4L']  * factor if not linear else 0
+            k5  = item['K5L']  * factor if not linear else 0
+            k6  = item['K6L']  * factor if not linear else 0
             k1s = item['K1SL'] * factor
-            k2s = item['K2SL'] * factor
-            k3s = item['K3SL'] * factor
-            k4s = item['K4SL'] * factor
-            k5s = item['K5SL'] * factor
-            k6s  = item.get('K6SL', 0.0) * factor
+            k2s = item['K2SL'] * factor if not linear else 0
+            k3s = item['K3SL'] * factor if not linear else 0
+            k4s = item['K4SL'] * factor if not linear else 0
+            k5s = item['K5SL'] * factor if not linear else 0
+            k6s = item['K6SL'] * factor if not linear else 0
 
-            if linear and zerolength:
-                pass # thin multipole - ignore
-            elif linear and not zerolength:
-                a.AddDrift(rname,l,**kws) # thick multipole - replace with drift
-            elif zerolength and thinmultipoles:
-                # allow non-linear & it's a thin multipole
-                a.AddThinMultipole(rname,
-                                   knl=(k1, k2, k3, k4, k5, k6),
-                                   ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
-                                   **kws)
+            finiteStrength = _np.any([k1,k2,k3,k4,k5,k6,k1s,k2s,k3s,k4s,k5s,k6s])
+            if zerolength:
+                if finiteStrength:
+                    a.AddThinMultipole(rname,
+                                       knl=(k1, k2, k3, k4, k5, k6),
+                                       ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
+                                       **kws)
+                else:
+                    return # don't write it if all strengths are zero
+                    
             else:
-                # allow non-linear & it's a thick multipole
-                AddMultipole(rname,l,
-                             knl=(k1, k2, k3, k4, k5, k6),
-                             ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
-                             **kws)
+                if finiteStrength:
+                    AddMultipole(rname,l,
+                                 knl=(k1, k2, k3, k4, k5, k6),
+                                 ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
+                                 **kws)
+                else:
+                    a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
-            if linear :
-                k3 = 0.0
-            else :
-                k3 = item['K3L'] / l * factor
+            k3 = item['K3L'] / l * factor if not linear else 0
             a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
             if zerolength:
@@ -437,10 +435,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SEXTUPOLE':
-            if linear :
-                k2 = 0.0
-            else :
-                k2 = item['K2L'] / l * factor
+            k2 = item['K2L'] / l * factor if not linear else 0
             a.AddSextupole(rname,l,k2=k2,**kws)
         elif t == 'SOLENOID':
             #ks = item['KSI'] / l
@@ -555,6 +550,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     # Make beam file
     if beam:
         bm = MadxTfs2GmadBeam(madx, startname, verbose)
+        for k,v in beamParmsDict.iteritems():
+            bm[k] = v
         a.AddBeam(bm)
         b.AddBeam(bm)
 

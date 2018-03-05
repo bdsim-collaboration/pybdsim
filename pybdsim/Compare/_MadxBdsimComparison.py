@@ -7,7 +7,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 import datetime
 
 def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
-                postfunctions=None, figsize=(12, 5), saveAll=True):
+                postfunctions=None, figsize=(12, 5), saveAll=True, outputFileName=None):
     """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
@@ -80,6 +80,10 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
         tfsname = repr(tfsinst)
         bdsname = repr(bdsinst)
         output_filename = "optics-report.pdf"
+        if outputFileName is not None:
+            output_filename = outputFileName
+            if not output_filename.endswith('.pdf'):
+                output_filename += ".pdf"
         # Should have a more descriptive name really.
         with PdfPages(output_filename) as pdf:
             for figure in figures:

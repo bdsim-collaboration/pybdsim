@@ -37,9 +37,9 @@ class OneDData(FourDData):
     def __init__(self, filename):
         FourDData.__init__(self, filename, tind=-1, zind=-1, yind=-1)
 
-def _Niceties():
-    _plt.xlabel('X (cm)')
-    _plt.ylabel('Y (cm)')
+def _Niceties(xlabel, ylabel):
+    _plt.xlabel(xlabel)
+    _plt.ylabel(ylabel)
     _plt.colorbar()
     _plt.tight_layout()
     _plt.axes().set_aspect('equal', 'datalim')
@@ -48,16 +48,22 @@ def Plot2DXY(filename, scale=None):
     d = TwoDData(filename)
     _plt.figure()
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
-    _Niceties()
+    _Niceties('X (cm)', 'Y (cm)')
 
 def Plot3DXY(filename, scale=None):
+    """
+    Plots (B_x,B_y) as a function of x and y.
+    """
     d = ThreeDData(filename)
     _plt.figure()
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
-    _Niceties()
+    _Niceties('X (cm)', 'Y (cm)')
 
 def Plot3DXZ(filename, scale=None):
+    """
+    Plots (B_x,B_z) as a function of x and z.
+    """
     d = ThreeDData(filename)
     _plt.figure()
     _plt.quiver(d.x,d.z,d.fx,d.fz,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
-    _Niceties()
+    _Niceties('X (cm)', 'Z (cm)')
