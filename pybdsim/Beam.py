@@ -64,7 +64,7 @@ class Beam(dict) :
             setattr(self, 'SetDispYP',      self._SetDispYP)
         elif distrtype == 'eshell':
             setattr(self, 'SetShellX',     self._SetShellX)
-            setattr(self, 'SetShellY',     self._SetShelly)
+            setattr(self, 'SetShellY',     self._SetShellY)
             setattr(self, 'SetShellXP',    self._SetShellXP)
             setattr(self, 'SetShellYP',    self._SetShellYP)
         elif distrtype == 'ring':

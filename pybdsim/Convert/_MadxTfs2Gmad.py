@@ -321,7 +321,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                     
             else:
                 if finiteStrength:
-                    AddMultipole(rname,l,
+                    a.AddMultipole(rname,l,
                                  knl=(k1, k2, k3, k4, k5, k6),
                                  ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
                                  **kws)
