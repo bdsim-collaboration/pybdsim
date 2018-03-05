@@ -650,7 +650,7 @@ class PhaseSpaceData(object):
                 res = list([v])
             result.extend(res)
 
-        return result
+        return _np.array(result)
 
     def _GetVariables(self, samplerIndex, vs):
         result = {v:[] for v in vs}
@@ -665,4 +665,6 @@ class PhaseSpaceData(object):
                     res = list([r])
                 result[v].extend(res)
 
+        for v in vs:
+            result[v] = _np.array(result[v])
         return result
