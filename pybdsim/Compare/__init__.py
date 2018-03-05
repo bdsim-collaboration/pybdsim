@@ -12,8 +12,11 @@ except ImportError:
 
 from _BdsimBdsimComparison import BDSIMVsBDSIM
 
-try :
+try:
     import pysad as _pysad
     from _SadComparison import SadComparison
-except ImportError :
+except ImportError:
     pass
+
+
+from _MadxMadxComparison import MadxVsMadx
