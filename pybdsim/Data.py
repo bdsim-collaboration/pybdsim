@@ -601,7 +601,17 @@ class TH3(TH2):
 
 
 class PhaseSpaceData(object):
-    def __init__(self, data, samplerIndex=0):
+    """
+    Pull phase space data from a loaded DataLoader instance of raw data.
+
+    Can either supply the sampler name or index. The index is 0 counting
+    including the primaries (ie +1 on the index in data.GetSamplerNames()).
+
+    >>> f = pybdsim.Data.Load("file.root")
+    >>> primaries = pybdsim.Data.PhaseSpaceData(f)
+    >>> primaries.data['x']
+    """
+    def __init__(self, data, samplerIndex=0, samplerName=None):
         self._et = data.GetEventTree()
         self._ev = data.GetEvent()
         self._samplerNames = list(data.GetSamplerNames())
@@ -610,10 +620,17 @@ class PhaseSpaceData(object):
         self._samplers.insert(0,self._ev.GetPrimaries())
         self._entries = int(self._et.GetEntries())
 
+        self.samplerIndex = samplerIndex
+        self.samplerName  = self._samplerNames[samplerIndex]
+        if samplerName is not None:
+            try:
+                self.samplerIndex = self._samplerNames.index(samplerName)
+            except ValueError:
+                self.samplerIndex = self._samplerNames.index(samplerName+".")
+            self.samplerName  = samplerName
+        
         params = ['x','xp','y','yp','z','zp','energy','t']
         self.data = self._GetVariables(samplerIndex, params)
-
-        self.samplerName = self._samplerNames[samplerIndex]
 
     def _SamplerIndex(self, samplerName):
         try:
