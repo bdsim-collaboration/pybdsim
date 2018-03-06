@@ -13,7 +13,7 @@ _requiredKeys = frozenset([
     'K1L',  'K2L',  'K3L',  'K4L',  'K5L',  'K6L',
     'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
-    'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX'])
+    'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX', 'HGAP'])
 
 _lFake = 1e-6 # fake length for thin magnets
 
@@ -347,22 +347,24 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             e2    = item['E2']
             fint  = item['FINT']
             fintx = item['FINTX']
-            hgap = item.get('HGAP', 0.0)
-            k1l = item["K1L"]
+            hgap  = item['HGAP']
+            k1l   = item['K1L']
             # set element length to be the chord length - tfs output rbend length is arc length
-            chordLength = 2 * (l/angle) * _np.sin(angle/2)
+            chordLength = 2 * (l/angle) * _np.sin(angle/2.)
             # subtract dipole angle/2 added on to poleface angles internally by madx
-            poleInAngle = e1 - 0.5*angle
+            poleInAngle  = e1 - 0.5*angle
             poleOutAngle = e2 - 0.5*angle
-            if (poleInAngle != 0):
+            if poleInAngle != 0:
                 kws['e1'] = poleInAngle
-            if (poleOutAngle != 0):
+            if poleOutAngle != 0:
                 kws['e2'] = poleOutAngle
-            if (fint != 0):
+            if fint != 0:
                 kws['fint']  = fint
-            if (fintx != 0):
+            # in madx, -1 means fintx was allowed to default to fint and we should do the same
+            # so if set to 0, this means we want it to be 0
+            if fintx != -1:
                 kws['fintx'] = fintx
-            if (hgap != 0):
+            if hgap != 0:
                 kws['hgap'] = hgap
             if k1l != 0:
                 # NOTE we don't use factor here for magnet flipping
@@ -375,23 +377,23 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             e2    = item['E2']
             fint  = item['FINT']
             fintx = item['FINTX']
-            if (fintx == -1):
-                fintx=fint
+            hgap  = item['HGAP']
             k1l   = item['K1L']
-            hgap = item.get('HGAP', 0.0)
-            if (e1 != 0):
+            if e1 != 0:
                 kws['e1'] = e1
-            if (e2 != 0):
+            if e2 != 0:
                 kws['e2'] = e2
             if k1l != 0:
                 # NOTE we're not using factor for magnet flipping here
                 k1 = k1l / l
                 kws['k1'] = k1
-            if (fint != 0):
+            if fint != 0:
                 kws['fint']  = fint
-            if (fintx != 0):
+            # in madx, -1 means fintx was allowed to default to fint and we should do the same
+            # so if set to 0, this means we want it to be 0
+            if fintx != -1:
                 kws['fintx'] = fintx
-            if (hgap != 0):
+            if hgap != 0:
                 kws['hgap'] = hgap
             a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t in {'RCOLLIMATOR', 'ECOLLIMATOR', 'COLLIMATOR'}:
