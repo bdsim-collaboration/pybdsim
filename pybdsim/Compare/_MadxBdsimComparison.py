@@ -500,7 +500,7 @@ def _AddSurvey(figure, survey):
     elif isinstance(survey, _pymadx.Data.Tfs): # If TFS
         _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
     # if a (BDSIM) ROOT file
-    elif pybdsim._General.IsROOTFile(survey):
+    elif _pybdsim._General.IsROOTFile(survey):
         pass
 
 def _ProcessInput(tfsOptics, bdsimOptics):
