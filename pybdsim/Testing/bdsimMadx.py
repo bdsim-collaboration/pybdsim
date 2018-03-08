@@ -289,6 +289,24 @@ class LatticeTest:
 
         _os.chdir(self.folderpath)
 
+        #Writes the text file for Rebdsim
+        with open(''+self.filename+'_analConfig.txt', 'w') as outfile:
+            outfile.writelines("{:<40s}".format('Debug')+'\t 0\n')
+            outfile.writelines("{:<40s}".format('InputFilePath')+'\t ./'+self.filename+'.root \n')
+            outfile.writelines("{:<40s}".format('OutputFileName')+'\t ./'+self.filename+'_optics.root \n')
+            outfile.writelines("{:<40s}".format('CalculateOpticalFunctions')+'\t 1 \n')
+            outfile.writelines("{:<40s}".format('CalculateOpticalFunctionsFileName')+'\t ./'+self.filename+'_optics.dat \n')
+            outfile.writelines("{:<40s}".format('emittanceOnTheFly')+'\t 1 \n')
+
+        #Calculates optical functions and produces .root and .dat files for analysis
+        #_os.system(rebdsim+" "+self.filename+"_analConfig.txt")
+        process = subprocess.Popen([rebdsim, self.filename+"_analConfig.txt"])
+
+        # Method of communicating with BDSIM process. Start and apply the timeout via joining
+        processThread = threading.Thread(target=process.communicate)
+        processThread.start()
+        processThread.join()
+
         #Load data
         rootin     = _ROOT.TFile(self.filename+".root")
         t          = rootin.Get("Event")
@@ -394,24 +412,6 @@ class LatticeTest:
         
         #Loading output and processing optical functions
         madx = pymadx.Data.Tfs(''+self.tfsfilename+'.tfs')
-
-        #Writes the text file for Rebdsim
-        with open(''+self.filename+'_analConfig.txt', 'w') as outfile:
-            outfile.writelines("{:<40s}".format('Debug')+'\t 0\n')
-            outfile.writelines("{:<40s}".format('InputFilePath')+'\t ./'+self.filename+'.root \n')
-            outfile.writelines("{:<40s}".format('OutputFileName')+'\t ./'+self.filename+'_optics.root \n')
-            outfile.writelines("{:<40s}".format('CalculateOpticalFunctions')+'\t 1 \n')
-            outfile.writelines("{:<40s}".format('CalculateOpticalFunctionsFileName')+'\t ./'+self.filename+'_optics.dat \n')
-            outfile.writelines("{:<40s}".format('emittanceOnTheFly')+'\t 1 \n')
-
-        #Calculates optical functions and produces .root and .dat files for analysis 
-        #_os.system(rebdsim+" "+self.filename+"_analConfig.txt")
-        process = subprocess.Popen([rebdsim, self.filename+"_analConfig.txt"])
-
-        # Method of communicating with BDSIM process. Start and apply the timeout via joining
-        processThread = threading.Thread(target=process.communicate)
-        processThread.start()
-        processThread.join()
 
         if noPlots:
             return
