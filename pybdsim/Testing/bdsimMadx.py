@@ -226,7 +226,7 @@ class LatticeTest:
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
-    def Run(self, bdsim='bdsim', madx='madx', integratorSet=None):
+    def Run(self, bdsim='bdsim', madx='madx', integratorSet=None, optionsDict = {}):
         print 'Test> Lattice: ', self.filename 
         print 'Test> Destination filepath: ', self.filepath
 
@@ -248,7 +248,6 @@ class LatticeTest:
         if particle == 'ELECTRON' :
             self.flipmagnets = True
 
-        optionsDict = {}
         beamParmsDict = {'offsetSampleMean':1}
         if integratorSet is not None:
             optionsDict['integratorSet'] = '"'+integratorSet+'"'
