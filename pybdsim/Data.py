@@ -90,6 +90,7 @@ def Load(filepath):
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
+    data.filename = filepath
     f = open(filepath, 'r')
     for i, line in enumerate(f):
         if line.startswith("#"):
@@ -306,6 +307,7 @@ class BDSAsciiData(list):
         self.units   = []
         self.names   = []
         self.columns = self.names
+        self.filename = "" # file data was loaded from
 
     def __getitem__(self,index):
         return dict(zip(self.names,list.__getitem__(self,index)))
