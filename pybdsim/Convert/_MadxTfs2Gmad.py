@@ -161,7 +161,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     is returned.
     """
     # constants
-    thinElementThressHold = 1e-6 #anything below this length is treated as a thin element
+    thinElementThreshold = 1e-6 #anything below this length is treated as a thin element
 
     # machine instance that will be added to
     a = _Builder.Machine() # raw converted machine
@@ -253,7 +253,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 print 'HICKER',rname
             hkick = item['HKICK'] * factor
             if not zerolength:
-                if l > thinElementThressHold:
+                if l > thinElementThreshold:
                     kws['l'] = l
             a.AddHKicker(rname,hkick=hkick,**kws)
         elif t == 'VKICKER':
@@ -261,7 +261,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 print 'VKICKER',rname
             vkick = item['VKICK'] * factor
             if not zerolength:
-                if l > thinElementThressHold:
+                if l > thinElementThreshold:
                     kws['l'] = l
             a.AddVKicker(rname,vkick=vkick,**kws)
         elif t == 'KICKER':
@@ -270,7 +270,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             hkick = item['HKICK'] * factor
             vkick = item['VKICK'] * factor
             if not zerolength:
-                if l > thinElementThressHold:
+                if l > thinElementThreshold:
                     kws['l'] = l
             a.AddKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'TKICKER':
@@ -279,7 +279,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             hkick = item['HKICK'] * factor
             vkick = item['VKICK'] * factor
             if not zerolength:
-                if l > thinElementThressHold:
+                if l > thinElementThreshold:
                     kws['l'] = l
             a.AddTKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'INSTRUMENT':
@@ -316,7 +316,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             k6s = item['K6SL'] * factor if not linear else 0
 
             finiteStrength = _np.any([k1,k2,k3,k4,k5,k6,k1s,k2s,k3s,k4s,k5s,k6s])
-            if zerolength or l < thinElementThressHold:
+            if zerolength or l < thinElementThreshold:
                 if finiteStrength:
                     a.AddThinMultipole(rname,
                                        knl=(k1, k2, k3, k4, k5, k6),
@@ -334,7 +334,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 else:
                     a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
-            if zerolength or l < thinElementThressHold:
+            if zerolength or l < thinElementThreshold:
                 k3 = item['K3L'] * factor if not linear else 0
                 a.AddThinMultipole(rname, knl=(0,0,k3), **kws)
             else:
@@ -349,7 +349,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'QUADRUPOLE':
-            if zerolength or l < thinElementThressHold:
+            if zerolength or l < thinElementThreshold:
                 k1 = item['K1L'] * factor
                 a.AddThinMultipole(rname, knl=(k1), **kws)
             else:
@@ -453,7 +453,7 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SEXTUPOLE':
-            if zerolength or l < thinElementThressHold:
+            if zerolength or l < thinElementThreshold:
                 k2 = item['K2L'] * factor if not linear else 0
                 a.AddThinMultipole(rname, knl=(0,k2), **kws)
             else:
