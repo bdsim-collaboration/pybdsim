@@ -322,22 +322,18 @@ def MadxTfs2Gmad(tfs, outputfilename,
             k5s = item['K5SL'] * factor if not linear else 0
             k6s = item['K6SL'] * factor if not linear else 0
 
+            knl =(k1,  k2,  k3,  k4,  k5,  k6)
+            ksl =(k1s, k2s, k3s, k4s, k5s, k6s)
+            
             finiteStrength = _np.any([k1,k2,k3,k4,k5,k6,k1s,k2s,k3s,k4s,k5s,k6s])
             if zerolength or l < thinElementThreshold:
                 if finiteStrength:
-                    a.AddThinMultipole(rname,
-                                       knl=(k1, k2, k3, k4, k5, k6),
-                                       ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
-                                       **kws)
+                    a.AddThinMultipole(rname, knl=knl, ksl=ksl, **kws)
                 else:
                     return # don't write it if all strengths are zero
-                    
             else:
                 if finiteStrength:
-                    a.AddMultipole(rname,l,
-                                   knl=(k1, k2, k3, k4, k5, k6),
-                                   ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
-                                   **kws)
+                    a.AddMultipole(rname,l,knl=knl,ksl=ksl,**kws)
                 else:
                     a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
