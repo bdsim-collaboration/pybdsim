@@ -39,20 +39,27 @@ def ZeroMissingRequiredColumns(tfsinstance):
     print msg
 
 
-def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
-                 ignorezerolengthitems=True, samplers='all',
-                 aperturedict={},
-                 collimatordict={},
-                 userdict={},
-                 verbose=False, beam=True, flipmagnets=None, usemadxaperture=False,
-                 defaultAperture='circular',
-                 biases=None,
-                 allelementdict={},
-                 optionsDict={},
-                 beamParmsDict={},
-                 linear=False,
-                 overwrite=True,
-                 allNamesUnique=False):
+def MadxTfs2Gmad(tfs, outputfilename,
+                 startname             = None,
+                 stopname              = None,
+                 stepsize              = 1,
+                 ignorezerolengthitems = True,
+                 samplers              = 'all',
+                 aperturedict          = {},
+                 collimatordict        = {},
+                 userdict              = {},
+                 verbose               = False,
+                 beam                  = True,
+                 flipmagnets           = None,
+                 usemadxaperture       = False,
+                 defaultAperture       = 'circular',
+                 biases                = None,
+                 allelementdict        = {},
+                 optionsDict           = {},
+                 beamParmsDict         = {},
+                 linear                = False,
+                 overwrite             = True,
+                 allNamesUnique        = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
