@@ -33,11 +33,15 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
 
     _CheckFilesExist(tfs, bdsim, survey)
 
-    tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+    fname = _pybdsim._General.GetFileName(bdsim) # cache file name
+    if fname == "":
+        fname = "optics_report"
 
-    tfsopt    = _GetTfsOptics(tfsinst)
-    bdsopt    = _GetBDSIMOptics(bdsinst)
+    tfsinst = _pymadx.Data.CheckItsTfs(tfs)
+    bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+
+    tfsopt  = _GetTfsOptics(tfsinst)
+    bdsopt  = _GetBDSIMOptics(bdsinst)
 
     if survey is None:
         survey = tfsinst
@@ -84,13 +88,15 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
             output_filename = outputFileName
             if not output_filename.endswith('.pdf'):
                 output_filename += ".pdf"
+        else:
+            output_filename = fname.strip('.root')
+            output_filename += ".pdf"
         # Should have a more descriptive name really.
         with PdfPages(output_filename) as pdf:
             for figure in figures:
                 pdf.savefig(figure)
             d = pdf.infodict()
-            d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(
-                tfsname, bdsname)
+            d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
             d['CreationDate'] = datetime.datetime.today()
 
         print "Written ", output_filename

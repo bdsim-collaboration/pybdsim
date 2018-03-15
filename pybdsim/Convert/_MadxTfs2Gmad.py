@@ -39,20 +39,27 @@ def ZeroMissingRequiredColumns(tfsinstance):
     print msg
 
 
-def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
-                 ignorezerolengthitems=True, samplers='all',
-                 aperturedict={},
-                 collimatordict={},
-                 userdict={},
-                 verbose=False, beam=True, flipmagnets=None, usemadxaperture=False,
-                 defaultAperture='circular',
-                 biases=None,
-                 allelementdict={},
-                 optionsDict={},
-                 beamParmsDict={},
-                 linear=False,
-                 overwrite=True,
-                 allNamesUnique=False):
+def MadxTfs2Gmad(tfs, outputfilename,
+                 startname             = None,
+                 stopname              = None,
+                 stepsize              = 1,
+                 ignorezerolengthitems = True,
+                 samplers              = 'all',
+                 aperturedict          = {},
+                 collimatordict        = {},
+                 userdict              = {},
+                 verbose               = False,
+                 beam                  = True,
+                 flipmagnets           = None,
+                 usemadxaperture       = False,
+                 defaultAperture       = 'circular',
+                 biases                = None,
+                 allelementdict        = {},
+                 optionsDict           = {},
+                 beamParmsDict         = {},
+                 linear                = False,
+                 overwrite             = True,
+                 allNamesUnique        = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -160,6 +167,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
     the raw conversion that's not split by aperture. Thirdly, a list of the names of the omitted items
     is returned.
     """
+    # constants
+    thinElementThreshold = 1e-6 #anything below this length is treated as a thin element
 
     # machine instance that will be added to
     a = _Builder.Machine() # raw converted machine
@@ -251,14 +260,16 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
                 print 'HICKER',rname
             hkick = item['HKICK'] * factor
             if not zerolength:
-                kws['l'] = l
+                if l > thinElementThreshold:
+                    kws['l'] = l
             a.AddHKicker(rname,hkick=hkick,**kws)
         elif t == 'VKICKER':
             if verbose:
                 print 'VKICKER',rname
             vkick = item['VKICK'] * factor
             if not zerolength:
-                kws['l'] = l
+                if l > thinElementThreshold:
+                    kws['l'] = l
             a.AddVKicker(rname,vkick=vkick,**kws)
         elif t == 'KICKER':
             if verbose:
@@ -266,7 +277,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             hkick = item['HKICK'] * factor
             vkick = item['VKICK'] * factor
             if not zerolength:
-                kws['l'] = l
+                if l > thinElementThreshold:
+                    kws['l'] = l
             a.AddKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'TKICKER':
             if verbose:
@@ -274,7 +286,8 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             hkick = item['HKICK'] * factor
             vkick = item['VKICK'] * factor
             if not zerolength:
-                kws['l'] = l
+                if l > thinElementThreshold:
+                    kws['l'] = l
             a.AddTKicker(rname,hkick=hkick,vkick=vkick,**kws)
         elif t == 'INSTRUMENT':
             #most 'instruments' are just markers
@@ -309,27 +322,27 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             k5s = item['K5SL'] * factor if not linear else 0
             k6s = item['K6SL'] * factor if not linear else 0
 
+            knl =(k1,  k2,  k3,  k4,  k5,  k6)
+            ksl =(k1s, k2s, k3s, k4s, k5s, k6s)
+            
             finiteStrength = _np.any([k1,k2,k3,k4,k5,k6,k1s,k2s,k3s,k4s,k5s,k6s])
-            if zerolength:
+            if zerolength or l < thinElementThreshold:
                 if finiteStrength:
-                    a.AddThinMultipole(rname,
-                                       knl=(k1, k2, k3, k4, k5, k6),
-                                       ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
-                                       **kws)
+                    a.AddThinMultipole(rname, knl=knl, ksl=ksl, **kws)
                 else:
                     return # don't write it if all strengths are zero
-                    
             else:
                 if finiteStrength:
-                    a.AddMultipole(rname,l,
-                                 knl=(k1, k2, k3, k4, k5, k6),
-                                 ksl=(k1s, k2s, k3s, k4s, k5s, k6s),
-                                 **kws)
+                    a.AddMultipole(rname,l,knl=knl,ksl=ksl,**kws)
                 else:
                     a.AddDrift(rname,l,**kws)
         elif t == 'OCTUPOLE':
-            k3 = item['K3L'] / l * factor if not linear else 0
-            a.AddOctupole(rname,l,k3=k3,**kws)
+            if zerolength or l < thinElementThreshold:
+                k3 = item['K3L'] * factor if not linear else 0
+                a.AddThinMultipole(rname, knl=(0,0,k3), **kws)
+            else:
+                k3 = item['K3L'] / l * factor if not linear else 0
+                a.AddOctupole(rname,l,k3=k3,**kws)
         elif t == 'PLACEHOLDER':
             if zerolength:
                 if not ignorezerolengthitems:
@@ -339,8 +352,12 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
             else:
                 a.AddDrift(rname,l,**kws)
         elif t == 'QUADRUPOLE':
-            k1 = item['K1L'] / l * factor
-            a.AddQuadrupole(rname,l,k1=k1,**kws)
+            if zerolength or l < thinElementThreshold:
+                k1 = item['K1L'] * factor
+                a.AddThinMultipole(rname, knl=(k1), **kws)
+            else:
+                k1 = item['K1L'] / l * factor
+                a.AddQuadrupole(rname,l,k1=k1,**kws)
         elif t == 'RBEND':
             angle = item['ANGLE']
             e1    = item['E1']
@@ -439,13 +456,16 @@ def MadxTfs2Gmad(tfs, outputfilename, startname=None, stopname=None, stepsize=1,
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SEXTUPOLE':
-            k2 = item['K2L'] / l * factor if not linear else 0
-            a.AddSextupole(rname,l,k2=k2,**kws)
+            if zerolength or l < thinElementThreshold:
+                k2 = item['K2L'] * factor if not linear else 0
+                a.AddThinMultipole(rname, knl=(0,k2), **kws)
+            else:
+                k2 = item['K2L'] / l * factor if not linear else 0
+                a.AddSextupole(rname,l,k2=k2,**kws)
         elif t == 'SOLENOID':
             #ks = item['KSI'] / l
             #a.AddSolenoid(rname,l,ks=ks
-            a.AddDrift(rname,l,**kws)
-        elif t == 'TKICKER':
+            print 'Solenoid not supported currently'
             a.AddDrift(rname,l,**kws)
         else:
             print 'unknown element type:', t, 'for element named: ', name
