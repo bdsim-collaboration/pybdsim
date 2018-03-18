@@ -277,7 +277,7 @@ def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, 
                   fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\alpha_{x,y}$ / m')
+    axes.set_ylabel(r'$\alpha_{x,y}$')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
@@ -335,7 +335,7 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
                   fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / m')
+    axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / rad')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
