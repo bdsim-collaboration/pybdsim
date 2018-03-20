@@ -164,7 +164,9 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
 
     npart       = len(x)
     E = _np.array([val[0] for val in E])
-    Em          = _np.mean(E)
+
+    beam = rootin.Get("Beam")
+    Em = _rnp.tree2array(beam, branches="Beam.GMAD::BeamBase.beamEnergy")[0]
 
     p           = _np.sqrt(E**2 - _np.full_like(E, mass)**2)
     p0          = _np.sqrt(Em**2 - mass**2)
