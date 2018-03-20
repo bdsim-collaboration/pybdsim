@@ -559,8 +559,8 @@ class LatticeTest:
                 plotNr      += 1
 
                 in_Tfs       = True
-                M_optfn_x    = madx.GetColumn('DX')
-                M_optfn_y    = madx.GetColumn('DY')
+                M_optfn_x    = madx.GetColumn('DXBETA')
+                M_optfn_y    = madx.GetColumn('DYBETA')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Disp_x")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Disp_y")
                 #PTC_optfn_x  = ptcdata.Disp_x()
@@ -579,8 +579,8 @@ class LatticeTest:
 
                 print "Warning: Disp_xpyp not present in MADX tfs file, plotting only MADX-PTC and BDSIM results "
                 in_Tfs       = True
-                M_optfn_x    = madx.GetColumn('DPX')
-                M_optfn_y    = madx.GetColumn('DPY')
+                M_optfn_x    = madx.GetColumn('DPXBETA')
+                M_optfn_y    = madx.GetColumn('DPYBETA')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Disp_xp")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Disp_yp")
                 #PTC_optfn_x  = ptcdata.Disp_xp()
