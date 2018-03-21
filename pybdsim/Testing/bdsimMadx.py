@@ -322,26 +322,53 @@ class LatticeTest:
         BE         =  _rnp.tree2array(t, branches=last_name+"energy")
         meanE      = _np.mean(BE)
         meantof    = _np.mean(Btof)
-            
+
+        #Get particle pdg number
+        priPid      =  _rnp.tree2array(t, branches="Primary.partID")
+        pid         =  _np.int(_np.mean(priPid)[0])  #cast to int to match pdg id
+
+        #Particle mass needed for calculating momentum, in turn needed for dE.
+        #All in GeV, taken from the PDG table http://pdg.lbl.gov/2017/reviews/rpp2017-rev-phys-constants.pdf
+        if pid == 2212:                                     #proton
+            mass = 0.9382720813
+        elif (pid == 11) or (pid == -11):                   #electron / positron
+            mass = 0.5109989461e-3
+        elif (pid == 13) or (pid == -13):                   #mu- / mu+
+            mass = 0.1056583745
+
+        else:
+            raise ValueError("Mass for particle with PDG ID {} not available, stop".format(pid)
+            )
+
+        beta = _np.sqrt(1 - (mass/meanE)**2)
+
         #get canonical coordinate t (time_offset_from_reference_part*speed_of_light) from
         #the recorded time of flight in bdsim
-        Bt         = (_np.full_like(Btof, meantof)-Btof)*1.e-9*_scpconsts.c 
-            
-        Bx = [val[0] for val in Bx] #rootnumpy.tree2array returns an array of arrays, get only values
-        By = [val[0] for val in By]
+        Bt         = beta*(Btof - _np.full_like(Btof, meantof))*1.e-9*_scpconsts.c
+
+        Bx  = [val[0] for val in Bx] #rootnumpy.tree2array returns an array of arrays, get only values
+        By  = [val[0] for val in By]
         Bxp = [val[0] for val in Bxp]
         Byp = [val[0] for val in Byp]
-        Bt = [val[0] for val in Bt]
-        BE = [val[0] for val in BE]
-        self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp}
-        
+        Bt  = [val[0] for val in Bt]
+        BE  = [val[0] for val in BE]
+
+        P = _np.sqrt(_np.square(BE) - _np.full_like(BE, mass**2))
+        p0 = _np.sqrt(_np.mean(BE)**2 - 0.93827208148**2)
+        BPT = (P - _np.full_like(P, p0))/p0
+
+        self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp, 'pt':BPT, 't':Bt}
+
         madxout = pymadx.Data.Tfs("trackone")
-        madxend = madxout.GetSegment(madxout.nsegments) #get the last 'segment' / sampler
+        madxend = madxout.GetSegment(madxout.nsegments) #(1) #get the last 'segment' / sampler
         Mx = madxend.GetColumn('X')
-        My = madxend.GetColumn('Y') 
+        My = madxend.GetColumn('Y')
         Mxp = madxend.GetColumn('PX')
         Myp = madxend.GetColumn('PY')
-        self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
+
+        MPT = madxend.GetColumn('PT')
+        MT  = madxend.GetColumn('T')
+        self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp, 'pt':MPT, 't':MT}
 
         #Check all particles make it through
         if(len(Bx)!=len(Mx)):       
