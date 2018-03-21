@@ -788,6 +788,34 @@ class LatticeTest:
                 ax4.tick_params(axis='both', which='major', pad=7)
 
                 _plt.subplots_adjust(left=0.1,right=0.9,top=0.95, bottom=0.15, wspace=0.35, hspace=0.3)
+
+                #PT vs T
+                f = _plt.figure(self.figureNr+42, figsize=(13, 8), dpi=80, facecolor='w', edgecolor='k')
+                f.suptitle(self.filename)
+                _plt.clf()
+                #X vs Y
+                ax1 = _plt.gca()
+                #arrow_width = abs(_np.min(fresy))*arrow_width_scale
+                #_plt.quiver(Mx,My,-fresx,-fresy,angles='xy',scale_units='xy',scale=1,color='r',units='x',width=arrow_width,headwidth=3)
+                #_plt.plot(Mx,My,'b.',label='PTC')
+                #_plt.plot(Bx,By,'g.',label='BDSIM')
+                _plt.scatter(MPT,MT,label='PTC',s=10,facecolors='red', edgecolors="red")
+                _plt.scatter(BPT,Bt,label='BDSIM',s=60,facecolors='none',edgecolors="blue")
+                if addPrimaries:
+                    _plt.plot(Bx0,By0,'r.',label='BDSIM prim')
+                _plt.legend(prop={'size':10})
+                _plt.xlabel(r"(p-p0)/p0")
+                _plt.ylabel(r"$\beta$cT (m)")
+                startx, endx = ax1.get_xlim()
+                starty, endy = ax1.get_ylim()
+                ax1.xaxis.set_ticks([startx,0,endx])
+                ax1.yaxis.set_ticks([starty,0,endy])
+                locs,labels = _plt.xticks()
+                _plt.xticks(locs, map(lambda x: "%2.1e" % x, locs))
+                locs,labels = _plt.yticks()
+                _plt.yticks(locs, map(lambda x: "%2.1e" % x, locs))
+                ax1.tick_params(axis='both', which='major', pad=7)
+
             
                 # 1d plots
                 # x comparison
