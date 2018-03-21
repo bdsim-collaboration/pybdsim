@@ -597,6 +597,15 @@ def MadxTfs2Gmad(tfs, outputfilename,
     return b,a,itemsomitted
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
+    """
+    Takes a pymadx.Data.Tfs instance and extracts information from first line to
+    create a BDSIM beam definition in a pybdsim.Beam object.
+
+    Works for e+, e- and proton.
+    Default emittance is 1e-9mrad if 1 in tfs file.
+    
+
+    """
     print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
 
     if startname is None:
@@ -636,14 +645,12 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
         particle = 'e+'
     elif particle == 'PROTON' :
         particle = 'proton'
-
-    #print particle,energy,gamma,ex,ey
+    else:
+        raise ValueError("Unsupported particle " + particle)
+        
     if verbose:
         print 'beta_x: ',data['BETX'],'alpha_x: ',data['ALFX'],'mu_x: ',data['MUX']
         print 'beta_y: ',data['BETY'],'alpha_y: ',data['ALFY'],'mu_y: ',data['MUY']
-
-    #gammax = (1.0+data['ALFX'])/data['BETX']
-    #gammay = (1.0+data['ALFY'])/data['BETY']
 
     #note, in the main pybdsim.__init__.py Beam class is imported from Beam.py
     #so in this submodule when we do from .. import Beam it's actually the
@@ -653,10 +660,10 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetBetaY(data['BETY'])
     beam.SetAlphaX(data['ALFX'])
     beam.SetAlphaY(data['ALFY'])
-    beam.SetDispX(data['DX'])
-    beam.SetDispY(data['DY'])
-    beam.SetDispXP(data['DPX'])
-    beam.SetDispYP(data['DPY'])
+    beam.SetDispX(data['DXBETA'])
+    beam.SetDispY(data['DYBETA'])
+    beam.SetDispXP(data['DPXBETA'])
+    beam.SetDispYP(data['DPYBETA'])
     beam.SetEmittanceX(ex,'m')
     beam.SetEmittanceY(ey,'m')
     beam.SetSigmaE(sigmae)
