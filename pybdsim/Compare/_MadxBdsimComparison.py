@@ -193,6 +193,10 @@ def _GetTfsOptics(optics):
                                      'DPX',
                                      'DY',
                                      'DPY',
+                                     'DXBETA',
+                                     'DPXBETA',
+                                     'DYBETA',
+                                     'DPYBETA',
                                      'SIGMAX',
                                      'SIGMAY',
                                      'SIGMAXP',
@@ -292,8 +296,8 @@ def PlotDs(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figs
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPlot = _plt.figure('Dispersion', figsize=figsize)
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['DX'], 'b', label=r'MADX $D_{x}$')
-    _plt.plot(tfsopt['S'], tfsopt['DY'], 'g', label=r'MADX $D_{y}$')
+    _plt.plot(tfsopt['S'], tfsopt['DXBETA'], 'b', label=r'MADX $D_{x}$')
+    _plt.plot(tfsopt['S'], tfsopt['DYBETA'], 'g', label=r'MADX $D_{y}$')
     #bds
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
                   yerr=bdsopt['Sigma_Disp_x'],
@@ -321,8 +325,8 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPPlot = _plt.figure('Momentum_Dispersion', figsize=figsize)
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['DPX'], 'b', label=r'MADX $D_{p_{x}}$')
-    _plt.plot(tfsopt['S'], tfsopt['DPY'], 'g', label=r'MADX $D_{p_{y}}$')
+    _plt.plot(tfsopt['S'], tfsopt['DPXBETA'], 'b', label=r'MADX $D_{p_{x}}$')
+    _plt.plot(tfsopt['S'], tfsopt['DPYBETA'], 'g', label=r'MADX $D_{p_{y}}$')
     #bds
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
                   yerr=bdsopt['Sigma_Disp_xp'],
