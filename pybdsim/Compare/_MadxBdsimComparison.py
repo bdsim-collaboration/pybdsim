@@ -89,7 +89,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
             if not output_filename.endswith('.pdf'):
                 output_filename += ".pdf"
         else:
-            output_filename = fname.strip('.root')
+            output_filename = fname.replace('.root','')
             output_filename += ".pdf"
         # Should have a more descriptive name really.
         with PdfPages(output_filename) as pdf:
