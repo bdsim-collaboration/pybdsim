@@ -149,13 +149,14 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
 
     return tfsdata
 
-    
-def MadxVsBDSIMFromGMAD(tfs, gmad):
+
+def MadxVsBDSIMFromGMAD(tfs, gmad, outputfilename):
     """Runs the BDSIM model provided by the gmad file given, gets the
     optics, and then compares them with TFS.
 
     tfs - path to TFS file or a pymadx.Data.Tfs instance
     gmad - path to gmad file to be run.
+    outputfilename - path of the output optics report file.
 
     """
 
@@ -163,7 +164,7 @@ def MadxVsBDSIMFromGMAD(tfs, gmad):
     # Use TFS for survey but perhaps one day can directly get the
     # model from the ROOT output (having modified the above
     # function..  Currently there's no interface for this.
-    MadxVsBDSIM(tfs, bdsimOptics, survey=tfs)
+    MadxVsBDSIM(tfs, bdsimOptics, survey=tfs, outputFileName=outputfilename)
 
 
 def _GetBDSIMOptics(optics):
