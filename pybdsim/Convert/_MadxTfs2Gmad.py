@@ -404,14 +404,23 @@ def MadxTfs2Gmad(tfs, outputfilename,
                 # NOTE we're not using factor for magnet flipping here
                 k1 = k1l / l
                 kws['k1'] = k1
-            if fint != 0:
-                kws['fint']  = fint
+
+            #if fint != 0:
+            kws['fint']  = fint
+
             # in madx, -1 means fintx was allowed to default to fint and we should do the same
             # so if set to 0, this means we want it to be 0
-            if fintx != -1:
+            if fintx == -1:
+                if fint:
+                    kws['fintx'] = fint
+                else:
+                    kws['fintx'] = 0
+            else:
                 kws['fintx'] = fintx
-            if hgap != 0:
-                kws['hgap'] = hgap
+
+            #if hgap != 0:
+            kws['hgap'] = hgap
+
             a.AddDipole(rname,'sbend',l,angle=angle,**kws)
         elif t in {'RCOLLIMATOR', 'ECOLLIMATOR', 'COLLIMATOR'}:
             #only use xsize as only have half gap
