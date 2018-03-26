@@ -99,6 +99,12 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
               in kwargs to force it to false.
 
     """
+    #concatenate machine lattices
+    sf = _CheckItsBDSAsciiData(args[0])
+    if len(args) > 1:
+        for machine in args[1:]:
+            sf.ConcatenateMachine(machine)
+    
     # options
     tightLayout = True
     if 'tightLayout' in kwargs:
@@ -107,12 +113,6 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
     axoptics  = figure.get_axes()[0]
     _AdjustExistingAxes(figure, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
-    
-    #concatenate machine lattices
-    sf = _CheckItsBDSAsciiData(args[0])
-    if len(args) > 1:
-        for machine in args[1:]:
-            sf.ConcatenateMachine(machine)
 
     _DrawMachineLattice(axmachine,sf)
 
