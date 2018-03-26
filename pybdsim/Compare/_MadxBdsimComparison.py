@@ -94,7 +94,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
             if not output_filename.endswith('.pdf'):
                 output_filename += ".pdf"
         else:
-            output_filename = fname.strip('.root')
+            output_filename = fname.replace('.root','')
             output_filename += ".pdf"
         # Should have a more descriptive name really.
         with PdfPages(output_filename) as pdf:
@@ -154,13 +154,14 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
 
     return tfsdata
 
-    
-def MadxVsBDSIMFromGMAD(tfs, gmad):
+
+def MadxVsBDSIMFromGMAD(tfs, gmad, outputfilename):
     """Runs the BDSIM model provided by the gmad file given, gets the
     optics, and then compares them with TFS.
 
     tfs - path to TFS file or a pymadx.Data.Tfs instance
     gmad - path to gmad file to be run.
+    outputfilename - path of the output optics report file.
 
     """
 
@@ -168,7 +169,7 @@ def MadxVsBDSIMFromGMAD(tfs, gmad):
     # Use TFS for survey but perhaps one day can directly get the
     # model from the ROOT output (having modified the above
     # function..  Currently there's no interface for this.
-    MadxVsBDSIM(tfs, bdsimOptics, survey=tfs)
+    MadxVsBDSIM(tfs, bdsimOptics, survey=tfs, outputFileName=outputfilename)
 
 
 def _GetBDSIMOptics(optics):
