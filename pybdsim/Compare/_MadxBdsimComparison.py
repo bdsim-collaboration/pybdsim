@@ -40,6 +40,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
     tfsinst = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
 
+    tfsheader = tfsinst.header
     tfsopt  = _GetTfsOptics(tfsinst)
     bdsopt  = _GetBDSIMOptics(bdsinst)
 
@@ -78,7 +79,11 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
                PlotMeans(tfsopt, bdsopt, survey=survey,
                          functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize)]
+                         figsize=figsize),
+               PlotEmitt(tfsopt, bdsopt, tfsinst.header, survey=survey,
+                       functions=functions,
+                       postfunctions=postfunctions,
+                       figsize=figsize)]
 
     if saveAll:
         tfsname = repr(tfsinst)
@@ -349,6 +354,39 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     
     _plt.show(block=False)
     return dispPPlot
+
+
+def PlotEmitt(tfsopt, bdsopt, header, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+    N = str(int(bdsopt['Npart'][0]))  # number of primaries.
+    emittPlot = _plt.figure('Emittance', figsize=figsize)
+    ex = header['EX'] * _np.ones(len(tfsopt['S']))
+    ey = header['EY'] * _np.ones(len(tfsopt['S']))
+
+    # tfs
+    _plt.plot(tfsopt['S'], ex, 'b', label=r'MADX $E_{x}$')
+    _plt.plot(tfsopt['S'], ey, 'g', label=r'MADX $E_{x}$')
+    # bds
+    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_x'],
+                  yerr=bdsopt['Sigma_Emitt_x'],
+                  label=r'BDSIM $E_{x}$' + ' ; N = ' + N,
+                  fmt='b.', capsize=3)
+
+    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_y'],
+                  yerr=bdsopt['Sigma_Emitt_y'],
+                  label=r'BDSIM $E_{y}$' + ' ; N = ' + N,
+                  fmt='g.', capsize=3)
+
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$E_{x,y} / m$')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(emittPlot, survey)
+    _CallUserFigureFunctions(postfunctions)
+
+    _plt.show(block=False)
+    return emittPlot
 
 def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
