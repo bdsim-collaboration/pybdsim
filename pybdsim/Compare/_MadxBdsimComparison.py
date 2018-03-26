@@ -2,9 +2,9 @@ import pymadx as _pymadx
 import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
-from os.path import isfile
-from matplotlib.backends.backend_pdf import PdfPages
-import datetime
+from os.path import isfile as _isfile
+from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
+import datetime as _datetime
 
 def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
                 postfunctions=None, figsize=(12, 5), saveAll=True, outputFileName=None):
@@ -92,12 +92,12 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
             output_filename = fname.replace('.root','')
             output_filename += ".pdf"
         # Should have a more descriptive name really.
-        with PdfPages(output_filename) as pdf:
+        with _PdfPages(output_filename) as pdf:
             for figure in figures:
                 pdf.savefig(figure)
             d = pdf.infodict()
             d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
-            d['CreationDate'] = datetime.datetime.today()
+            d['CreationDate'] = _datetime.datetime.today()
 
         print "Written ", output_filename
 
@@ -536,11 +536,11 @@ def _CheckFilesExist(tfs, bdsim, survey):
     Otherwise such errors are too cryptic.
     '''
     if isinstance(tfs, basestring):
-        if not isfile(tfs):
+        if not _isfile(tfs):
             raise IOError("File not found: ", tfs)
-    if isinstance(bdsim, basestring) and not isfile(bdsim):
+    if isinstance(bdsim, basestring) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
-    if isinstance(survey, basestring) and not isfile(survey):
+    if isinstance(survey, basestring) and not _isfile(survey):
         raise IOError("File not found: ", survey)
 
 
