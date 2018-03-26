@@ -120,3 +120,7 @@ def BDSIMVsBDSIM(first, second, first_name=None,
                second_name=second_name, survey=survey, **kwargs)
     PlotMean(first, second, first_name=first_name,
              second_name=second_name, survey=survey, **kwargs)
+
+def PTCVsBDSIM(first, second, first_name="PTC",
+               second_name="BDSIM", survey=None, **kwargs):
+    BDSIMVsBDSIM(first, second, first_name, second_name, survey, **kwargs)

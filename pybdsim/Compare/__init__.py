@@ -11,6 +11,7 @@ except ImportError:
     del warnings
 
 from _BdsimBdsimComparison import BDSIMVsBDSIM
+from _BdsimBdsimComparison import PTCVsBDSIM
 
 try:
     import pysad as _pysad
