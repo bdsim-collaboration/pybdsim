@@ -84,7 +84,10 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         axes.legend(loc='best')
 
         if survey is not None:
-            pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(plot, survey)
+            try:
+                pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
+            except IOError:
+                pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
         _plt.show(block=False)
         return plot
     return f_out
