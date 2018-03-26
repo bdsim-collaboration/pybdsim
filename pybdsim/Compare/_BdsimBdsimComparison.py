@@ -61,7 +61,7 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         first_nparticles = first.Npart()[0]
         second_nparticles = second.Npart()[0]
 
-        plot = _plt.figure(title, **kwargs)
+        plot = _plt.figure(title, figsize=(9,5), **kwargs)
         # Loop over the variables in plot_info_tuples and draw the plots.
         for var, error, legend_name in plot_info_tuples:
             _plt.errorbar(first.GetColumn('S'),
