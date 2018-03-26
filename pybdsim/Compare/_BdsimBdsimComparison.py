@@ -54,8 +54,8 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         second_name = (_path.splitext(_path.basename(second))[0]
                        if second_name is None else second_name)
 
-        first = pybdsim.Data.Load(first)
-        second = pybdsim.Data.Load(second)
+        first = pybdsim.Data.Load(first).optics
+        second = pybdsim.Data.Load(second).optics
 
         # Get the initial N for the two sources
         first_nparticles = first.Npart()[0]
