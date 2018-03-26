@@ -255,13 +255,13 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         # Get the initial N for the two sources
         first_nparticles = sf.Npart()[0]
 
-        plot = _plt.figure(title, **kwargs)
+        plot = _plt.figure(title, figsize=(9,5), **kwargs)
         # Loop over the variables in plot_info_tuples and draw the plots.
         for var, error, legend_name in plot_info_tuples:
             _plt.errorbar(sf.GetColumn('S'),
                           sf.GetColumn(var),
                           yerr=sf.GetColumn(error),
-                          label="{}; {}; N = {:.1E}".format(
+                          label="{} {}; N = {:.1E}".format(
                               "", legend_name, first_nparticles),
                           capsize=3, **kwargs)
 
