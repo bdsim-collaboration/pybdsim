@@ -2,9 +2,9 @@ import pymadx as _pymadx
 import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
-from os.path import isfile
-from matplotlib.backends.backend_pdf import PdfPages
-import datetime
+from os.path import isfile as _isfile
+from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
+import datetime as _datetime
 
 def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
                 postfunctions=None, figsize=(12, 5), saveAll=True, outputFileName=None):
@@ -40,6 +40,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
     tfsinst = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
 
+    tfsheader = tfsinst.header
     tfsopt  = _GetTfsOptics(tfsinst)
     bdsopt  = _GetBDSIMOptics(bdsinst)
 
@@ -78,7 +79,11 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
                PlotMeans(tfsopt, bdsopt, survey=survey,
                          functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize)]
+                         figsize=figsize),
+               PlotEmitt(tfsopt, bdsopt, tfsinst.header, survey=survey,
+                       functions=functions,
+                       postfunctions=postfunctions,
+                       figsize=figsize)]
 
     if saveAll:
         tfsname = repr(tfsinst)
@@ -92,12 +97,12 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
             output_filename = fname.replace('.root','')
             output_filename += ".pdf"
         # Should have a more descriptive name really.
-        with PdfPages(output_filename) as pdf:
+        with _PdfPages(output_filename) as pdf:
             for figure in figures:
                 pdf.savefig(figure)
             d = pdf.infodict()
             d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
-            d['CreationDate'] = datetime.datetime.today()
+            d['CreationDate'] = _datetime.datetime.today()
 
         print "Written ", output_filename
 
@@ -351,6 +356,39 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     _plt.show(block=False)
     return dispPPlot
 
+
+def PlotEmitt(tfsopt, bdsopt, header, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+    N = str(int(bdsopt['Npart'][0]))  # number of primaries.
+    emittPlot = _plt.figure('Emittance', figsize=figsize)
+    ex = header['EX'] * _np.ones(len(tfsopt['S']))
+    ey = header['EY'] * _np.ones(len(tfsopt['S']))
+
+    # tfs
+    _plt.plot(tfsopt['S'], ex, 'b', label=r'MADX $E_{x}$')
+    _plt.plot(tfsopt['S'], ey, 'g', label=r'MADX $E_{x}$')
+    # bds
+    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_x'],
+                  yerr=bdsopt['Sigma_Emitt_x'],
+                  label=r'BDSIM $E_{x}$' + ' ; N = ' + N,
+                  fmt='b.', capsize=3)
+
+    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_y'],
+                  yerr=bdsopt['Sigma_Emitt_y'],
+                  label=r'BDSIM $E_{y}$' + ' ; N = ' + N,
+                  fmt='g.', capsize=3)
+
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$E_{x,y} / m$')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(emittPlot, survey)
+    _CallUserFigureFunctions(postfunctions)
+
+    _plt.show(block=False)
+    return emittPlot
+
 def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma', figsize=figsize)
@@ -536,11 +574,11 @@ def _CheckFilesExist(tfs, bdsim, survey):
     Otherwise such errors are too cryptic.
     '''
     if isinstance(tfs, basestring):
-        if not isfile(tfs):
+        if not _isfile(tfs):
             raise IOError("File not found: ", tfs)
-    if isinstance(bdsim, basestring) and not isfile(bdsim):
+    if isinstance(bdsim, basestring) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
-    if isinstance(survey, basestring) and not isfile(survey):
+    if isinstance(survey, basestring) and not _isfile(survey):
         raise IOError("File not found: ", survey)
 
 
