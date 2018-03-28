@@ -4,6 +4,42 @@ import pymad8 as _pymad8
 import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
+from os.path import isfile
+
+
+
+def Mad8VsBDSIM(twiss, envel, bdsim, survey=None) :
+    """
+    Compares Mad8 and BDSIM optics variables.
+
+    +-----------------+---------------------------------------------------------+
+    | **Parameters**  | **Description**                                         |
+    +-----------------+---------------------------------------------------------+
+    | twiss           | Mad8 twiss file                                         |
+    +-----------------+---------------------------------------------------------+
+    | bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
+    +-----------------+---------------------------------------------------------+
+    """
+
+    _CheckFilesExist(twiss, envel, bdsim)
+
+    mad8reader   = _pymad8.Output.OutputReader() 
+    [com, twiss] = mad8reader.readFile(twiss)
+    [env, twiss] = mad8reader.readFile(envel)
+    
+    
+
+def _CheckFilesExist(twiss, envel, bdsim):
+    '''
+    Otherwise such errors are too cryptic.
+    '''
+    if not isfile(twiss):
+        raise IOError("File not found: ", twiss)
+    if not isfile(envel):
+        raise IOError("File not found: ", envel);
+    if isinstance(bdsim, basestring) and not isfile(bdsim):
+        raise IOError("File not found: ", bdsim)
+
 
 class Mad8Bdsim :
     def __init__(self, 

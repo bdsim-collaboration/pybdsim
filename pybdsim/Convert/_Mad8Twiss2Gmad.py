@@ -8,8 +8,8 @@ import pymad8
 
 from .. import Builder 
 from .. import Beam
-from pybdsim.Options import Options
-import pybdsim.XSecBias
+import pybdsim.Options as Options
+import pybdsim.XSecBias as XSecBias
 
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
@@ -163,7 +163,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
         biasList = "gmb pmb"
 
-
+    # dictionary of element names
+    nameDict = {}
 
     # iterate through objects and build machine
     for i in range(istart,len(c.name),1) : 

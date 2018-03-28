@@ -3,7 +3,7 @@ from _TransportBdsimComparison import TransportVsBDSIM
 
 try:
     import pymad8 as _pymad8
-    from _Mad8BdsimComparison import Mad8Bdsim
+    from _Mad8BdsimComparison import *
 except ImportError:
     import warnings
     msg = "Missing pymad8 dependency.  MAD8 comparison facilities excluded."
