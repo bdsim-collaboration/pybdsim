@@ -38,7 +38,8 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None) :
                PlotDs(mad8opt,bdsopt),
                PlotDps(mad8opt,bdsopt),
                PlotSigmas(mad8opt,bdsopt),
-               PlotSigmasP(mad8opt,bdsopt)]
+               PlotSigmasP(mad8opt,bdsopt),
+               PlotEnergy(mad8opt,bdsopt)]
     
     return mad8opt
 
@@ -93,6 +94,8 @@ def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
                       ls = '',
                       color='g')
 
+    _AddSurvey(betaPlot, mad8opt)
+
 def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     betaPlot = _plt.figure('Alpha',figsize)
@@ -120,17 +123,19 @@ def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
                       ls = '',
                       color='g')
 
+    _AddSurvey(betaPlot, mad8opt)
+
 def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPlot = _plt.figure('Dispersion',figsize)
-    
+
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dx'),
               'b', label=r'MAD8 $\beta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dy'),
               'g', label=r'MAD8 $\D_{y}$')
-    
+     
     # bds plot
     if False :
         _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
@@ -146,6 +151,8 @@ def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fig
                       marker='x',
                       ls = '',
                       color='g')
+
+    _AddSurvey(dispPlot, mad8opt)
 
 def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
@@ -174,6 +181,9 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
                       ls = '',
                       color='g')
 
+    _AddSurvey(dispPPlot, mad8opt)
+
+
 def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma',figsize)
@@ -200,6 +210,8 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
                       marker='x',
                       ls = '',
                       color='g')
+
+    _AddSurvey(sigmaPlot, mad8opt)
 
 
 def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
@@ -229,6 +241,29 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
                       ls = '',
                       color='g')
 
+    _AddSurvey(sigmaPPlot, mad8opt)
+
+def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    energyPlot = _plt.figure('Energy',figsize)
+
+    _plt.plot(mad8opt['twiss'].getColumn('suml')[1:], # one missing energy due to initial 
+              mad8opt['comm'].getColumn('E')[:],
+              'b', label=r'MAD8 $E$')
+
+    _AddSurvey(energyPlot, mad8opt)
+
+    
+def _AddSurvey(figure, survey):
+    if survey is None:
+        return 
+    else:
+        _pymad8.Plot.AddMachineLatticeToFigure(figure,survey)
+
+
+# ============================================================================
+# Below is old
+# ============================================================================
 class Mad8Bdsim :
     def __init__(self, 
                  bdsimFileName = "output.pickle",
