@@ -6,8 +6,6 @@ import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile
 
-
-
 def Mad8VsBDSIM(twiss, envel, bdsim, survey=None) :
     """
     Compares Mad8 and BDSIM optics variables.
@@ -23,11 +21,26 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None) :
 
     _CheckFilesExist(twiss, envel, bdsim)
 
+    # load mad8 optics
     mad8reader   = _pymad8.Output.OutputReader() 
-    [com, twiss] = mad8reader.readFile(twiss)
-    [env, twiss] = mad8reader.readFile(envel)
+    [com, twiss] = mad8reader.readFile(twiss,'twiss')
+    [com, envel] = mad8reader.readFile(envel,'envel')
     
+    # load bdsim optics
+    bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+    bdsopt  = _GetBDSIMOptics(bdsinst)
     
+    # make plots 
+    mad8opt = {'comm':com, 'twiss':twiss, 'envel':envel}
+
+    figures = [PlotBetas(mad8opt,bdsopt),
+               PlotAlphas(mad8opt,bdsopt),
+               PlotDs(mad8opt,bdsopt),
+               PlotDps(mad8opt,bdsopt),
+               PlotSigmas(mad8opt,bdsopt),
+               PlotSigmasP(mad8opt,bdsopt)]
+    
+    return mad8opt
 
 def _CheckFilesExist(twiss, envel, bdsim):
     '''
@@ -40,6 +53,181 @@ def _CheckFilesExist(twiss, envel, bdsim):
     if isinstance(bdsim, basestring) and not isfile(bdsim):
         raise IOError("File not found: ", bdsim)
 
+
+def _GetBDSIMOptics(optics):
+    '''
+    Takes a BDSAscii instance.
+    Return a dictionary of lists matching the variable with the list of values.
+    '''
+    
+    optvars = {}
+    for variable in optics.names:
+        datum = getattr(optics, variable)()
+        optvars[variable] = datum
+    return optvars
+
+def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    betaPlot = _plt.figure('Beta',figsize)
+    
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
+              mad8opt['twiss'].getColumn('betx'),
+              'b', label=r'MAD8 $\beta_{x}$')
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
+              mad8opt['twiss'].getColumn('bety'),
+              'g', label=r'MAD8 $\beta_{y}$')
+    
+    # bds plot
+    if False :
+        _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'],
+                      yerr=bdsopt['Sigma_Beta_x'],
+                      label=r'BDSIM $\beta_{x}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='b')
+        
+        _plt.errorbar(bdsopt['S'], bdsopt['Beta_y'],
+                      yerr=bdsopt['Sigma_Beta_y'],
+                      label=r'BDSIM $\beta_{y}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='g')
+
+def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    betaPlot = _plt.figure('Alpha',figsize)
+    
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
+              mad8opt['twiss'].getColumn('alfx'),
+              'b', label=r'MAD8 $\beta_{x}$')
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
+              mad8opt['twiss'].getColumn('alfy'),
+              'g', label=r'MAD8 $\beta_{y}$')
+    
+    # bds plot
+    if False : 
+        _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
+                      yerr=bdsopt['Sigma_Alpha_x'],
+                      label=r'BDSIM $\alpha_{x}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='b')
+        
+        _plt.errorbar(bdsopt['S'], bdsopt['Alpha_y'],
+                      yerr=bdsopt['Sigma_Alpha_y'],
+                      label=r'BDSIM $\alpha_{y}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='g')
+
+def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    dispPlot = _plt.figure('Dispersion',figsize)
+    
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
+              mad8opt['twiss'].getColumn('dx'),
+              'b', label=r'MAD8 $\beta_{x}$')
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
+              mad8opt['twiss'].getColumn('dy'),
+              'g', label=r'MAD8 $\D_{y}$')
+    
+    # bds plot
+    if False :
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
+                      yerr=bdsopt['Sigma_Disp_x'],
+                      label=r'BDSIM $\D_{x}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='b')
+        
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'],
+                      yerr=bdsopt['Sigma_Disp_y'],
+                      label=r'BDSIM $\D_{y}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='g')
+
+def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    dispPPlot = _plt.figure('Momentum_Dispersion',figsize)
+    
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
+              mad8opt['twiss'].getColumn('dpx'),
+              'b', label=r'MAD8 $\beta_{x}$')
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
+              mad8opt['twiss'].getColumn('dpy'),
+              'g', label=r'MAD8 $\D_{y}$')
+    
+    # bds plot
+    if False :
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
+                      yerr=bdsopt['Sigma_Disp_xp'],
+                      label=r'BDSIM $\D_{p_x}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='b')
+        
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
+                      yerr=bdsopt['Sigma_Disp_yp'],
+                      label=r'BDSIM $\D_{p_y}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='g')
+
+def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    sigmaPlot = _plt.figure('Sigma',figsize)
+
+    _plt.plot(mad8opt['envel'].getColumn('suml'), 
+              _np.sqrt(mad8opt['envel'].getColumn('s11')),
+              'b', label=r'MAD8 $\sigma_{x}$')
+    _plt.plot(mad8opt['envel'].getColumn('suml'), 
+              _np.sqrt(mad8opt['envel'].getColumn('s33')),
+              'g', label=r'MAD8 $\sigma_{y}$')
+    
+    # bds plot
+    if False :
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
+                      yerr=bdsopt['Sigma_Disp_xp'],
+                      label=r'BDSIM $\D_{p_x}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='b')
+        
+        _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
+                      yerr=bdsopt['Sigma_Disp_yp'],
+                      label=r'BDSIM $\D_{p_y}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='g')
+
+
+def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    sigmaPPlot = _plt.figure('SigmaP',figsize)
+
+    _plt.plot(mad8opt['envel'].getColumn('suml'), 
+              _np.sqrt(mad8opt['envel'].getColumn('s22')),
+              'b', label=r'MAD8 $\sigma_{xp}$')
+    _plt.plot(mad8opt['envel'].getColumn('suml'), 
+              _np.sqrt(mad8opt['envel'].getColumn('s44')),
+              'g', label=r'MAD8 $\sigma_{yp}$')
+    
+    # bds plot
+    if False :
+        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_xp'],
+                      yerr=bdsopt['Sigma_Disp_xp'],
+                      label=r'BDSIM $\sigma_{p_x}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='b')
+        
+        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_yp'],
+                      yerr=bdsopt['Sigma_Sigma_yp'],
+                      label=r'BDSIM $\sigma_{p_y}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='g')
 
 class Mad8Bdsim :
     def __init__(self, 
