@@ -79,7 +79,7 @@ def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
               'g', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
-    if False :
+    if True :
         _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'],
                       yerr=bdsopt['Sigma_Beta_x'],
                       label=r'BDSIM $\beta_{x}$' + ' ; N = ' + N,
@@ -108,7 +108,7 @@ def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
               'g', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
-    if False : 
+    if True : 
         _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
                       yerr=bdsopt['Sigma_Alpha_x'],
                       label=r'BDSIM $\alpha_{x}$' + ' ; N = ' + N,
@@ -137,7 +137,7 @@ def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fig
               'g', label=r'MAD8 $\D_{y}$')
      
     # bds plot
-    if False :
+    if True :
         _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
                       yerr=bdsopt['Sigma_Disp_x'],
                       label=r'BDSIM $\D_{x}$' + ' ; N = ' + N,
@@ -166,7 +166,7 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
               'g', label=r'MAD8 $\D_{y}$')
     
     # bds plot
-    if False :
+    if True :
         _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
                       yerr=bdsopt['Sigma_Disp_xp'],
                       label=r'BDSIM $\D_{p_x}$' + ' ; N = ' + N,
@@ -196,7 +196,7 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
               'g', label=r'MAD8 $\sigma_{y}$')
     
     # bds plot
-    if False :
+    if True :
         _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
                       yerr=bdsopt['Sigma_Disp_xp'],
                       label=r'BDSIM $\D_{p_x}$' + ' ; N = ' + N,
@@ -226,7 +226,7 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
               'g', label=r'MAD8 $\sigma_{yp}$')
     
     # bds plot
-    if False :
+    if True :
         _plt.errorbar(bdsopt['S'], bdsopt['Sigma_xp'],
                       yerr=bdsopt['Sigma_Disp_xp'],
                       label=r'BDSIM $\sigma_{p_x}$' + ' ; N = ' + N,
@@ -251,6 +251,14 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
               mad8opt['comm'].getColumn('E')[:],
               'b', label=r'MAD8 $E$')
 
+    if True : 
+        _plt.errorbar(bdsopt['S'], bdsopt['Mean_E'],
+                      yerr=bdsopt['Sigma_Mean_E'],
+                      label=r'BDSIM $E$' + ' ; N = ' + N,
+                      marker='x',
+                      ls = '',
+                      color='b')
+        
     _AddSurvey(energyPlot, mad8opt)
 
     
