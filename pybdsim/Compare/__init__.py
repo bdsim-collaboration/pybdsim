@@ -1,9 +1,13 @@
-from _MadxBdsimComparison import *
+#explicit imports to keep namespace clean
+from _MadxBdsimComparison import MadxVsBDSIM
+from _MadxBdsimComparison import MadxVsBDSIMOrbit
+from _MadxBdsimComparison import MadxVsBDSIMFromGMAD
+
 from _TransportBdsimComparison import TransportVsBDSIM
 
 try:
     import pymad8 as _pymad8
-    from _Mad8BdsimComparison import *
+    from _Mad8BdsimComparison import Mad8VsBDSIM
 except ImportError:
     import warnings
     msg = "Missing pymad8 dependency.  MAD8 comparison facilities excluded."
