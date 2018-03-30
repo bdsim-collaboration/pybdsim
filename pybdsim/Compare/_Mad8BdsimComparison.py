@@ -247,8 +247,8 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     energyPlot = _plt.figure('Energy',figsize)
 
-    _plt.plot(mad8opt['twiss'].getColumn('suml')[1:], # one missing energy due to initial 
-              mad8opt['comm'].getColumn('E')[:],
+    _plt.plot(mad8opt['twiss'].getColumn('suml'), # one missing energy due to initial 
+              mad8opt['comm'].getColumn('E'),
               'b', label=r'MAD8 $E$')
 
     if True : 
