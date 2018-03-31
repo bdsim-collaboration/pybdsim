@@ -39,7 +39,8 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None) :
                PlotDps(mad8opt,bdsopt),
                PlotSigmas(mad8opt,bdsopt),
                PlotSigmasP(mad8opt,bdsopt),
-               PlotEnergy(mad8opt,bdsopt)]
+               PlotEnergy(mad8opt,bdsopt),
+               PlotMeans(mad8opt,bdsopt)]
     
     return mad8opt
 
@@ -197,16 +198,16 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     
     # bds plot
     if True :
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
-                      yerr=bdsopt['Sigma_Disp_xp'],
-                      label=r'BDSIM $\D_{p_x}$' + ' ; N = ' + N,
+        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'],
+                      yerr=bdsopt['Sigma_Sigma_x'],
+                      label=r'BDSIM $\sigma_{x}$' + ' ; N = ' + N,
                       marker='x',
                       ls = '',
                       color='b')
         
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
-                      yerr=bdsopt['Sigma_Disp_yp'],
-                      label=r'BDSIM $\D_{p_y}$' + ' ; N = ' + N,
+        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_y'],
+                      yerr=bdsopt['Sigma_Sigma_y'],
+                      label=r'BDSIM $\sigma_{y}$' + ' ; N = ' + N,
                       marker='x',
                       ls = '',
                       color='g')
@@ -261,12 +262,39 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
         
     _AddSurvey(energyPlot, mad8opt)
 
+
+def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+    N = str(int(bdsopt['Npart'][0]))  # number of primaries.
+    meanPlot = _plt.figure('Mean', figsize)
+
+    #_plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
+    #          mad8opt['comm'].getColumn('E'),
+    #          'b', label=r'MAD8 $E$')
+
+    if True:
+        _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
+                      yerr=bdsopt['Sigma_Mean_x'],
+                      label=r'BDSIM $\overline{x}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls='',
+                      color='b')
+        _plt.errorbar(bdsopt['S'], bdsopt['Mean_y'],
+                      yerr=bdsopt['Sigma_Mean_y'],
+                      label=r'BDSIM $\overline{y}$' + ' ; N = ' + N,
+                      marker='x',
+                      ls='',
+                      color='g')
+
+    _AddSurvey(meanPlot, mad8opt)
+
     
 def _AddSurvey(figure, survey):
     if survey is None:
         return 
     else:
         _pymad8.Plot.AddMachineLatticeToFigure(figure,survey)
+
+
 
 
 # ============================================================================
