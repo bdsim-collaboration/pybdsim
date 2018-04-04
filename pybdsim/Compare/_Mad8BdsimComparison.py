@@ -189,13 +189,31 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma',figsize)
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'), 
-              _np.sqrt(mad8opt['envel'].getColumn('s11')),
-              'b', label=r'MAD8 $\sigma_{x}$')
-    _plt.plot(mad8opt['envel'].getColumn('suml'), 
-              _np.sqrt(mad8opt['envel'].getColumn('s33')),
-              'g', label=r'MAD8 $\sigma_{y}$')
-    
+    if True :
+        _plt.plot(mad8opt['envel'].getColumn('suml'),
+                  _np.sqrt(mad8opt['envel'].getColumn('s11')),
+                  'b', label=r'MAD8 $\sigma_{x}$')
+        _plt.plot(mad8opt['envel'].getColumn('suml'),
+                  _np.sqrt(mad8opt['envel'].getColumn('s33')),
+                  'g', label=r'MAD8 $\sigma_{y}$')
+
+    # Own calculation of beam sizes
+    emitX0 = 1e-8
+    emitY0 = 1e-8
+
+    e      = mad8opt['comm'].getColumn('E')
+    rgamma = e/(0.5109989461/1e3)
+    rbeta  = _np.sqrt(1-1.0/rgamma**2)
+
+    emitXN0 = emitX0*rgamma[0]*rbeta[0]
+    emitYN0 = emitY0*rgamma[0]*rbeta[0]
+
+    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma))
+    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma))
+
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'b--')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'g--')
+
     # bds plot
     if True :
         _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'],
