@@ -300,7 +300,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         elif c.type[i] == 'KICK' : 
             a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                        length = float(c.data[i][c.keys['kick']['l']]),
-                       apar   = float(apertures.aper[i]))
+                       aper1   = float(apertures.aper[i]))
 #       ###################################################################
         elif c.type[i] == 'SBEN' : 
             if c.data[i][c.keys['sben']['l']] < 1e-7 : 
@@ -389,8 +389,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                               length   = length,
                               xsize    = xsize,
                               ysize    = ysize,
-                              material = mater,
-                              bias     = biasList)
+                              material = mater)
+#                              bias     = biasList)
                 else : 
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['ecol']['l']]))
 #       ###################################################################
@@ -424,8 +424,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                               length   = length,
                               xsize    = xsize,
                               ysize    = ysize,
-                              material = mater,
-                              bias     = biasList)
+                              material = mater)
+#                              bias     = biasList)
                 else : 
                     a.AddDrift(name    = prepend+c.name[i]+'_'+str(eCount),
                                length  = float(c.data[i][c.keys['rcol']['l']]))
