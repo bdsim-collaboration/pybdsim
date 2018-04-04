@@ -61,9 +61,106 @@ instance and a list of any ommitted items by name. ::
 
   >>> a,o = pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'latticev1')
 
-where `latticev1` is the output name of the converted model. The user may convert
-only part of the input model by specifying `startname` and `stopname`.
-The full list of options is described in :ref:`pybdsim-convert`.
+where `latticev1` is the output name of the converted model. If a directory is used
+in the output name, this will be created automatically, for example::
+
+  >>> a,o = pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'test/latticev1')
+
+will create a directory `test` if it doesn't exist already.
+
+There are a few options that provide useful functionality for conversion:
+
+.. tabularcolumns:: |p{5cm}|p{10cm}|
+
++-------------------------------+-------------------------------------------------------------------+
+| **startname**                 | the name (exact string match) of the lattice element to start the |
+|                               | machine at this can also be an integer index of the element       |
+|                               | sequence number in madx tfs.                                      |
++-------------------------------+-------------------------------------------------------------------+
+| **stopname**                  | the name (exact string match) of the lattice element to stop the  |
+|                               | machine at this can also be an integer index of the element       |
+|                               | sequence number in madx tfs.                                      |
++-------------------------------+-------------------------------------------------------------------+
+| **linear**                    | Only linear optical components. This includes thin multipoles up  |
+|                               | and including the k1 component. Nonlinear elements are set to     |
+|                               | strength 0, but still converted. i.e. k2=0 for a sextupole.       |
++-------------------------------+-------------------------------------------------------------------+
+| **samplers**                  | can specify where to set samplers - options are None, 'all', or a |
+|                               | list of names of elements (normal python list of strings). Note   |
+|                               | default 'all' will generate separate outputfilename_samplers.gmad |
+|                               | with all the samplers which will be included in the main .gmad    |
+|                               | file - you can comment out the include to therefore exclude all   |
+|                               | samplers and retain the samplers file.                            |
++-------------------------------+-------------------------------------------------------------------+
+| **aperturedict**              | Aperture information - accepts one of 2 inputs: either a          |
+|                               | dictionary of dictionaries {exactName : {param : value} }, or a   |
+|                               | pymadx.Aperture instance.                                         |
++-------------------------------+-------------------------------------------------------------------+
+| **collimatordict**            | A dictionary of dictionaries with collimator information keys     |
+|                               | should be exact string match of element name in tfs file value    |
+|                               | should be dictionary with the following keys:                     |
+|                               | "bdsim_material"   - the material                                 |
+|                               | "angle"            - rotation angle of collimator in radians      |
+|                               | "xsize"            - x full width in metres                       |
+|                               | "ysize"            - y full width in metres                       |
++-------------------------------+-------------------------------------------------------------------+
+| **userdict**                  | A python dictionary the user can supply with any additional       |
+|                               | information for that particular element. The dictionary should    |
+|                               | have keys matching the exact element name in the Tfs file and     |
+|                               | contain a dictionary itself with key, value pairs of parameters   |
+|                               | and values to be added to that particular element.                |
++-------------------------------+-------------------------------------------------------------------+
+| **verbose**                   | Print out lots of information when building the model.            |
++-------------------------------+-------------------------------------------------------------------+
+| **beam**                      | True \| False - generate an input gauss Twiss beam based on the   |
+|                               | values of the twiss parameters at the beginning of the lattice    |
+|                               | (startname) NOTE - we thoroughly recommend checking these         |
+|                               | parameters and this functionality is only for partial convenience |
+|                               | to have a model that works straight away.                         |
++-------------------------------+-------------------------------------------------------------------+
+| **flipmagnets**               | True \| False - flip the sign of all k values for magnets - MADX  |
+|                               | currently tracks particles agnostic of the particle charge -      |
+|                               | BDISM however, follows the definition strictly -                  |
+|                               | positive k -> horizontal focussing for positive particles         |
+|                               | therefore, positive k -> vertical focussing for negative          |
+|                               | particles. Use this flag to flip the sign of all magnets.         |
++-------------------------------+-------------------------------------------------------------------+
+| **usemadxaperture**           | True \| False - use the aperture information in the TFS file if   |
+|                               | APER_1 and APER_2 columns exist.  Will only set if they're        |
+|                               | non-zero.                                                         |
++-------------------------------+-------------------------------------------------------------------+
+| **defaultAperture**           | The default aperture model to assume if none is specified.        |
++-------------------------------+-------------------------------------------------------------------+
+| **biases**                    | Optional list of bias objects to be defined in own _bias.gmad     |
+|                               | file.  These can then be attached either with allelementdict for  |
+|                               | all components or userdict for individual ones.                   |
++-------------------------------+-------------------------------------------------------------------+
+| **allelementdict**            | Dictionary of parameter/value pairs to be written to all          |
+|                               | components.                                                       |
++-------------------------------+-------------------------------------------------------------------+
+| **optionsDict**               | Optional dictionary of general options to be written to the       |
+|                               | bdsim model options.                                              |
++-------------------------------+-------------------------------------------------------------------+
+| **overwrite**                 | Do not append an integer to the base file name if it already      |
+|                               | exists.  Instead overwrite the files.                             |
++-------------------------------+-------------------------------------------------------------------+
+| **allNamesUnique**            | Treat every row in the TFS file/instance as a unique element.     |
+|                               | This makes it easier to edit individual components as they are    |
+|                               | guaranteed to appear only once in the entire resulting GMAD       |
+|                               | lattice.                                                          |
++-------------------------------+-------------------------------------------------------------------+
+| **stepsize**                  | The slice step size. Default is 1, but -1 also useful for         |
+|                               | reversed line.                                                    |
++-------------------------------+-------------------------------------------------------------------+
+| **ignorezerolengthitems**     | Nothing can be zero length in bdsim as real objects of course     |
+|                               | have some finite size.  Markers, etc are acceptable but for large |
+|                               | lattices this can slow things down. True allows to ignore these   |
+|                               | altogether, which doesn't affect the length of the machine.       |
++-------------------------------+-------------------------------------------------------------------+
+
+
+The user may convert only part of the input model by specifying `startname`
+and `stopname`.
 
 Generally speaking, extra information can be folded into the conversion via a user
 supplied dictionary with extra parameters for a particular element by name. For a
@@ -78,17 +175,16 @@ For example::
   >>> a,o = pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'latticev1', userdict=d)
 
 
-.. note:: The name must match the name given in the MADX file exactly.
+Notes
+*****
 
-Specific arguments may be given for aperture (`aperturedict`), or for collimation
-(`collimatordict`), which are used specifically for those purposes.
-
-There are quite a few options and these are described in :ref:`pybdsim-convert`.
-
-.. note:: The BDSIM-provided pymadx package is required for this conversion to work.
-
-.. note:: The converter will alter the names to remove forbidden characters in names
-	  in BDSIM such as '$' or '!'.
+1) The name must match the name given in the MADX file exactly.
+2) Specific arguments may be given for aperture (`aperturedict`), or for collimation
+   (`collimatordict`), which are used specifically for those purposes.
+3) There are quite a few options and these are described in :ref:`pybdsim-convert`.
+4) The BDSIM-provided pymadx package is required for this conversion to work.
+5) The converter will alter the names to remove forbidden characters in names
+   in BDSIM such as '$' or '!'.
 
 Preparation of a Small Section
 ******************************

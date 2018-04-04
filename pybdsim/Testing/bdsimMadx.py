@@ -226,7 +226,7 @@ class LatticeTest:
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
-    def Run(self, bdsim='bdsim', madx='madx', integratorSet=None):
+    def Run(self, bdsim='bdsim', madx='madx', integratorSet=None, optionsDict = {}):
         print 'Test> Lattice: ', self.filename 
         print 'Test> Destination filepath: ', self.filepath
 
@@ -248,7 +248,6 @@ class LatticeTest:
         if particle == 'ELECTRON' :
             self.flipmagnets = True
 
-        optionsDict = {}
         beamParmsDict = {'offsetSampleMean':1}
         if integratorSet is not None:
             optionsDict['integratorSet'] = '"'+integratorSet+'"'
@@ -290,6 +289,24 @@ class LatticeTest:
 
         _os.chdir(self.folderpath)
 
+        #Writes the text file for Rebdsim
+        with open(''+self.filename+'_analConfig.txt', 'w') as outfile:
+            outfile.writelines("{:<40s}".format('Debug')+'\t 0\n')
+            outfile.writelines("{:<40s}".format('InputFilePath')+'\t ./'+self.filename+'.root \n')
+            outfile.writelines("{:<40s}".format('OutputFileName')+'\t ./'+self.filename+'_optics.root \n')
+            outfile.writelines("{:<40s}".format('CalculateOpticalFunctions')+'\t 1 \n')
+            outfile.writelines("{:<40s}".format('CalculateOpticalFunctionsFileName')+'\t ./'+self.filename+'_optics.dat \n')
+            outfile.writelines("{:<40s}".format('emittanceOnTheFly')+'\t 1 \n')
+
+        #Calculates optical functions and produces .root and .dat files for analysis
+        #_os.system(rebdsim+" "+self.filename+"_analConfig.txt")
+        process = subprocess.Popen([rebdsim, self.filename+"_analConfig.txt"])
+
+        # Method of communicating with BDSIM process. Start and apply the timeout via joining
+        processThread = threading.Thread(target=process.communicate)
+        processThread.start()
+        processThread.join()
+
         #Load data
         rootin     = _ROOT.TFile(self.filename+".root")
         t          = rootin.Get("Event")
@@ -305,26 +322,53 @@ class LatticeTest:
         BE         =  _rnp.tree2array(t, branches=last_name+"energy")
         meanE      = _np.mean(BE)
         meantof    = _np.mean(Btof)
-            
+
+        #Get particle pdg number
+        priPid      =  _rnp.tree2array(t, branches="Primary.partID")
+        pid         =  _np.int(_np.mean(priPid)[0])  #cast to int to match pdg id
+
+        #Particle mass needed for calculating momentum, in turn needed for dE.
+        #All in GeV, taken from the PDG table http://pdg.lbl.gov/2017/reviews/rpp2017-rev-phys-constants.pdf
+        if pid == 2212:                                     #proton
+            mass = 0.9382720813
+        elif (pid == 11) or (pid == -11):                   #electron / positron
+            mass = 0.5109989461e-3
+        elif (pid == 13) or (pid == -13):                   #mu- / mu+
+            mass = 0.1056583745
+
+        else:
+            raise ValueError("Mass for particle with PDG ID {} not available, stop".format(pid)
+            )
+
+        beta = _np.sqrt(1 - (mass/meanE)**2)
+
         #get canonical coordinate t (time_offset_from_reference_part*speed_of_light) from
         #the recorded time of flight in bdsim
-        Bt         = (_np.full_like(Btof, meantof)-Btof)*1.e-9*_scpconsts.c 
-            
-        Bx = [val[0] for val in Bx] #rootnumpy.tree2array returns an array of arrays, get only values
-        By = [val[0] for val in By]
+        Bt         = beta*(Btof - _np.full_like(Btof, meantof))*1.e-9*_scpconsts.c
+
+        Bx  = [val[0] for val in Bx] #rootnumpy.tree2array returns an array of arrays, get only values
+        By  = [val[0] for val in By]
         Bxp = [val[0] for val in Bxp]
         Byp = [val[0] for val in Byp]
-        Bt = [val[0] for val in Bt]
-        BE = [val[0] for val in BE]
-        self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp}
-        
+        Bt  = [val[0] for val in Bt]
+        BE  = [val[0] for val in BE]
+
+        P = _np.sqrt(_np.square(BE) - _np.full_like(BE, mass**2))
+        p0 = _np.sqrt(_np.mean(BE)**2 - 0.93827208148**2)
+        BPT = (P - _np.full_like(P, p0))/p0
+
+        self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp, 'pt':BPT, 't':Bt}
+
         madxout = pymadx.Data.Tfs("trackone")
-        madxend = madxout.GetSegment(madxout.nsegments) #get the last 'segment' / sampler
+        madxend = madxout.GetSegment(madxout.nsegments) #(1) #get the last 'segment' / sampler
         Mx = madxend.GetColumn('X')
-        My = madxend.GetColumn('Y') 
+        My = madxend.GetColumn('Y')
         Mxp = madxend.GetColumn('PX')
         Myp = madxend.GetColumn('PY')
-        self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp}
+
+        MPT = madxend.GetColumn('PT')
+        MT  = madxend.GetColumn('T')
+        self.ptcoutput = {'x':Mx,'y':My,'xp':Mxp,'yp':Myp, 'pt':MPT, 't':MT}
 
         #Check all particles make it through
         if(len(Bx)!=len(Mx)):       
@@ -403,7 +447,7 @@ class LatticeTest:
             outfile.writelines("{:<40s}".format('OutputFileName')+'\t ./'+self.filename+'_optics.root \n')
             outfile.writelines("{:<40s}".format('CalculateOpticalFunctions')+'\t 1 \n')
             outfile.writelines("{:<40s}".format('CalculateOpticalFunctionsFileName')+'\t ./'+self.filename+'_optics.dat \n')
-            outfile.writelines("{:<40s}".format('emittanceOnTheFly')+'\t 1 \n')
+            outfile.writelines("{:<40s}".format('emittanceOnTheFly')+'\t 0 \n')
 
         #Calculates optical functions and produces .root and .dat files for analysis 
         #_os.system(rebdsim+" "+self.filename+"_analConfig.txt")
@@ -560,8 +604,8 @@ class LatticeTest:
                 plotNr      += 1
 
                 in_Tfs       = True
-                M_optfn_x    = madx.GetColumn('DX')
-                M_optfn_y    = madx.GetColumn('DY')
+                M_optfn_x    = madx.GetColumn('DXBETA')
+                M_optfn_y    = madx.GetColumn('DYBETA')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Disp_x")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Disp_y")
                 #PTC_optfn_x  = ptcdata.Disp_x()
@@ -580,8 +624,8 @@ class LatticeTest:
 
                 print "Warning: Disp_xpyp not present in MADX tfs file, plotting only MADX-PTC and BDSIM results "
                 in_Tfs       = True
-                M_optfn_x    = madx.GetColumn('DPX')
-                M_optfn_y    = madx.GetColumn('DPY')
+                M_optfn_x    = madx.GetColumn('DPXBETA')
+                M_optfn_y    = madx.GetColumn('DPYBETA')
                 B_optfn_x    = _rnp.tree2array(bdata, branches = "Disp_xp")
                 B_optfn_y    = _rnp.tree2array(bdata, branches = "Disp_yp")
                 #PTC_optfn_x  = ptcdata.Disp_xp()
@@ -620,7 +664,7 @@ class LatticeTest:
             _plt.ylabel(r'$'+fn_name+fn_units+r'$')
             _plt.legend(numpoints=1,loc=10,fancybox=True, framealpha=1.0,prop={'size':15})
             _plt.grid(True)
-            pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(),''+self.tfsfilename+'.tfs')
+            pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(),madx)
             #_plt.subplots_adjust(left=0.1,right=0.9,top=0.96, bottom=0.15, wspace=0.15, hspace=0.2)
 
         if showResiduals:
@@ -744,6 +788,34 @@ class LatticeTest:
                 ax4.tick_params(axis='both', which='major', pad=7)
 
                 _plt.subplots_adjust(left=0.1,right=0.9,top=0.95, bottom=0.15, wspace=0.35, hspace=0.3)
+
+                #PT vs T
+                f = _plt.figure(self.figureNr+42, figsize=(13, 8), dpi=80, facecolor='w', edgecolor='k')
+                f.suptitle(self.filename)
+                _plt.clf()
+                #X vs Y
+                ax1 = _plt.gca()
+                #arrow_width = abs(_np.min(fresy))*arrow_width_scale
+                #_plt.quiver(Mx,My,-fresx,-fresy,angles='xy',scale_units='xy',scale=1,color='r',units='x',width=arrow_width,headwidth=3)
+                #_plt.plot(Mx,My,'b.',label='PTC')
+                #_plt.plot(Bx,By,'g.',label='BDSIM')
+                _plt.scatter(MPT,MT,label='PTC',s=10,facecolors='red', edgecolors="red")
+                _plt.scatter(BPT,Bt,label='BDSIM',s=60,facecolors='none',edgecolors="blue")
+                if addPrimaries:
+                    _plt.plot(Bx0,By0,'r.',label='BDSIM prim')
+                _plt.legend(prop={'size':10})
+                _plt.xlabel(r"(p-p0)/p0")
+                _plt.ylabel(r"$\beta$cT (m)")
+                startx, endx = ax1.get_xlim()
+                starty, endy = ax1.get_ylim()
+                ax1.xaxis.set_ticks([startx,0,endx])
+                ax1.yaxis.set_ticks([starty,0,endy])
+                locs,labels = _plt.xticks()
+                _plt.xticks(locs, map(lambda x: "%2.1e" % x, locs))
+                locs,labels = _plt.yticks()
+                _plt.yticks(locs, map(lambda x: "%2.1e" % x, locs))
+                ax1.tick_params(axis='both', which='major', pad=7)
+
             
                 # 1d plots
                 # x comparison

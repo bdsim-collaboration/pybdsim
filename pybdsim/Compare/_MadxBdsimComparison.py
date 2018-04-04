@@ -2,9 +2,9 @@ import pymadx as _pymadx
 import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
-from os.path import isfile
-from matplotlib.backends.backend_pdf import PdfPages
-import datetime
+from os.path import isfile as _isfile
+from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
+import datetime as _datetime
 
 def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
                 postfunctions=None, figsize=(12, 5), saveAll=True, outputFileName=None):
@@ -33,11 +33,16 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
 
     _CheckFilesExist(tfs, bdsim, survey)
 
-    tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+    fname = _pybdsim._General.GetFileName(bdsim) # cache file name
+    if fname == "":
+        fname = "optics_report"
 
-    tfsopt    = _GetTfsOptics(tfsinst)
-    bdsopt    = _GetBDSIMOptics(bdsinst)
+    tfsinst = _pymadx.Data.CheckItsTfs(tfs)
+    bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+
+    tfsheader = tfsinst.header
+    tfsopt  = _GetTfsOptics(tfsinst)
+    bdsopt  = _GetBDSIMOptics(bdsinst)
 
     if survey is None:
         survey = tfsinst
@@ -74,7 +79,11 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
                PlotMeans(tfsopt, bdsopt, survey=survey,
                          functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize)]
+                         figsize=figsize),
+               PlotEmitt(tfsopt, bdsopt, tfsinst.header, survey=survey,
+                       functions=functions,
+                       postfunctions=postfunctions,
+                       figsize=figsize)]
 
     if saveAll:
         tfsname = repr(tfsinst)
@@ -84,14 +93,16 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
             output_filename = outputFileName
             if not output_filename.endswith('.pdf'):
                 output_filename += ".pdf"
+        else:
+            output_filename = fname.replace('.root','')
+            output_filename += ".pdf"
         # Should have a more descriptive name really.
-        with PdfPages(output_filename) as pdf:
+        with _PdfPages(output_filename) as pdf:
             for figure in figures:
                 pdf.savefig(figure)
             d = pdf.infodict()
-            d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(
-                tfsname, bdsname)
-            d['CreationDate'] = datetime.datetime.today()
+            d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
+            d['CreationDate'] = _datetime.datetime.today()
 
         print "Written ", output_filename
 
@@ -143,13 +154,14 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
 
     return tfsdata
 
-    
-def MadxVsBDSIMFromGMAD(tfs, gmad):
+
+def MadxVsBDSIMFromGMAD(tfs, gmad, outputfilename):
     """Runs the BDSIM model provided by the gmad file given, gets the
     optics, and then compares them with TFS.
 
     tfs - path to TFS file or a pymadx.Data.Tfs instance
     gmad - path to gmad file to be run.
+    outputfilename - path of the output optics report file.
 
     """
 
@@ -157,7 +169,7 @@ def MadxVsBDSIMFromGMAD(tfs, gmad):
     # Use TFS for survey but perhaps one day can directly get the
     # model from the ROOT output (having modified the above
     # function..  Currently there's no interface for this.
-    MadxVsBDSIM(tfs, bdsimOptics, survey=tfs)
+    MadxVsBDSIM(tfs, bdsimOptics, survey=tfs, outputFileName=outputfilename)
 
 
 def _GetBDSIMOptics(optics):
@@ -187,6 +199,10 @@ def _GetTfsOptics(optics):
                                      'DPX',
                                      'DY',
                                      'DPY',
+                                     'DXBETA',
+                                     'DPXBETA',
+                                     'DYBETA',
+                                     'DPYBETA',
                                      'SIGMAX',
                                      'SIGMAY',
                                      'SIGMAXP',
@@ -271,7 +287,7 @@ def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, 
                   fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\alpha_{x,y}$ / m')
+    axes.set_ylabel(r'$\alpha_{x,y}$')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
@@ -286,8 +302,8 @@ def PlotDs(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figs
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPlot = _plt.figure('Dispersion', figsize=figsize)
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['DX'], 'b', label=r'MADX $D_{x}$')
-    _plt.plot(tfsopt['S'], tfsopt['DY'], 'g', label=r'MADX $D_{y}$')
+    _plt.plot(tfsopt['S'], tfsopt['DXBETA'], 'b', label=r'MADX $D_{x}$')
+    _plt.plot(tfsopt['S'], tfsopt['DYBETA'], 'g', label=r'MADX $D_{y}$')
     #bds
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
                   yerr=bdsopt['Sigma_Disp_x'],
@@ -315,8 +331,8 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPPlot = _plt.figure('Momentum_Dispersion', figsize=figsize)
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['DPX'], 'b', label=r'MADX $D_{p_{x}}$')
-    _plt.plot(tfsopt['S'], tfsopt['DPY'], 'g', label=r'MADX $D_{p_{y}}$')
+    _plt.plot(tfsopt['S'], tfsopt['DPXBETA'], 'b', label=r'MADX $D_{p_{x}}$')
+    _plt.plot(tfsopt['S'], tfsopt['DPYBETA'], 'g', label=r'MADX $D_{p_{y}}$')
     #bds
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
                   yerr=bdsopt['Sigma_Disp_xp'],
@@ -329,7 +345,7 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
                   fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / m')
+    axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / rad')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
@@ -339,6 +355,39 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     
     _plt.show(block=False)
     return dispPPlot
+
+
+def PlotEmitt(tfsopt, bdsopt, header, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+    N = str(int(bdsopt['Npart'][0]))  # number of primaries.
+    emittPlot = _plt.figure('Emittance', figsize=figsize)
+    ex = header['EX'] * _np.ones(len(tfsopt['S']))
+    ey = header['EY'] * _np.ones(len(tfsopt['S']))
+
+    # tfs
+    _plt.plot(tfsopt['S'], ex, 'b', label=r'MADX $E_{x}$')
+    _plt.plot(tfsopt['S'], ey, 'g', label=r'MADX $E_{x}$')
+    # bds
+    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_x'],
+                  yerr=bdsopt['Sigma_Emitt_x'],
+                  label=r'BDSIM $E_{x}$' + ' ; N = ' + N,
+                  fmt='b.', capsize=3)
+
+    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_y'],
+                  yerr=bdsopt['Sigma_Emitt_y'],
+                  label=r'BDSIM $E_{y}$' + ' ; N = ' + N,
+                  fmt='g.', capsize=3)
+
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$E_{x,y} / m$')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(emittPlot, survey)
+    _CallUserFigureFunctions(postfunctions)
+
+    _plt.show(block=False)
+    return emittPlot
 
 def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
@@ -500,7 +549,7 @@ def _AddSurvey(figure, survey):
     elif isinstance(survey, _pymadx.Data.Tfs): # If TFS
         _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
     # if a (BDSIM) ROOT file
-    elif pybdsim._General.IsROOTFile(survey):
+    elif _pybdsim._General.IsROOTFile(survey):
         pass
 
 def _ProcessInput(tfsOptics, bdsimOptics):
@@ -525,11 +574,11 @@ def _CheckFilesExist(tfs, bdsim, survey):
     Otherwise such errors are too cryptic.
     '''
     if isinstance(tfs, basestring):
-        if not isfile(tfs):
+        if not _isfile(tfs):
             raise IOError("File not found: ", tfs)
-    if isinstance(bdsim, basestring) and not isfile(bdsim):
+    if isinstance(bdsim, basestring) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
-    if isinstance(survey, basestring) and not isfile(survey):
+    if isinstance(survey, basestring) and not _isfile(survey):
         raise IOError("File not found: ", survey)
 
 

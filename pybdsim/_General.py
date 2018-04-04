@@ -12,6 +12,19 @@ import pybdsim.Data
 import re as _re
 import numpy as _np
 
+def GetFileName(ob):
+    """
+
+    """
+    if type(ob) == str:
+        return ob
+    elif type(ob) == pybdsim.Data.RebdsimFile:
+        return ob.filename
+    elif type(ob) == pybdsim.Data.BDSAsciiData:
+        return ob.filename
+    else:
+        return ""
+
 def GenUniqueFilename(filename):
     i = 1
     parts = filename.split('.')

@@ -8,11 +8,6 @@ except ImportError:
 import numpy as _np
 import matplotlib.pyplot as _plt
 
-try:
-    from scipy import constants as _con
-except ImportError:
-    warnings.warn("Scipy not available - some functionality missing", UserWarning)
-
 import sys
 import time
 
@@ -164,18 +159,23 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
 
     npart       = len(x)
     E = _np.array([val[0] for val in E])
-    Em          = _np.mean(E)
+
+    beam = rootin.Get("Beam")
+    Em = _rnp.tree2array(beam, branches="Beam.GMAD::BeamBase.beamEnergy")[0]
+
+    beta = _np.sqrt(1 - (mass/Em)**2)
 
     p           = _np.sqrt(E**2 - _np.full_like(E, mass)**2)
     p0          = _np.sqrt(Em**2 - mass**2)
     tofm        = _np.mean(tof)
 
-    #dE          = (E -_np.full(npart,Em))/(p*c)         # energy spread from MAD-X Manual V 5.03.00, pg 16.
+    #Use deltap and pathlength as needed for the time=false flag in PTC
+    #Reference on p.201 of the MADX User's Reference Manual V5.03.07
     dE          = (p-p0)/p0
-    t           = (tof-_np.full(npart,tofm))*1.e-9*c    #c is sof and the 1.e-9 factor is nm to m conversion
+    t           = beta*(tof-_np.full(npart,tofm))*1.e-9*c    #c is sof and the 1.e-9 factor is nm to m conversion
 
     #Truncate the arrays to the desired lenght
-    if (ninrays<0):            
+    if (ninrays<0):
         x  = x[start:]
         y  = y[start:]
         xp = xp[start:]

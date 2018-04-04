@@ -90,6 +90,7 @@ def Load(filepath):
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
+    data.filename = filepath
     f = open(filepath, 'r')
     for i, line in enumerate(f):
         if line.startswith("#"):
@@ -306,6 +307,7 @@ class BDSAsciiData(list):
         self.units   = []
         self.names   = []
         self.columns = self.names
+        self.filename = "" # file data was loaded from
 
     def __getitem__(self,index):
         return dict(zip(self.names,list.__getitem__(self,index)))
@@ -598,22 +600,35 @@ class TH3(TH2):
                 for k in range(self.nbinsz):
                     self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
                     self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
+                    
 
+class _SamplerData(object):
+    """
+    Base class for loading a chosen set of sampler data from a file.
+    data - is the DataLoader instance.
+    params - is a list of parameter names as strings.
+    samplerIndexOrName - is the index of the sampler (0=primaries) or name.
 
-class PhaseSpaceData(object):
-    def __init__(self, data, samplerIndex=0):
-        self._et = data.GetEventTree()
-        self._ev = data.GetEvent()
+    """
+    def __init__(self, data, params, samplerIndexOrName=0):        
+        self._et           = data.GetEventTree()
+        self._ev           = data.GetEvent()
         self._samplerNames = list(data.GetSamplerNames())
         self._samplerNames.insert(0,'Primary')
-        self._samplers = list(self._ev.Samplers)
+        self._samplers     = list(self._ev.Samplers)
         self._samplers.insert(0,self._ev.GetPrimaries())
-        self._entries = int(self._et.GetEntries())
+        self._entries      = int(self._et.GetEntries())
 
-        params = ['x','xp','y','yp','z','zp','energy','t']
-        self.data = self._GetVariables(samplerIndex, params)
-
-        self.samplerName = self._samplerNames[samplerIndex]
+        if type(samplerIndexOrName) == str:
+            try:
+                self.samplerIndex = self._samplerNames.index(samplerIndexOrName)
+            except ValueError:
+                self.samplerIndex = self._samplerNames.index(samplerIndexOrName+".")
+        else:
+            self.samplerIndex = samplerIndexOrName   
+        
+        self.samplerName = self._samplerNames[self.samplerIndex]
+        self.data        = self._GetVariables(self.samplerIndex, params)
 
     def _SamplerIndex(self, samplerName):
         try:
@@ -633,7 +648,7 @@ class PhaseSpaceData(object):
                 res = list([v])
             result.extend(res)
 
-        return result
+        return _np.array(result)
 
     def _GetVariables(self, samplerIndex, vs):
         result = {v:[] for v in vs}
@@ -648,4 +663,47 @@ class PhaseSpaceData(object):
                     res = list([r])
                 result[v].extend(res)
 
+        for v in vs:
+            result[v] = _np.array(result[v])
         return result
+
+
+class PhaseSpaceData(_SamplerData):
+    """
+    Pull phase space data from a loaded DataLoader instance of raw data.
+
+    Extracts only: 'x','xp','y','yp','z','zp','energy','t'
+
+    Can either supply the sampler name or index as the optional second
+    argument. The index is 0 counting including the primaries (ie +1 
+    on the index in data.GetSamplerNames()). Examples::
+
+    >>> f = pybdsim.Data.Load("file.root")
+    >>> primaries = pybdsim.Data.PhaseSpaceData(f)
+    >>> samplerfd45 = pybdsim.Data.PhaseSpaceData(f, "samplerfd45")
+    >>> thirdAfterPrimaries = pybdsim.Data.PhaseSpaceData(f, 3)
+    """
+    def __init__(self, data, samplerIndexOrName=0):
+        params = ['x','xp','y','yp','z','zp','energy','t']
+        super(PhaseSpaceData, self).__init__(data, params, samplerIndexOrName)
+
+
+class SamplerData(_SamplerData):
+    """
+    Pull sampler data from a loaded DataLoader instance of raw data.
+
+    Loads all data in a given sampler.
+
+    Can either supply the sampler name or index as the optional second
+    argument. The index is 0 counting including the primaries (ie +1 
+    on the index in data.GetSamplerNames()). Examples::
+
+    >>> f = pybdsim.Data.Load("file.root")
+    >>> primaries = pybdsim.Data.SampoerData(f)
+    >>> samplerfd45 = pybdsim.Data.SamplerData(f, "samplerfd45")
+    >>> thirdAfterPrimaries = pybdsim.Data.SamplerData(f, 3)
+    """
+    def __init__(self, data, samplerIndexOrName=0):
+        params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','t',
+                  'weight','partID','parentID','trackID','modelID','turnNumber','S']
+        super(SamplerData, self).__init__(data, params, samplerIndexOrName)

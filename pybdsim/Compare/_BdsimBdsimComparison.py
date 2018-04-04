@@ -7,8 +7,10 @@ eighth, helper function ''compare_all_optics``, to plot display all
 seven in one go.
 """
 
-import os.path as _path
+import datetime as _datetime
 import matplotlib.pyplot as _plt
+from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
+import os.path as _path
 
 import pybdsim.Data
 import pybdsim.Plot
@@ -54,14 +56,14 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         second_name = (_path.splitext(_path.basename(second))[0]
                        if second_name is None else second_name)
 
-        first = pybdsim.Data.Load(first)
-        second = pybdsim.Data.Load(second)
+        first = pybdsim.Data.Load(first).optics
+        second = pybdsim.Data.Load(second).optics
 
         # Get the initial N for the two sources
         first_nparticles = first.Npart()[0]
         second_nparticles = second.Npart()[0]
 
-        plot = _plt.figure(title, **kwargs)
+        plot = _plt.figure(title, figsize=(9,5), **kwargs)
         # Loop over the variables in plot_info_tuples and draw the plots.
         for var, error, legend_name in plot_info_tuples:
             _plt.errorbar(first.GetColumn('S'),
@@ -84,7 +86,10 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         axes.legend(loc='best')
 
         if survey is not None:
-            pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(plot, survey)
+            try:
+                pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
+            except IOError:
+                pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
         _plt.show(block=False)
         return plot
     return f_out
@@ -99,21 +104,39 @@ PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
 
 def BDSIMVsBDSIM(first, second, first_name=None,
-                 second_name=None, survey=None, **kwargs):
+                 second_name=None, survey=None, saveAll=True, 
+                 outputFileName=None, **kwargs):
     """
     Display all the optical function plots for the two input optics files.
     """
+    figures = [
     PlotBeta(first, second, first_name=first_name,
-             second_name=second_name, survey=survey, **kwargs)
+             second_name=second_name, survey=survey, **kwargs),
     PlotAlpha(first, second, first_name=first_name,
-              second_name=second_name, survey=survey, **kwargs)
+              second_name=second_name, survey=survey, **kwargs),
     PlotDisp(first, second, first_name=first_name,
-             second_name=second_name, survey=survey, **kwargs)
+             second_name=second_name, survey=survey, **kwargs),
     PlotDispP(first, second, first_name=first_name,
-              second_name=second_name, survey=survey, **kwargs)
+              second_name=second_name, survey=survey, **kwargs),
     PlotSigma(first, second, first_name=first_name,
-              second_name=second_name, survey=survey, **kwargs)
+              second_name=second_name, survey=survey, **kwargs),
     PlotSigmaP(first, second, first_name=first_name,
-               second_name=second_name, survey=survey, **kwargs)
+               second_name=second_name, survey=survey, **kwargs),
     PlotMean(first, second, first_name=first_name,
-             second_name=second_name, survey=survey, **kwargs)
+             second_name=second_name, survey=survey, **kwargs),
+        ]
+
+    if saveAll:
+        output_filename = "optics-report.pdf"
+        with _PdfPages(output_filename) as pdf:
+            for figure in figures:
+                pdf.savefig(figure)
+            d = pdf.infodict()
+            d['Title'] = "{} VS {} Optical Comparison".format(first_name, second_name)
+            d['CreationDate'] = _datetime.datetime.today()
+        print "Written ", output_filename
+
+def PTCVsBDSIM(first, second, first_name="PTC",
+               second_name="BDSIM", survey=None, saveAll=True, 
+               outputFileName=None, **kwargs):
+    BDSIMVsBDSIM(first, second, first_name, second_name, survey, **kwargs)

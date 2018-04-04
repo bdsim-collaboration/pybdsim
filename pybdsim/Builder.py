@@ -622,13 +622,13 @@ class Machine:
     def AddDecapole(self, name='dc', length=0.1, k4=0.0, **kwargs):
         self.Append(Element(name,'decapole',l=length,k4=k4,**kwargs))
 
-    def AddMultipole(self, name='mp', length=0.1, knl=(0), ksl=(0), **kwargs):
+    def AddMultipole(self, name='mp', length=0.1, knl=(0,0), ksl=(0,0), **kwargs):
         if length > 1e-12:
             self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, **kwargs))
         else:
             self.AddThinMultipole(name, knl, ksl, kwargs)
 
-    def AddThinMultipole(self, name='mp', knl=(0), ksl=(0), **kwargs):
+    def AddThinMultipole(self, name='mp', knl=(0,0), ksl=(0,0), **kwargs):
         self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, **kwargs))
 
     def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
