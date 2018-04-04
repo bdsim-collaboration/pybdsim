@@ -8,11 +8,6 @@ except ImportError:
 import numpy as _np
 import matplotlib.pyplot as _plt
 
-try:
-    from scipy import constants as _con
-except ImportError:
-    warnings.warn("Scipy not available - some functionality missing", UserWarning)
-
 import sys
 import time
 
