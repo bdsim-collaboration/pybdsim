@@ -80,26 +80,35 @@ def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
               'g', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
-    if True :
-        _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'],
-                      yerr=bdsopt['Sigma_Beta_x'],
-                      label=r'BDSIM $\beta_{x}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='b')
-        
-        _plt.errorbar(bdsopt['S'], bdsopt['Beta_y'],
-                      yerr=bdsopt['Sigma_Beta_y'],
-                      label=r'BDSIM $\beta_{y}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='g')
+    _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'],
+                  yerr=bdsopt['Sigma_Beta_x'],
+                  label=r'BDSIM $\beta_{x}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='b')
+    
+    _plt.errorbar(bdsopt['S'], bdsopt['Beta_y'],
+                  yerr=bdsopt['Sigma_Beta_y'],
+                  label=r'BDSIM $\beta_{y}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='g')
 
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$\beta_{x,y}$ / m')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
     _AddSurvey(betaPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
+    
+    _plt.show(block=False)
+    return betaPlot
 
 def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    betaPlot = _plt.figure('Alpha',figsize)
+    alphaPlot = _plt.figure('Alpha',figsize)
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('alfx'),
@@ -109,22 +118,31 @@ def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
               'g', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
-    if True : 
-        _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
-                      yerr=bdsopt['Sigma_Alpha_x'],
-                      label=r'BDSIM $\alpha_{x}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='b')
-        
-        _plt.errorbar(bdsopt['S'], bdsopt['Alpha_y'],
-                      yerr=bdsopt['Sigma_Alpha_y'],
-                      label=r'BDSIM $\alpha_{y}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='g')
+    _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
+                  yerr=bdsopt['Sigma_Alpha_x'],
+                  label=r'BDSIM $\alpha_{x}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='b')
+    
+    _plt.errorbar(bdsopt['S'], bdsopt['Alpha_y'],
+                  yerr=bdsopt['Sigma_Alpha_y'],
+                  label=r'BDSIM $\alpha_{y}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='g')
 
-    _AddSurvey(betaPlot, mad8opt)
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$\alpha_{x,y}$')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(alphaPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
+
+    _plt.show(block=False)
+    return alphaPlot
 
 def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
@@ -135,25 +153,34 @@ def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fig
               'b', label=r'MAD8 $\beta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dy'),
-              'g', label=r'MAD8 $\D_{y}$')
+              'g', label=r'MAD8 $D_{y}$')
      
     # bds plot
-    if True :
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
-                      yerr=bdsopt['Sigma_Disp_x'],
-                      label=r'BDSIM $\D_{x}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='b')
-        
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'],
-                      yerr=bdsopt['Sigma_Disp_y'],
-                      label=r'BDSIM $\D_{y}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='g')
+    _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
+                  yerr=bdsopt['Sigma_Disp_x'],
+                  label=r'BDSIM $D_{x}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='b')
+    
+    _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'],
+                  yerr=bdsopt['Sigma_Disp_y'],
+                  label=r'BDSIM $D_{y}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='g')
 
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$D_{x,y} / m$')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
     _AddSurvey(dispPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
+
+    _plt.show(block=False)
+    return dispPlot
 
 def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
@@ -164,26 +191,34 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
               'b', label=r'MAD8 $\beta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dpy'),
-              'g', label=r'MAD8 $\D_{y}$')
+              'g', label=r'MAD8 $D_{y}$')
     
     # bds plot
-    if True :
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
-                      yerr=bdsopt['Sigma_Disp_xp'],
-                      label=r'BDSIM $\D_{p_x}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='b')
+    _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
+                  yerr=bdsopt['Sigma_Disp_xp'],
+                  label=r'BDSIM $D_{p_x}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='b')
         
-        _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
-                      yerr=bdsopt['Sigma_Disp_yp'],
-                      label=r'BDSIM $\D_{p_y}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='g')
+    _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
+                  yerr=bdsopt['Sigma_Disp_yp'],
+                  label=r'BDSIM $D_{p_y}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='g')
 
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / rad')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
     _AddSurvey(dispPPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
 
+    _plt.show(block=False)
+    return dispPPlot
 
 def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
@@ -197,23 +232,31 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
               'g', label=r'MAD8 $\sigma_{y}$')
     
     # bds plot
-    if True :
-        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'],
-                      yerr=bdsopt['Sigma_Sigma_x'],
-                      label=r'BDSIM $\sigma_{x}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='b')
-        
-        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_y'],
-                      yerr=bdsopt['Sigma_Sigma_y'],
-                      label=r'BDSIM $\sigma_{y}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='g')
+    _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'],
+                  yerr=bdsopt['Sigma_Sigma_x'],
+                  label=r'BDSIM $\sigma_{x}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='b')
+    
+    _plt.errorbar(bdsopt['S'], bdsopt['Sigma_y'],
+                  yerr=bdsopt['Sigma_Sigma_y'],
+                  label=r'BDSIM $\sigma_{y}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='g')
 
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$\sigma_{x,y}$ / m')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
 
+    _plt.show(block=False)
+    return sigmaPlot
 
 def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
@@ -227,22 +270,31 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
               'g', label=r'MAD8 $\sigma_{yp}$')
     
     # bds plot
-    if True :
-        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_xp'],
-                      yerr=bdsopt['Sigma_Disp_xp'],
-                      label=r'BDSIM $\sigma_{p_x}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='b')
+    _plt.errorbar(bdsopt['S'], bdsopt['Sigma_xp'],
+                  yerr=bdsopt['Sigma_Disp_xp'],
+                  label=r'BDSIM $\sigma_{p_x}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='b')
         
-        _plt.errorbar(bdsopt['S'], bdsopt['Sigma_yp'],
-                      yerr=bdsopt['Sigma_Sigma_yp'],
-                      label=r'BDSIM $\sigma_{p_y}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='g')
+    _plt.errorbar(bdsopt['S'], bdsopt['Sigma_yp'],
+                  yerr=bdsopt['Sigma_Sigma_yp'],
+                  label=r'BDSIM $\sigma_{p_y}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='g')
 
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$\sigma_{xp,yp}$ / rad')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
+
+    _plt.show(block=False)
+    return sigmaPPlot
 
 def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
@@ -252,16 +304,24 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
               mad8opt['comm'].getColumn('E'),
               'b', label=r'MAD8 $E$')
 
-    if True : 
-        _plt.errorbar(bdsopt['S'], bdsopt['Mean_E'],
-                      yerr=bdsopt['Sigma_Mean_E'],
-                      label=r'BDSIM $E$' + ' ; N = ' + N,
-                      marker='x',
-                      ls = '',
-                      color='b')
-        
-    _AddSurvey(energyPlot, mad8opt)
+    _plt.errorbar(bdsopt['S'], bdsopt['Mean_E'],
+                  yerr=bdsopt['Sigma_Mean_E'],
+                  label=r'BDSIM $E$' + ' ; N = ' + N,
+                  marker='x',
+                  ls = '',
+                  color='b')
+    
+    axes = _plt.gcf().gca()
+    axes.set_ylabel('Energy / GeV')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
 
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(energyPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
+    
+    _plt.show(block=False)
+    return energyPlot
 
 def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
@@ -270,23 +330,31 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     #_plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
     #          mad8opt['comm'].getColumn('E'),
     #          'b', label=r'MAD8 $E$')
+    
+    _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
+                  yerr=bdsopt['Sigma_Mean_x'],
+                  label=r'BDSIM $\overline{x}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls='',
+                  color='b')
+    _plt.errorbar(bdsopt['S'], bdsopt['Mean_y'],
+                  yerr=bdsopt['Sigma_Mean_y'],
+                  label=r'BDSIM $\overline{y}$' + ' ; N = ' + N,
+                  marker='x',
+                  ls='',
+                  color='g')
 
-    if True:
-        _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
-                      yerr=bdsopt['Sigma_Mean_x'],
-                      label=r'BDSIM $\overline{x}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls='',
-                      color='b')
-        _plt.errorbar(bdsopt['S'], bdsopt['Mean_y'],
-                      yerr=bdsopt['Sigma_Mean_y'],
-                      label=r'BDSIM $\overline{y}$' + ' ; N = ' + N,
-                      marker='x',
-                      ls='',
-                      color='g')
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
 
+    _CallUserFigureFunctions(functions)
     _AddSurvey(meanPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
 
+    _plt.show(block=False)
+    return meanPlot
     
 def _AddSurvey(figure, survey):
     if survey is None:
@@ -294,7 +362,13 @@ def _AddSurvey(figure, survey):
     else:
         _pymad8.Plot.AddMachineLatticeToFigure(figure,survey)
 
-
+def _CallUserFigureFunctions(functions):
+    if isinstance(functions, list):
+        for function in functions:
+            if callable(function):
+                function()
+    elif callable(functions):
+        functions()
 
 
 # ============================================================================
@@ -539,5 +613,3 @@ class Mad8Bdsim :
         _pymad8.Plot.setCallbacks(figure,ax0,[ax1,ax2],self.mad8Twiss)
 
         _pl.savefig("mad8bdsim_emitt.pdf")
-
-
