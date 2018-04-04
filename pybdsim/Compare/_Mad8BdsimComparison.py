@@ -4,9 +4,12 @@ import pymad8 as _pymad8
 import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
-from os.path import isfile
+from os.path import isfile as _isfile
+from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
+import datetime as _datetime
 
-def Mad8VsBDSIM(twiss, envel, bdsim, survey=None) :
+def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
+                postfunctions=None, figsize=(12, 5), saveAll=True, outputFileName=None):
     """
     Compares Mad8 and BDSIM optics variables.
 
@@ -17,30 +20,78 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None) :
     +-----------------+---------------------------------------------------------+
     | bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
     +-----------------+---------------------------------------------------------+
+    | functions       | Hook for users to add their functions that are called   |
+    |                 | immediately prior to the addition of the plot. Use a    |
+    |                 | lambda function to add functions with arguments. Can    |
+    |                 | be a function or a list of functions.                   |
+    +-----------------+---------------------------------------------------------+
+    | figsize         | Figure size for all figures - default is (12,5)         |
+    +-----------------+---------------------------------------------------------+
     """
 
     _CheckFilesExist(twiss, envel, bdsim)
 
+    fname = _pybdsim._General.GetFileName(bdsim) # cache file name
+    if fname == "":
+        fname = "optics_report"
+    
     # load mad8 optics
     mad8reader   = _pymad8.Output.OutputReader() 
-    [com, twiss] = mad8reader.readFile(twiss,'twiss')
-    [com, envel] = mad8reader.readFile(envel,'envel')
+    [com, twissL] = mad8reader.readFile(twiss,'twiss')
+    [com, envelL] = mad8reader.readFile(envel,'envel')
     
     # load bdsim optics
     bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
     bdsopt  = _GetBDSIMOptics(bdsinst)
     
     # make plots 
-    mad8opt = {'comm':com, 'twiss':twiss, 'envel':envel}
+    mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL}
 
-    figures = [PlotBetas(mad8opt,bdsopt),
-               PlotAlphas(mad8opt,bdsopt),
-               PlotDs(mad8opt,bdsopt),
-               PlotDps(mad8opt,bdsopt),
-               PlotSigmas(mad8opt,bdsopt),
-               PlotSigmasP(mad8opt,bdsopt),
-               PlotEnergy(mad8opt,bdsopt),
-               PlotMeans(mad8opt,bdsopt)]
+    figures = [PlotBetas(mad8opt,bdsopt,functions=functions,
+                         postfunctions=postfunctions,
+                         figsize=figsize),
+               PlotAlphas(mad8opt,bdsopt,functions=functions,
+                          postfunctions=postfunctions,
+                          figsize=figsize),
+               PlotDs(mad8opt,bdsopt,functions=functions,
+                      postfunctions=postfunctions,
+                      figsize=figsize),
+               PlotDps(mad8opt,bdsopt,functions=functions,
+                       postfunctions=postfunctions,
+                       figsize=figsize),
+               PlotSigmas(mad8opt,bdsopt,functions=functions,
+                          postfunctions=postfunctions,
+                          figsize=figsize),
+               PlotSigmasP(mad8opt,bdsopt,functions=functions,
+                           postfunctions=postfunctions,
+                           figsize=figsize),
+               PlotEnergy(mad8opt,bdsopt,functions=functions,
+                          postfunctions=postfunctions,
+                          figsize=figsize),
+               PlotMeans(mad8opt,bdsopt,functions=functions,
+                         postfunctions=postfunctions,
+                         figsize=figsize)]
+
+    if saveAll:
+        tfsname = repr(twiss)
+        bdsname = repr(bdsinst)
+        output_filename = "optics-report.pdf"
+        if outputFileName is not None:
+            output_filename = outputFileName
+            if not output_filename.endswith('.pdf'):
+                output_filename += ".pdf"
+        else:
+            output_filename = fname.replace('.root','')
+            output_filename += ".pdf"
+        # Should have a more descriptive name really.
+        with _PdfPages(output_filename) as pdf:
+            for figure in figures:
+                pdf.savefig(figure)
+            d = pdf.infodict()
+            d['Title'] = "{} (MAD8) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
+            d['CreationDate'] = _datetime.datetime.today()
+
+        print "Written ", output_filename
     
     return mad8opt
 
@@ -48,13 +99,12 @@ def _CheckFilesExist(twiss, envel, bdsim):
     '''
     Otherwise such errors are too cryptic.
     '''
-    if not isfile(twiss):
+    if not _isfile(twiss):
         raise IOError("File not found: ", twiss)
-    if not isfile(envel):
+    if not _isfile(envel):
         raise IOError("File not found: ", envel);
-    if isinstance(bdsim, basestring) and not isfile(bdsim):
+    if isinstance(bdsim, basestring) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
-
 
 def _GetBDSIMOptics(optics):
     '''
