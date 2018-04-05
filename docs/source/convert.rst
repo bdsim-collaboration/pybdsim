@@ -208,15 +208,87 @@ This is a utility to prepare a strength file file from a Tfs file. The output gm
 file may then be included in an existing BDSIM gmad model after the lattice definition
 which will update the strengths of all the magnets.
 
-Mad8Twiss2Gmad
---------------
+Mad8Twiss2Gmad (using saved TWISS output)
+-----------------------------------------
 
 .. note:: This requires the `<https://bitbucket.org/jairhul/pymad8>`_ package.
 
-Mad8Saveline2Gmad
------------------
+A MAD8 lattice can be easily converted to a BDSIM gmad input file using the supplied
+python utilities. This is achieved by
 
-.. note:: This requires the `<https://bitbucket.org/jairhul/pymad8>`_ package.
+1. preparing twiss, envel, survey and structure tape files with mad8 
+2. echo variables in the mad8 job log (SIGPT, SIGT)
+3. converting the tape files to gmad using pybdsim
+
+Running mad8 
+************
+The following variables need to be defined in the Mad8 job from a :code:`BETA0` ::
+
+  EMITX     := 0.01e-6
+  EMITY     := 0.01e-6
+  BLENG     := 0.3e-3
+  ESPRD     := 0.1e-3
+  TALFX     := BETA0[alfx]
+  TALFY     := BETA0[alfy]
+  TBETX     := BETA0[betx]
+  TBETY     := BETA0[bety]
+  TGAMX     := (1+TALFX*TALFX)/TBETX
+  TGAMY     := (1+TALFY*TALFY)/TBETY
+  SIG11     := EMITX*TBETX
+  SIG21     := -EMITX*TALFX
+  SIG22     := EMITX*TGAMX
+  SIG33     := EMITY*TBETY
+  SIG43     := -EMITY*TALFY
+  SIG44     := EMITY*TGAMY
+  C21       := SIG21/SQRT(SIG11*SIG22)
+  C43       := SIG43/SQRT(SIG33*SIG44)
+  S0_I1.G1  : SIGMA0, SIGX=SQRT(SIG11), SIGPX=SQRT(SIG22), R21=C21, &
+                      SIGY=SQRT(SIG33), SIGPY=SQRT(SIG44), R43=C43, &
+                      SIGT=BLENG, SIGPT=ESPRD
+
+  VALUE, EMITX
+  VALUE, EMITY
+  VALUE, ESPRD
+  VALUE, BLENG
+
+Creating the output files::
+ 
+  use, <latticename>
+  twiss, beta0=BETA0, save, tape=twiss_<latticename> , rtape=rmat_<latticename>
+  structure, filename=struct_<latticename>
+  envelope, sigma0=SIGMA0, save=envelope, tape=envel_<latticename>
+
+Optionally the following files are required::
+
+  survey, tape=survey_<latticename>
+  
+Running mad8::
+
+  mad8s < <jobfilename> > <jobfilename>.log  
+
+
+Converting the Mad8 files
+*************************
+
+Two steps are required to create the model from the Mad8 files, first to create 
+template files for the collimators and apertures from the Mad8, this is done by 
+running the following commands ::
+
+  pybdsim.Convert.Mad8MakeCollimatorTemplate(<inputtwissfilename>,<collimatordbfilename>)
+  pybdsim.Convert.Mad8MakeApertureTemplate(<inputtwissfilename>,<aperturedbfilename>)
+
+Copy the <collimatordbfilename> to :code:`collimator.dat` and <aperturedbfilename> to :code:`apertures.dat`
+Once prepared, the Tape files can be converted. The converter is used as follows::
+
+  pybdsim.Convert.Mad8Twiss2Gmad(<inputtwissfilename>,<outputgamdfilename>)
+
+Mad8Tfs2Gmad (using saved TFS output)
+-----------------------------------------
+
+Optics TFS output::
+
+  optics
+
 
 pytransport
 -----------
