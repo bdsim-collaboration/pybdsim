@@ -1,6 +1,9 @@
-import ROOT
+
 import collections
+import warnings
+
 import numpy as np
+import ROOT
 
 if ROOT.gSystem.Load("librebdsimLib") == -1:
     raise ImportError("Cannot find librebdsimLib root library.")
@@ -77,11 +80,20 @@ class Model(list):
         self.component_variables = _COMPONENT_VARS
 
         # Add the per component variables.
+        # Loop over the indices, where each component has a unique index.
         for index, _ in enumerate(model.componentName):
-            component_vars = {variable:
-                              _try_coercion(getattr(model, variable)[index])
-                              for variable in _COMPONENT_VARS}
-            self.append(Component(index=index, **component_vars))
+            # For each vector of variables, access the value at the
+            # component's index, and return as a Component instance.
+            this_components_vars = {component_var: None
+                                    for component_var
+                                    in self.component_variables}
+            for variable in this_components_vars:
+                try:
+                    value = _try_coercion(getattr(model, variable)[index])
+                    this_components_vars[variable] = value
+                except IndexError: # then can't load that leaf.
+                    warnings.warn("Cannot load leaf: \"{}\" !".format(variable))
+            self.append(Component(index=index, **this_components_vars))
         self.smax = self[-1].endS
 
     def get_component_column(self, variable):
@@ -165,3 +177,5 @@ def _try_coercion(var):
         return _coerce_tvector3(var)
     except AttributeError:
         return var
+    except:
+        raise TypeError("Coercion error!")
