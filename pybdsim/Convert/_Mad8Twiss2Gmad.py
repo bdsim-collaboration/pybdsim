@@ -21,11 +21,12 @@ import pybdsim.XSecBias as XSecBias
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
                    istart                       = 0,
+                   iend                         = -1,
                    beam                         = ["nominal"],
 #                   gemit                        = (1e-10,1e-10), 
                    gemit                        = (1e-8,1e-8), 
                    mad8FileName                 = "",                  
-                   collimator                   = "collimator.dat", 
+                   collimator                   = "collimator.dat",
                    apertures                    = "apertures.dat",
                    samplers                     = 'all',
                    options                      = True,
@@ -195,7 +196,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     nameDict = {}
 
     # iterate through objects and build machine
-    for i in range(istart,len(c.name),1) : 
+    if iend == -1 :
+        iend = len(c.name)
+    for i in range(istart,iend,1) :
         # unique(c.type)
         # print element
         # print i,c.name[i],c.type[i]
