@@ -234,7 +234,6 @@ def _GetTfsOrbit(optics):
     return optvars
 
 def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
-
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     betaPlot = _plt.figure('Beta', figsize=figsize)
     _plt.plot(tfsopt['S'], tfsopt['BETX'], 'b', label=r'MADX $\beta_{x}$')
@@ -355,7 +354,6 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     
     _plt.show(block=False)
     return dispPPlot
-
 
 def PlotEmitt(tfsopt, bdsopt, header, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
