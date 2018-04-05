@@ -274,14 +274,13 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma',figsize)
 
-    if True :
-        _plt.plot(mad8opt['envel'].getColumn('suml'),
-                  _np.sqrt(mad8opt['envel'].getColumn('s11')),
-                  'b', label=r'MAD8 $\sigma_{x}$')
-        _plt.plot(mad8opt['envel'].getColumn('suml'),
-                  _np.sqrt(mad8opt['envel'].getColumn('s33')),
-                  'g', label=r'MAD8 $\sigma_{y}$')
-
+    _plt.plot(mad8opt['envel'].getColumn('suml'),
+              _np.sqrt(mad8opt['envel'].getColumn('s11')),
+              'b', label=r'MAD8 $\sigma_{x}$')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),
+              _np.sqrt(mad8opt['envel'].getColumn('s33')),
+              'g', label=r'MAD8 $\sigma_{y}$')
+    
     # Own calculation of beam sizes
     emitX0 = 1e-8
     emitY0 = 1e-8
@@ -395,9 +394,13 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
     meanPlot = _plt.figure('Mean', figsize)
 
-    #_plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
-    #          mad8opt['comm'].getColumn('E'),
-    #          'b', label=r'MAD8 $E$')
+    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
+              mad8opt['twiss'].getColumn('x'),
+              'b', label=r'MAD8 $\overline{x}$')
+
+    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
+              mad8opt['twiss'].getColumn('y'),
+              'g', label=r'MAD8 $\overline{y}$')
     
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
                   yerr=bdsopt['Sigma_Mean_x'],
