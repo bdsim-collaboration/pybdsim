@@ -7,7 +7,7 @@ from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
 
 def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
-                postfunctions=None, figsize=(12, 5), saveAll=True, outputFileName=None):
+                postfunctions=None, figsize=(9, 5), saveAll=True, outputFileName=None):
     """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
@@ -46,11 +46,6 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
 
     if survey is None:
         survey = tfsinst
-
-    if saveAll:
-        # A4 size with quarter inch margin on sides and on top to
-        # ensure figures don't come out looking cramped and bad.
-        figsize=(11.44, 8.02)
 
     figures = [PlotBetas(tfsopt, bdsopt, survey=survey,
                          functions=functions,
