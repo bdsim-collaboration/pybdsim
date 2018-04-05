@@ -7,7 +7,7 @@ from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
 
 def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
-                postfunctions=None, figsize=(9, 5), saveAll=True, outputFileName=None):
+                postfunctions=None, figsize=(10, 5), saveAll=True, outputFileName=None):
     """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
@@ -76,9 +76,13 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
                          postfunctions=postfunctions,
                          figsize=figsize),
                PlotEmitt(tfsopt, bdsopt, tfsinst.header, survey=survey,
-                       functions=functions,
-                       postfunctions=postfunctions,
-                       figsize=figsize)]
+                         functions=functions,
+                         postfunctions=postfunctions,
+                         figsize=figsize),
+               PlotNParticles(bdsopt, survey=survey,
+                              functions=functions,
+                              postfunctions=postfunctions,
+                              figsize=figsize)]
 
     if saveAll:
         tfsname = repr(tfsinst)
@@ -473,6 +477,23 @@ def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, f
     
     _plt.show(block=False)
     return meanPlot
+
+def PlotNParticles(bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+    npartPlot = _plt.figure('NParticles', figsize)
+
+    _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k-', label='BDSIM N Particles')
+    _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k.')
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'N Particles')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(npartPlot, survey)
+    _CallUserFigureFunctions(postfunctions)
+
+    _plt.show(block=False)
+    return npartPlot
 
 def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     orbitPlot = _plt.figure('Orbit', figsize=figsize)

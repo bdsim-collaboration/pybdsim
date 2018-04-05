@@ -9,7 +9,7 @@ from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
 
 def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
-                postfunctions=None, figsize=(12, 5), saveAll=True, outputFileName=None):
+                postfunctions=None, figsize=(10, 5), saveAll=True, outputFileName=None):
     """
     Compares Mad8 and BDSIM optics variables.
 
@@ -46,7 +46,7 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     
     # make plots 
     mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL}
-
+    
     figures = [PlotBetas(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
                          figsize=figsize),
@@ -70,8 +70,11 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
                           figsize=figsize),
                PlotMeans(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize)]
-
+                         figsize=figsize),
+               PlotNParticles(mad8opt,bdsopt,functions=functions,
+                              postfunctions=postfunctions,
+                              figsize=figsize)]
+    
     if saveAll:
         tfsname = repr(twiss)
         bdsname = repr(bdsinst)
@@ -426,6 +429,23 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
 
     _plt.show(block=False)
     return meanPlot
+
+def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+    npartPlot = _plt.figure('NParticles', figsize)
+
+    _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k-', label='BDSIM N Particles')
+    _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k.')
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'N Particles')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(npartPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
+
+    _plt.show(block=False)
+    return npartPlot
     
 def _AddSurvey(figure, survey):
     if survey is None:
