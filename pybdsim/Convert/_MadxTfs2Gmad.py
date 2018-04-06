@@ -524,7 +524,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         
         # now deal with aperture
         if useTfsAperture:
-            sMid = (item['S']*2 - item['L'] ) * 0.5
+            sMid = item["SORIGINAL"] - item["L"] / 2.0 # note SORIGINAL not S
             apermodel = _Builder.PrepareApertureModel(aperturedict.GetApertureAtS(sMid), defaultAperture)
             #apermodel = aperturedict.GetApertureForElementNamed(name)
             #print 'Using aperture instance'
