@@ -137,7 +137,7 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     xp          =  _rnp.tree2array(tree, branches="Primary.xp")
     y           =  _rnp.tree2array(tree, branches="Primary.y")
     yp          =  _rnp.tree2array(tree, branches="Primary.yp")
-    tof         =  _rnp.tree2array(tree, branches="Primary.t")
+    tof         =  _rnp.tree2array(tree, branches="Primary.T")
     E           =  _rnp.tree2array(tree, branches="Primary.energy")
 
     #Get particle pdg number
