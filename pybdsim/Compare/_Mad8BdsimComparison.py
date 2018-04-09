@@ -9,7 +9,7 @@ from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
 
 def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
-                postfunctions=None, figsize=(12, 5), saveAll=True, outputFileName=None):
+                postfunctions=None, figsize=(10, 5), saveAll=True, outputFileName=None):
     """
     Compares Mad8 and BDSIM optics variables.
 
@@ -46,7 +46,7 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     
     # make plots 
     mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL}
-
+    
     figures = [PlotBetas(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
                          figsize=figsize),
@@ -71,13 +71,12 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
                PlotMeans(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
                          figsize=figsize),
-               PlotN(mad8opt,bdsopt,functions=functions,
-                     postfunctions=postfunctions,
-                     figsize=figsize),
                PlotEmittance(mad8opt,bdsopt,functions=functions,
                              postfunctions=postfunctions,
-                             figsize=figsize)]
-
+                             figsize=figsize),
+               PlotNParticles(mad8opt,bdsopt,functions=functions,
+                              postfunctions=postfunctions,
+                              figsize=figsize)]    
     if saveAll:
         tfsname = repr(twiss)
         bdsname = repr(bdsinst)
@@ -280,14 +279,13 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma',figsize)
 
-    if True :
-        _plt.plot(mad8opt['envel'].getColumn('suml'),
-                  _np.sqrt(mad8opt['envel'].getColumn('s11')),
-                  'b', label=r'MAD8 $\sigma_{x}$')
-        _plt.plot(mad8opt['envel'].getColumn('suml'),
-                  _np.sqrt(mad8opt['envel'].getColumn('s33')),
-                  'g', label=r'MAD8 $\sigma_{y}$')
-
+    _plt.plot(mad8opt['envel'].getColumn('suml'),
+              _np.sqrt(mad8opt['envel'].getColumn('s11')),
+              'b', label=r'MAD8 $\sigma_{x}$')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),
+              _np.sqrt(mad8opt['envel'].getColumn('s33')),
+              'g', label=r'MAD8 $\sigma_{y}$')
+    
     # Own calculation of beam sizes
     emitX0 = 1e-8
     emitY0 = 1e-8
@@ -401,6 +399,13 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
     meanPlot = _plt.figure('Mean', figsize)
 
+    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
+              mad8opt['twiss'].getColumn('x'),
+              'b', label=r'MAD8 $\overline{x}$')
+
+    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
+              mad8opt['twiss'].getColumn('y'),
+              'g', label=r'MAD8 $\overline{y}$')
     
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
                   yerr=bdsopt['Sigma_Mean_x'],
@@ -467,37 +472,30 @@ def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=No
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\epsilon_{x,y}$ / m')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(emittancePlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
 
+    _plt.show(block=False)
     return emittancePlot
 
-def PlotN(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
-    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    nPlot = _plt.figure('N',figsize)
+def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+    npartPlot = _plt.figure('NParticles', figsize)
 
-    _plt.plot(bdsopt['S'], bdsopt['Npart'],
-              label=r'BDSIM $N$' + ' ; N = ' + N,
-              marker='x',
-              ls = '',
-              color='b')
-    _plt.axhline(N)
-
+    _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k-', label='BDSIM N Particles')
+    _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k.')
     axes = _plt.gcf().gca()
-    axes.set_ylabel('E')
+    axes.set_ylabel(r'N Particles')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(nPlot, mad8opt)
+    _AddSurvey(npartPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
-    
+
     _plt.show(block=False)
-    return nPlot
+    return npartPlot
     
 def _AddSurvey(figure, survey):
     if survey is None:
