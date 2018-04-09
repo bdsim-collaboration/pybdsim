@@ -1,3 +1,4 @@
+from scipy import constants as _con
 import warnings
 
 try:
