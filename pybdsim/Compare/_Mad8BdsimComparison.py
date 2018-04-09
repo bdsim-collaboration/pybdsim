@@ -70,7 +70,13 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
                           figsize=figsize),
                PlotMeans(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize)]
+                         figsize=figsize),
+               PlotN(mad8opt,bdsopt,functions=functions,
+                     postfunctions=postfunctions,
+                     figsize=figsize),
+               PlotEmittance(mad8opt,bdsopt,functions=functions,
+                             postfunctions=postfunctions,
+                             figsize=figsize)]
 
     if saveAll:
         tfsname = repr(twiss)
@@ -395,9 +401,6 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
     meanPlot = _plt.figure('Mean', figsize)
 
-    #_plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
-    #          mad8opt['comm'].getColumn('E'),
-    #          'b', label=r'MAD8 $E$')
     
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
                   yerr=bdsopt['Sigma_Mean_x'],
@@ -423,6 +426,78 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
 
     _plt.show(block=False)
     return meanPlot
+
+def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)) :
+    N = str(int(bdsopt['Npart'][0]))  # number of primaries.
+    emittancePlot = _plt.figure('Emittance', figsize)
+
+    # Own calculation of beam sizes
+    emitX0 = 1e-8
+    emitY0 = 1e-8
+
+    e      = mad8opt['comm'].getColumn('E')
+    rgamma = e/(0.5109989461/1e3)
+    rbeta  = _np.sqrt(1-1.0/rgamma**2)
+
+    emitXN0 = emitX0*rgamma[0]*rbeta[0]
+    emitYN0 = emitY0*rgamma[0]*rbeta[0]
+
+    emitX = emitXN0/(rbeta*rgamma)
+    emitY = emitYN0/(rbeta*rgamma)
+
+    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
+              emitX,
+              'b', label=r'MAD8 $\epsilon_x$')
+
+    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
+              emitY,
+              'g', label=r'MAD8 $\epsilon_y$')
+
+    _plt.plot(bdsopt['S'], bdsopt['Emitt_x'],
+              label=r'BDSIM $N$' + ' ; N = '+N,
+              marker='x',
+              ls='',
+              color='b')
+
+    _plt.plot(bdsopt['S'], bdsopt['Emitt_y'],
+              label=r'BDSIM $N$' + ' ; N = '+N,
+              marker='x',
+              ls='',
+              color='g')
+
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'$\epsilon_{x,y}$ / m')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(emittancePlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
+
+    return emittancePlot
+
+def PlotN(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
+    nPlot = _plt.figure('N',figsize)
+
+    _plt.plot(bdsopt['S'], bdsopt['Npart'],
+              label=r'BDSIM $N$' + ' ; N = ' + N,
+              marker='x',
+              ls = '',
+              color='b')
+    _plt.axhline(N)
+
+    axes = _plt.gcf().gca()
+    axes.set_ylabel('E')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    _CallUserFigureFunctions(functions)
+    _AddSurvey(nPlot, mad8opt)
+    _CallUserFigureFunctions(postfunctions)
+    
+    _plt.show(block=False)
+    return nPlot
     
 def _AddSurvey(figure, survey):
     if survey is None:
