@@ -16,6 +16,7 @@ of BDSIM models.
    data
    classes
    support
+   version_history
    moduledocs
 	     
 
