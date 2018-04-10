@@ -309,15 +309,28 @@ def PlotBdsimOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwa
     PlotSigmaP(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
     PlotMean(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
     
-def Histogram1D(histogram, **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
     """
     h = histogram
-    f = _plt.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, fmt='.', **errorbarKwargs)
-    _plt.xlabel(h.xlabel)
-    _plt.ylabel(h.ylabel)
-    _plt.title(h.title)
+    f = _plt.figure(figsize=(10,5))
+    ax = f.add_subplot(111)
+    ax.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, fmt='.', **errorbarKwargs)
+    if xlabel is None:
+        ax.set_xlabel(h.xlabel)
+    else:
+        ax.set_xlabel(xlabel)
+    if ylabel is None:
+        ax.set_ylabel(h.ylabel)
+    else:
+        ax.set_ylabel(ylabel)
+    if title is None:
+        f.suptitle(h.title)
+    elif title is "":
+        pass
+    else:
+        f.suptitle(title)
     return f
 
 def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel=""):
@@ -329,13 +342,14 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlab
     zlabel    - label for color bar scale
     """
     h = histogram
+    f = _plt.figure()
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     ext = [_np.min(h.xcentres),_np.max(h.xcentres),_np.min(h.ycentres),_np.max(h.ycentres)]
     if logNorm:
-        f = _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal', norm=_LogNorm())
+        _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal', norm=_LogNorm())
         _plt.colorbar()
     else:
-        f = _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal')
+        _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal')
         _plt.colorbar(format='%.0e', label=zlabel)
 
     if xlogscale:
