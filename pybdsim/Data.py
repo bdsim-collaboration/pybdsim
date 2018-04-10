@@ -672,7 +672,7 @@ class PhaseSpaceData(_SamplerData):
     """
     Pull phase space data from a loaded DataLoader instance of raw data.
 
-    Extracts only: 'x','xp','y','yp','z','zp','energy','t'
+    Extracts only: 'x','xp','y','yp','z','zp','energy','T'
 
     Can either supply the sampler name or index as the optional second
     argument. The index is 0 counting including the primaries (ie +1 
@@ -684,7 +684,7 @@ class PhaseSpaceData(_SamplerData):
     >>> thirdAfterPrimaries = pybdsim.Data.PhaseSpaceData(f, 3)
     """
     def __init__(self, data, samplerIndexOrName=0):
-        params = ['x','xp','y','yp','z','zp','energy','t']
+        params = ['x','xp','y','yp','z','zp','energy','T']
         super(PhaseSpaceData, self).__init__(data, params, samplerIndexOrName)
 
 
@@ -704,6 +704,6 @@ class SamplerData(_SamplerData):
     >>> thirdAfterPrimaries = pybdsim.Data.SamplerData(f, 3)
     """
     def __init__(self, data, samplerIndexOrName=0):
-        params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','t',
+        params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
                   'weight','partID','parentID','trackID','modelID','turnNumber','S']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
