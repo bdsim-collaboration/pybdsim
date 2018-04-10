@@ -416,7 +416,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     ploss = d.histogramspy['Event/MergedHistograms/PlossHisto']
     eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
 
-    fig = _plt.figure(figsize=(10,4))
+    fig = _plt.figure(figsize=(10,5))
     ax1 = fig.add_subplot(111)
     ax1.set_yscale('log')
     ax1.set_ylabel('Fractional Beam Loss')
