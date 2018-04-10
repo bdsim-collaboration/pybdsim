@@ -14,7 +14,7 @@ setup(
     python_requires="==2.7.*",
 
     author='JAI@RHUL',
-    author_email='stewart.boogert@rhul.ac.uk',
+    author_email='laurie.nevay@rhul.ac.uk',
     description=("Python utilities for the Monte Carlo"
                  " Particle accelerator code BDSIM."),
     url='https://bitbucket.org/jairhul/pybdsim/'

@@ -15,10 +15,14 @@ def MadxTfs2GmadStrength(input, outputfilename,
     Use a MADX Tfs file containing full twiss information to generate a 
     strength (only) BDSIM GMAD file to be used with an existing lattice.
     
-    existingmachine - either a list or dictionary with names of elements to prepare.
-    flipmagnet      - similar behaviour to MAdxTfs2Gmad whether to flip k values for
-                      negatively charged particles.
-    linear          - only use linear strengths, k2 and higher set to 0.
+    +------------------+----------------------------------------------------------------+
+    | existingmachine  | either a list or dictionary with names of elements to prepare. |
+    +------------------+----------------------------------------------------------------+
+    | flipmagnet       | similar behaviour to MAdxTfs2Gmad whether to flip k values for |
+    |                  | negatively charged particles.                                  |
+    +------------------+----------------------------------------------------------------+
+    | linear           | only use linear strengths, k2 and higher set to 0.             |
+    +------------------+----------------------------------------------------------------+
 
     """
     # ensure it's tfs instance and if not open the filepath provided

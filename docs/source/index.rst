@@ -15,10 +15,6 @@ of BDSIM models.
    compare	     
    data
    classes
-   gmad
-   plot
-   run
-   visualisation
    support
    moduledocs
 	     

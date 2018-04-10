@@ -12,13 +12,15 @@ The following converters are provided and described here:
   
   * `MadxTfs2Gmad`_
   * `MadxTfs2GmadStrength`_
+
 * MAD8 to BDSIM
   
-  * `Mad8Twiss2Gmad`_
-  * `Mad8Saveline2Gmad`_
+  * :ref:`mad8-twiss-2-gmad`
+
 * Transport to BDSIM
   
   * `pytransport`_
+
 * BDSIM Primary Particle Conversion
   
   * `BDSIM Primaries To Others`_
@@ -56,12 +58,15 @@ Once prepared, the Tfs file can be converted. The converter is used as follows::
 
   >>> pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'latticev1')
 
-The conversion returns typically two objects, which are the :code:`pybdsim.Builder.Machine`
-instance and a list of any ommitted items by name. ::
+The conversion returns three objects, which are the :code:`pybdsim.Builder.Machine`
+instance as converted, a second `Machine` that isn't split by aperture and a list
+of any ommitted items by name. ::
 
-  >>> a,o = pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'latticev1')
+  >>> a,b,c = pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'latticev1')
 
-where `latticev1` is the output name of the converted model. If a directory is used
+where `latticev1` is the output name of the converted model. The converter has the
+ability to split items in the original TFS file if an aperture is specified somewhere
+inside that element - use for disjoint aperture definitions. If a directory is used
 in the output name, this will be created automatically, for example::
 
   >>> a,o = pybdsim.Convert.MadxTfs2Gmad('inputfile.tfs', 'test/latticev1')
@@ -208,6 +213,8 @@ This is a utility to prepare a strength file file from a Tfs file. The output gm
 file may then be included in an existing BDSIM gmad model after the lattice definition
 which will update the strengths of all the magnets.
 
+.. _mad8-twiss-2-gmad:
+
 Mad8Twiss2Gmad (using saved TWISS output)
 -----------------------------------------
 
@@ -281,13 +288,6 @@ Copy the <collimatordbfilename> to :code:`collimator.dat` and <aperturedbfilenam
 Once prepared, the Tape files can be converted. The converter is used as follows::
 
   pybdsim.Convert.Mad8Twiss2Gmad(<inputtwissfilename>,<outputgamdfilename>)
-
-Mad8Tfs2Gmad (using saved TFS output)
------------------------------------------
-
-Optics TFS output::
-
-  optics
 
 
 pytransport
