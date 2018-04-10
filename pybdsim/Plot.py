@@ -419,7 +419,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None):
     axZp.set_xlabel('Z$^{\prime}$')
 
     axT = f.add_subplot(248)
-    axT.hist(d['t'],nbins)
+    axT.hist(d['T'],nbins)
     axT.set_xlabel('T (ns)')
 
     _plt.suptitle('Coordinates at '+data.samplerName,fontsize='xx-large')
