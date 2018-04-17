@@ -438,14 +438,20 @@ def MadxTfs2Gmad(tfs, outputfilename,
                     # add a general element
                     a.AddElement(rname,l,**kws)
                 else:
-                    kws['material'] = colld['material']
-                    kws['tilt']     = colld['tilt']
-                    xsize           = colld['xsize']
-                    ysize           = colld['ysize']
+                    kws['material'] = colld.get('material', 'copper')
+                    tilt            = colld.get('tilt',0)
+                    if tilt != 0:
+                        kws['tilt'] = tilt
+                    try:
+                        xsize           = colld['xsize']
+                        ysize           = colld['ysize']
+                    except KeyError:
+                        xsize           = colld['XSIZE']
+                        ysize           = colld['YSIZE']
                     if verbose:
-                        print 'collimator xsize ',xsize
+                        print 'collimator x,y size ',xsize,ysize
                     #if xsize > 0.1 or ysize > 0.1:
-                    kws['outerDiameter'] = max(xsize,ysize)*2.5
+                    kws['outerDiameter'] = max(max(xsize,ysize)*2.5, 0.5)
                     if t == 'RCOLLIMATOR':
                         a.AddRCol(rname,l,xsize,ysize,**kws)
                     else:
