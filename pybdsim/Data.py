@@ -307,6 +307,7 @@ class BDSAsciiData(list):
         self.units   = []
         self.names   = []
         self.columns = self.names
+        self._columnsLower = map(str.lower, self.columns)
         self.filename = "" # file data was loaded from
 
     def __getitem__(self,index):
@@ -384,6 +385,7 @@ class BDSAsciiData(list):
         This is used to add a new variable and hence new getter function
         """
         self.names.append(variablename)
+        self._columnsLower.append(variablename.lower())
         self.units.append(variableunit)
         self._AddMethod(variablename)
 
