@@ -469,14 +469,22 @@ class BDSAsciiData(list):
         #make robust against s positions outside machine range
         return ci
 
-    def GetColumn(self,columnstring):
+    def GetColumn(self,columnstring, ignoreCase=False):
         """
         Return a numpy array of the values in columnstring in order
         as they appear in the beamline
         """
-        if columnstring not in self.columns:
-            raise ValueError("Invalid column name")
-        ind = self.names.index(columnstring)
+        ind = 0
+        if ignoreCase:
+            try:
+                ind = self._columnsLower.index(columnstring.lower())
+            except:
+                raise ValueError("Invalid column name")
+        else:
+            if columnstring not in self.columns:
+                raise ValueError("Invalid column name")
+            else:
+                ind = self.names.index(columnstring)
         return _np.array([element[ind] for element in self])
 
     def __repr__(self):
