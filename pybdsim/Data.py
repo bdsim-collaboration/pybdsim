@@ -496,6 +496,13 @@ class BDSAsciiData(list):
         s += str(len(self)) + ' entries'
         return s
 
+    def __contains__(self, obj):
+        nameAvailable = 'name' in self._columnsLower
+        if type(obj) is str and nameAvailable:
+            return obj in self.GetColumn('name',ignoreCase=True)
+        else:
+            return False        
+
 class ROOTHist(object):
     """
     Base class for histogram wrappers.
