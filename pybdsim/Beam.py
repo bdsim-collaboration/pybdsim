@@ -43,18 +43,8 @@ class Beam(dict) :
     def SetDistributionType(self,distrtype='reference'):
         if distrtype not in BDSIMDistributionTypes:
             raise ValueError("Unknown distribution type: '"+str(distrtype)+"'")
-        
-        self['distrType'] = '"' + distrtype + '"'
-        if distrtype == 'reference':
-            pass
-        elif distrtype == 'gauss':
-            setattr(self, 'SetSigmaX',     self._SetSigmaX)
-            setattr(self, 'SetSigmaY',     self._SetSigmaY)
-            setattr(self, 'SetSigmaE',     self._SetSigmaE)
-            setattr(self, 'SetSigmaXP',    self._SetSigmaXP)
-            setattr(self, 'SetSigmaYP',    self._SetSigmaYP)
-            setattr(self, 'SetSigmaT',     self._SetSigmaT)
-        elif distrtype == 'gausstwiss':
+
+        def makeGaussTwiss():
             setattr(self, 'SetBetaX',      self._SetBetaX)
             setattr(self, 'SetBetaY',      self._SetBetaY)
             setattr(self, 'SetAlphaX',     self._SetAlphaX)
@@ -65,40 +55,60 @@ class Beam(dict) :
             setattr(self, 'SetSigmaT',     self._SetSigmaT)
             setattr(self, 'SetDispX',      self._SetDispX)
             setattr(self, 'SetDispY',      self._SetDispY)
-            setattr(self, 'SetDispXP',      self._SetDispXP)
-            setattr(self, 'SetDispYP',      self._SetDispYP)
+            setattr(self, 'SetDispXP',     self._SetDispXP)
+            setattr(self, 'SetDispYP',     self._SetDispYP)
+        
+        self['distrType'] = '"' + distrtype + '"'
+        if distrtype == 'reference':
+            pass
+        elif distrtype == 'gaussmatrix':
+            setattr(self, 'SegSigmaNM',    self._SetSigmaNM)
+        elif distrtype == 'gauss':
+            setattr(self, 'SetSigmaX',     self._SetSigmaX)
+            setattr(self, 'SetSigmaY',     self._SetSigmaY)
+            setattr(self, 'SetSigmaE',     self._SetSigmaE)
+            setattr(self, 'SetSigmaXP',    self._SetSigmaXP)
+            setattr(self, 'SetSigmaYP',    self._SetSigmaYP)
+            setattr(self, 'SetSigmaT',     self._SetSigmaT)   
+        elif distrtype == 'gausstwiss':
+            makeGaussTwiss()
+        elif distrtype == 'circle':
+            setattr(self, 'SetEnvelopeR',  self._SetEnvelopeR)
+            setattr(self, 'SetEnvelopeRp', self._SetEnvelopeRp)
+            setattr(self, 'SetEnvelopeT',  self._SetEnvelopeT)
+            setattr(self, 'SetEnvelopeE',  self._SetEnvelopeE)
+        elif distrtype == 'square':
+            setattr(self, 'SetEnvelopeX',  self._SetEnvelopeX)
+            setattr(self, 'SetEnvelopeXp', self._SetEnvelopeXp)
+            setattr(self, 'SetEnvelopeY',  self._SetEnvelopeY)
+            setattr(self, 'SetEnvelopeYp', self._SetEnvelopeYp)
+            setattr(self, 'SetEnvelopeT',  self._SetEnvelopeT)
+            setattr(self, 'SetEnvelopeE',  self._SetEnvelopeE)
+        elif distrtype == 'ring':
+            setattr(self, 'SetRMin',       self._SetRMin)
+            setattr(self, 'SetRMax',       self._SetRMax)
         elif distrtype == 'eshell':
             setattr(self, 'SetShellX',     self._SetShellX)
             setattr(self, 'SetShellY',     self._SetShellY)
             setattr(self, 'SetShellXP',    self._SetShellXP)
             setattr(self, 'SetShellYP',    self._SetShellYP)
-        elif distrtype == 'ring':
-            setattr(self, 'SetRMin',       self._SetRMin)
-            setattr(self, 'SetRMax',       self._SetRMax)
-        elif distrtype == 'ptc' : 
-            setattr(self, 'SetSigmaE',     self._SetSigmaE)            
-            setattr(self, 'SetDistribFileName',self._SetDistribFileName)
-        elif distrtype == 'halo' :
-            setattr(self, 'SetBetaX',         self._SetBetaX)
-            setattr(self, 'SetBetaY',         self._SetBetaY)
-            setattr(self, 'SetAlphaX',        self._SetAlphaX)
-            setattr(self, 'SetAlphaY',        self._SetAlphaY)
-            setattr(self, 'SetEmittanceX',    self._SetEmittanceX)
-            setattr(self, 'SetEmittanceY',    self._SetEmittanceY)
-            setattr(self, 'SetSigmaE',        self._SetSigmaE)
-            setattr(self, 'SetSigmaT',        self._SetSigmaT)
-            setattr(self, 'SetDispX',         self._SetDispX)
-            setattr(self, 'SetDispY',         self._SetDispY)
-            setattr(self, 'SetDispXP',        self._SetDispXP)
-            setattr(self, 'SetDispYP',        self._SetDispYP)
-            setattr(self, 'SetHaloNSigmaXInner', self._SetHaloNSigmaXInner)
-            setattr(self, 'SetHaloNSigmaXOuter', self._SetHaloNSigmaXOuter)
-            setattr(self, 'SetHaloNSigmaYInner', self._SetHaloNSigmaYInner)
-            setattr(self, 'SetHaloNSigmaYOuter', self._SetHaloNSigmaYOuter)
+        elif distrtype == 'halo':
+            makeGaussTwiss()
+            setattr(self, 'SetHaloNSigmaXInner',      self._SetHaloNSigmaXInner)
+            setattr(self, 'SetHaloNSigmaXOuter',      self._SetHaloNSigmaXOuter)
+            setattr(self, 'SetHaloNSigmaYInner',      self._SetHaloNSigmaYInner)
+            setattr(self, 'SetHaloNSigmaYOuter',      self._SetHaloNSigmaYOuter)
             setattr(self, 'SetHaloPSWeightParameter', self._SetHaloPSWeightParameter)
             setattr(self, 'SetHaloPSWeightFunction',  self._SetHaloPSWeightFunction)
             setattr(self, 'SetHaloXCutInner',         self._SetHaloXCutInner)
             setattr(self, 'SetHaloYCutInner',         self._SetHaloYCutInner)
+        elif distrtype == 'composite':
+            setattr(self, 'SetXDistrType', self._SetXDistrType)
+            setattr(self, 'SetYDistrType', self._SetYDistrType)
+            setattr(self, 'SetZDistrType', self._SetZDistrType)
+        elif distrtype == 'ptc' : 
+            setattr(self, 'SetSigmaE',     self._SetSigmaE)            
+            setattr(self, 'SetDistribFileName',self._SetDistribFileName)
 
     def WriteToFile(self, filename):
         f = open(filename, 'w')
@@ -134,8 +144,14 @@ class Beam(dict) :
     def SetZP0(self,zp0=0.0):
         self['Zp0'] = zp0
 
+    def SetE0(self, e0=1, unitsstring='GeV'):
+        self['E0'] = E0 + '*' + unitsstring
+
     def SetT0(self,t0=0.0,unitsstring='s'):
         self['T0'] = str(t0) + '*' + unitsstring
+
+    def _SetSigmaNM(self, n, m, value):
+        self['sigma'+str(n)+str(m)] = value
 
     def _SetSigmaX(self,sigmax=1.0,unitsstring='um'):
         self['sigmaX'] = str(sigmax) + '*' + unitsstring
@@ -200,16 +216,28 @@ class Beam(dict) :
     def _SetShellYP(self,shellyp=1.0):
         self['shellYp'] = shellyp
 
+    def _SetEnvelopeR(self, enveloper=1.0, unitsstring='um'):
+        self['envelopeX'] = str(enveloper) + '*' + unitstring
+
+    def _SetEnvelopeRp(self, enveloperp=1.0):
+        self['envelopeY'] = str(enveloperp) + '*' + unitstring
+
+    def _SetEnvelopeT(self, envelopet=1.0,unitstring='s'):
+        self['envelopeX'] = str(envelopet) + '*' + unitstring
+
+    def _SetEnvelopeE(self, envelopee=1.0,unitstring='GeV'):
+        self['envelopeY'] = str(envelopee) + '*' + unitstring
+
     def _SetEnvelopeX(self, envelopex=1.0,unitstring='m'):
         self['envelopeX'] = str(envelopex) + '*' + unitstring
 
     def _SetEnvelopeY(self, envelopey=1.0,unitstring='m'):
         self['envelopeY'] = str(envelopey) + '*' + unitstring
 
-    def _SetEnvelopeXP(self, envelopexp=1.0,unitstring='m'):
+    def _SetEnvelopeXp(self, envelopexp=1.0):
         self['envelopeXp'] = str(envelopexp) + '*' + unitstring
 
-    def _SetEnvelopeYP(self, envelopeyp=1.0):
+    def _SetEnvelopeYp(self, envelopeyp=1.0):
         self['envelopeYp'] = str(envelopeyp)
 
     def _SetHaloNSigmaXInner(self, halonsigmaxinner=1):
@@ -237,19 +265,20 @@ class Beam(dict) :
         self['haloYCutInner'] = str(haloycutinner)
 
     def _SetRMin(self,rmin=0.9,unitsstring='mm'):
-        if self.has_key('Rmax') == True:
-            if self['Rmax'] < rmin:
-                raise ValueError('Rmax must be > RMin')
         self['Rmin'] = str(rmin) + '*' + unitsstring
     
     def _SetRMax(self,rmax=1.0,unitsstring='mm'):
-        if self.has_key('Rmin') == True:
-            if self['Rmin'] > rmax:
-                raise ValueError('Rmin must be < RMax')
         self['Rmax'] = str(rmax) + '*' + unitsstring
 
     def _SetDistribFileName(self, fileName) :
         self['distrFile'] = '"'+fileName+'"'
 
-    
+    def _SetXDistrType(self, name):
+        self['xDistrType'] = name
+
+    def _SetYDistrType(self, name):
+        self['yDistrType'] = name
+
+    def _SetZDistrType(self, name):
+        self['zDistrType'] = name
 
