@@ -83,18 +83,22 @@ class Beam(dict) :
             setattr(self, 'SetBetaY',         self._SetBetaY)
             setattr(self, 'SetAlphaX',        self._SetAlphaX)
             setattr(self, 'SetAlphaY',        self._SetAlphaY)
-            setattr(self, 'SetHaloEmittanceX',self._SetHaloEmittanceX)
-            setattr(self, 'SetHaloEmittanceY',self._SetHaloEmittanceY)
+            setattr(self, 'SetEmittanceX',    self._SetEmittanceX)
+            setattr(self, 'SetEmittanceY',    self._SetEmittanceY)
             setattr(self, 'SetSigmaE',        self._SetSigmaE)
             setattr(self, 'SetSigmaT',        self._SetSigmaT)
-            setattr(self, 'SetEnvelopeX',     self._SetEnvelopeX)
-            setattr(self, 'SetEnvelopeY',     self._SetEnvelopeY)
-            setattr(self, 'SetEnvelopeXp',    self._SetEnvelopeXP)
-            setattr(self, 'SetEnvelopeYp',    self._SetEnvelopeYP)
-            setattr(self, 'SetHaloEnvelopeEmitX', self._SetHaloEnvelopeEmitX)
-            setattr(self, 'SetHaloEnvelopeEmitY', self._SetHaloEnvelopeEmitY)
+            setattr(self, 'SetDispX',         self._SetDispX)
+            setattr(self, 'SetDispY',         self._SetDispY)
+            setattr(self, 'SetDispXP',        self._SetDispXP)
+            setattr(self, 'SetDispYP',        self._SetDispYP)
+            setattr(self, 'SetHaloNSigmaXInner', self._SetHaloNSigmaXInner)
+            setattr(self, 'SetHaloNSigmaXOuter', self._SetHaloNSigmaXOuter)
+            setattr(self, 'SetHaloNSigmaYInner', self._SetHaloNSigmaYInner)
+            setattr(self, 'SetHaloNSigmaYOuter', self._SetHaloNSigmaYOuter)
             setattr(self, 'SetHaloPSWeightParameter', self._SetHaloPSWeightParameter)
             setattr(self, 'SetHaloPSWeightFunction',  self._SetHaloPSWeightFunction)
+            setattr(self, 'SetHaloXCutInner',         self._SetHaloXCutInner)
+            setattr(self, 'SetHaloYCutInner',         self._SetHaloYCutInner)
 
     def WriteToFile(self, filename):
         f = open(filename, 'w')
@@ -208,23 +212,29 @@ class Beam(dict) :
     def _SetEnvelopeYP(self, envelopeyp=1.0):
         self['envelopeYp'] = str(envelopeyp)
 
-    def _SetHaloEmittanceX(self, haloemitx=1.0, unitsstring='m'):
-        self['haloEmitX'] = str(haloemitx) + '*' + unitsstring
+    def _SetHaloNSigmaXInner(self, halonsigmaxinner=1):
+        self['haloNSigmaXInner'] = str(halonsigmaxinner)
 
-    def _SetHaloEmittanceY(self, haloemity=1.0, unitsstring='m'):
-        self['haloEmitY'] = str(haloemity) + '*' + unitsstring
+    def _SetHaloNSigmaXOuter(self, halonsigmaxouter=2):
+        self['haloNSigmaXOuter'] = str(halonsigmaxouter)
 
-    def _SetHaloEnvelopeEmitX(self, envelopeemitx=1.0,unitstring='m'):
-        self['haloEnvelopeEmitX'] = str(envelopeemitx) + '*' + unitstring
+    def _SetHaloNSigmaYInner(self, halonsigmayinner=1):
+        self['haloNSigmaYInner'] = str(halonsigmayinner)
 
-    def _SetHaloEnvelopeEmitY(self, envelopeemity=1.0,unitstring='m'):
-        self['haloEnvelopeEmitY'] = str(envelopeemity) + '*' + unitstring
+    def _SetHaloNSigmaYOuter(self, halonsigmayouter=2):
+        self['haloNSigmaYOuter'] = str(halonsigmayouter)
 
     def _SetHaloPSWeightParameter(self, param):
         self['haloPSWeightParameter'] = param
 
     def _SetHaloPSWeightFunction(self, func):
         self['haloPSWeightFunction'] = '"'+func+'"'
+
+    def _SetHaloXCutInner(self, haloxcutinner=0):
+        self['haloXCutInner'] = str(haloxcutinner)
+
+    def _SetHaloYCutInner(self, haloycutinner=0):
+        self['haloYCutInner'] = str(haloycutinner)
 
     def _SetRMin(self,rmin=0.9,unitsstring='mm'):
         if self.has_key('Rmax') == True:
