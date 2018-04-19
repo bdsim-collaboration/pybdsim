@@ -91,7 +91,11 @@ class Beam(dict) :
             setattr(self, 'SetHaloPSWeightParameter', self._SetHaloPSWeightParameter)
             setattr(self, 'SetHaloPSWeightFunction',  self._SetHaloPSWeightFunction)
 
-
+    def WriteToFile(self, filename):
+        f = open(filename, 'w')
+        f.write(self.ReturnBeamString())
+        f.close()
+            
     def ReturnBeamString(self):
         s = ''
         for k,v in sorted(self.iteritems()):
