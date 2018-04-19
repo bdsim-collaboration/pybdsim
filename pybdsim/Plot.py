@@ -372,10 +372,17 @@ def PrimaryPhaseSpace(filename, outputfilename=None):
     """
     Load a BDSIM output file and plot primary phase space. Only accepts raw BDSIM output.
     """
+    PhaseSpaceFromFile(filename, 0, outputfilename=outputfilename)
+
+def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None):
+    """
+    Load a BDSIM output file and plot the phase space of a sampler (default the primaries).
+    Only accepts raw BDSIM output.
+    """
     import Data as _Data
     d = _Data.Load(filename)
-    psd = _Data.PhaseSpaceData(d)
-    PhaseSpace(psd, outputfilename)
+    psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
+    PhaseSpace(psd, outputfilename)    
 
 def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
     """
