@@ -136,16 +136,19 @@ class Beam(dict) :
         self['Z0'] = str(z0) + '*' + unitsstring
 
     def SetXP0(self,xp0=0.0):
-        self['Xp0'] = xp0
+        self['Xp0'] = str(xp0)
 
     def SetYP0(self,yp0=0.0):
-        self['Yp0'] = yp0
+        self['Yp0'] = str(yp0)
 
     def SetZP0(self,zp0=0.0):
-        self['Zp0'] = zp0
+        self['Zp0'] = str(zp0)
+
+    def SetS0(self, s0=0,unitsstring='m'):
+        self['S0'] = str(s0) + '*' + unitsstring
 
     def SetE0(self, e0=1, unitsstring='GeV'):
-        self['E0'] = E0 + '*' + unitsstring
+        self['E0'] = str(E0) + '*' + unitsstring
 
     def SetT0(self,t0=0.0,unitsstring='s'):
         self['T0'] = str(t0) + '*' + unitsstring
@@ -163,7 +166,7 @@ class Beam(dict) :
         """
         fractional energy spread
         """
-        self['sigmaE'] = sigmae
+        self['sigmaE'] = str(sigmae)
 
     def _SetSigmaXP(self,sigmaxp=1.0,unitsstring='mrad'):
         self['sigmaXp'] = str(sigmaxp) + '*' + unitsstring
@@ -172,7 +175,7 @@ class Beam(dict) :
         self['sigmaYp'] = str(sigmayp) + '*' + unitsstring
 
     def _SetSigmaT(self,sigmat=1.0,unitsstring='s'):
-        self['sigmaT'] = sigmat
+        self['sigmaT'] = str(sigmat)
 
     def _SetBetaX(self,betx=1.0,unitsstring='m'):
         self['betx'] = str(betx) + '*' + unitsstring
@@ -211,10 +214,10 @@ class Beam(dict) :
         self['shellY'] = str(shelly) + '*' + unitsstring
 
     def _SetShellXP(self,shellxp=1.0):
-        self['shellXp'] = shellxp
+        self['shellXp'] = str(shellxp)
 
     def _SetShellYP(self,shellyp=1.0):
-        self['shellYp'] = shellyp
+        self['shellYp'] = str(shellyp)
 
     def _SetEnvelopeR(self, enveloper=1.0, unitsstring='um'):
         self['envelopeX'] = str(enveloper) + '*' + unitstring
