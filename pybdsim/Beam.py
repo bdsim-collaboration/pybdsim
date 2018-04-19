@@ -5,12 +5,17 @@
 
 BDSIMDistributionTypes = [
     'reference',
+    'gaussmatrix',
     'gauss',
     'gausstwiss',
-    'eshell',
+    'circle',
+    'square',
     'ring',
-    'ptc',
-    'halo'
+    'eshell',
+    'halo',
+    'composite',
+    'userfile',
+    'ptc'
 ]
 
 BDSIMParticleTypes = [
