@@ -40,25 +40,27 @@ class Beam(dict) :
     def SetEnergy(self,energy=1.0,unitsstring='GeV'):
         self['energy'] = str(energy) + '*' + unitsstring
 
+    def _MakeGaussTwiss(self):
+        setattr(self, 'SetBetaX',      self._SetBetaX)
+        setattr(self, 'SetBetaY',      self._SetBetaY)
+        setattr(self, 'SetAlphaX',     self._SetAlphaX)
+        setattr(self, 'SetAlphaY',     self._SetAlphaY)
+        setattr(self, 'SetEmittanceX', self._SetEmittanceX)
+        setattr(self, 'SetEmittanceY', self._SetEmittanceY)
+        setattr(self, 'SetSigmaE',     self._SetSigmaE)
+        setattr(self, 'SetSigmaT',     self._SetSigmaT)
+        setattr(self, 'SetDispX',      self._SetDispX)
+        setattr(self, 'SetDispY',      self._SetDispY)
+        setattr(self, 'SetDispXP',     self._SetDispXP)
+        setattr(self, 'SetDispYP',     self._SetDispYP)
+        
     def SetDistributionType(self,distrtype='reference'):
         if distrtype not in BDSIMDistributionTypes:
             raise ValueError("Unknown distribution type: '"+str(distrtype)+"'")
-
-        def makeGaussTwiss():
-            setattr(self, 'SetBetaX',      self._SetBetaX)
-            setattr(self, 'SetBetaY',      self._SetBetaY)
-            setattr(self, 'SetAlphaX',     self._SetAlphaX)
-            setattr(self, 'SetAlphaY',     self._SetAlphaY)
-            setattr(self, 'SetEmittanceX', self._SetEmittanceX)
-            setattr(self, 'SetEmittanceY', self._SetEmittanceY)
-            setattr(self, 'SetSigmaE',     self._SetSigmaE)
-            setattr(self, 'SetSigmaT',     self._SetSigmaT)
-            setattr(self, 'SetDispX',      self._SetDispX)
-            setattr(self, 'SetDispY',      self._SetDispY)
-            setattr(self, 'SetDispXP',     self._SetDispXP)
-            setattr(self, 'SetDispYP',     self._SetDispYP)
-        
         self['distrType'] = '"' + distrtype + '"'
+        self._UpdateMemberFunctions(distrtype)
+
+    def _UpdateMemberFunctions(self, distrtype):
         if distrtype == 'reference':
             pass
         elif distrtype == 'gaussmatrix':
@@ -71,7 +73,7 @@ class Beam(dict) :
             setattr(self, 'SetSigmaYP',    self._SetSigmaYP)
             setattr(self, 'SetSigmaT',     self._SetSigmaT)   
         elif distrtype == 'gausstwiss':
-            makeGaussTwiss()
+            self._MakeGaussTwiss()
         elif distrtype == 'circle':
             setattr(self, 'SetEnvelopeR',  self._SetEnvelopeR)
             setattr(self, 'SetEnvelopeRp', self._SetEnvelopeRp)
@@ -93,7 +95,7 @@ class Beam(dict) :
             setattr(self, 'SetShellXP',    self._SetShellXP)
             setattr(self, 'SetShellYP',    self._SetShellYP)
         elif distrtype == 'halo':
-            makeGaussTwiss()
+            self._MakeGaussTwiss()
             setattr(self, 'SetHaloNSigmaXInner',      self._SetHaloNSigmaXInner)
             setattr(self, 'SetHaloNSigmaXOuter',      self._SetHaloNSigmaXOuter)
             setattr(self, 'SetHaloNSigmaYInner',      self._SetHaloNSigmaYInner)
@@ -277,11 +279,14 @@ class Beam(dict) :
         self['distrFile'] = '"'+fileName+'"'
 
     def _SetXDistrType(self, name):
-        self['xDistrType'] = name
+        self._UpdateMemberFunctions(name)
+        self['xDistrType'] = '"' + name + '"'
 
     def _SetYDistrType(self, name):
-        self['yDistrType'] = name
+        self._UpdateMemberFunctions(name)
+        self['yDistrType'] = '"' + name + '"'
 
     def _SetZDistrType(self, name):
-        self['zDistrType'] = name
+        self._UpdateMemberFunctions(name)
+        self['zDistrType'] = '"' + name + '"'
 
