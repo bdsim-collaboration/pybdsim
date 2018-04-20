@@ -6,6 +6,7 @@ Module for various conversions.
 from _MadxTfs2Gmad import MadxTfs2Gmad
 from _MadxTfs2Gmad import ZeroMissingRequiredColumns as _ZeroMissingRequiredColumns
 from _MadxTfs2GmadStrength import MadxTfs2GmadStrength
+from _MadxTfs2Gmad import MadxTfs2GmadBeam
 
 try:
     from _Mad8Saveline2Gmad import Mad8Saveline2Gmad

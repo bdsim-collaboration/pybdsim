@@ -2,6 +2,24 @@
 Version History
 ===============
 
+v 1.5 - 2018 / ?? / ??
+======================
+
+New Features
+------------
+
+* Function now public to create beam from Madx TFS file.
+* Improved searching for BDSAsciiData class.
+* Ability to easily write out beam class.
+* Plot phase space from any sampler in a BDSIM output file.
+
+Bug Fixes
+---------
+
+* Beam class now supports all BDSIM beam definitions.
+* Support all aperture shapes in Builder.
+
+
 v 1.4 - 2018 / 10 / 04
 ======================
 
