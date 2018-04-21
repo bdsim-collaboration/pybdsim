@@ -220,16 +220,16 @@ class Element(ElementBase):
 
         firstRatio = firstLength / self['l']
         secondRatio = secondLength / self['l']
-        # parameters to be scaled by length ratio
-        for param in ["angle", "hkick", "vkick"]:
+        # parameters to be scaled by length ratio.
+        for param in {"angle", "hkick", "vkick"}.intersection(self):
             first[param] = firstFactor * float(self[param])
             second[param] = secondFactor * float(self[param])
-        # parameters to be deleted from just the first element.
-        for param in ['e2', 'fintx']:
-            del first[param]
-        # parameters to be deleted from just the second element.
-        for param in ['e1', 'fint']:
-            del second[param]
+        # parameters to be deleted from the first element.
+        for param in {'e2', 'fintx'}.intersection(self):
+                del first[param]
+        # parameters to be deleted from the second element.
+        for param in {'e1', 'fint'}.intersection(self):
+                del second[param]
 
         first['name'] = (firstName
                          if firstName is not None
