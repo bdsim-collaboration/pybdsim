@@ -198,6 +198,48 @@ class Element(ElementBase):
         s += ';\n'
         return s
 
+    def Split(self, firstLength, firstName=None, secondName=None):
+        """Split this element, returning a tuple of two new Element
+        instances, which in sequence (first, second) will provide
+        identical optics to this instance.
+
+        Parameters:
+        firstLength -- length of the first of the two new elements
+        returned.
+        firstName -- optional name of first of two returned elements;
+        the name is otherwise automatically generated.
+        secondName -- optional name of second of two returned elements;
+        the name is otherwise automatically generated.
+        """
+
+        first = _copy.copy(self)
+        second = _copy.copy(self)
+
+        first['l'] = firstLength
+        second['l'] -= firstLength
+
+        firstRatio = firstLength / self['l']
+        secondRatio = secondLength / self['l']
+        # parameters to be scaled by length ratio
+        for param in ["angle", "hkick", "vkick"]:
+            first[param] = firstFactor * float(self[param])
+            second[param] = secondFactor * float(self[param])
+        # parameters to be deleted from just the first element.
+        for param in ['e2', 'fintx']:
+            del first[param]
+        # parameters to be deleted from just the second element.
+        for param in ['e1', 'fint']:
+            del second[param]
+
+        first['name'] = (firstName
+                         if firstName is not None
+                         else firstName + "_split1")
+        second['name'] = (secondName
+                          if secondName is not None
+                          else secondName + "_split2")
+
+        return first, second
+
     def __mul__(self, factor):
         newElement = _copy.copy(self)
         newElement.length *= factor
