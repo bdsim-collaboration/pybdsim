@@ -318,7 +318,7 @@ class LatticeTest:
         By         =  _rnp.tree2array(t, branches=last_name+"y")
         Bxp        =  _rnp.tree2array(t, branches=last_name+"xp")
         Byp        =  _rnp.tree2array(t, branches=last_name+"yp")
-        Btof       =  _rnp.tree2array(t, branches=last_name+"t")
+        Btof       =  _rnp.tree2array(t, branches=last_name+"T")
         BE         =  _rnp.tree2array(t, branches=last_name+"energy")
         meanE      = _np.mean(BE)
         meantof    = _np.mean(Btof)

@@ -21,11 +21,12 @@ import pybdsim.XSecBias as XSecBias
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
                    istart                       = 0,
+                   iend                         = -1,
                    beam                         = ["nominal"],
 #                   gemit                        = (1e-10,1e-10), 
                    gemit                        = (1e-8,1e-8), 
                    mad8FileName                 = "",                  
-                   collimator                   = "collimator.dat", 
+                   collimator                   = "collimator.dat",
                    apertures                    = "apertures.dat",
                    samplers                     = 'all',
                    options                      = True,
@@ -195,7 +196,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     nameDict = {}
 
     # iterate through objects and build machine
-    for i in range(istart,len(c.name),1) : 
+    if iend == -1 :
+        iend = len(c.name)
+    for i in range(istart,iend,1) :
         # unique(c.type)
         # print element
         # print i,c.name[i],c.type[i]
@@ -300,7 +303,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         elif c.type[i] == 'KICK' : 
             a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                        length = float(c.data[i][c.keys['kick']['l']]),
-                       apar   = float(apertures.aper[i]))
+                       aper1   = float(apertures.aper[i]))
 #       ###################################################################
         elif c.type[i] == 'SBEN' : 
             if c.data[i][c.keys['sben']['l']] < 1e-7 : 
@@ -389,8 +392,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                               length   = length,
                               xsize    = xsize,
                               ysize    = ysize,
-                              material = mater,
-                              bias     = biasList)
+                              material = mater)
+#                              bias     = biasList)
                 else : 
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['ecol']['l']]))
 #       ###################################################################
@@ -424,8 +427,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                               length   = length,
                               xsize    = xsize,
                               ysize    = ysize,
-                              material = mater,
-                              bias     = biasList)
+                              material = mater)
+#                              bias     = biasList)
                 else : 
                     a.AddDrift(name    = prepend+c.name[i]+'_'+str(eCount),
                                length  = float(c.data[i][c.keys['rcol']['l']]))

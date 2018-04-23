@@ -62,6 +62,16 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  allNamesUnique        = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
+    
+    Example:
+
+    >>> a,b,c = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
+
+    returns Machine, [omittedItems]
+
+    Returns two pybdsim.Builder.Machine instances. The first desired full conversion.  The second is
+    the raw conversion that's not split by aperture. Thirdly, a list of the names of the omitted items
+    is returned.
 
     +-------------------------------+-------------------------------------------------------------------+
     | **tfs**                       | path to the input tfs file or pymadx.Data.Tfs instance            |
@@ -152,20 +162,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | guaranteed to appear only once in the entire resulting GMAD       |
     |                               | lattice.                                                          |
     +-------------------------------+-------------------------------------------------------------------+
-
-    Example:
-
-    >>> a,o = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
-
-    In normal mode:
-    Returns Machine, [omittedItems]
-
-    In verbose mode:
-    Returns Machine, Machine, [omittedItems]
-
-    Returns two pybdsim.Builder.Machine instances. The first desired full conversion.  The second is
-    the raw conversion that's not split by aperture. Thirdly, a list of the names of the omitted items
-    is returned.
+    
     """
     # constants
     thinElementThreshold = 1e-6 #anything below this length is treated as a thin element
@@ -441,14 +438,20 @@ def MadxTfs2Gmad(tfs, outputfilename,
                     # add a general element
                     a.AddElement(rname,l,**kws)
                 else:
-                    kws['material'] = colld['material']
-                    kws['tilt']     = colld['tilt']
-                    xsize           = colld['xsize']
-                    ysize           = colld['ysize']
+                    kws['material'] = colld.get('material', 'copper')
+                    tilt            = colld.get('tilt',0)
+                    if tilt != 0:
+                        kws['tilt'] = tilt
+                    try:
+                        xsize           = colld['xsize']
+                        ysize           = colld['ysize']
+                    except KeyError:
+                        xsize           = colld['XSIZE']
+                        ysize           = colld['YSIZE']
                     if verbose:
-                        print 'collimator xsize ',xsize
+                        print 'collimator x,y size ',xsize,ysize
                     #if xsize > 0.1 or ysize > 0.1:
-                    kws['outerDiameter'] = max(xsize,ysize)*2.5
+                    kws['outerDiameter'] = max(max(xsize,ysize)*2.5, 0.5)
                     if t == 'RCOLLIMATOR':
                         a.AddRCol(rname,l,xsize,ysize,**kws)
                     else:

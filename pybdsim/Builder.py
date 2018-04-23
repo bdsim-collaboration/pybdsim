@@ -302,7 +302,9 @@ class ApertureModel(dict):
             'rectangular',
             'lhc',
             'lhcdetailed',
-            'rectellipse'
+            'rectellipse',
+            'racetrack',
+            'octagonal'
         ] # maintain order for tests further down!
         madxTypes = {
             'circle'      : 'circular',
@@ -311,12 +313,15 @@ class ApertureModel(dict):
             'lhcscreen'   : 'lhcdetailed',
             'marguerite'  : None,
             'rectellipse' : 'rectellipse',
-            'racetrack'   : None,
+            'racetrack'   : 'racetrack',
+            'octagon'     : 'octagonal',
+            'rectcircle'  : 'lhc',
             'filename'    : None
             }
         atL = str.lower(apertureType)
         if atL not in allowedTypes and atL not in madxTypes.keys():
-            print 'Allowed aperture types are: ', allowedTypes, madxTypes.keys()
+            print 'Allowed BDSIM aperture types are: ', allowedTypes
+            print 'Allowed MADX aperture types are: ',madxTypes.keys()
             raise ValueError("Invalid aperture type: "+str(apertureType))
 
         if atL in madxTypes.keys():
