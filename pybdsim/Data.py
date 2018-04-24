@@ -163,7 +163,10 @@ def _LoadRoot(filepath):
         return d # just return the DataLoader instance
     elif fileType == "REBDSIM":
         print 'REBDSIM analysis file - using RebdsimFile'
-        return RebdsimFile(filepath)      
+        return RebdsimFile(filepath)
+    elif fileType == "REBDSIMCOMBINE":
+        print 'REBDSIMCOMBINE analysis file - using RebdsimFile'
+        return RebdsimFile(filepath)
     else:
         raise IOError("This file type "+fileType+" isn't supported")
 
