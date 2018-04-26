@@ -62,7 +62,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  allNamesUnique        = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
-    
+
     Example:
 
     >>> a,b,c = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
@@ -162,7 +162,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | guaranteed to appear only once in the entire resulting GMAD       |
     |                               | lattice.                                                          |
     +-------------------------------+-------------------------------------------------------------------+
-    
+
     """
     # constants
     thinElementThreshold = 1e-6 #anything below this length is treated as a thin element
@@ -220,7 +220,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         if verbose:
             print 'starting key word arguments from all element dict'
             print kws
-        
+
         if aperModel != None:
             kws.update(aperModel)
 
@@ -321,7 +321,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
             knl =(k1,  k2,  k3,  k4,  k5,  k6)
             ksl =(k1s, k2s, k3s, k4s, k5s, k6s)
-            
+
             finiteStrength = _np.any([k1,k2,k3,k4,k5,k6,k1s,k2s,k3s,k4s,k5s,k6s])
             if zerolength or l < thinElementThreshold:
                 if finiteStrength:
@@ -462,7 +462,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
             elif collimatordict != {}:
                 msg = ("{} {} not found in collimatordict."
                        " Will instead convert to a DRIFT!  This is not"
-                       " necessarily wrong!".format(t, name))t
+                       " necessarily wrong!".format(t, name))
                 _warnings.warn(msg)
                 a.AddDrift(rname, l, **kws)
             # if user didn't provide a collimatordict at all.
@@ -527,7 +527,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
             if verbose:
                 print 'skipping this item'
             continue # skip this item in the for loop
-        
+
         # now deal with aperture
         if useTfsAperture:
             sMid = item["SORIGINAL"] - item["L"] / 2.0 # note SORIGINAL not S
@@ -618,7 +618,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
 
     Works for e+, e- and proton.
     Default emittance is 1e-9mrad if 1 in tfs file.
-    
+
 
     """
     print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
@@ -636,7 +636,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
 
     if startindex > 0:
         startindex -= 1
-    
+
     energy   = float(tfs.header['ENERGY'])
     gamma    = float(tfs.header['GAMMA'])
     particle = tfs.header['PARTICLE']
@@ -651,7 +651,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     if ey == 1:
         print 'Horizontal emittance of 1 is too large - setting to 1e-9'
         ey = 1e-9
-    
+
     data = tfs[startindex]
 
     if particle == 'ELECTRON' :
@@ -662,7 +662,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
         particle = 'proton'
     else:
         raise ValueError("Unsupported particle " + particle)
-        
+
     if verbose:
         print 'beta_x: ',data['BETX'],'alpha_x: ',data['ALFX'],'mu_x: ',data['MUX']
         print 'beta_y: ',data['BETY'],'alpha_y: ',data['ALFY'],'mu_y: ',data['MUY']
@@ -686,5 +686,5 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     beam.SetYP0(data['PY'])
     beam.SetX0(data['X'])
     beam.SetY0(data['Y'])
-    
+
     return beam
