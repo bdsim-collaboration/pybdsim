@@ -462,7 +462,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
             elif collimatordict != {}:
                 msg = ("{} {} not found in collimatordict."
                        " Will instead convert to a DRIFT!  This is not"
-                       " necessarily wrong!".format(t, name))t
+                       " necessarily wrong!".format(t, name))
                 _warnings.warn(msg)
                 a.AddDrift(rname, l, **kws)
             # if user didn't provide a collimatordict at all.
