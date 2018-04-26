@@ -456,15 +456,18 @@ def MadxTfs2Gmad(tfs, outputfilename,
                         a.AddRCol(rname,l,xsize,ysize,**kws)
                     else:
                         a.AddECol(rname,l,xsize,ysize,**kws)
-            # if user provided an incomplete collimatordict.
+            # dict is incomplete or the component is erroneously
+            # reffered to as a collimator even when it can be thought
+            # of as a drift (e.g. LHC TAS).
             elif collimatordict != {}:
                 msg = ("{} {} not found in collimatordict."
-                       " Will instead convert to a DRIFT!".format(t, name))
+                       " Will instead convert to a DRIFT!  This is not"
+                       " necessarily wrong!".format(t, name))t
                 _warnings.warn(msg)
-                a.AddDrift(rname,l)
+                a.AddDrift(rname, l, **kws)
             # if user didn't provide a collimatordict at all.
             else:
-                a.AddDrift(rname,l)
+                a.AddDrift(rname, l, **kws)
         elif t == 'RFCAVITY':
             a.AddDrift(rname,l,**kws)
         elif t == 'SEXTUPOLE':
