@@ -163,7 +163,10 @@ def _LoadRoot(filepath):
         return d # just return the DataLoader instance
     elif fileType == "REBDSIM":
         print 'REBDSIM analysis file - using RebdsimFile'
-        return RebdsimFile(filepath)      
+        return RebdsimFile(filepath)
+    elif fileType == "REBDSIMCOMBINE":
+        print 'REBDSIMCOMBINE analysis file - using RebdsimFile'
+        return RebdsimFile(filepath)
     else:
         raise IOError("This file type "+fileType+" isn't supported")
 
@@ -308,9 +311,13 @@ class BDSAsciiData(list):
         self.units   = []
         self.names   = []
         self.columns = self.names
+        self._columnsLower = map(str.lower, self.columns)
         self.filename = "" # file data was loaded from
 
     def __getitem__(self,index):
+        if type(index) is str:
+            nameCol = map(str.lower, self.GetColumn('name', ignoreCase=True))
+            index = nameCol.index(index.lower())
         return dict(zip(self.names,list.__getitem__(self,index)))
 
     def GetItemTuple(self,index):
@@ -385,6 +392,7 @@ class BDSAsciiData(list):
         This is used to add a new variable and hence new getter function
         """
         self.names.append(variablename)
+        self._columnsLower.append(variablename.lower())
         self.units.append(variableunit)
         self._AddMethod(variablename)
 
@@ -468,14 +476,22 @@ class BDSAsciiData(list):
         #make robust against s positions outside machine range
         return ci
 
-    def GetColumn(self,columnstring):
+    def GetColumn(self,columnstring, ignoreCase=False):
         """
         Return a numpy array of the values in columnstring in order
         as they appear in the beamline
         """
-        if columnstring not in self.columns:
-            raise ValueError("Invalid column name")
-        ind = self.names.index(columnstring)
+        ind = 0
+        if ignoreCase:
+            try:
+                ind = self._columnsLower.index(columnstring.lower())
+            except:
+                raise ValueError("Invalid column name")
+        else:
+            if columnstring not in self.columns:
+                raise ValueError("Invalid column name")
+            else:
+                ind = self.names.index(columnstring)
         return _np.array([element[ind] for element in self])
 
     def __repr__(self):
@@ -483,6 +499,13 @@ class BDSAsciiData(list):
         s += 'pybdsim.Data.BDSAsciiData instance\n'
         s += str(len(self)) + ' entries'
         return s
+
+    def __contains__(self, obj):
+        nameAvailable = 'name' in self._columnsLower
+        if type(obj) is str and nameAvailable:
+            return obj in self.GetColumn('name',ignoreCase=True)
+        else:
+            return False        
 
 class ROOTHist(object):
     """
@@ -673,7 +696,7 @@ class PhaseSpaceData(_SamplerData):
     """
     Pull phase space data from a loaded DataLoader instance of raw data.
 
-    Extracts only: 'x','xp','y','yp','z','zp','energy','t'
+    Extracts only: 'x','xp','y','yp','z','zp','energy','T'
 
     Can either supply the sampler name or index as the optional second
     argument. The index is 0 counting including the primaries (ie +1 
@@ -685,7 +708,7 @@ class PhaseSpaceData(_SamplerData):
     >>> thirdAfterPrimaries = pybdsim.Data.PhaseSpaceData(f, 3)
     """
     def __init__(self, data, samplerIndexOrName=0):
-        params = ['x','xp','y','yp','z','zp','energy','t']
+        params = ['x','xp','y','yp','z','zp','energy','T']
         super(PhaseSpaceData, self).__init__(data, params, samplerIndexOrName)
 
 
@@ -705,6 +728,6 @@ class SamplerData(_SamplerData):
     >>> thirdAfterPrimaries = pybdsim.Data.SamplerData(f, 3)
     """
     def __init__(self, data, samplerIndexOrName=0):
-        params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','t',
+        params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
                   'weight','partID','parentID','trackID','modelID','turnNumber','S']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)

@@ -21,11 +21,12 @@ import pybdsim.XSecBias as XSecBias
 
 def Mad8Twiss2Gmad(inputFileName, outputFileName, 
                    istart                       = 0,
+                   iend                         = -1,
                    beam                         = ["nominal"],
 #                   gemit                        = (1e-10,1e-10), 
                    gemit                        = (1e-8,1e-8), 
                    mad8FileName                 = "",                  
-                   collimator                   = "collimator.dat", 
+                   collimator                   = "collimator.dat",
                    apertures                    = "apertures.dat",
                    samplers                     = 'all',
                    options                      = True,
@@ -195,7 +196,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     nameDict = {}
 
     # iterate through objects and build machine
-    for i in range(istart,len(c.name),1) : 
+    if iend == -1 :
+        iend = len(c.name)
+    for i in range(istart,iend,1) :
         # unique(c.type)
         # print element
         # print i,c.name[i],c.type[i]
@@ -249,11 +252,12 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             if c.data[i][c.keys['quad']['l']] < 1e-7 : 
                 a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
             else : 
-                a.AddQuadrupole(name   = prepend+c.name[i]+'_'+str(eCount),
-                                k1     = float(c.data[i][c.keys['quad']['k1']])*flip*scale[i],
-                                length = float(c.data[i][c.keys['quad']['l']]),
-                                tilt   = float(c.data[i][c.keys['quad']['tilt']]),
-                                aper1  = float(apertures.aper[i]))
+                a.AddQuadrupole(name    = prepend+c.name[i]+'_'+str(eCount),
+                                k1      = float(c.data[i][c.keys['quad']['k1']])*flip,
+                                length  = float(c.data[i][c.keys['quad']['l']]),
+                                tilt    = float(c.data[i][c.keys['quad']['tilt']]),
+                                aper1   = float(apertures.aper[i]),
+                                scaling = scale[i])
 #       ###################################################################
         elif c.type[i] == 'SEXT' : 
             l = float(c.data[i][c.keys['sext']['l']])
@@ -263,13 +267,14 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                            aper1  = apertures.aper[i])
             else : 
                 if enableSextupoles : 
-                    k2in=float(c.data[i][c.keys['sext']['k2']])*flip*scale[i]
+                    k2in=float(c.data[i][c.keys['sext']['k2']])*flip
                 else : 
                     k2in=0.0                    
-                a.AddSextupole(name   = prepend+c.name[i]+'_'+str(eCount),
-                               length = l,
-                               k2     = k2in,
-                               aper1  = apertures.aper[i])
+                a.AddSextupole(name    = prepend+c.name[i]+'_'+str(eCount),
+                               length  = l,
+                               k2      = k2in,
+                               aper1   = apertures.aper[i],
+                               scaling = scale[i])
 #       ###################################################################
         elif c.type[i] == 'OCTU' : 
             if c.data[i][c.keys['octu']['l']] > 1e-7 : 
@@ -298,7 +303,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         elif c.type[i] == 'KICK' : 
             a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                        length = float(c.data[i][c.keys['kick']['l']]),
-                       apar   = float(apertures.aper[i]))
+                       aper1   = float(apertures.aper[i]))
 #       ###################################################################
         elif c.type[i] == 'SBEN' : 
             if c.data[i][c.keys['sben']['l']] < 1e-7 : 
@@ -322,7 +327,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                             aper     = aper,
                             e1       = e1in,
                             e2       = e2in,
-                            tilt     = tilt)
+                            tilt     = tilt,
+                            scaling  = scale[i])
 
 #       ###################################################################
         elif c.type[i] == 'RBEN' :
@@ -340,7 +346,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                         aper     = aper,
                         e1       = e1in,
                         e2       = e2in,
-                        tilt     = tilt)
+                        tilt     = tilt,
+                        scaling  = scale[i])
 #       ###################################################################
         elif c.type[i] == 'LCAV' : 
             length   = float(c.data[i][c.keys['lcav']['l']])
@@ -349,7 +356,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             a.AddRFCavity(name      = prepend+c.name[i]+'_'+str(eCount),
                           length    = length, 
                           gradient  = gradient,
-                          phase     = _np.pi/2,
+                          phase     = 0.0,
                           frequency = 0e-9,
                           aper1     = apertures.aper[i])
 #       ###################################################################
@@ -385,8 +392,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                               length   = length,
                               xsize    = xsize,
                               ysize    = ysize,
-                              material = mater,
-                              bias     = biasList)
+                              material = mater)
+#                              bias     = biasList)
                 else : 
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['ecol']['l']]))
 #       ###################################################################
@@ -420,8 +427,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                               length   = length,
                               xsize    = xsize,
                               ysize    = ysize,
-                              material = mater,
-                              bias     = biasList)
+                              material = mater)
+#                              bias     = biasList)
                 else : 
                     a.AddDrift(name    = prepend+c.name[i]+'_'+str(eCount),
                                length  = float(c.data[i][c.keys['rcol']['l']]))

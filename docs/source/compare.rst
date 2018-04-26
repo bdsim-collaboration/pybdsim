@@ -77,9 +77,18 @@ for converting to BDSIM GMAD syntax::
   select,flag=twiss, clear;
   twiss,sequence=SEQUENCENAME, file=twiss.tfs;
 
+.. note:: The user should take care to ensure the emittance and energy spread (EX, EY, SIGE)
+	  are correctly specified in MADX for accurate comparison. The energy spread will
+	  contribute to the beam size in dispersive regions. The emittance will scale the
+	  beam size.
 
 Comparing to MAD8
 -----------------
+
+The comparison for MAD8 is exactly the same as MADX - please see above for further details.
+One difference is that both a TWISS and ENVELOPE file are required.::
+
+  >>> pybdsim.Compare.Mad8VsBDSIM('../mad8/TWISS_T4D', '../mad8/ENVEL_T4D', 'xfel_optics.root')
 
 Comparing to Transport
 ----------------------
