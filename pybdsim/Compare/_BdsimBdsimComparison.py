@@ -39,25 +39,32 @@ _SIGMA_P = [("Sigma_xp", "Sigma_Sigma_xp", r"$\sigma_{xp}$"),
 _MEAN = [("Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
          ("Mean_y", "Sigma_Mean_y", r"$\bar{y}$")]
 
+def _parse_bdsim_input(bdsim_in, name):
+   """Return bdsim_in as a BDSAsciiData instance, which should either
+   be a path to a BDSIM root output file, rebdsimOptics output file,
+   or a BDSAsciiData instance, and in either case, generate a
+   name if None is provided, and return that as well."""
+   if isinstance(bdsim_in, basestring):
+       if not _path.isfile(bdsim_in):
+           raise IOError("file \"{}\" not found!".format(bdsim_in))
+       name = (_path.splitext(_path.basename(bdsim_in))[0]
+               if name is None else name)
+       return pybdsim.Data.Load(bdsim_in).optics, name
+   try:
+       if isinstance(bdsim_in, pybdsim.Data.RebdsimFile):
+           bdsim_in = bdsim_in.optics
+       name = bdsim_in.filename if name is None else name
+       return bdsim_in, name
+   except AttributeError:
+       raise TypeError(
+           "Expected Tfs input is neither a "
+           "file path nor a Tfs instance: {}".format(tfs_in))
+
 # use closure to avoid tonnes of boilerplate code as happened with
 # MadxBdsimComparison.py
 def _make_plotter(plot_info_tuples, x_label, y_label, title):
     def f_out(first, second, first_name=None, second_name=None,
               survey=None, **kwargs):
-        """first and second should be rebdsimOptics output root files."""
-        if not _path.isfile(first):
-            raise IOError("file \"{}\" not found!".format(first))
-        if not _path.isfile(second):
-            raise IOError("file \"{}\" not found!".format(second))
-
-        # If no names provided then just use the filenames.
-        first_name = (_path.splitext(_path.basename(first))[0]
-                      if first_name is None else first_name)
-        second_name = (_path.splitext(_path.basename(second))[0]
-                       if second_name is None else second_name)
-
-        first = pybdsim.Data.Load(first).optics
-        second = pybdsim.Data.Load(second).optics
 
         # Get the initial N for the two sources
         first_nparticles = first.Npart()[0]
@@ -109,6 +116,12 @@ def BDSIMVsBDSIM(first, second, first_name=None,
     """
     Display all the optical function plots for the two input optics files.
     """
+    first, first_name = _parse_bdsim_input(first, first_name)
+    second, second_name = _parse_bdsim_input(second, second_name)
+
+    first = pybdsim.Data.Load(first).optics
+    second = pybdsim.Data.Load(second).optics
+
     figures = [
     PlotBeta(first, second, first_name=first_name,
              second_name=second_name, survey=survey, **kwargs),
@@ -127,7 +140,11 @@ def BDSIMVsBDSIM(first, second, first_name=None,
         ]
 
     if saveAll:
-        output_filename = "optics-report.pdf"
+        if outputFileName is not None:
+            output_filename = outputFileName
+        else:
+            output_filename = "optics-report.pdf"
+
         with _PdfPages(output_filename) as pdf:
             for figure in figures:
                 pdf.savefig(figure)
