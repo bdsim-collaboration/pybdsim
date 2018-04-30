@@ -210,6 +210,7 @@ class RebdsimFile(object):
 
         def _prepare_data(branches, treedata):
             data = BDSAsciiData()
+            data.filename = self.filename
             for element in range(len(treedata[branches[0]])):
                 elementlist=[]
                 for branch in branches:
