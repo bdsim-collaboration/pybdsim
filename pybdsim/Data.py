@@ -47,12 +47,12 @@ def _LoadROOTLibraries():
         import ROOT as _ROOT
     except ImportError:
         raise Warning("ROOT in python not available")
-    reLoad  = _ROOT.gSystem.Load("libRebdsim")
-    bdsLoad = _ROOT.gSystem.Load("libBdsimRootEvent")
+    bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
+    reLoad  = _ROOT.gSystem.Load("librebdsim")
     if reLoad is not 0:
-        raise Warning("libRebdsim not found")
+        raise Warning("librebdsim not found")
     if bdsLoad is not 0:
-        raise Warning("libBdsimRootEvent not found")
+        raise Warning("libbdsimRootEvent not found")
     _libsLoaded = True
 
 def Load(filepath):
