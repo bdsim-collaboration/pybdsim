@@ -91,25 +91,23 @@ PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP
 
 
 def TransportVsBDSIM(first, second, first_name=None,
-                 second_name=None, survey=None, saveAll=True,
-                 outputFileName=None, **kwargs):
+                     second_name=None, survey=None, saveAll=True,
+                     outputFileName=None, **kwargs):
     """
     Display all the optical function plots for the two input optics files.
     """
-    figures=[
-    PlotBeta(first, second, first_name=first_name,
-             second_name=second_name, survey=survey, **kwargs)
-    PlotAlpha(first, second, first_name=first_name,
-              second_name=second_name, survey=survey, **kwargs)
-    PlotDisp(first, second, first_name=first_name,
-             second_name=second_name, survey=survey, **kwargs)
-    PlotDispP(first, second, first_name=first_name,
-              second_name=second_name, survey=survey, **kwargs)
-    PlotSigma(first, second, first_name=first_name,
-              second_name=second_name, survey=survey, **kwargs)
-    PlotSigmaP(first, second, first_name=first_name,
-               second_name=second_name, survey=survey, **kwargs)
-               ]
+    figures=[PlotBeta(first, second, first_name=first_name,
+                      second_name=second_name, survey=survey, **kwargs),
+             PlotAlpha(first, second, first_name=first_name,
+                       second_name=second_name, survey=survey, **kwargs),
+             PlotDisp(first, second, first_name=first_name,
+                      second_name=second_name, survey=survey, **kwargs),
+             PlotDispP(first, second, first_name=first_name,
+                       second_name=second_name, survey=survey, **kwargs),
+             PlotSigma(first, second, first_name=first_name,
+                       second_name=second_name, survey=survey, **kwargs),
+             PlotSigmaP(first, second, first_name=first_name,
+                        second_name=second_name, survey=survey, **kwargs)]
 
     if saveAll:
        if outputFileName is not None:
