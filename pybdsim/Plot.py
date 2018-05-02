@@ -382,13 +382,45 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None):
     import Data as _Data
     d = _Data.Load(filename)
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
-    PhaseSpace(psd, outputfilename)    
+    PhaseSpace(psd, outputfilename)
 
-def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
+def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
     """
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
 
-    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot.
+    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. If both are provided,
+    the machine diagram is plotted from the MADX survey.
+
+    If a BDSIM survey is provided, collimator positions and dimensions can be taken and used to
+    split losses into categories: collimator, warm and cold based on warm aperture infomation provided.
+    To enable this, the "warmaperinfo" option must be set according to the prescription below.
+
+    The user can supply a list of upper and lower edges of warm regions or give the path
+    to a coulmn-formated data file with this information via the "warmaperinfo" option.
+    Set warmaperinfo=1 to treat all non-collimator losses as warm or set warmaperinfo=-1 to treat them as cold.
+    Default is not perform the loss classification.
+
+    If no warm aperture information is provided, the plotting falls back to the standard simple plotting
+    provided by a pybdsimm.Plot.Hisgogram1D interface.
+
+
+    Args:
+        filename       (str):  Path to the REBDSIM data file
+        outputfilename (str, optional):  Path where to save a pdf file with the plot. Default is None
+        tfssurvey      (str, optional):  Path to MADX survey used to plot machine diagram on top of figure. Default is None
+        tfssurvey      (str, optional):  Path to BDSIM survey used to classify losses into collimator/warm/cold and/or plot machine diagram on
+                                          top of figure. Default is None
+        warmaperinfo  (int|list|str, optional): Information about warm aperture in the machine. Default is None
+        **kwargs: Arbitrary keyword arguments.
+
+    Kwargs:
+       normalisedToPeakLoss (bool): Enable to normalise all losses to the peak collimator loss.
+       skipMachineLattice   (bool): If enabled, use the BDSIM survey to classify losses, but do not plot the lattice on top. 
+
+
+    Returns:
+        matplotlib.pyplot.Figure obect
+
     """
     import Data as _Data
     d = _Data.Load(filename)
@@ -396,15 +428,131 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
         raise IOError("Not a rebdsim file")
     eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
 
-    xwidth = eloss.xwidths[0]
-    ylabel = 'Energy Deposition / Event (GeV / '+str(xwidth)+" m)"
-    f = Histogram1D(eloss, xlabel='S (m)', ylabel=ylabel, title="")
-    ax = f.get_axes()[0]
-    ax.set_yscale('log')
+    xwidth    = eloss.xwidths[0]
+    xlabel = r"S (m)"
+    ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
+
+    skipMachineLattice = False
+    if "skipMachineLattice" in kwargs:
+        skipMachineLattice = kwargs["skipMachineLattice"]
+
+    if not warmaperinfo:
+        #Fall back to simple plot
+        f = Histogram1D(eloss, xlabel='S (m)', ylabel=ylabel, title="")
+        ax = f.get_axes()[0]
+        ax.set_yscale('log')
+
+    else:
+        print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
+
+        normalisedToPeakLoss = False
+        if "normalisedToPeakLoss" in kwargs:
+            normalisedToPeakLoss = kwargs["normalisedToPeakLoss"]
+
+        collimators=[]
+        if bdsimsurvey:
+            bsu   = _Data.Load(bdsimsurvey)
+            relfields = [bsu.Name(), bsu.Type(), bsu.SStart(), bsu.SEnd()]
+            collimators = [element for element in zip(*relfields) if element[1]=="rcol"]
+
+        warmapers=[]
+        if warmaperinfo:
+            if warmaperinfo == -1:
+                warmapers = []
+            elif warmaperinfo == 1:
+                warmapers = [[0, 1.e9]] #Crude, but no need to be exact
+            elif isinstance(warmaperinfo, list):
+                warmapers = warmaperinfo
+            elif isinstance(warmaperinfo, str):
+                warmapers=_np.genfromtxt(warmaperinfo)
+            else:
+                raise SystemExit("Unrecognised warmaperinfo option: {}".format(aperinfo))
+
+        coll_binmask = []
+        warm_binmask = []
+        cold_binmask = []
+
+        ledges   = eloss.xlowedge
+        contents = eloss.contents
+        errors   = eloss.errors
+
+        for i in range(len(contents)):
+            """
+            The check here is done on the presence of a lower bin edge in a region of
+            interest (collimator or warm segment). For bin of similar or larger size
+            than the size of the region of interest, a misidenfication is possible.
+            Can reduce probabliluty of misclassification by also checking for the presencce
+            of an upper bin edge, but it increasses processing time and ultimately, for
+            bins that are too large it is impossible to overcome resolution constraints.
+            """
+            in_coll=False
+            in_warm=False
+            for coll in collimators:
+                smin, smax = coll[2], coll[3]
+                if ledges[i]>smin and ledges[i]<smax:
+                    in_coll=True
+
+            for waper in warmapers:
+                smin, smax = waper[0], waper[1]
+                if ledges[i]>smin and ledges[i]<smax:
+                    in_warm=True
+
+            coll_binmask.append(int(in_coll)) #collimators have priority over warm aper
+            warm_binmask.append(int(in_warm and not in_coll))
+            cold_binmask.append(int(not in_coll and not in_warm))
+
+        coll_binmask = _np.array(coll_binmask)
+        warm_binmask = _np.array(warm_binmask)
+        cold_binmask = _np.array(cold_binmask)
+
+        coll_bins = _np.multiply(contents, coll_binmask)
+        coll_errs = _np.multiply(errors, coll_binmask)
+        warm_bins = _np.multiply(contents, warm_binmask)
+        warm_errs = _np.multiply(errors, warm_binmask)
+        cold_bins = _np.multiply(contents, cold_binmask)
+        cold_errs = _np.multiply(errors, cold_binmask)
+
+        if normalisedToPeakLoss:
+            #N.B. This may be innacurate for large bin widths, aka when the bins are
+            #around the same length as a collimator. Use with caution
+            if any(coll_bins):
+                scale=1./max(coll_bins) #Total energy lost in the collimation system
+            else:
+                raise SystemExit("Cannot normalise to peak collimator loss - no collimator loss found")
+        else:
+            scale=1
+
+        coll_col = "k"
+        warm_col = "r"
+        cold_col = "b"
+
+        f = _plt.figure(figsize=(10,5))
+        ax  = _plt.gca()
+
+        if any(coll_binmask):
+            ax.plot(ledges, scale*coll_bins, ls="steps", color=coll_col, label="Collimator", zorder=10)
+            ax.errorbar(ledges-xwidth/2, scale*coll_bins, scale*coll_errs, linestyle="*", fmt="none", color=coll_col, zorder=10)
+
+        if any(warm_binmask):
+            ax.plot(ledges, scale*warm_bins, ls="steps", color=warm_col, label="Warm")
+            ax.errorbar(ledges-xwidth/2, scale*warm_bins, scale*warm_errs, linestyle="", fmt="none", color=warm_col)
+
+        if any(cold_binmask):
+            ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
+            ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
+
+        ax.set_yscale("log", nonposy='clip')
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.yaxis.set_major_locator(_plt.LogLocator(subs=(1.0,))) #TODO: Find a way to disable auto ticks and always display all int powers
+        ax.yaxis.grid(which="major", linestyle='--')
+        _plt.legend(fontsize="small", framealpha=1)# bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0., framealpha=1)
+
     if tfssurvey:
         AddMachineLatticeToFigure(f, tfssurvey)
-    elif bdsimsurvey:
-        AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey)
+    elif bdsimsurvey and not skipMachineLattice:
+        #AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey) #TODO: Fix this, currenly gives an error
+        print "Lattice diagram not added, module under maintenance"
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
