@@ -443,9 +443,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         **kwargs: Arbitrary keyword arguments.
 
     Kwargs:
-       normalisedToPeakLoss (bool): Enable to normalise all losses to the peak collimator loss.
        skipMachineLattice   (bool): If enabled, use the BDSIM survey to classify losses, but do not plot the lattice on top.
-
 
     Returns:
         matplotlib.pyplot.Figure obect
@@ -470,10 +468,6 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
             skipMachineLattice = kwargs["skipMachineLattice"]
 
         print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
-
-        normalisedToPeakLoss = False
-        if "normalisedToPeakLoss" in kwargs:
-            normalisedToPeakLoss = kwargs["normalisedToPeakLoss"]
 
         collimators=[]
         if bdsimsurvey:
@@ -538,15 +532,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         cold_bins = _np.multiply(contents, cold_binmask)
         cold_errs = _np.multiply(errors, cold_binmask)
 
-        if normalisedToPeakLoss:
-            #N.B. This may be innacurate for large bin widths, aka when the bins are
-            #around the same length as a collimator. Use with caution
-            if any(coll_bins):
-                scale=1./max(coll_bins) #Total energy lost in the collimation system
-            else:
-                raise SystemExit("Cannot normalise to peak collimator loss - no collimator loss found")
-        else:
-            scale=1
+        scale=1
 
         coll_col = "k"
         warm_col = "r"
