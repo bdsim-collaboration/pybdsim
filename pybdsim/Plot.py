@@ -384,7 +384,36 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None):
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
     PhaseSpace(psd, outputfilename)
 
-def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
+def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
+    """
+    Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
+
+    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. If both are provided,
+    the machine diagram is plotted from the MADX survey.
+    """
+    import Data as _Data
+    d = _Data.Load(filename)
+    if type(d) is not _Data.RebdsimFile:
+        raise IOError("Not a rebdsim file")
+    eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
+
+    xwidth    = eloss.xwidths[0]
+    xlabel = r"S (m)"
+    ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
+    f = Histogram1D(eloss, xlabel='S (m)', ylabel=ylabel, title="")
+
+    ax = f.get_axes()[0]
+    ax.set_yscale('log')
+
+    if tfssurvey:
+        AddMachineLatticeToFigure(f, tfssurvey)
+    elif bdsimsurvey:
+        AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey)
+
+    if outputfilename is not None:
+        _plt.savefig(outputfilename)
+
+def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
     """
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
 
@@ -415,34 +444,31 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
 
     Kwargs:
        normalisedToPeakLoss (bool): Enable to normalise all losses to the peak collimator loss.
-       skipMachineLattice   (bool): If enabled, use the BDSIM survey to classify losses, but do not plot the lattice on top. 
+       skipMachineLattice   (bool): If enabled, use the BDSIM survey to classify losses, but do not plot the lattice on top.
 
 
     Returns:
         matplotlib.pyplot.Figure obect
 
     """
-    import Data as _Data
-    d = _Data.Load(filename)
-    if type(d) is not _Data.RebdsimFile:
-        raise IOError("Not a rebdsim file")
-    eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
-
-    xwidth    = eloss.xwidths[0]
-    xlabel = r"S (m)"
-    ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
-
-    skipMachineLattice = False
-    if "skipMachineLattice" in kwargs:
-        skipMachineLattice = kwargs["skipMachineLattice"]
-
     if not warmaperinfo:
-        #Fall back to simple plot
-        f = Histogram1D(eloss, xlabel='S (m)', ylabel=ylabel, title="")
-        ax = f.get_axes()[0]
-        ax.set_yscale('log')
+        EnergyDeposition(filename, outputfilename, tfssurvey, bdsimsurvey)
 
     else:
+        import Data as _Data
+        d = _Data.Load(filename)
+        if type(d) is not _Data.RebdsimFile:
+            raise IOError("Not a rebdsim file")
+        eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
+
+        xwidth    = eloss.xwidths[0]
+        xlabel = r"S (m)"
+        ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
+
+        skipMachineLattice = False
+        if "skipMachineLattice" in kwargs:
+            skipMachineLattice = kwargs["skipMachineLattice"]
+
         print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
 
         normalisedToPeakLoss = False
