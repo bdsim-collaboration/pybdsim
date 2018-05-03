@@ -100,7 +100,9 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
 
     """
     #concatenate machine lattices
-    sf = _CheckItsBDSAsciiData(args[0])
+    import Data as _Data
+    #sf = _CheckItsBDSAsciiData(args[0])
+    sf = _Data.Load(args[0])
     if len(args) > 1:
         for machine in args[1:]:
             sf.ConcatenateMachine(machine)
