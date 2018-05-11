@@ -71,7 +71,7 @@ def IsFloat(stringtotest):
 def CheckItsBDSAsciiData(bfile):
     if type(bfile) == str:
         d = pybdsim.Data.Load(bfile)
-        data = d.optics
+        data = d.Optics
     elif type(bfile) == pybdsim.Data.BDSAsciiData:
         data = bfile
     elif type(bfile) == pybdsim.Data.RebdsimFile:
