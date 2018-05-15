@@ -69,13 +69,21 @@ def IsFloat(stringtotest):
         return False
 
 def CheckItsBDSAsciiData(bfile):
+    def CheckOptics(obj):
+        if hasattr(d,'Optics'):
+            return d.Optics
+        elif hasattr(d, 'optics'):
+            return d.optics
+        else:
+            raise IOError("No optics found in pybdsim.Data.BDSAsciiData instance")
+        return data
     if type(bfile) == str:
         d = pybdsim.Data.Load(bfile)
-        data = d.Optics
+        data = CheckOptics(d)
     elif type(bfile) == pybdsim.Data.BDSAsciiData:
         data = bfile
     elif type(bfile) == pybdsim.Data.RebdsimFile:
-        data = bfile.optics
+        data = CheckOptics(bfile)
     else:
         raise IOError("Not pybdsim.Data.BDSAsciiData file type: "+str(bfile))
     return data
