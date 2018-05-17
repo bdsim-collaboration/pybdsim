@@ -414,36 +414,38 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     """
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
 
-    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. If both are provided,
-    the machine diagram is plotted from the MADX survey.
+    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. 
+    If both are provided, the machine diagram is plotted from the MADX survey.
 
-    If a BDSIM survey is provided, collimator positions and dimensions can be taken and used to
-    split losses into categories: collimator, warm and cold based on warm aperture infomation provided.
-    To enable this, the "warmaperinfo" option must be set according to the prescription below.
+    If a BDSIM survey is provided, collimator positions and dimensions can be taken and 
+    used to split losses into categories: collimator, warm and cold based on warm aperture
+    infomation provided. To enable this, the "warmaperinfo" option must be set according 
+    to the prescription below.
 
     The user can supply a list of upper and lower edges of warm regions or give the path
     to a coulmn-formated data file with this information via the "warmaperinfo" option.
-    Set warmaperinfo=1 to treat all non-collimator losses as warm or set warmaperinfo=-1 to treat them as cold.
-    Default is not perform the loss classification.
+    Set warmaperinfo=1 to treat all non-collimator losses as warm or set warmaperinfo=-1 
+    to treat them as cold. Default is not perform the loss classification.
 
-    If no warm aperture information is provided, the plotting falls back to the standard simple plotting
-    provided by a pybdsimm.Plot.Hisgogram1D interface.
-
+    If no warm aperture information is provided, the plotting falls back to the standard 
+    simple plotting provided by a pybdsimm.Plot.Hisgogram1D interface.
 
     Args:
         filename       (str):  Path to the REBDSIM data file
-        outputfilename (str, optional):  Path where to save a pdf file with the plot. Default is None
-        tfssurvey      (str, optional):  Path to MADX survey used to plot machine diagram on top of figure. Default is None
-        tfssurvey      (str, optional):  Path to BDSIM survey used to classify losses into collimator/warm/cold and/or plot machine diagram on
-                                          top of figure. Default is None
-        warmaperinfo  (int|list|str, optional): Information about warm aperture in the machine. Default is None
-        **kwargs: Arbitrary keyword arguments.
+        outputfilename (str, optional):  Path where to save a pdf file with the plot. Default is None.
+    
+        tfssurvey      (str, optional):  Path to MADX survey used to plot machine diagram on top of figure. Default is None.
+    
+        tfssurvey      (str, optional):  Path to BDSIM survey used to classify losses into collimator/warm/cold and/or plot machine diagram on top of figure. Default is None.
+    
+        warmaperinfo  (int|list|str, optional): Information about warm aperture in the machine. Default is None.
+        \*\*kwargs: Arbitrary keyword arguments.
 
     Kwargs:
-       skipMachineLattice   (bool): If enabled, use the BDSIM survey to classify losses, but do not plot the lattice on top.
+        skipMachineLattice   (bool): If enabled, use the BDSIM survey to classify losses, but do not plot the lattice on top.
 
     Returns:
-        matplotlib.pyplot.Figure obect
+        matplotlib.pyplot.Figure object
 
     """
     if not warmaperinfo:
