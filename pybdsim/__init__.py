@@ -52,7 +52,7 @@ pybdsim - python tool for BDSIM
 
 """
 
-__version__ = "1.43.develop"
+__version__ = "1.5"
 
 import Beam
 import Builder

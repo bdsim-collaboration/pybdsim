@@ -2,7 +2,7 @@
 Version History
 ===============
 
-v 1.5 - 2018 / ?? / ??
+v 1.5 - 2018 / 05 / 17
 ======================
 
 New Features
@@ -12,12 +12,20 @@ New Features
 * Improved searching for BDSAsciiData class.
 * Ability to easily write out beam class.
 * Plot phase space from any sampler in a BDSIM output file.
+* __version__ information in package.
+* Get a column from data irrespective of case.
+* Coded energy deposition plot. Use for example for labelling cyrogenic, warm and collimator losses.
+* Improved Transport BDSIM comparison.
+* Function to convert a line from a TFS file into a beam definition file.
 
 Bug Fixes
 ---------
 
+* Fix library loading given changes to capitalisation in BDSIM.
 * Beam class now supports all BDSIM beam definitions.
 * Support all aperture shapes in Builder.
+* Fixes for loading optics given changes to capitalisation and BDSAsciiData class usage.
+* Fixes for collimator conversion from MADX.
 
 
 v 1.4 - 2018 / 10 / 04
