@@ -52,6 +52,8 @@ pybdsim - python tool for BDSIM
 
 """
 
+__version__ = "1.43.develop"
+
 import Beam
 import Builder
 import Constants
