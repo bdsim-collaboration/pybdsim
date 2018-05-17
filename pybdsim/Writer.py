@@ -1,8 +1,3 @@
-# pybdsim.Builder - tools to build bdsim lattices
-# Version 1.0
-# L. Nevay
-# laurie.nevay@rhul.ac.uk
-
 """
 Writer
 

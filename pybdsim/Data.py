@@ -1,16 +1,10 @@
-# pybdsim.Data - output data loader for pybdsim
-# Version 1.0
-# L. Nevay, S.Boogert
-# laurie.nevay@rhul.ac.uk
-
 """
-Output
+Output loading
 
 Read bdsim output
 
 Classes:
 Data - read various output files
-
 
 """
 import Constants as _Constants
