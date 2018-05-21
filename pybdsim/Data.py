@@ -331,9 +331,11 @@ class BDSAsciiData(list):
             return _np.array([event[ind] for event in self])
         setattr(self,variablename,GetAttribute)
 
-    def ConcatenateMachine(self,*args):
+    def ConcatenateMachine(self, *args):
         """
-        This is used to concatenate machines.
+        Add 1 or more data instances to this one - suitable only for things that
+        could be loaded by this class. Argument can be one or iterable. Either
+        of str type or this class.
         """
         #Get final position of the machine (different param for survey)
         if _General.IsSurvey(self):
