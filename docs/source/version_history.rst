@@ -5,6 +5,12 @@ Version History
 v 1.6 - 2018 / ?? / ??
 ======================
 
+Bug Fixes
+---------
+
+* Fix machine diagram plotting from BDSIM survey.
+* Fix machine diagram searching with right-click in plots.
+
 v 1.5 - 2018 / 05 / 17
 ======================
 
