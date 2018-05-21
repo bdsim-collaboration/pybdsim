@@ -436,8 +436,6 @@ class BDSAsciiData(list):
 
     def NameFromNearestS(self,S):
         i = self.IndexFromNearestS(S)
-        if not hasattr(self,"Name"):
-            raise ValueError("This file doesn't have the required column Name")
         return self.Name()[i]
     
     def IndexFromNearestS(self,S) : 
