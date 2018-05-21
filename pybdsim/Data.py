@@ -449,10 +449,10 @@ class BDSAsciiData(list):
         #check this particular instance has the required columns for this function
         if not hasattr(self,"SStart"):
             raise ValueError("This file doesn't have the required column SStart")
-        if not hasattr(self,"Arc_len"):
+        if not hasattr(self,"ArcLength"):
             raise ValueError("This file doesn't have the required column Arc_len")
         s = self.SStart()
-        l = self.Arc_len()
+        l = self.ArcLength()
 
         #iterate over beamline and record element if S is between the
         #sposition of that element and then next one
