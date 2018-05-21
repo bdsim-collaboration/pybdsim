@@ -86,27 +86,28 @@ def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
         bbox = ax.get_position()
         bbox.y0 = bbox.y0 * fraction
         bbox.y1 = bbox.y1 * fraction
-        ax.set_position(bbox)    
+        ax.set_position(bbox)
 
-def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
+def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=True):
     """
-    kwargs - 'tightLayout' is set to True by default - can be supplied
-              in kwargs to force it to false.
-
+    Similar to AddMachineLatticeFromSurveyToFigure() but accepts multiple machines.
     """
-    #concatenate machine lattices
-    import Data as _Data
-    #sf = _CheckItsBDSAsciiData(args[0])
-    sf = _Data.Load(args[0])
+    d = _CheckItsBDSAsciiData(machines[0])
     if len(args) > 1:
-        for machine in args[1:]:
-            sf.ConcatenateMachine(machine)
-    
-    # options
-    tightLayout = True
-    if 'tightLayout' in kwargs:
-        tightLayout = kwargs['tightLayout']
+        for machine in machines[1:]:
+            d.ConcatenateMachine(machine)
+    return d
 
+def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
+    """
+    Add a machine diagram to the top of the plot in a current figure
+
+    """
+    import Data as _Data
+    sf = _CheckItsBDSAsciiData(surveyfile)
+    # we don't need to check this has the required columns because we control a
+    # BDSIM survey contents.
+    
     axoptics  = figure.get_axes()[0]
     _AdjustExistingAxes(figure, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
@@ -119,8 +120,11 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
         axoptics.set_xlim(axmachine.get_xlim())
 
     def Click(a) : 
-        if a.button == 3 : 
-            print 'Closest element: ',sf.NameFromNearestS(a.xdata)
+        if a.button == 3:
+            try:
+                print 'Closest element: ',sf.NameFromNearestS(a.xdata)
+            except ValueError:
+                pass # don't complain if the S is out of bounds
             
     MachineXlim(axmachine)
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
@@ -129,26 +133,14 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
 def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     ax  = axesinstance #handy shortcut
     bds = bdsasciidataobject
-
-    if not hasattr(bds,"SStart"):
-        raise ValueError("This file doesn't have the required column SStart")
-    if not hasattr(bds,"ArcLength"):
-        raise ValueError("This file doesn't have the required column ArcLength")
     
     def DrawBend(start,length,color='b',alpha=1.0):
         br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
         ax.add_patch(br)
-    def DrawHKicker(start, length, color='purple', alpha=1.0):
-        br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
-        ax.add_patch(br)
-    def DrawVKicker(start, length, color='magenta', alpha=1.0):
-        br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
-        ax.add_patch(br)
-    def DrawQuad(start,length,k1l,color='r',alpha=1.0):
-        #survey file doesn't have k values
-        if k1l > 0 :
+    def DrawQuad(start,length,k1,color='r',alpha=1.0):
+        if k1 > 0 :
             qr = _patches.Rectangle((start,0),length,0.2,color=color,alpha=alpha)
-        elif k1l < 0: 
+        elif k1 < 0: 
             qr = _patches.Rectangle((start,-0.2),length,0.2,color=color,alpha=alpha)
         else:
             #quadrupole off
@@ -175,10 +167,8 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     types   = bds.Type()
     lengths = bds.ArcLength()
     starts  = bds.SStart()
-    if hasattr(bds,'k1'):
-        k1  = bds.k1()
-    elif hasattr(bds,'K1'):
-        k1  = bds.K1()
+    k1      = bds.k1()
+
     for i in range(len(bds)):
         kw = types[i]
         if kw == 'quadrupole': 
@@ -187,6 +177,10 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'sbend': 
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
+        elif kw == 'hkicker':
+            DrawRect(starts[i],lengths[i], u'#4c33b2') #purple
+        elif kw == 'vkicker':
+            DrawRect(starts[i],lengths[i], u'#ba55d3') #medium orchid
         elif kw == 'rcol': 
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'ecol': 
@@ -199,10 +193,6 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawHex(starts[i],lengths[i], u'#00994c') #green
         elif kw == 'decapole':
             DrawHex(starts[i],lengths[i], u'#4c33b2') #purple
-        elif kw == 'hkick':
-            DrawHKicker(starts[i],lengths[i], u'#4c33b2') #purple
-        elif kw == 'vkick':
-            DrawVKicker(starts[i],lengths[i], u'#ba55d3') #medium orchid
         elif kw == 'drift':
             pass
         elif kw == 'multipole':
