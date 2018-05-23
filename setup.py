@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pybdsim',
-    version='1.5.develop',
+    version='1.6',
     packages=find_packages(exclude=["docs", "tests", "obsolete"]),
     # Not sure how strict these need to be...
     install_requires=["matplotlib",
