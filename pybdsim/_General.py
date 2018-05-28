@@ -71,7 +71,7 @@ def IsFloat(stringtotest):
 def CheckItsBDSAsciiData(bfile, requireOptics=False):
     def CheckOptics(obj, requireOpticsL=False):
         if hasattr(obj,'Optics'):
-            return d.Optics
+            return obj.Optics
         elif hasattr(obj, 'optics'):
             return obj.optics
         else:
