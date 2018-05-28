@@ -1,16 +1,10 @@
-# pybdsim.Data - output data loader for pybdsim
-# Version 1.0
-# L. Nevay, S.Boogert
-# laurie.nevay@rhul.ac.uk
-
 """
-Output
+Output loading
 
 Read bdsim output
 
 Classes:
 Data - read various output files
-
 
 """
 import Constants as _Constants
@@ -47,12 +41,12 @@ def _LoadROOTLibraries():
         import ROOT as _ROOT
     except ImportError:
         raise Warning("ROOT in python not available")
-    reLoad  = _ROOT.gSystem.Load("libRebdsim")
-    bdsLoad = _ROOT.gSystem.Load("libBdsimRootEvent")
+    bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
+    reLoad  = _ROOT.gSystem.Load("librebdsim")
     if reLoad is not 0:
-        raise Warning("libRebdsim not found")
+        raise Warning("librebdsim not found")
     if bdsLoad is not 0:
-        raise Warning("libBdsimRootEvent not found")
+        raise Warning("libbdsimRootEvent not found")
     _libsLoaded = True
 
 def Load(filepath):
@@ -224,7 +218,7 @@ class RebdsimFile(object):
         if 'Optics' in trees:
             branches = _rnp.list_branches(self.filename,'Optics')
             treedata = _rnp.root2array(self.filename,'Optics')
-            self.optics = _prepare_data(branches, treedata)
+            self.Optics = _prepare_data(branches, treedata)
         if 'Orbit' in trees:
             branches = _rnp.list_branches(self.filename, 'Orbit')
             treedata = _rnp.root2array(self.filename, 'Orbit')
@@ -337,9 +331,11 @@ class BDSAsciiData(list):
             return _np.array([event[ind] for event in self])
         setattr(self,variablename,GetAttribute)
 
-    def ConcatenateMachine(self,*args):
+    def ConcatenateMachine(self, *args):
         """
-        This is used to concatenate machines.
+        Add 1 or more data instances to this one - suitable only for things that
+        could be loaded by this class. Argument can be one or iterable. Either
+        of str type or this class.
         """
         #Get final position of the machine (different param for survey)
         if _General.IsSurvey(self):
@@ -440,8 +436,6 @@ class BDSAsciiData(list):
 
     def NameFromNearestS(self,S):
         i = self.IndexFromNearestS(S)
-        if not hasattr(self,"Name"):
-            raise ValueError("This file doesn't have the required column Name")
         return self.Name()[i]
     
     def IndexFromNearestS(self,S) : 
@@ -455,10 +449,10 @@ class BDSAsciiData(list):
         #check this particular instance has the required columns for this function
         if not hasattr(self,"SStart"):
             raise ValueError("This file doesn't have the required column SStart")
-        if not hasattr(self,"Arc_len"):
+        if not hasattr(self,"ArcLength"):
             raise ValueError("This file doesn't have the required column Arc_len")
         s = self.SStart()
-        l = self.Arc_len()
+        l = self.ArcLength()
 
         #iterate over beamline and record element if S is between the
         #sposition of that element and then next one

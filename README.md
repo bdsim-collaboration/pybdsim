@@ -1,11 +1,16 @@
-#pyBDSIM#
+#pybdsim#
 
 A python package containing both utilities for preparing and analysing BDSIM input and output as well as controlling BDSIM.
 
 ## Authors ##
 
 L. Nevay
+A. Abramov
 S. Boogert
+W. Shields
+J. Snuverink
+S. Walker
+
 
 ## Setup ##
 
@@ -24,5 +29,6 @@ $ make develop
 $>python
 $>>> import pybdsim
 $>>> a = pybdsim.Data.Load("run1_output.txt")
-$>>> hist(a.Xp())
+$>>> import matplotlib.pyplot as plt
+$>>> plt.hist(a.Xp())
 ```

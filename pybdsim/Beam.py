@@ -1,8 +1,3 @@
-# pybdsim.Beam - generate BDSIM beam
-# Version 1.0
-# L. Nevay
-# laurie.nevay@rhul.ac.uk
-
 BDSIMDistributionTypes = [
     'reference',
     'gaussmatrix',

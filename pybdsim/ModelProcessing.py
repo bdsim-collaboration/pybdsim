@@ -1,8 +1,3 @@
-# pybdsim.ModelProcessing - tools to process existing BDSIM models
-# Version 1.0
-# L. Nevay
-# laurie.nevay@rhul.ac.uk
-
 """
 ModelProcessing
 

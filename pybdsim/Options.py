@@ -1,9 +1,3 @@
-# pybdsim.Options - generate BDSIM options
-# Version 1.0
-# L. Nevay
-# laurie.nevay@rhul.ac.uk
-
-
 def ProtonColliderOptions():
     a = Options()
     a.SetPhysicsList('QGSP_BERT')

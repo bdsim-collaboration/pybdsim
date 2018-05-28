@@ -1,5 +1,7 @@
 """
-pybdsim - python tool for BDSIM
+pybdsim - python tool for BDSIM.
+
+Copyright Royal Holloway, University of London 2018.
 
 +-----------------+--------------------------------+
 | **Dependency**  | **Minimum Version Required**   |
@@ -51,6 +53,8 @@ pybdsim - python tool for BDSIM
 +-------------+--------------------------------------------------------------+
 
 """
+
+__version__ = "1.6"
 
 import Beam
 import Builder
