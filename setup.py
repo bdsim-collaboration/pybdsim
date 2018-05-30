@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pybdsim',
-    version='1.6',
+    version='1.7',
     packages=find_packages(exclude=["docs", "tests", "obsolete"]),
     # Not sure how strict these need to be...
     install_requires=["matplotlib",
@@ -11,7 +11,8 @@ setup(
                       "fortranformat",
                       "root-numpy",
                       "pymadx",
-                      "pymad8"],
+                      "pymad8",
+                      "pytransport"],
     # Some version of python2.7
     python_requires="==2.7.*",
 
