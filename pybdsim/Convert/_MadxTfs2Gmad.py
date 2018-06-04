@@ -361,6 +361,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
             e2    = item['E2']
             fint  = item['FINT']
             fintx = item['FINTX']
+            h1    = item['H1']
+            h2    = item['H2']
             hgap  = item['HGAP']
             k1l   = item['K1L']
             # set element length to be the chord length - tfs output rbend length is arc length
@@ -378,6 +380,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
             # so if set to 0, this means we want it to be 0
             if fintx != -1:
                 kws['fintx'] = fintx
+            if h1 != 0:
+                kws['h1'] = h1
+            if h2 != 0:
+                kws['h2'] = h2
             if hgap != 0:
                 kws['hgap'] = hgap
             if k1l != 0:
@@ -391,6 +397,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
             e2    = item['E2']
             fint  = item['FINT']
             fintx = item['FINTX']
+            h1    = item['H1']
+            h2    = item['H2']
             hgap  = item['HGAP']
             k1l   = item['K1L']
             if e1 != 0:
@@ -414,7 +422,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
                     kws['fintx'] = 0
             else:
                 kws['fintx'] = fintx
-
+            if h1 != 0:
+                kws['h1'] = h1
+            if h2 != 0:
+                kws['h2'] = h2
             #if hgap != 0:
             kws['hgap'] = hgap
 
