@@ -283,7 +283,7 @@ PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP
 PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
 
-def PlotBdsimOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
+def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
     """
     Display all the optical function plots for a rebdsim optics root file.
     """

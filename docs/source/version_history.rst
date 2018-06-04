@@ -5,6 +5,12 @@ Version History
 v 1.7 - 2018 / ?? / ??
 ======================
 
+General
+-------
+
+* "PlotBdsimOptics" is now "BDSIMOptics" in the Plot module.
+
+
 v 1.6 - 2018 / 05 / 23
 ======================
 
