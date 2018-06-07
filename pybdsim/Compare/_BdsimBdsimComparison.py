@@ -49,16 +49,16 @@ def _parse_bdsim_input(bdsim_in, name):
            raise IOError("file \"{}\" not found!".format(bdsim_in))
        name = (_path.splitext(_path.basename(bdsim_in))[0]
                if name is None else name)
-       return pybdsim.Data.Load(bdsim_in).optics, name
+       return pybdsim.Data.Load(bdsim_in).Optics, name
    try:
        if isinstance(bdsim_in, pybdsim.Data.RebdsimFile):
-           bdsim_in = bdsim_in.optics
+           bdsim_in = bdsim_in.Optics
        name = bdsim_in.filename if name is None else name
        return bdsim_in, name
    except AttributeError:
        raise TypeError(
            "Expected Tfs input is neither a "
-           "file path nor a Tfs instance: {}".format(tfs_in))
+           "file path nor a Tfs instance: {}".format(bdsim_in))
 
 # use closure to avoid tonnes of boilerplate code as happened with
 # MadxBdsimComparison.py
@@ -118,9 +118,6 @@ def BDSIMVsBDSIM(first, second, first_name=None,
     """
     first, first_name = _parse_bdsim_input(first, first_name)
     second, second_name = _parse_bdsim_input(second, second_name)
-
-    first = pybdsim.Data.Load(first).optics
-    second = pybdsim.Data.Load(second).optics
 
     figures = [
     PlotBeta(first, second, first_name=first_name,
