@@ -8,6 +8,8 @@ from _Mad8BdsimComparison import Mad8VsBDSIM
 from _BdsimBdsimComparison import BDSIMVsBDSIM
 from _BdsimBdsimComparison import PTCVsBDSIM
 from _MadxMadxComparison import MadxVsMadx
+from _MultipleCodeComparison import CompareMultipleOptics
+
 
 import pymad8 as _pymad8
 
