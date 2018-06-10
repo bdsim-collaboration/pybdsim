@@ -231,7 +231,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                                     else item["UNIQUENAME"])
         t     = item['KEYWORD']
         l     = item['L']
-        ang   = item['ANGLE']
         tilt  = item['TILT']
 
         if tilt != 0:
@@ -651,12 +650,10 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
         startindex -= 1
 
     energy   = float(tfs.header['ENERGY'])
-    gamma    = float(tfs.header['GAMMA'])
     particle = tfs.header['PARTICLE']
     ex       = tfs.header['EX']
     ey       = tfs.header['EY']
     sigmae   = float(tfs.header['SIGE'])
-    sigmat   = float(tfs.header['SIGT'])
 
     if ex == 1:
         print 'Horizontal emittance of 1 is too large - setting to 1e-9'
