@@ -87,68 +87,50 @@ def _LoadData(bdsim, bdsimname, madx, madxname, ptctwiss, ptctwissname, ptc, ptc
     Load the supplied data. Can handle lists of supplied data files and names.
     Returns: listOfData, listOfNames
     """
-    def loadBdsimType(data, name, datatype):
-        datas = []
-        names = []
-        if isinstance(data, list):
-            if isinstance(name, list):
-                if len(name) != len(data):
-                    print("Incorrect Number of "+datatype+" names supplied, ignoring supplied names...")
-                    for entryNumber, entry in enumerate(data):
-                        thisData, thisName = _parse_bdsim_input(entry, None)
-                        datas.append(thisData)
-                        names.append(thisName)
-                else:
-                    for entryNumber, entry in enumerate(data):
-                        thisData, thisName = _parse_bdsim_input(entry, name[entryNumber])
-                        datas.append(thisData)
-                        names.append(thisName)
-            else:
-                for entryNumber, entry in enumerate(data):
-                    thisData, thisName = _parse_bdsim_input(entry, name)
-                    datas.append(thisData)
-                    names.append(thisName)
-        else:
-            thisData, thisName = _parse_bdsim_input(data, name)
-            datas.append(thisData)
-            names.append(thisName)
-        return datas, names
+    def Load(data, name, datatype, parsingfunction):
+        """ data     : list of tfs output filenames
+            name     : list of names to be used in plot legend
+            datatype : string of data type, e.g. "madx". used for error output only
+            parsingfunction : callable function to parse the supplied input
 
-    def loadMadxType(data, name, datatype):
+            Returns :  list, list
+            """
         datas = []
         names = []
         if len(name) != len(data):
             print("Incorrect Number of "+datatype+" names supplied, ignoring supplied names...")
             for entryNumber, entry in enumerate(data):
-                thisData, thisName = _parse_tfs_input(entry, None)
+                thisData, thisName = parsingfunction(entry, None)
                 datas.append(thisData)
                 names.append(thisName)
         else:
             for entryNumber, entry in enumerate(data):
-                thisData, thisName = _parse_tfs_input(entry, name[entryNumber])
+                thisData, thisName = parsingfunction(entry, name[entryNumber])
                 datas.append(thisData)
                 names.append(thisName)
         return datas, names
 
     # convert single filenames to lists
-    if isinstance(bdsim, basestring):
+    if isinstance(bdsim, basestring) or (bdsim is None):
         bdsim = [bdsim]
         bdsimname = [bdsimname]
-    if isinstance(madx, basestring):
+    if isinstance(madx, basestring) or (madx is None):
         madx = [madx]
         madxname = [madxname]
-    if isinstance(ptctwiss, basestring):
+    if isinstance(ptctwiss, basestring) or (ptctwiss is None):
         ptctwiss = [ptctwiss]
         ptctwissname = [ptctwissname]
-    if isinstance(ptc, basestring):
+    if isinstance(ptc, basestring) or (ptc is None):
         ptc = [ptc]
         ptcname = [ptcname]
 
-    bdsim, bdsim_name = loadBdsimType(bdsim, bdsimname, "bdsim")
-    madx, madx_name = loadMadxType(madx, madxname, "madx")
-    ptctwiss, ptctwiss_name = loadMadxType(ptctwiss, ptctwissname, "ptctwiss")
-    ptc, ptc_name = loadBdsimType(ptc, ptcname, "ptc")
+    # load all data
+    bdsim, bdsim_name = Load(bdsim, bdsimname, "bdsim", _parse_bdsim_input)
+    madx, madx_name = Load(madx, madxname, "madx", _parse_tfs_input)
+    ptctwiss, ptctwiss_name = Load(ptctwiss, ptctwissname, "ptctwiss", _parse_tfs_input)
+    ptc, ptc_name = Load(ptc, ptcname, "ptc", _parse_bdsim_input)
 
+    #add data and names to dicts
     data = {"bdsim": bdsim,
             "madx": madx,
             "ptctwiss": ptctwiss,
@@ -212,14 +194,20 @@ def _plotBdsimType(data, name, plot_info, axis='both', **kwargs):
         plot_info : one of the predefined dicts from top of this file
         axis : which axis to plot (x, y, or both)"""
     def _plot(data, name, plot_info, n, **kwargs):
-        variable         = plot_info["bdsimdata"][n] #variable name from predefined dict
-        variableError = plot_info["bdsimerror"][n]   #variable error name from predefined dict
-        legendname       = plot_info["legend"][n]    #legend name from predefined dict
+        """ data : pymadx.Data.Tfs instance
+            name : supplied tfsname
+            plot_info : one of the predefined dicts from top of this file
+            axis : index of tuple in predefined dict. """
+        variable      = plot_info["bdsimdata"][n]  #variable name from predefined dict
+        variableError = plot_info["bdsimerror"][n] #variable error name from predefined dict
+        legendname    = plot_info["legend"][n]     #legend name from predefined dict
         _plt.errorbar(data.GetColumn('S'),
                       data.GetColumn(variable),
                       yerr=data.GetColumn(variableError),
                       label="{}; {}; N = {:.1E}".format(name, legendname, data.Npart()[0]),
                       capsize=3, **kwargs)
+    # plot specific axes according to tuple index in predefined dict
+    # x = 0, y = 1
     if axis == 'x':
         _plot(data, name, plot_info, 0, **kwargs)
     elif axis == 'y':
@@ -233,10 +221,14 @@ def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
     """ data : pymadx.Data.Tfs instance
         name : supplied tfsname
         plot_info : one of the predefined dicts from top of this file
-        axis : which axis to plot (x, y, or both)"""
+        axis : which axis to plot (x, y, or both) """
     def _plot(data, name, plot_info, n, **kwargs):
-        variable   = plot_info["madx"][n]    #variable name from predefined dict
-        legendname = plot_info["legend"][n]  #legend name from predefined dict
+        """ data : pymadx.Data.Tfs instance
+            name : supplied tfsname
+            plot_info : one of the predefined dicts from top of this file
+            axis : index of tuple in predefined dict. """
+        variable   = plot_info["madx"][n]      #variable name from predefined dict
+        legendname = plot_info["legend"][n]    #legend name from predefined dict
         title      = plot_info['title'] + axis #add axis to distinguish plot titles
         s = data.GetColumn('S')
         #emittance is a number in the header so convert to an array for plotting
@@ -255,13 +247,22 @@ def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
 
 # use closure to avoid tonnes of boilerplate code
 def _make_plotter(plot_info):
+    """ plot_info : one of the predefined dicts from top of this file """
+
     def f_out(alldata, allnames, axis='both', survey=None, figsize=(10,5), **kwargs):
+        """ alldata  : dict of all data returned by _LoadData method
+            allnames : dict of all names returned by _LoadData method
+            axis     : axis/axes to plot. Can be 'x', 'y' or 'both'
+            survey   : bdsim survey
+            """
+        # extract plot labelling from predefined dict
         x_label = plot_info['xlabel']
         y_label = plot_info['ylabel']
         title   = plot_info['title'] + axis  #add axis to distinguish plot titles
 
         plot = _plt.figure(title, figsize, **kwargs)
 
+        # loop over data lists and plot using appropriate function
         if alldata["bdsim"] is not None:
             for bdsimIndex,bdsimData in enumerate(alldata["bdsim"]):
                 _plotBdsimType(bdsimData, allnames["bdsim"][bdsimIndex], plot_info, axis, **kwargs)
@@ -463,6 +464,9 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
 
 
 def PlotNPart(data, names, survey=None, figsize=(10, 5), **kwargs):
+    """ Method for plotting the number of particles.
+        Seperate as only applicable to BDSIM/PTC type files.
+        """
     npartPlot = _plt.figure('NParticles', figsize, **kwargs)
     for i in range(len(data["bdsim"])):
         bdsimdata = data["bdsim"][i]
