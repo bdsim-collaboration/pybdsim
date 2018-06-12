@@ -635,7 +635,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     """
     Takes a pymadx.Data.Tfs instance and extracts information from first line to
-    create a BDSIM beam definition in a pybdsim.Beam object.
+    create a BDSIM beam definition in a pybdsim.Beam object.  Note
+    that if kwarg startname is used, the optics are retrieved at the
+    start of the element, i.e. you do not need to get the optics of
+    the previous element, this function does that automatically.
 
     Works for e+, e- and proton.
     Default emittance is 1e-9mrad if 1 in tfs file.
