@@ -434,8 +434,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
             a.AddDipole(rname, 'sbend', l, angle=angle, **kws)
         elif t in {'RCOLLIMATOR', 'ECOLLIMATOR', 'COLLIMATOR'}:
+            if zerolength and ignorezerolengthitems:
+                pass
             # only use xsize as only have half gap
-            if name in collimatordict:
+            elif name in collimatordict:
                 # gets a dictionary then extends kws dict with that dictionary
                 colld = collimatordict[name]
 
