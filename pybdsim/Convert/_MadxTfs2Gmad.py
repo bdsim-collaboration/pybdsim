@@ -464,10 +464,12 @@ def MadxTfs2Gmad(tfs, outputfilename,
                         ysize = colld['YSIZE']
                     if verbose:
                         print 'collimator x,y size ', xsize, ysize
-                    # if xsize > 0.1 or ysize > 0.1:
-                    #kws['outerDiameter'] = max(max(xsize,ysize)*2.5, 0.5)
                     if 'outerDiameter' in colld:
                         kws['outerDiameter'] = colld['outerDiameter']
+                    else:
+                        kws['outerDiameter'] = max([0.5,
+                                                    xsize * 2.5,
+                                                    ysize * 2.5])
                     if t == 'RCOLLIMATOR' or t == "COLLIMATOR":
                         a.AddRCol(rname, l, xsize, ysize, **kws)
                     else:
