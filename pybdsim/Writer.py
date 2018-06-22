@@ -10,6 +10,7 @@ File - A class that represents each section of the written output - contains boo
 Writer - A class that writes the data to disk.
 
 """
+import pybdsim
 import _General
 import Beam as _Beam
 import Options as _Options
@@ -182,7 +183,7 @@ class Writer():
         self._sectionsToBeWritten = []
 
     def WriteMachine(self,machine, filename, singlefile=False,
-                     verbose=True, summary=True, overwrite=True):
+                     verbose=True, overwrite=True):
         """
         WriteMachine(machine(machine),filename(string),singlefile(bool),verbose(bool))
         
@@ -236,9 +237,9 @@ class Writer():
         self.WriteBeam(machine)
         self.WriteOptions(machine)
         self.WriteBias(machine)
-        
+
         #Write main
-        self.WriteMain(machine, summary=summary)
+        self.WriteMain(machine)
 
         if verbose:
             #user feedback
@@ -249,7 +250,7 @@ class Writer():
                 print(fn)
             print 'All included in main file: \n',self._mainFilename
 
-    def WriteMain(self,machine,filename='',summary=True):
+    def WriteMain(self,machine,filename=''):
         """
         WriteMain(machine(machine),filename(string))
         
@@ -275,33 +276,28 @@ class Writer():
             raise Exception(exceptionString)
 
         #write main file
-        f = open(fn_main,'w')
-        f.write(self._timestring)
-        if (summary):
-            f.write('! pybdsim.Builder Lattice \n')
-            f.write('! number of elements = ' + str(len(machine.elements)) + '\n')
-            f.write('! total length       = ' + str(machine.length) + ' m\n\n')
-        else:
+        with open(fn_main, 'w') as f:
+            self._writeFileheader(
+                f, ["! Number of Elements:\t{}".format(len(machine.elements)),
+                    "! Total length:\t\t{}m".format(machine.length)])
+
+            #other files to include
+            for section in self._sectionsToBeWritten:
+                sectObject = getattr(self,section)
+                fn = getattr(sectObject,'_filePath')
+                isUserDefined = getattr(sectObject,'_isUserDefined')
+                if not isUserDefined:
+                    fn = fn.split('/')[-1]
+                f.write('include '+fn+';\n')
             f.write('\n\n')
-            
-        #other files to include
-        for section in self._sectionsToBeWritten:
-            sectObject = getattr(self,section)
-            fn = getattr(sectObject,'_filePath')
-            isUserDefined = getattr(sectObject,'_isUserDefined')
-            if not isUserDefined:
-                fn = fn.split('/')[-1]
-            f.write('include '+fn+';\n')
-        f.write('\n\n')
-        
-        # write lines to main file from components, sequence etc.
-        for line in self._mainFileLines:
-            f.write(line)
-        #write samplers in this main file if less than 10 samplers.
-        if len(machine.samplers) <= 10:
-            for sampler in machine.samplers:
-                f.write(str(sampler))
-        f.close()
+
+            # write lines to main file from components, sequence etc.
+            for line in self._mainFileLines:
+                f.write(line)
+            #write samplers in this main file if less than 10 samplers.
+            if len(machine.samplers) <= 10:
+                for sampler in machine.samplers:
+                    f.write(str(sampler))
         self._mainFilename = fn_main
 
     def WriteComponents(self,machine,filename=''):
@@ -316,13 +312,10 @@ class Writer():
                 self._mainFileLines.append(str(element))
             self._mainFileLines.append('\r\n')
         elif self.Components._isWrittenSeparately:      #if _isWrittenSeparately, write directly to file here.
-            f = open(fn_components,'w')
-            f.write(self._timestring)
-            f.write('! pybdsim.Builder Lattice \n')
-            f.write('! COMPONENT DEFINITION\n\n')
-            for element in machine.elements:
-                f.write(str(element))
-            f.close()
+            with open(fn_components, 'w') as f:
+                self._writeFileheader(f, ['! COMPONENT DEFINITION'])
+                for element in machine.elements:
+                    f.write(str(element))
             self._sectionsToBeWritten.append('Components')
             self.Components._filePath = fn_components   #update FileSection path
         elif self.Components._isUserDefined:
@@ -344,10 +337,10 @@ class Writer():
                     self._mainFileLines.append(str(bias))
                 self._mainFileLines.append('\r\n')
             elif self.Bias._isWrittenSeparately:
-                f = open(fn_bias,'w')
-                for bias in machine.bias:
-                    f.write(str(bias))
-                f.close()
+                with open(fn_bias, 'w') as f:
+                    self._writeFileheader(f, ["! BIAS DEFINITION"])
+                    for bias in machine.bias:
+                        f.write(str(bias))
                 self.Bias._filePath = fn_bias
                 self._sectionsToBeWritten.append('Bias')
         elif self.Bias._isUserDefined:
@@ -375,12 +368,9 @@ class Writer():
             self._mainFileLines.append(object.ReturnBeamString())
             self._mainFileLines.append('\r\n')
         elif self.Beam._isWrittenSeparately:
-            f = open(fn_beam,'w')
-            f.write(self._timestring)
-            f.write('! pybdsim.Builder \n')
-            f.write('! BEAM DEFINITION \n\n')
-            f.write(object.ReturnBeamString())
-            f.close()
+            with open(fn_beam, 'w') as f:
+                self._writeFileheader(f, ["! BEAM DEFINITION"])
+                f.write(object.ReturnBeamString())
             self.Beam._filePath = fn_beam
             self._sectionsToBeWritten.append('Beam')
         elif self.Beam._isUserDefined:
@@ -403,13 +393,10 @@ class Writer():
                     self._mainFileLines.append(str(sampler))
                 self._mainFileLines.append('\r\n')
             elif self.Samplers._isWrittenSeparately:
-                f = open(fn_samplers,'w')
-                f.write(self._timestring)
-                f.write('! pybdsim.Builder \n')
-                f.write('! SAMPLER DEFINITION\n\n')
-                for sampler in machine.samplers:
-                    f.write(str(sampler))
-                f.close()
+                with open(fn_samplers, 'w') as f:
+                    self._writeFileheader(f, ["! SAMPLER DEFINITION"])
+                    for sampler in machine.samplers:
+                        f.write(str(sampler))
                 self.Samplers._filePath = fn_samplers
                 self._sectionsToBeWritten.append('Samplers')
         elif self.Samplers._isUserDefined:
@@ -439,12 +426,9 @@ class Writer():
                 self._mainFileLines.append(object.ReturnOptionsString())
                 self._mainFileLines.append('\r\n')
             elif self.Options._isWrittenSeparately:
-                f = open(fn_options,'w')
-                f.write(self._timestring)
-                f.write('! pybdsim.Builder \n')
-                f.write('! OPTIONS DEFINITION \n\n')
-                f.write(object.ReturnOptionsString())
-                f.close()
+                with open(fn_options, 'w') as f:
+                    self._writeFileheader(f, ['! OPTIONS DEFINITION'])
+                    f.write(object.ReturnOptionsString())
                 self.Options._filePath = fn_options
                 self._sectionsToBeWritten.append('Options')
         elif self.Options._isUserDefined:
@@ -477,21 +461,18 @@ class Writer():
             self._mainFileLines.append('use, period=lattice;\n')
             self._mainFileLines.append('\r\n')
         elif self.Sequence._isWrittenSeparately:
-            f = open(fn_sequence,'w')
-            f.write(self._timestring)
-            f.write('! pybdsim.Builder \n')
-            f.write('! LATTICE SEQUENCE DEFINITION\n\n')
-            for line in _General.Chunks(machine.sequence,self._elementsperline):
-                # Use _textwrap.wrap to wrap very long lines
-                linetxt = '\n\t'.join(_textwrap.wrap(
-                    "l{}: line = ({});".format(ti, ', '.join(line))))
-                f.write("{}\n".format(linetxt))
-                linelist.append('l'+str(ti))
-                ti += 1
+            with open(fn_sequence, 'w') as f:
+                self._writeFileheader(f, ["! LATTICE SEQUENCE DEFINITION"])
+                for line in _General.Chunks(machine.sequence,self._elementsperline):
+                    # Use _textwrap.wrap to wrap very long lines
+                    linetxt = '\n\t'.join(_textwrap.wrap(
+                        "l{}: line = ({});".format(ti, ', '.join(line))))
+                    f.write("{}\n".format(linetxt))
+                    linelist.append('l'+str(ti))
+                    ti += 1
 
-            f.write('lattice: line = ('+', '.join(linelist)+');\n')
-            f.write('use, period=lattice;\n')
-            f.close()
+                f.write('lattice: line = ('+', '.join(linelist)+');\n')
+                f.write('use, period=lattice;\n')
             self.Sequence._filePath = fn_sequence
             self._sectionsToBeWritten.append('Sequence')
         elif self.Sequence._isUserDefined:
@@ -568,3 +549,26 @@ class Writer():
                 _os.system("mkdir -p " + directory)
         return filename
 
+    def _writeFileheader(self, f, extralines):
+        """Write the comment header for a gmad file.  Format:
+        date and time
+        pybdsim version info
+        extraline1
+        extraline2
+        ...
+
+
+        the gmad file...
+
+        extra lines should be provided without newlines chars at the end.
+        """
+        f.write(self._timestring)
+        f.write(
+            '! pybdsim.Builder Lattice, using pybdsim version {} \n'.format(
+            pybdsim.__version__))
+        for extraline in extralines:
+            f.write("{}\n".format(extraline))
+        if extralines:
+            f.write('\n')
+        else:
+            f.write('\n\n')
