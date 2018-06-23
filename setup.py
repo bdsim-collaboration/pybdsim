@@ -13,6 +13,8 @@ setup(
                       "pymadx",
                       "pymad8",
                       "pytransport"],
+    setup_requires=["pytest-runner"],
+    tests_require=["pytest"],
     # Some version of python2.7
     python_requires="==2.7.*",
 
