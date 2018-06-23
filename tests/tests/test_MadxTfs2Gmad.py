@@ -168,6 +168,6 @@ def test_atf2_default_conversion_with_gmad_regression(atf2, tmppath):
         old_gmad = "{}{}.gmad".format(output_path, suffix)
         # Skip the first 3 lines which are just the header
         with open(new_gmad, "r") as new, open(old_gmad, "r") as old:
-            for new_line, old_line in izip(islice(new, 1, None),
-                                           islice(old, 1, None)):
+            for new_line, old_line in izip(islice(new, 3, None),
+                                           islice(old, 3, None)):
                 assert new_line == old_line
