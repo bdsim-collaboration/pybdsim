@@ -66,7 +66,7 @@ class ElementBase(dict):
     A class that represents an element / item in an accelerator beamline.
     Printing or string conversion produces the BDSIM syntax.
 
-    This class provides the basic dict(ionary) inheritance and functionality 
+    This class provides the basic dict(ionary) inheritance and functionality
     and the representation that allows modification of existing parameters
     of an already declared item.
 
@@ -133,7 +133,7 @@ class Element(ElementBase):
     qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m;
     >>> str(c)
     qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m\\n;
-    
+
     A beam line element must ALWAYs have a name, and type.
     The keyword arguments are specific to the type and are up to
     the user to specify - these should match BDSIM GMAD syntax.
@@ -142,7 +142,7 @@ class Element(ElementBase):
     where the second entry must be a string (shown in second example).
     Without specified units, the parser assumes S.I. units.
 
-    An element may also be multiplied or divided.  This will scale the 
+    An element may also be multiplied or divided.  This will scale the
     length and angle appropriately.
 
     >>> c = Element('sb1', 'sbend', l=(0.4,'m'), angle=0.2)
@@ -166,7 +166,7 @@ class Element(ElementBase):
         self.length      = 0.0 #for book keeping only
         self.__Update()
         self._UpdateLength()
-        
+
     def __Update(self, d=None):
         if d != None:
             ElementModifier.__update(self,d)
@@ -212,7 +212,7 @@ class Element(ElementBase):
 class ElementModifier(ElementBase):
     """
     A class  to MODIFY an already defined element in a gmad file by appending an
-    updated definition. Using this alone in BDSIM will result in an 
+    updated definition. Using this alone in BDSIM will result in an
     undefined type error. This class is particularly useful for creating
     a strength file.
 
@@ -228,7 +228,7 @@ class ElementModifier(ElementBase):
     qf1, quadrupole, l=0.3, k1=0.00345;
     qf1, k1=0.0245
 
-    This results in the quadrupole strength k1 in this example being 
+    This results in the quadrupole strength k1 in this example being
     changed to 0.0245.
     """
     def __init__(self, name, isMultipole=False, **kwargs):
@@ -240,7 +240,7 @@ class Line(list):
     """
     A class that represents a :class:`list` of :class:`Elements`
 
-    Provides ability to print out the sequence or define all 
+    Provides ability to print out the sequence or define all
     the components.
 
     Example:
@@ -256,10 +256,10 @@ class Line(list):
                 raise TypeError("Line is a list of Elements")
         list.__init__(self,*args)
         self.name   = name
-        self.length = 0.0 
+        self.length = 0.0
         for item in args[0]:
             self.length += item.length
-        
+
     def __repr__(self):
         s = ''
         for item in self:
@@ -335,7 +335,7 @@ class ApertureModel(dict):
         if self['apertureType'] in allowedTypes[1:] and aper2 == 0:
             print 'For aperture type "',self['apertureType'],'" at least aper1 and aper2 must be specified'
             raise ValueError("Too few aperture parameters supplied")
-        
+
         self['aper1'] = aper1
         self['aper2'] = aper2
         self['aper3'] = aper3
@@ -356,7 +356,7 @@ class ApertureModel(dict):
 class Sampler:
     """
     A sampler is unique in that it does not have a length unlike every
-    :class:`Element` hence it needs its own class to produce its 
+    :class:`Element` hence it needs its own class to produce its
     representation.
     """
     def __init__(self,name):
@@ -373,28 +373,28 @@ class Machine:
     A class represents an accelerator lattice as a sequence of
     components. Member functions allow various lattice components
     to be append to the sequence of the machine. This class allows
-    the user to programatically create a lattice and write the 
+    the user to programatically create a lattice and write the
     BDSIM gmad representation of it.
 
     Example:
-    
+
     >>> a = Machine()
     >>> a.AddDrift('mydrift', l=1.3)
     >>> a.Write("lattice.gmad")
 
     Example with Sychrotron rescaling:
-    
+
     >>> a = Machine(sr=True, energy0=250,charge=-1)
     >>> a.AddDipole('sb1','sbend',length=1.0,1e-5)
     >>> a.AddDrift('dr1',length=1)
     >>> a.AddDipole('sb2','sbend',length=1.0,1e-5)
     >>> a.AddDrift("dr2",length=1)
 
-    Caution: adding an element of the same name twice will result the 
+    Caution: adding an element of the same name twice will result the
     element being added only to the sequence again and not being
     redefined - irrespective of if the parameters are different. If
-    verbose is used (True), then a warning will be issued.    
-    
+    verbose is used (True), then a warning will be issued.
+
     """
     def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
@@ -430,7 +430,7 @@ class Machine:
             raise StopIteration
         self._iterindex += 1
         return self.elementsd[self.sequence[self._iterindex]]
-        
+
     def __getitem__(self,name):
         if _IsFloat(name):
             return self.elementsd[self.sequence[name]]
@@ -584,20 +584,20 @@ class Machine:
 
     def AddOptions(self, options=None):
         """
-        Assign an options instance to this machine. 
+        Assign an options instance to this machine.
         """
         if type(options) != _Options.Options:
             raise TypeError("Incorrect type - please provide pybdsim.Options.Options instance")
         self.options = options
-        
+
     def AddMarker(self, name='mk'):
-        """ 
+        """
         Add a marker to the beam line.
         """
         if self.verbose:
             print 'AddMarker> ',name
         self.Append(Element(name,'marker'))
-    
+
     def AddDrift(self, name='dr', length=0.1, **kwargs):
         """
         Add a drift to the beam line
@@ -629,7 +629,7 @@ class Machine:
 
     def AddQuadrupole(self, name='qd', length=0.1, k1=0.0, **kwargs):
         self.Append(Element(name,'quadrupole',l=length,k1=k1,**kwargs))
-        
+
     def AddSextupole(self, name='sx', length=0.1, k2=0.0, **kwargs):
         self.Append(Element(name,'sextupole',l=length,k2=k2,**kwargs))
 
@@ -650,7 +650,7 @@ class Machine:
 
     def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
         self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
-        
+
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
         for k,v in kwargs.iteritems():
@@ -692,7 +692,7 @@ class Machine:
             if 'aper' not in str(k).lower():
                 d[k] = v
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
-        
+
     def AddHKicker(self, name='hk', hkick=0.0, **kwargs):
         self.Append(Element(name,'hkicker', hkick=hkick, **kwargs))
 
@@ -738,12 +738,12 @@ class Machine:
         magnetlength - length of magnets in metres
         driftlength  - length of drift segment in metres
         kabs         - the absolute value of the quadrupole strength - alternates between magnets
-        nsplits      - number of segments drift length is split into 
+        nsplits      - number of segments drift length is split into
 
-        Will add qf quadrupole of strength +kabs, then drift of l=driftlength split into 
+        Will add qf quadrupole of strength +kabs, then drift of l=driftlength split into
         nsplit segments followed by a qd quadrupole of strength -kabs and the same pattern
         of drift segments.
-        
+
         nsplits will be cast to an even integer for symmetry purposes.
 
         \*\*kwargs are other parameters for bdsim - ie aper=0.2
@@ -772,7 +772,7 @@ class Machine:
         for i in range(ncells):
             cellname = basename+'_'+str(i).zfill(maxn)
             self.AddFodoCellSplitDrift(cellname,magnetlength,driftlength,kabs,nsplits=10,**kwargs)
-            
+
     def AddSampler(self,*elementnames):
         if elementnames[0] == 'all':
             self.samplers.append(Sampler('all'))
@@ -815,7 +815,7 @@ def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first
     ncells        - number of cells, each containing 1 dipole and a drift
     circumference - in metres
     samplers      - 'first', 'last' or 'all'
-    
+
     """
     ndipoles = int(ndipoles)
     a            = Machine()
@@ -834,7 +834,7 @@ def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfractio
     circumference - in metres
     driftfraction - the fraction of drift in each cell (0.0 < driftfraction < 1.0)
     samplers      - 'first', 'last' or 'all'
-    
+
     """
     ncells = int(ncells)
     if driftfraction > 1.0:
@@ -863,7 +863,7 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     ncells         - number of fodo+dipole cells to create
     circumference  - circumference of machine in metres
     samplers       - 'first','last' or 'all'
-    
+
     Hard coded to produce the following cell fractions:
     50% dipoles
     20% quadrupoles
@@ -897,17 +897,17 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
         a.AddQuadrupole(cellname+'_qd_c',ql*0.5,k1)
     a.AddSampler(samplers)
     a.Write(filename)
-    
+
 def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, samplers='all',**kwargs):
     """
     Create a FODO lattice with ncells.
-    
+
     ncells       - number of fodo cells
     driftlength  - length of drift segment in between magnets
     magnetlength - length of quadrupoles
     samplers     - 'all','first' or 'last'
     \*\*kwargs   - kwargs to supply to quadrupole constructor
-    
+
     """
     ncells = int(ncells)
     a      = Machine()
@@ -936,23 +936,23 @@ def WriteMachine(machine, filename, verbose=False):
 
     Write a machine to disk. This writes several files to make the
     machine, namely:
-    
+
     filename_components.gmad - component files (max 10k per file)
     filename_sequence.gmad   - lattice definition
     filename_samplers.gmad   - sampler definitions (max 10k per file)
     filename_options.gmad    - options
-    filename.gmad            - suitable main file with all sub 
+    filename.gmad            - suitable main file with all sub
                                files in correct order
-    
+
     these are prefixed with the specified filename / path
-    
+
     """
-    
+
     if not isinstance(machine,Machine):
         raise TypeError("Not machine instance")
-    
+
     elementsperline = 100 #number of machine elements per bdsim line (not text line)
-    
+
     #check filename
     if filename[-5:] != '.gmad':
         filename += '.gmad'
@@ -962,7 +962,7 @@ def WriteMachine(machine, filename, verbose=False):
         directory = '/'.join(filename.split('/')[:-1]) #strip the filename off
         if not _os.path.exists(directory):
             _os.system("mkdir -p " + directory)
-    
+
     #check if file already exists
     ofilename = filename
     filename = _General.GenUniqueFilename(filename)
@@ -988,7 +988,7 @@ def WriteMachine(machine, filename, verbose=False):
         for bias in machine.bias:
             f.write(str(bias))
         f.close()
-    
+
     #write component files
     f = open(fn_components, 'w')
     files.append(fn_components)
@@ -1029,10 +1029,10 @@ def WriteMachine(machine, filename, verbose=False):
             f.write(str(sampler))
         f.close()
 
-    # write beam 
-    f = open(fn_beam,'w') 
+    # write beam
+    f = open(fn_beam,'w')
     files.append(fn_beam)
-    f.write(timestring) 
+    f.write(timestring)
     f.write('! pybdsim.Builder \n')
     f.write('! BEAM DEFINITION \n\n')
     f.write(machine.beam.ReturnBeamString())
@@ -1042,7 +1042,7 @@ def WriteMachine(machine, filename, verbose=False):
     if machine.options != None:
         f = open(fn_options,'w')
         files.append(fn_options)
-        f.write(timestring) 
+        f.write(timestring)
         f.write('! pybdsim.Builder \n')
         f.write('! OPTIONS DEFINITION \n\n')
         f.write(machine.options.ReturnOptionsString())
@@ -1054,7 +1054,7 @@ def WriteMachine(machine, filename, verbose=False):
     f.write('! pybdsim.Builder Lattice \n')
     f.write('! number of elements = ' + str(len(machine.elements)) + '\n')
     f.write('! total length       = ' + str(machine.length) + ' m\n\n')
-    
+
     for fn in files:
         fn = fn.split('/')[-1]
         f.write('include '+fn+';\n')
@@ -1074,7 +1074,7 @@ def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=Tr
     """
     Create a gmad file with samplers for all the elements in a beamline
     as described by the survey outline from bdsim
-    
+
     bdsim --file=mylattice.gmad --outline=survey.dat --outline_type=survey
 
     excludesamplers - bool - exclude any existing samplers
