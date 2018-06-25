@@ -226,15 +226,15 @@ def MadxTfs2Gmad(tfs, outputfilename,
         t = item['KEYWORD']
         l = item['L']
         zerolength = True if item['L'] < 1e-9 else False
-        if verbose:
-            print 'zerolength? ', str(name).ljust(20), str(l).ljust(20), ' ->', zerolength
-        if madx.ElementPerturbs(item):
-            pass  # ie proceed normally
-        elif zerolength and ignorezerolengthitems and t in ignoreableThinElements:
-            itemsomitted.append(name)
+
+        if (not madx.ElementPerturbs(item)
+                and zerolength
+                and ignorezerolengthitems
+                and t in ignoreableThinElements):
             if verbose:
-                print 'skipping this item'
-            continue  # skip this item in the for loop
+                print 'skipping zero-length item: {}'.format(name)
+            itemsomitted.append(name)
+            continue  # skip this item.
 
         # now deal with aperture
         if useTfsAperture:
