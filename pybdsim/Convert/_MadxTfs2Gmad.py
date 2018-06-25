@@ -6,7 +6,6 @@ from .. import Builder as _Builder
 from ..Options import Options as _Options
 from .. import Beam as _Beam
 import pybdsim._General
-from .. import XSecBias
 
 _requiredKeys = frozenset([
     'L', 'ANGLE', 'KSI',
@@ -196,16 +195,9 @@ def MadxTfs2Gmad(tfs, outputfilename,
             _warnings.warn("No collimatordict provided.  ALL collimators"
                            " will be converted to DRIFTs.")
 
-    if isinstance(biases, XSecBias.XSecBias):
+    if biases is not None:
         a.AddBias(biases)
         b.AddBias(biases)
-    elif biases is not None:
-        try:
-            [a.AddBias(bias) for bias in biases]
-            [b.AddBias(bias) for bias in biases]
-        except TypeError:
-            raise TypeError("Unknown biases!  Biases must be a XSecBias"
-                            "instance or an iterable of XSecBias instances.")
 
     # check whether it has all the required columns.
     ZeroMissingRequiredColumns(madx)

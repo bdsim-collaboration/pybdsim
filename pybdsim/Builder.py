@@ -16,6 +16,7 @@ Element - beam line element that always has name,type and length
 Machine - a list of elements
 
 """
+import pybdsim.XSecBias
 import Beam as _Beam
 import Options as _Options
 import Writer as _Writer
@@ -555,8 +556,20 @@ class Machine:
         writer = _Writer.Writer()
         writer.WriteMachine(self,filename,verboseresult)
 
-    def AddBias(self, biasobject):
-        self.bias.append(biasobject)
+    def AddBias(self, biases):
+        """Add a XSecBias.XSecBias instance or iterable of instances
+        to this machine."""
+        # If a single bias object
+        if isinstance(biases, pybdsim.XSecBias.XSecBias):
+            self.bias.append(biases)
+        else: # An iterable of biases.
+            try:
+                for bias in biases:
+                    self.AddBias(bias)
+            except TypeError:
+                msg = ("Unknown biases!  Biases must be a XSecBias"
+                       "instance or an iterable of XSecBias instances.")
+                raise TypeError(msg)
 
     def AddBeam(self, beam=None):
         """
