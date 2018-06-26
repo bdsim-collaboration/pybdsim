@@ -76,8 +76,9 @@ def Load(filepath):
         print '.dat file - trying general loader'
         try:
             return _LoadAscii(filepath)
+        except IOError:
+            raise IOError("No such file or directory: '{}'".format(filepath))
         except:
-            print "Didn't work"
             raise IOError("Unknown file type - not BDSIM data")
     else:
         raise IOError("Unknown file type - not BDSIM data")
