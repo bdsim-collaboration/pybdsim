@@ -133,6 +133,7 @@ def test_atf2_conversion_with_aperturedict(atf2_input, tmppath):
                                       "APER_2": 0,
                                       "APER_3": 0,
                                       "APER_4": 0}})
+
 @pytest.mark.sanity
 def test_atf2_conversion_with_optionsDict(atf2_input, tmppath):
     pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath,
