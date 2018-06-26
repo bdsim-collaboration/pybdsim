@@ -1,0 +1,52 @@
+! Tue, 26 Jun 2018 09:53:11 +0000
+! pybdsim.Builder Lattice, using pybdsim version 1.6 
+! COMPONENT DEFINITION
+
+QUADFH: quadrupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k1=0.008560445444, l=2.5;
+DRIFT_0: drift, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", l=0.75;
+SEXF: sextupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k2=0.01125244831, l=1.0;
+DRIFT_1: drift, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", l=1.5;
+DIPOLE: sbend, angle=0.02708269529, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", fint=0.0, fintx=0, hgap=0.0, l=6.0;
+DRIFT_2: drift, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", l=3.25;
+QUADDH: quadrupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k1=-0.008582774268, l=2.5;
+SEXD: sextupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k2=-0.01104030333, l=1.0;
+DIPOLEHALF: sbend, angle=0.01354134764, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", fint=0.0, fintx=0, hgap=0.0, l=6.0;
+DRIFT_4: drift, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", l=20.0;
+QUADIML0: quadrupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k1=-0.007193626704, l=5.0;
+QUADIML1: quadrupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k1=1.7248456998e-05, l=5.0;
+DRIFT_5: drift, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", l=87.5;
+DRIFT_6: drift, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", l=11.0;
+QUADITA: quadrupole, aper1=0.07, aper2=0.07, aper3=0.07, aper4=0.07, apertureType="circular", k1=0.0077664163375, l=8.0;
+DRIFT_7: drift, aper1=0.07, aper2=0.07, aper3=0.07, aper4=0.07, apertureType="circular", l=2.0;
+QUADITB: quadrupole, aper1=0.07, aper2=0.07, aper3=0.07, aper4=0.07, apertureType="circular", k1=-0.0082811951, l=13.0;
+QUADITC: quadrupole, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", k1=0.0077664163375, l=8.0;
+DRIFT_8: drift, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", l=16.0;
+QUADITD: quadrupole, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", k1=-0.0077664163375, l=8.0;
+QUADITE: quadrupole, aper1=0.07, aper2=0.07, aper3=0.07, aper4=0.07, apertureType="circular", k1=0.0082811951, l=13.0;
+QUADITF: quadrupole, aper1=0.07, aper2=0.07, aper3=0.07, aper4=0.07, apertureType="circular", k1=-0.0077664163375, l=8.0;
+QUADIMR1: quadrupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k1=-1.7248456998e-05, l=5.0;
+QUADIMR0: quadrupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k1=0.007193626704, l=5.0;
+QUADF: quadrupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k1=0.008560445444, l=5.0;
+DRIFT_9: drift, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", l=17.5;
+QUADCIL0: quadrupole, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", k1=0.002974811042, l=10.0;
+DRIFT_10: drift, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", l=40.0;
+QUADCIL1: quadrupole, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", k1=0.002974811042, l=10.0;
+QUADCIL2: quadrupole, aper1=0.2, aper2=0.2, aper3=0.2, aper4=0.2, apertureType="circular", k1=0.000391794011, l=10.0;
+DRIFT_11: drift, aper1=0.2, aper2=0.2, aper3=0.2, aper4=0.2, apertureType="circular", l=3.0;
+COLPRIMY: rcol, l=1.0, material="carbon", outerDiameter=0.5, xsize=0.0317816151, ysize=0.026623107;
+QUADCIL3: quadrupole, aper1=0.2, aper2=0.2, aper3=0.2, aper4=0.2, apertureType="circular", k1=-0.002115632689, l=10.0;
+COLSECY: rcol, l=1.0, material="copper", outerDiameter=0.5, xsize=0.0589578575, ysize=0.0368391587;
+DRIFT_12: drift, aper1=0.2, aper2=0.08, aper3=0.2154065923, aper4=0.2154065923, apertureType="rectangular", l=0.5;
+DRIFT_13: drift, aper1=0.2, aper2=0.2, aper3=0.2, aper4=0.2, apertureType="circular", l=81.0;
+COLPRIMX: rcol, l=1.0, material="carbon", outerDiameter=0.5, xsize=0.031351381, ysize=0.0607125249;
+QUADCIR3: quadrupole, aper1=0.2, aper2=0.2, aper3=0.2, aper4=0.2, apertureType="circular", k1=0.002115632689, l=10.0;
+COLSECX: rcol, l=1.0, material="copper", outerDiameter=0.5, xsize=0.031597072, ysize=0.0325433214;
+QUADCIR2: quadrupole, aper1=0.2, aper2=0.2, aper3=0.2, aper4=0.2, apertureType="circular", k1=-0.000391794011, l=10.0;
+DRIFT_14: drift, aper1=0.2, aper2=0.2, aper3=0.2, aper4=0.2, apertureType="circular", l=33.5;
+COLTERT: rcol, l=1.0, material="tungsten", outerDiameter=0.5, xsize=0.0143504061, ysize=0.00443260955;
+DRIFT_15: drift, aper1=0.028, aper2=0.01, aper3=0.02973213749, aper4=0.02973213749, apertureType="rectangular", l=5.5;
+QUADCIR1: quadrupole, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", k1=-0.002955508204, l=10.0;
+COLTERT2: rcol, l=1.0, material="tungsten", outerDiameter=0.5, xsize=0.00800859745, ysize=0.00612971944;
+QUADCIR0: quadrupole, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", k1=-0.002974811042, l=10.0;
+COLTERT3: rcol, l=1.0, material="tungsten", outerDiameter=0.5, xsize=0.00522548795, ysize=0.00584306373;
+theendoftheline: marker;
