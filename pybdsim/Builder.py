@@ -353,6 +353,166 @@ class ApertureModel(dict):
                 out += ", {}={}*m".format(aperKey, aperValue)
         return out
 
+
+class Drift(Element):
+    def __init__(self, name, length, **kwargs):
+        Element.__init__(self, name, "drift", l=length, **kwargs)
+
+
+class HKicker(Element):
+    def __init__(self, name, hkick, **kwargs):
+        Element.__init__(self, name, 'hkicker', hkick=hkick, **kwargs)
+
+
+class VKicker(Element):
+    def __init__(self, name, vkick, **kwargs):
+        Element.__init__(self, name, 'vkicker', vkick=vkick, **kwargs)
+
+
+class Kicker(Element):
+    def __init__(self, name, hkick, vkick, **kwargs):
+        Element.__init__(self, name, 'kicker', hkick=hkick,
+                         vkick=vkick, **kwargs)
+
+
+class TKicker(Element):
+    def __init__(self, name, hkick, vkick, **kwargs):
+        Element.__init__(self, name, 'tkicker', hkick=hkick,
+                         vkick=vkick, **kwargs)
+
+
+class Gap(Element):
+    def __init__(self, name, length, **kwargs):
+        Element.__init__(self, name, 'gap', **kwargs)
+
+
+class Marker(Element):
+    def __init__(self, name):
+        Element.__init__(self, name, 'marker')
+
+
+class Multipole(Element):
+    def __init__(self, name, length, knl, ksl, **kwargs):
+        Element.__init__(name, 'multipole', l=length,
+                         knl=knl, ksl=ksl, **kwargs)
+
+
+class ThinMultipole(Element):
+    def __init__(self, name, knl, ksl, **kwargs):
+        Element.__init__(name, 'thinmultipole', knl=knl, ksl=ksl, **kwargs)
+
+
+class Quadrupole(Element):
+    def __init__(self, name, length, k1, kwargs):
+        Element.__init__(self, name, 'quadrupole', l=length,k1=k1, **kwargs)
+
+
+class Sextupole(Element):
+    def __init__(self, name, length, k2, kwargs):
+        Element.__init__(self, name, 'sextupole', l=length, k2=k2, **kwargs)
+
+
+class Octupole(Element):
+    def __init__(self, name, length, k3, kwargs):
+        Element.__init__(self, name, 'octupole', l=length, k3=k3, **kwargs)
+
+
+class Decapole(Element):
+    def __init__(self, name, length, k4, kwargs):
+        Element.__init__(self, name,'decapole', l=length, k4=k4, **kwargs)
+
+
+class _Dipole(Element):
+    def __init__(self, name, category, length, angle=None, B=None)
+        if angle is None and b is None:
+            raise TypeError('angle XOR B must be specified for an SBend')
+        elif angle is not None:
+            Element.__init__(self, name, category, l=length,
+                             angle=angle, **kwargs)
+        else:
+            Element.__init__(self, name, category, l=length, B=B, **kwargs)
+
+
+class SBend(_Dipole):
+    def __init__(self, name, length, angle=None, B=None):
+        _Dipole.__init__(self, name, 'sbend', length, angle=angle, B=B)
+
+
+class RBend(_Dipole):
+    def __init__(self, name, length, angle=None, B=None):
+        _Dipole.__init__(self, name, 'rbend', length, angle=angle, B=B)
+
+
+class RFCavity(Element):
+    def __init__(self, name, length, gradient, **kwargs):
+        Element.__init__(self, name, 'rfcavity', l=length,
+                         gradient=gradient, **kwargs)
+
+
+class _Col(Element)
+    def __init__(self, name, category, length, xsize, ysize, **kwargs):
+        d = {}
+        # Strip aperture information:
+        kwargs = {key: value for key, value in kwargs.iteritems() if
+                  "aper" not in key.lower()}
+        Element.__init__(self, name, category, l=length, xsize=xsize,
+                         ysize=ysize, **kwargs)
+
+
+class RCol(_Col):
+    def __init__(self, name, length, xsize, ysize, **kwargs):
+        _Col.__init__(self, name, "rcol", length,
+                      xsize, ysize, **kwargs)
+
+
+class ECol(_Col):
+    def __init__(self, name, length, xsize, ysize, **kwargs):
+        _Col.__init__(self, name, "ecol", length,
+                      xsize, ysize, **kwargs)
+
+
+class Degrader(Element):
+    def __init__(self, name, length, nWedges,
+                 wedgeLength=, degHeight=, materialThickness=None,
+                 degraderOffset=None, **kwargs):
+    if materialThickness is not None and degraderOffset is not None:
+        msg = "materialThickness or degraderOffset must be specified."
+        raise TypeError(msg)
+    elif materialThickness is not None:
+        Element.__init__(self, name, "degrader", l=length, numberWedges=nWedges,
+                         wedgeLength=wedgeLength, degraderHeight=degHeight,
+                         materialThickness=materialThickness, **kwargs))
+    else:
+        Element.__init__(self, name, "degrader", l=length,
+                         numberWedges=nWedges, wedgeLength=wedgeLength,
+                         degraderHeight=degHeight,
+                         degraderOffset=degraderOffset, **kwargs))
+
+
+class MuSpoiler(Element):
+    def __init__(self, name, length, B, **kwargs):
+        Element.__init__(self, name,'muspoiler',l=length,B=b,**kwargs)
+
+
+class Solenoid(Element):
+    def __init__(self, name, length, ks, **kwargs):
+        Element.__init__(self, name,'solenoid',l=length,ks=ks,**kwargs)
+
+
+class Shield(Element):
+    def __init__(self, name, length, **kwargs):
+        Element.__init__(self, name,'shield',l=length,**kwargs)
+
+
+class Laser(Element):
+    def __init__(self, length, name, x, y, z,
+                 waveLength, **kwargs):
+        Element.__init__(self, name,'laser',
+                         l=length,x=x,y=y,z=z,
+                         waveLength=waveLength,
+                         **kwargs))
+
+
 class Sampler:
     """
     A sampler is unique in that it does not have a length unlike every
