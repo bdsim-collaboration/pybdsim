@@ -104,6 +104,10 @@ class ElementBase(dict):
         #so behaviour is similar to dict.keys()
         return self._keysextra
 
+    def __delitem__(self, key):
+        dict.__delitem__(self, key)
+        self._keysextra.remove(key)
+
     def __repr__(self):
         s = ''
         s += self.name + ': '
