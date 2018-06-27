@@ -555,14 +555,15 @@ class _Dipole(Element):
         split_bends = self._split_length_with_length_scaled_parameters(
             points, ['angle'])
 
-        # Zero all the in/out parameters.
+        # Delte all the in/out parameters.  pop syntax just a quicker
+        # way of doing try: del...  etc.
         for bend in split_bends:
-            bend['fint'] = 0
-            bend['fintx'] = 0
-            bend['e1'] = 0
-            bend['e2'] = 0
-            bend['h1'] = 0
-            bend['h2'] = 0
+            bend.pop('fint', None)
+            bend.pop('fintx', None)
+            bend.pop('e1', None)
+            bend.pop('e2', None)
+            bend.pop('h1', None)
+            bend.pop('h2', None)
 
         # Assign following to their respective elements, but only if
         # self (i.e., the unsplit element) had them.
