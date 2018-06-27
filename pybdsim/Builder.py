@@ -22,6 +22,8 @@ import Options as _Options
 import Writer as _Writer
 import _General
 from   _General import IsFloat as _IsFloat
+
+import collections
 import math as _math
 import time as _time
 import os as _os
@@ -61,7 +63,7 @@ bdsimcategories = [
     'gap',
     ]
 
-class ElementBase(dict):
+class ElementBase(collections.MutableMapping):
     """
     A class that represents an element / item in an accelerator beamline.
     Printing or string conversion produces the BDSIM syntax.
@@ -72,12 +74,26 @@ class ElementBase(dict):
 
     """
     def __init__(self, name, isMultipole=False, **kwargs):
-        dict.__init__(self)
+        self._store = dict()
         self['name']      = name
         self.name         = name
         self._isMultipole = isMultipole
         self._keysextra   = []
         self.__Update(kwargs)
+
+
+
+    def __getitem__(self, key):
+        return self._store[key]
+
+    def __setitem__(self, key, value):
+        self._store[key] = value
+
+    def __len__(self):
+        return len(self._store)
+
+    def __iter__(self):
+        return iter(self._store)
 
     def __Update(self,d):
         dict.update(d)
@@ -105,8 +121,11 @@ class ElementBase(dict):
         return self._keysextra
 
     def __delitem__(self, key):
-        dict.__delitem__(self, key)
-        self._keysextra.remove(key)
+        del self._store[key]
+        try: # it may be in _store, but not necessarily in _keyextra
+            self._keysextra.remove(key)
+        except:
+            pass
 
     def __repr__(self):
         s = ''
