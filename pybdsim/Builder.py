@@ -123,6 +123,59 @@ class ElementBase(dict):
         s += ';\n'
         return s
 
+    def _split_length(self, points):
+        """points = points along the start of the element.  So n
+        points will return n+1 elements.  """
+        try:
+            total_length = self['l']
+        except:
+            raise TypeError("Element has no length, cannot be split.")
+        accumulated_length = 0.0
+        split_elements = []
+        This = type(self) # This class, we use to construct the output.
+        # Not length or name.  We change these here.  We leave
+        # updating other parameters (based on length or otherwise) to
+        # other methods or functions.
+        other_kwargs = _copy.deepcopy(dict(self))
+        del other_kwargs['l']
+        del other_kwargs['name']
+        del other_kwargs['category'] # boilerplate argument we have to remove
+
+        for i, point in enumerate(sorted(points)):
+            name = "{}_split_{}".format(self['name'], i)
+            length = round(point - accumulated_length, 15)
+            accumulated_length += length
+            split_elements.append(This(name, l=length, **other_kwargs))
+        # Add the final element (for n points we have n+1 elements, so
+        # we add the last one here "by hand").
+        split_elements.append(
+                This("{}_split_{}".format(self['name'], i + 1),
+                     l=round(total_length - accumulated_length, 15),
+                     **other_kwargs))
+
+        return split_elements
+
+    def _split_length_with_length_scaled_parameters(self, points, parameters):
+        split_elements = self._split_length(points)
+        parameters_and_original_values = [(parameter, self[parameter])
+                                          for parameter in parameters]
+        _scale_element_parameters_by_length(parameters_and_original_values,
+                                            split_elements, self['l'])
+        return split_elements
+
+
+def _scale_element_parameters_by_length(parameters, elements, total_length):
+    """Scale a list of elements' parameters by their length.  So if
+    you have a list of hkickers you want to rescale based on their
+    length:
+    - _scale_element_parameters_by_length([('hkick', 0.5)], [hk1, hk2, hk3])
+    """
+    total_length = sum([element['l'] for element in elements])
+    for parameter, total_parameter in parameters:
+        for element in elements:
+            element[parameter] = total_parameter * element['l'] / total_length
+
+
 class Element(ElementBase):
     """
     Element - an element / item in an accelerator beamline. Very similar to a
@@ -360,24 +413,38 @@ class ApertureModel(dict):
 
 
 class Drift(Element):
-    def __init__(self, name, length, **kwargs):
-        Element.__init__(self, name, "drift", l=length, **kwargs)
+    def __init__(self, name, l, **kwargs):
+        Element.__init__(self, name, "drift", l=l, **kwargs)
 
+    def split(self, points):
+        return self._split_length(points)
 
 class HKicker(Element):
     def __init__(self, name, hkick, **kwargs):
         Element.__init__(self, name, 'hkicker', hkick=hkick, **kwargs)
 
+    def split(self, points):
+        return self._split_length_with_length_scaled_parameters(points,
+                                                                ['hkick'])
 
 class VKicker(Element):
     def __init__(self, name, vkick, **kwargs):
         Element.__init__(self, name, 'vkicker', vkick=vkick, **kwargs)
 
 
+    def split(self, points):
+        return self._split_length_with_length_scaled_parameters(points,
+                                                                ['vkick'])
+
 class Kicker(Element):
     def __init__(self, name, hkick, vkick, **kwargs):
         Element.__init__(self, name, 'kicker', hkick=hkick,
                          vkick=vkick, **kwargs)
+
+    def split(self, points):
+        return self._split_length_with_length_scaled_parameters(points,
+                                                                ['vkick',
+                                                                 'hkick'])
 
 
 class TKicker(Element):
@@ -385,10 +452,18 @@ class TKicker(Element):
         Element.__init__(self, name, 'tkicker', hkick=hkick,
                          vkick=vkick, **kwargs)
 
+    def split(self, points):
+        return self._split_length_with_length_scaled_parameters(points,
+                                                                ['vkick',
+                                                                 'hkick'])
+
 
 class Gap(Element):
-    def __init__(self, name, length, **kwargs):
-        Element.__init__(self, name, 'gap', l=length, **kwargs)
+    def __init__(self, name, l, **kwargs):
+        Element.__init__(self, name, 'gap', l=l, **kwargs)
+
+    def split(self, points):
+        return self._split_length(points)
 
 
 class Marker(Element):
@@ -397,9 +472,20 @@ class Marker(Element):
 
 
 class Multipole(Element):
-    def __init__(self, name, length, knl, ksl, **kwargs):
-        Element.__init__(self, name, 'multipole', l=length,
+    def __init__(self, name, l, knl, ksl, **kwargs):
+        Element.__init__(self, name, 'multipole', l=l,
                          knl=knl, ksl=ksl, **kwargs)
+
+    def split(self, points):
+        split_mps = self._split_length(points)
+        for mp in split_mps:
+            new_knl = tuple([integrated_strength * mp['l'] / self['l']
+                             for integrated_strength in mp['knl']])
+            new_ksl = tuple([integrated_strength * mp['l'] / self['l']
+                             for integrated_strength in mp['knl']])
+            mp['knl'] = new_knl
+            mp['ksl'] = new_ksl
+        return split_mps
 
 
 class ThinMultipole(Element):
@@ -408,89 +494,131 @@ class ThinMultipole(Element):
 
 
 class Quadrupole(Element):
-    def __init__(self, name, length, k1, **kwargs):
-        Element.__init__(self, name, 'quadrupole', l=length,k1=k1, **kwargs)
+    def __init__(self, name, l, k1, **kwargs):
+        Element.__init__(self, name, 'quadrupole', l=l,k1=k1, **kwargs)
 
+    def split(self, points):
+        return self._split_length(points)
 
 class Sextupole(Element):
-    def __init__(self, name, length, k2, **kwargs):
-        Element.__init__(self, name, 'sextupole', l=length, k2=k2, **kwargs)
+    def __init__(self, name, l, k2, **kwargs):
+        Element.__init__(self, name, 'sextupole', l=l, k2=k2, **kwargs)
 
+    def split(self, points):
+        return self._split_length(points)
 
 class Octupole(Element):
-    def __init__(self, name, length, k3, **kwargs):
-        Element.__init__(self, name, 'octupole', l=length, k3=k3, **kwargs)
+    def __init__(self, name, l, k3, **kwargs):
+        Element.__init__(self, name, 'octupole', l=l, k3=k3, **kwargs)
 
+    def split(self, points):
+        return self._split_length(points)
 
 class Decapole(Element):
-    def __init__(self, name, length, k4, **kwargs):
-        Element.__init__(self, name,'decapole', l=length, k4=k4, **kwargs)
+    def __init__(self, name, l, k4, **kwargs):
+        Element.__init__(self, name,'decapole', l=l, k4=k4, **kwargs)
+
+    def split(self, points):
+        return self._split_length(points)
 
 
 class _Dipole(Element):
-    def __init__(self, name, category, length, angle=None, B=None, **kwargs):
+    def __init__(self, name, category, l, angle=None, B=None, **kwargs):
         if angle is None and b is None:
             raise TypeError('angle XOR B must be specified for an SBend')
         elif angle is not None:
-            Element.__init__(self, name, category, l=length,
+            Element.__init__(self, name, category, l=l,
                              angle=angle, **kwargs)
         else:
-            Element.__init__(self, name, category, l=length, B=B, **kwargs)
+            Element.__init__(self, name, category, l=l, B=B, **kwargs)
 
+    def _split_bend(self, points):
+        split_bends = self._split_length_with_length_scaled_parameters(
+            points, ['angle'])
+
+        # Zero all the in/out parameters.
+        for bend in split_bends:
+            bend['fint'] = 0
+            bend['fintx'] = 0
+            bend['e1'] = 0
+            bend['e2'] = 0
+            bend['h1'] = 0
+            bend['h2'] = 0
+
+        # Assign following to their respective elements, but only if
+        # self (i.e., the unsplit element) had them.
+        if 'e1' in self: # assign e1 to first ele only
+            split_bends[0]['e1'] = self['e1']
+        if 'e2' in self: # assign e2 to last ele only
+            split_bends[-1]['e2'] = self['e2']
+        if 'fint' in self: # assign fint to first ele only
+            split_bends[0]['fint'] = self['fint']
+        if 'fintx' in self: # assign fintx to last ele only
+            split_bends[-1]['fintx'] = self['fintx']
+        if 'h1' in self: # assign h1 to first ele only
+            split_bends[0]['h1'] = self['h1']
+        if 'h2' in self: # assign h2 to last ele only
+            split_bends[-1]['h2'] = self['h2']
+
+        return split_bends
 
 class SBend(_Dipole):
-    def __init__(self, name, length, angle=None, B=None):
-        _Dipole.__init__(self, name, 'sbend', length, angle=angle, B=B)
+    def __init__(self, name, l, angle=None, B=None, **kwargs):
+        _Dipole.__init__(self, name, 'sbend', l, angle=angle, B=B, **kwargs)
 
+    def split(self, points):
+        return self._split_bend(points)
 
 class RBend(_Dipole):
-    def __init__(self, name, length, angle=None, B=None):
-        _Dipole.__init__(self, name, 'rbend', length, angle=angle, B=B)
+    def __init__(self, name, l, angle=None, B=None, **kwargs):
+        _Dipole.__init__(self, name, 'rbend', l, angle=angle, B=B, **kwargs)
 
+    def split(self, points):
+        return self._split_bend(points)
 
 class RFCavity(Element):
-    def __init__(self, name, length, gradient, **kwargs):
-        Element.__init__(self, name, 'rfcavity', l=length,
+    def __init__(self, name, l, gradient, **kwargs):
+        Element.__init__(self, name, 'rfcavity', l=l,
                          gradient=gradient, **kwargs)
 
 
 class _Col(Element):
-    def __init__(self, name, category, length, xsize, ysize, **kwargs):
+    def __init__(self, name, category, l, xsize, ysize, **kwargs):
         d = {}
         # Strip aperture information:
         kwargs = {key: value for key, value in kwargs.iteritems() if
                   "aper" not in key.lower()}
-        Element.__init__(self, name, category, l=length, xsize=xsize,
+        Element.__init__(self, name, category, l=l, xsize=xsize,
                          ysize=ysize, **kwargs)
 
 
 class RCol(_Col):
-    def __init__(self, name, length, xsize, ysize, **kwargs):
-        _Col.__init__(self, name, "rcol", length,
+    def __init__(self, name, l, xsize, ysize, **kwargs):
+        _Col.__init__(self, name, "rcol", l,
                       xsize, ysize, **kwargs)
 
 
 class ECol(_Col):
-    def __init__(self, name, length, xsize, ysize, **kwargs):
-        _Col.__init__(self, name, "ecol", length,
+    def __init__(self, name, l, xsize, ysize, **kwargs):
+        _Col.__init__(self, name, "ecol", l,
                       xsize, ysize, **kwargs)
 
 
 class Degrader(Element):
-    def __init__(self, name, length, nWedges,
+    def __init__(self, name, l, nWedges,
                  wedgeLength, degHeight, materialThickness=None,
                  degraderOffset=None, **kwargs):
         if (materialThickness is None and degraderOffset is None):
             msg = "materialThickness or degraderOffset must be specified."
             raise TypeError(msg)
         elif materialThickness is not None:
-            Element.__init__(self, name, "degrader", l=length,
+            Element.__init__(self, name, "degrader", l=l,
                              numberWedges=nWedges,
                              wedgeLength=wedgeLength,
                              degraderHeight=degHeight,
                              materialThickness=materialThickness, **kwargs)
         else:
-            Element.__init__(self, name, "degrader", l=length,
+            Element.__init__(self, name, "degrader", l=l,
                              numberWedges=nWedges,
                              wedgeLength=wedgeLength,
                              degraderHeight=degHeight,
@@ -498,25 +626,25 @@ class Degrader(Element):
 
 
 class MuSpoiler(Element):
-    def __init__(self, name, length, B, **kwargs):
-        Element.__init__(self, name,'muspoiler',l=length,B=B,**kwargs)
+    def __init__(self, name, l, B, **kwargs):
+        Element.__init__(self, name,'muspoiler',l=l,B=B,**kwargs)
 
 
 class Solenoid(Element):
-    def __init__(self, name, length, ks, **kwargs):
-        Element.__init__(self, name,'solenoid',l=length,ks=ks,**kwargs)
+    def __init__(self, name, l, ks, **kwargs):
+        Element.__init__(self, name,'solenoid',l=l,ks=ks,**kwargs)
 
 
 class Shield(Element):
-    def __init__(self, name, length, **kwargs):
-        Element.__init__(self, name,'shield',l=length,**kwargs)
+    def __init__(self, name, l, **kwargs):
+        Element.__init__(self, name,'shield',l=l,**kwargs)
 
 
 class Laser(Element):
-    def __init__(self, name, length, x, y, z,
+    def __init__(self, name, l, x, y, z,
                  waveLength, **kwargs):
         Element.__init__(self, name,'laser',
-                         l=length,x=x,y=y,z=z,
+                         l=l,x=x,y=y,z=z,
                          waveLength=waveLength,
                          **kwargs)
 
