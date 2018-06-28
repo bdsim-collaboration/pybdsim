@@ -205,15 +205,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
     if verbose:
         madx.ReportPopulations()
 
-    # check aperture information if supplied
-    useTfsAperture = False
-    if type(aperturedict) == _pymadx.Data.Aperture:
-        useTfsAperture = True
-        if verbose:
-            aperturedict.ReportPopulations()
-    if verbose:
-        print 'Using pymadx.Apeture instance? --> ', useTfsAperture
-
     # keep list of omitted zero length items
     itemsomitted = []
 
@@ -235,86 +226,17 @@ def MadxTfs2Gmad(tfs, outputfilename,
                 print 'skipping zero-length item: {}'.format(name)
             itemsomitted.append(name)
             continue  # skip this item.
-
-        # now deal with aperture
-        if useTfsAperture:
-            sMid = item["SORIGINAL"] - item["L"] / 2.0  # note SORIGINAL not S
-            apermodel = _Builder.PrepareApertureModel(
-                aperturedict.GetApertureAtS(sMid), defaultAperture)
-            #apermodel = aperturedict.GetApertureForElementNamed(name)
-            # print 'Using aperture instance'
-            should, lengths, apers = aperturedict.ShouldSplit(item)
-            should = False
-            if should:
-                if verbose:
-                    print 'Splitting item based on aperture'
-                ls = _np.array(lengths)
-                if abs(_np.array(lengths).sum() - l) > 1e-6 or (ls < 0).any():
-                    print 'OH NO!!!'
-                    print l
-                    print lengths
-                    print apers
-                    return
-                # we should split this item up
-                # add it first to the raw machine
-                _AddSingleElement(item, a, allelementdict, verbose,
-                                  allNamesUnique, userdict,
-                                  flipmagnets, linear, zerolength,
-                                  ignorezerolengthitems)
-                # now get the last element - the one that's just been added
-                lastelement = a[-1]
-                for splitLength, aper in zip(lengths, apers):
-                    # append the right fraction with the appropriate aperture
-                    # to the 'b' machine
-                    apermodel = _Builder.PrepareApertureModel(
-                        aper, defaultAperture)
-                    print apermodel
-                    _AddSingleElement(lastelement
-                                      * (splitLength / l), b,
-                                      apermodel,
-                                      allelementdict,
-                                      verbose, allNamesUnique,
-                                      userdict, flipmagnets, linear,
-                                      zerolength, ignorezerolengthitems)
-            # else:
-                #apermodel = _Builder.PrepareApertureModel(apers[0],defaultAperture)
-                # print apermodel
-                # print len(b)
-            _AddSingleElement(item, a, apermodel, allelementdict,
-                              verbose, allNamesUnique, userdict,
-                              flipmagnets, linear, zerolength, ignorezerolengthitems)
-            _AddSingleElement(item, b, apermodel, allelementdict,
-                              verbose, allNamesUnique, userdict,
-                              flipmagnets, linear, zerolength, ignorezerolengthitems)
-            #    print len(b)
-        elif usemadxaperture and name not in aperturedict:
-            print 'Using aperture in madx tfs file'
-            apermodel = _Builder.PrepareApertureModel(item, defaultAperture)
-            _AddSingleElement(item, a, apermodel, allelementdict,
-                              verbose, allNamesUnique, userdict,
-                              flipmagnets, linear, zerolength, ignorezerolengthitems)
-            _AddSingleElement(item, b, apermodel, allelementdict,
-                              verbose, allNamesUnique, userdict,
-                              flipmagnets, linear, zerolength, ignorezerolengthitems)
-        elif item['NAME'] in aperturedict:
-            apermodel = _Builder.PrepareApertureModel(
-                aperturedict[name], defaultAperture)
-            _AddSingleElement(item, a, allelementdict, verbose,
-                              allNamesUnique, userdict, flipmagnets,
-                              linear, zerolength, ignorezerolengthitems,
-                              aperModel=apermodel)
-            _AddSingleElement(item, b, allelementdict, verbose,
-                              allNamesUnique, userdict, flipmagnets,
-                              linear, zerolength, ignorezerolengthitems,
-                              aperModel=apermodel)
-        else:
-            _AddSingleElement(item, a, allelementdict, verbose,
-                              allNamesUnique, userdict, flipmagnets,
-                              linear, zerolength, ignorezerolengthitems)
-            _AddSingleElement(item, b, allelementdict, verbose,
-                              allNamesUnique, userdict, flipmagnets,
-                              linear, zerolength, ignorezerolengthitems)
-    # end of for loop
+        rawAper, splitApertures = _GetElementAperModel(item, madx,
+                                                       usemadxaperture,
+                                                       aperturedict,
+                                                       apertureAlgorithm)
+        gmadElement = _MadxToGmadElementFactory(item, allelementdict, verbose,
+                                                allNamesUnique, userdict,
+                                                flipmagnets, linear,
+                                                zerolength,
+                                                ignorezerolengthitems,
+                                                aperModel=rawAper)
+        from IPython import embed; embed()
 
     # add a single marker at the end of the line
     a.AddMarker('theendoftheline')
@@ -656,6 +578,37 @@ def _MadxToGmadElementFactory(item, allelementdict, verbose,
             print 'putting drift in instead as it has a finite length'
             return _Builder.Drift(rname, l)
 
+
+def _GetElementAperModel(item, tfs, usemadxaperture, aperturedict,
+                         apertureAlgorithm):
+    """Returns the raw aperture model (i.e. unsplit), and a list of
+    split apertures."""
+    rawAperture = None
+    splitApertures = []
+    name = item["NAME"]
+    if (isinstance(aperturedict, _pymadx.Data.Aperture)
+        and apertureAlgorithm == "nearest"):
+        s_mid = item["SMID"]
+        rawAperture = _Builder.PrepareApertureModel(
+            aperturedict.GetApertureAtS(s_mid), defaultAperture)
+    elif (isinstance(aperturedict, _pymadx.Data.Aperture)
+          and apertureAlgorithm == "latch"):
+        s_end = item["S"]
+        s_mid = item["SMID"]
+        s_start = s_end - item["L"]
+        rawAperture = _Builder.PrepareApertureModel(
+            aperturedict.GetApertureAtS(sMid), defaultAperture)
+        apermodel.append(_Builder.PrepareApertureModel(item) for item in
+                         aperturedict.GetLatchedAperturesForSRange(s_start,
+                                                                   s_end))
+    elif name in aperturedict:
+        rawAperture = _Builder.PrepareApertureModel(name, defaultAperture)
+    elif usemadxaperture:
+        rawAperture = _Builder.PrepareApertureModel(item, defaultAperture)
+
+    if not splitApertures:
+        splitApertures = [rawAperture]
+    return rawAperture, splitApertures
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     """
