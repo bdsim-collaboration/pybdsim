@@ -244,7 +244,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                                 zerolength,
                                                 ignorezerolengthitems,
                                                 aperModel=rawAper)
-        from IPython import embed; embed()
 
     # add a single marker at the end of the line
     a.AddMarker('theendoftheline')
