@@ -141,46 +141,6 @@ class ElementBase(collections.MutableMapping):
         s += ';\n'
         return s
 
-    def _split_length(self, points):
-        """points = points along the start of the element.  So n
-        points will return n+1 elements.  """
-        try:
-            total_length = self['l']
-        except:
-            raise TypeError("Element has no length, cannot be split.")
-        accumulated_length = 0.0
-        split_elements = []
-        This = type(self) # This class, we use to construct the output.
-        # Not length or name.  We change these here.  We leave
-        # updating other parameters (based on length or otherwise) to
-        # other methods or functions.
-        other_kwargs = _copy.deepcopy(dict(self))
-        del other_kwargs['l']
-        del other_kwargs['name']
-        del other_kwargs['category'] # boilerplate argument we have to remove
-
-        for i, point in enumerate(sorted(points)):
-            name = "{}_split_{}".format(self['name'], i)
-            length = round(point - accumulated_length, 15)
-            accumulated_length += length
-            split_elements.append(This(name, l=length, **other_kwargs))
-        # Add the final element (for n points we have n+1 elements, so
-        # we add the last one here "by hand").
-        split_elements.append(
-                This("{}_split_{}".format(self['name'], i + 1),
-                     l=round(total_length - accumulated_length, 15),
-                     **other_kwargs))
-
-        return split_elements
-
-    def _split_length_with_length_scaled_parameters(self, points, parameters):
-        split_elements = self._split_length(points)
-        parameters_and_original_values = [(parameter, self[parameter])
-                                          for parameter in parameters]
-        _scale_element_parameters_by_length(parameters_and_original_values,
-                                            split_elements, self['l'])
-        return split_elements
-
 
 def _scale_element_parameters_by_length(parameters, elements, total_length):
     """Scale a list of elements' parameters by their length.  So if
@@ -283,6 +243,52 @@ class Element(ElementBase):
 
     def __div__(self, factor):
         return self.__mul__(float(1./factor))
+
+    def _split_length(self, points):
+        """points = points along the start of the element.  So n
+        points will return n+1 elements.  """
+        try:
+            total_length = self['l']
+        except:
+            raise TypeError("Element has no length, cannot be split.")
+        accumulated_length = 0.0
+        split_elements = []
+        This = type(self) # This class, we use to construct the output.
+        # Not length or name.  We change these here.  We leave
+        # updating other parameters (based on length or otherwise) to
+        # other methods or functions.
+        other_kwargs = _copy.deepcopy(dict(self))
+        del other_kwargs['l']
+        del other_kwargs['name']
+        del other_kwargs['category'] # boilerplate argument we have to remove
+
+        for i, point in enumerate(sorted(points)):
+            name = "{}_split_{}".format(self['name'], i)
+            length = round(point - accumulated_length, 15)
+            accumulated_length += length
+            split_elements.append(This(name, l=length, **other_kwargs))
+        # Add the final element (for n points we have n+1 elements, so
+        # we add the last one here "by hand").
+        split_elements.append(
+                This("{}_split_{}".format(self['name'], i + 1),
+                     l=round(total_length - accumulated_length, 15),
+                     **other_kwargs))
+
+        return split_elements
+
+    def _split_length_with_length_scaled_parameters(self, points, parameters):
+        split_elements = self._split_length(points)
+        parameters_and_original_values = [(parameter, self[parameter])
+                                          for parameter in parameters]
+        _scale_element_parameters_by_length(parameters_and_original_values,
+                                            split_elements, self['l'])
+        return split_elements
+
+    def split(self, points):
+        """Split this element into len(points)+1 elements, with the
+        correct lengths.  This does not affect magnetic strengths,
+        etc, which is left to derived classes where appropriate. """
+        return self._split_length(points)
 
 
 class ElementModifier(ElementBase):
@@ -434,8 +440,6 @@ class Drift(Element):
     def __init__(self, name, l, **kwargs):
         Element.__init__(self, name, "drift", l=l, **kwargs)
 
-    def split(self, points):
-        return self._split_length(points)
 
 class HKicker(Element):
     def __init__(self, name, hkick, **kwargs):
@@ -480,9 +484,6 @@ class Gap(Element):
     def __init__(self, name, l, **kwargs):
         Element.__init__(self, name, 'gap', l=l, **kwargs)
 
-    def split(self, points):
-        return self._split_length(points)
-
 
 class Marker(Element):
     def __init__(self, name):
@@ -515,29 +516,20 @@ class Quadrupole(Element):
     def __init__(self, name, l, k1, **kwargs):
         Element.__init__(self, name, 'quadrupole', l=l,k1=k1, **kwargs)
 
-    def split(self, points):
-        return self._split_length(points)
 
 class Sextupole(Element):
     def __init__(self, name, l, k2, **kwargs):
         Element.__init__(self, name, 'sextupole', l=l, k2=k2, **kwargs)
 
-    def split(self, points):
-        return self._split_length(points)
 
 class Octupole(Element):
     def __init__(self, name, l, k3, **kwargs):
         Element.__init__(self, name, 'octupole', l=l, k3=k3, **kwargs)
 
-    def split(self, points):
-        return self._split_length(points)
 
 class Decapole(Element):
     def __init__(self, name, l, k4, **kwargs):
         Element.__init__(self, name,'decapole', l=l, k4=k4, **kwargs)
-
-    def split(self, points):
-        return self._split_length(points)
 
 
 class _Dipole(Element):
@@ -550,7 +542,7 @@ class _Dipole(Element):
         else:
             Element.__init__(self, name, category, l=l, B=B, **kwargs)
 
-    def _split_bend(self, points):
+    def split(self, points):
         split_bends = self._split_length_with_length_scaled_parameters(
             points, ['angle'])
         # Delete all the in/out parameters.  pop syntax just a quicker
@@ -584,15 +576,9 @@ class SBend(_Dipole):
     def __init__(self, name, l, angle=None, B=None, **kwargs):
         _Dipole.__init__(self, name, 'sbend', l, angle=angle, B=B, **kwargs)
 
-    def split(self, points):
-        return self._split_bend(points)
-
 class RBend(_Dipole):
     def __init__(self, name, l, angle=None, B=None, **kwargs):
         _Dipole.__init__(self, name, 'rbend', l, angle=angle, B=B, **kwargs)
-
-    def split(self, points):
-        return self._split_bend(points)
 
 class RFCavity(Element):
     def __init__(self, name, l, gradient, **kwargs):
