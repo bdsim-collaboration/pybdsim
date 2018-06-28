@@ -78,16 +78,16 @@ class ElementBase(collections.MutableMapping):
         self['name']      = name
         self.name         = name
         self._isMultipole = isMultipole
-        self._keysextra   = []
+        self._keysextra   = set()
         self.__Update(kwargs)
-
-
 
     def __getitem__(self, key):
         return self._store[key]
 
     def __setitem__(self, key, value):
         self._store[key] = value
+        if key not in {"name", "category"}: # keys which are not # 'extra'.
+            self._keysextra.add(key)
 
     def __len__(self):
         return len(self._store)
@@ -96,7 +96,6 @@ class ElementBase(collections.MutableMapping):
         return iter(self._store)
 
     def __Update(self,d):
-        dict.update(d)
         for key,value in d.iteritems():
             if value == "" :
                 continue
@@ -114,7 +113,7 @@ class ElementBase(collections.MutableMapping):
             else:
                 #must be a string
                 self[key] = '"'+value+'"'
-            self._keysextra.append(str(key)) #order preserving
+            self._keysextra.add(str(key))
 
     def keysextra(self):
         #so behaviour is similar to dict.keys()
