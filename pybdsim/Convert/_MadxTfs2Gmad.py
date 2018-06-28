@@ -186,7 +186,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # test whether filepath or tfs instance supplied
     madx = _pymadx.Data.CheckItsTfs(tfs)
 
-    factor = 1
     if madx.header.has_key('PARTICLE') and flipmagnets is None:
         # try to check automatically
         particleName = madx.header['PARTICLE']
@@ -287,6 +286,7 @@ def _MadxToGmadElementFactory(item, allelementdict, verbose,
                               aperModel=None):
     """Function which makes the correct GMAD element given a TFS
     element to gmad."""
+    factor = 1
     if flipmagnets is not None:
         factor = -1 if flipmagnets else 1  # flipping magnets
 
