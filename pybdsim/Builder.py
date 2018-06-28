@@ -553,8 +553,7 @@ class _Dipole(Element):
     def _split_bend(self, points):
         split_bends = self._split_length_with_length_scaled_parameters(
             points, ['angle'])
-
-        # Delte all the in/out parameters.  pop syntax just a quicker
+        # Delete all the in/out parameters.  pop syntax just a quicker
         # way of doing try: del...  etc.
         for bend in split_bends:
             bend.pop('fint', None)
