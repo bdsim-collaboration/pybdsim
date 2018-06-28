@@ -237,6 +237,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         rawAper, splitApertures = _GetElementAperModel(item, madx,
                                                        usemadxaperture,
                                                        aperturedict,
+                                                       defaultAperture,
                                                        apertureAlgorithm)
         gmadElement = _MadxToGmadElementFactory(item, allelementdict, verbose,
                                                 allNamesUnique, userdict,
@@ -588,7 +589,7 @@ def _MadxToGmadElementFactory(item, allelementdict, verbose,
 
 
 def _GetElementAperModel(item, tfs, usemadxaperture, aperturedict,
-                         apertureAlgorithm):
+                         defaultAperture, apertureAlgorithm):
     """Returns the raw aperture model (i.e. unsplit), and a list of
     split apertures."""
     rawAperture = None
