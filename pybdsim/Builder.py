@@ -425,8 +425,8 @@ class ApertureModel(dict):
 
     def __repr__(self):
         # aper1 is always present at least.
-        out = ('apertureType="{}*m", aper1={}*m').format(self["apertureType"],
-                                                         self["aper1"])
+        out = ('apertureType="{}", aper1={}*m').format(self["apertureType"],
+                                                       self["aper1"])
         # Append any non-zero apertures.
         for i in [2,3,4]:
             aperKey = "aper{}".format(i)
