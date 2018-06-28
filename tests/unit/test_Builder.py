@@ -47,16 +47,16 @@ def decapole():
 @pytest.fixture
 def sbend():
     return pybdsim.Builder.SBend('mys', 0.5, angle=0.5,
-                                 e1=0.1, e2=0.3,
-                                 fint=0.1, fintx=0.4,
-                                 h1=0.5, h2=0.5, hgap=0.1)
+                                 e1=0.1, e2=0.2,
+                                 fint=0.1, fintx=0.2,
+                                 h1=0.1, h2=0.2, hgap=0.5)
 
 @pytest.fixture
 def rbend():
     return pybdsim.Builder.RBend('myr', 0.5, angle=0.5,
-                                 e1=0.1, e2=0.3,
-                                 fint=0.1, fintx=0.4,
-                                 h1=0.5, h2=0.5, hgap=0.1)
+                                 e1=0.1, e2=0.2,
+                                 fint=0.1, fintx=0.2,
+                                 h1=0.1, h2=0.2, hgap=0.5)
 
 def test_Drift_repr(drift):
     expected = 'myd: drift, l=0.5;\n'
@@ -187,18 +187,38 @@ def test_Decapole_splitting(decapole):
     assert expected == split_decapoles
 
 def test_SBend_repr(sbend):
-    expected = ('mys: sbend, angle=0.5, e1=0.1, e2=0.3, fint=0.1, fintx=0.4,'
-                ' h1=0.5, h2=0.5, hgap=0.1, l=0.5;\n')
+    expected = ('mys: sbend, angle=0.5, e1=0.1, e2=0.2, fint=0.1, fintx=0.2,'
+                ' h1=0.1, h2=0.2, hgap=0.5, l=0.5;\n')
     assert repr(sbend) == expected
 
 def test_SBend_split(sbend):
-    split_octupoles = sbend.split([0.2, 0.4])
-
+    split_sbends = sbend.split([0.2, 0.4])
+    expected = [pybdsim.Builder.SBend('mys_split_0', 0.2,
+                                      angle=0.2, e1=0.1, fint=0.1,
+                                      h1=0.1, hgap=0.5),
+                pybdsim.Builder.SBend('mys_split_1', 0.2,
+                                      angle=0.2, hgap=0.5),
+                pybdsim.Builder.SBend('mys_split_2', 0.1,
+                                      angle=0.1, e2=0.2, fintx=0.2,
+                                      h2=0.2, hgap=0.5)]
+    assert split_sbends == expected
 
 def test_RBend_repr(rbend):
-    expected = ('myr: rbend, angle=0.5, e1=0.1, e2=0.3, fint=0.1, fintx=0.4,'
-                ' h1=0.5, h2=0.5, hgap=0.1, l=0.5;\n')
+    expected = ('myr: rbend, angle=0.5, e1=0.1, e2=0.2, fint=0.1, fintx=0.2,'
+                ' h1=0.1, h2=0.2, hgap=0.5, l=0.5;\n')
     assert repr(rbend) == expected
+
+def test_RBend_split(rbend):
+    split_rbends = rbend.split([0.2, 0.4])
+    expected = [pybdsim.Builder.RBend('myr_split_0', 0.2,
+                                      angle=0.2, e1=0.1, fint=0.1,
+                                      h1=0.1, hgap=0.5),
+                pybdsim.Builder.RBend('myr_split_1', 0.2,
+                                      angle=0.2, hgap=0.5),
+                pybdsim.Builder.RBend('myr_split_2', 0.1,
+                                      angle=0.1, e2=0.2, fintx=0.2,
+                                      h2=0.2, hgap=0.5)]
+    assert split_rbends == expected
 
 def test_RFCavity_repr():
     rf = pybdsim.Builder.RFCavity('rf', 0.5, 0.5)
