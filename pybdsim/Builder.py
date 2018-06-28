@@ -576,9 +576,11 @@ class SBend(_Dipole):
     def __init__(self, name, l, angle=None, B=None, **kwargs):
         _Dipole.__init__(self, name, 'sbend', l, angle=angle, B=B, **kwargs)
 
+
 class RBend(_Dipole):
     def __init__(self, name, l, angle=None, B=None, **kwargs):
         _Dipole.__init__(self, name, 'rbend', l, angle=angle, B=B, **kwargs)
+
 
 class RFCavity(Element):
     def __init__(self, name, l, gradient, **kwargs):
