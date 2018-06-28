@@ -508,7 +508,7 @@ class Multipole(Element):
 
 
 class ThinMultipole(Element):
-    def __init__(self, name, knl, ksl, **kwargs):
+    def __init__(self, name, knl=(0,0), ksl=(0,0), **kwargs):
         Element.__init__(self, name, 'thinmultipole', knl=knl, ksl=ksl, **kwargs)
 
 
