@@ -64,7 +64,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  beamParmsDict         = {},
                  linear                = False,
                  overwrite             = True,
-                 allNamesUnique        = False):
+                 allNamesUnique        = False,
+                 apertureAlgorithm     = 'nearest'):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -166,6 +167,14 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | This makes it easier to edit individual components as they are    |
     |                               | guaranteed to appear only once in the entire resulting GMAD       |
     |                               | lattice.                                                          |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **apertureAlgorithm**         | Only alters functionality when aperturedict is a                  |
+    |                               | pymadx.Data.Aperture instance.  Determines how the apertures are  |
+    |                               | set.  If "latch", then the last aperture in the sequence (by S)   |
+    |                               | is used, and should the aperture change within the element, then  |
+    |                               | the element will be split.                                        |
+    |                               | If "nearest", then the aperture nearest to the mid point of the   |
+    |                               | element is used.  This is the default behaviour.                  |
     +-------------------------------+-------------------------------------------------------------------+
 
     """
