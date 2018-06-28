@@ -654,6 +654,11 @@ class Laser(Element):
                          waveLength=waveLength,
                          **kwargs)
 
+class ExternalGeometry(object):
+    def __init__(self, name, l, outerDiameter, geometryFile, **kws):
+        Element.__init__(self, name, 'element', l=l,
+                         outerDiameter=outerDiameter,
+                         geometryFile=geometryFile, **kwargs)
 
 class Sampler:
     """
