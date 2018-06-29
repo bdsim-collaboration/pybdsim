@@ -752,38 +752,39 @@ class Machine:
         """
         return self.length
 
-    def Append(self,object):
-        if type(object) not in (Element,Line):
-            raise TypeError("Only Elements or Lines can be added to the machine")
-        elif object.name not in self.elementsd.keys():
+    def Append(self, item):
+        if not isinstance(item, (Element, Line)):
+            msg = "Only Elements or Lines can be added to the machine"
+            raise TypeError(msg)
+        elif item.name not in self.elementsd.keys():
             #hasn't been used before - define it
-            if type(object) is Line:
-                for element in object:
-                    self.Append(object)
+            if type(item) is Line:
+                for element in item:
+                    self.Append(item)
             else:
-                self.elements.append(object)
-                self.elementsd[object.name] = object
+                self.elements.append(item)
+                self.elementsd[item.name] = item
         else:
             if self.verbose:
-                print "Element of name: ",object.name," already defined, simply adding to sequence"
+                print "Element of name: ",item.name," already defined, simply adding to sequence"
         #finally add it to the sequence
-        self.sequence.append(object.name)
+        self.sequence.append(item.name)
 
-        self.length += object.length
+        self.length += item.length
         self.lenint.append(self.length)
 
         # list of elements that produce SR
         elementsSR = ["sbend", "rbend"]
 
         # update energy if correct element category and has finite length.
-        if object.category in elementsSR and object.length > 0:
-            if object.has_key('angle'):
-                ang = object['angle']
+        if item.category in elementsSR and item.length > 0:
+            if "angle" in item:
+                ang = item['angle']
                 if type(ang) == tuple:
                     ang = ang[0]
                 else:
                     ang = ang
-            elif object.has_key('B'):
+            elif "B" in item:
                 # Assume a beam instance has been added to machine...
                 if (self.beam['particle'] == "e-") or (self.beam['particle'] == "e+"):
                     pMass = 0.000511
@@ -793,7 +794,7 @@ class Machine:
                     pMass = 0
                 if (self.energy[-1] > 0):
                     brho = 3.3356 * _np.sqrt(self.energy[-1]**2 - pMass**2)
-                    ang  = object['B'] * object.length / brho
+                    ang  = item['B'] * item.length / brho
                 else:
                     ang  = 0
             else:
@@ -803,7 +804,7 @@ class Machine:
 
             # bend so SR generated. Recompute beam energy
             energy = self.energy[-1]
-            self.energy.append(energy-14.1e-6*ang**2/object.length*energy**4)
+            self.energy.append(energy-14.1e-6*ang**2/item.length*energy**4)
         else :
             self.energy.append(self.energy[-1])
 
