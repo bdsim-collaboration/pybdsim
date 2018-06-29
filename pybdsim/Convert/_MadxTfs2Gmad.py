@@ -302,9 +302,6 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         print 'starting key word arguments from all element dict'
         print kws
 
-    if aperModel != None:
-        kws.update(aperModel)
-
     name = item['NAME']
     # remove special characters like $, % etc 'reduced' name - rname:
     rname = pybdsim._General.PrepareReducedName(name
