@@ -280,10 +280,11 @@ def MadxTfs2Gmad(tfs, outputfilename,
     return b, a, itemsomitted
 
 
-def _MadxToGmadElementFactory(item, allelementdict, verbose,
-                              allNamesUnique, userdict, flipmagnets, linear,
-                              zerolength, ignorezerolengthitems,
-                              aperModel=None):
+def _Tfs2GmadElementFactory(item, allelementdict, verbose,
+                            userdict, collimatordict, flipmagnets,
+                            linear, zerolength,
+                            ignorezerolengthitems,
+                            allNamesUnique):
     """Function which makes the correct GMAD element given a TFS
     element to gmad."""
     factor = 1
