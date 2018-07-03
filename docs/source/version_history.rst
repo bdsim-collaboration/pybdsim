@@ -9,6 +9,12 @@ General
 -------
 
 * "PlotBdsimOptics" is now "BDSIMOptics" in the Plot module.
+* Can specify which dimension in Field class construction (i.e. 'x':'z' instead of default 'x':'y').
+
+Bug Fixes
+---------
+
+* 'nx' and 'ny' were written the wrong way around from a 2D field map in pybdsim.
 
 
 v 1.6 - 2018 / 05 / 23
