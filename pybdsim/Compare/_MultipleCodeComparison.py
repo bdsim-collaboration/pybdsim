@@ -263,20 +263,20 @@ def _make_plotter(plot_info):
         plot = _plt.figure(title, figsize, **kwargs)
 
         # loop over data lists and plot using appropriate function
-        if alldata["bdsim"] is not None:
-            for bdsimIndex,bdsimData in enumerate(alldata["bdsim"]):
+        for bdsimIndex,bdsimData in enumerate(alldata["bdsim"]):
+            if bdsimData is not None:
                 _plotBdsimType(bdsimData, allnames["bdsim"][bdsimIndex], plot_info, axis, **kwargs)
 
-        if alldata["madx"] is not None:
-            for madxIndex,madxData in enumerate(alldata["madx"]):
+        for madxIndex,madxData in enumerate(alldata["madx"]):
+            if madxData is not None:
                 _plotMadxType(madxData, allnames["madx"][madxIndex], plot_info, axis, **kwargs)
 
-        if alldata["ptctwiss"] is not None:
-            for ptctwissIndex,ptcData in enumerate(alldata["ptctwiss"]):
-                _plotMadxType(ptcData, allnames["ptctwiss"][ptctwissIndex], plot_info, axis, **kwargs)
+        for ptctwissIndex,ptctwissData in enumerate(alldata["ptctwiss"]):
+            if ptctwissData is not None:
+                _plotMadxType(ptctwissData, allnames["ptctwiss"][ptctwissIndex], plot_info, axis, **kwargs)
 
-        if alldata["ptc"] is not None:
-            for ptcIndex,ptcData in enumerate(alldata["ptc"]):
+        for ptcIndex,ptcData in enumerate(alldata["ptc"]):
+            if ptcData is not None:
                 _plotBdsimType(ptcData, allnames["ptc"][ptcIndex], plot_info, axis, **kwargs)
 
         # Set axis labels and draw legend
@@ -413,7 +413,8 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
             raise IOError("Survey not found: ", survey)
 
     # load once here to save loading for every plot
-    survey = CheckItsBDSAsciiData(survey)
+    if survey is not None:
+        survey = CheckItsBDSAsciiData(survey)
 
     if plotAxesSeperately:
         figures = [
