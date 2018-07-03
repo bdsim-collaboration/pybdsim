@@ -74,12 +74,12 @@ class Field1D(Field):
     >>> a.Write('outputFileName.dat')
 
     """
-    def __init__(self, data, doublePrecision=False):
-        columns = ['X','Fx','Fy','Fz']
+    def __init__(self, data, doublePrecision=False, column='X'):
+        columns = [column,'Fx','Fy','Fz']
         super(Field1D, self).__init__(data,columns,doublePrecision=doublePrecision)
-        self.header['xmin'] = _np.min(self.data[:,0])
-        self.header['xmax'] = _np.max(self.data[:,0])
-        self.header['nx']   = _np.shape(self.data)[0]
+        self.header[column.lower() + 'min'] = _np.min(self.data[:,0])
+        self.header[column.lower() + 'max'] = _np.max(self.data[:,0])
+        self.header['n' + column.lower()]   = _np.shape(self.data)[0]
 
 class Field2D(Field):
     """
@@ -101,15 +101,17 @@ class Field2D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False):
-        columns = ['X','Y','Fx','Fy','Fz']
+    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y'):
+        columns = [firstColumn, secondColumn, 'Fx', 'Fy', 'Fz']
         super(Field2D, self).__init__(data,columns,flip,doublePrecision)
-        self.header['xmin'] = _np.min(self.data[:,:,0])
-        self.header['xmax'] = _np.max(self.data[:,:,0])
-        self.header['nx']   = _np.shape(self.data)[1]
-        self.header['ymin'] = _np.min(self.data[:,:,1])
-        self.header['ymax'] = _np.max(self.data[:,:,1])
-        self.header['ny']   = _np.shape(self.data)[0]
+        fcl = firstColumn.lower()
+        scl = secondColumn.lower()
+        self.header[fcl+'min'] = _np.min(self.data[:,:,0])
+        self.header[fcl+'max'] = _np.max(self.data[:,:,0])
+        self.header['n'+fcl]   = _np.shape(self.data)[0]
+        self.header[scl+'min'] = _np.min(self.data[:,:,1])
+        self.header[scl+'max'] = _np.max(self.data[:,:,1])
+        self.header['n'+scl]   = _np.shape(self.data)[1]
 
 class Field3D(Field):
     """
