@@ -726,3 +726,59 @@ class SamplerData(_SamplerData):
         params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
                   'weight','partID','parentID','trackID','modelID','turnNumber','S']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
+
+class TrajectoryData : 
+    """
+    Pull trajectory data from a loaded Dataloader instance of raw data
+
+    Loads all trajector data in a event event 
+
+    >>> f = pybdsim.Data.Laod("file.root")
+    >>> trajectories = pbdsim.Data.TrajectoryData(f,0)
+    >>>
+    """
+
+    def __init__(self, data, eventNumber=0): 
+        params = ['n','trajID','partID','x','y','z']
+        self._data       = data 
+        self._eventTree  = data.GetEventTree()
+        self._event      = data.GetEvent() 
+        self._trajectory = self._event.GetTrajectory()
+
+        self.trajectoryData(eventNumber)
+        
+    def trajectoryData(self,eventNumber) : 
+
+        if eventNumber >= self._eventTree.GetEntries() :
+            raise IndexError
+
+        self._eventTree.GetEntry(eventNumber)
+
+        self.pyTrajectories = []
+        
+        # loop over all trajectories 
+        for i in range(0,self._trajectory.n) : 
+            print 'particle> ',i, self._trajectory.partID[i], self._trajectory.trackID[i],self._trajectory.parentID[i],len(self._trajectory.trajectories[i])
+            
+            pyTrajectory = {}
+            pyTrajectory['trackID']  = self._trajectory.trackID[i]
+            pyTrajectory['partID']   = self._trajectory.partID[i]
+            pyTrajectory['parentID'] = self._trajectory.parentID[i]
+            
+            t = self._trajectory.trajectories[i]
+
+            x = _np.zeros(len(t))
+            y = _np.zeros(len(t))
+            z = _np.zeros(len(t))
+
+            for j in range(0,len(t)) : 
+                x[j] = t[j].X()
+                y[j] = t[j].Y()
+                z[j] = t[j].Z()
+                
+            pyTrajectory['x'] = x
+            pyTrajectory['y'] = y
+            pyTrajectory['z'] = z
+
+            self.pyTrajectories.append(pyTrajectory)
+
