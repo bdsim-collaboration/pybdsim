@@ -320,7 +320,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
         f.suptitle(title)
     return f
 
-def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel=""):
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="equal"):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm   - logarithmic colour scale
@@ -333,10 +333,10 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlab
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     ext = [_np.min(h.xcentres),_np.max(h.xcentres),_np.min(h.ycentres),_np.max(h.ycentres)]
     if logNorm:
-        _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal', norm=_LogNorm())
+        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm())
         _plt.colorbar()
     else:
-        _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal')
+        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect)
         _plt.colorbar(format='%.0e', label=zlabel)
 
     if xlogscale:
