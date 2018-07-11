@@ -791,11 +791,10 @@ class TrajectoryData :
 
         self._eventTree.GetEntry(eventNumber)
 
-        self.pyTrajectories = []
+        self.trajectories = []
         
         # loop over all trajectories 
         for i in range(0,self._trajectory.n) : 
-            print 'particle> ',i, self._trajectory.partID[i], self._trajectory.trackID[i],self._trajectory.parentID[i],len(self._trajectory.trajectories[i])
             
             pyTrajectory = {}
             pyTrajectory['trackID']  = self._trajectory.trackID[i]
@@ -803,19 +802,43 @@ class TrajectoryData :
             pyTrajectory['parentID'] = self._trajectory.parentID[i]
             
             t = self._trajectory.trajectories[i]
+            p = self._trajectory.momenta[i]
+            e = self._trajectory.energies[i]
 
             x = _np.zeros(len(t))
             y = _np.zeros(len(t))
             z = _np.zeros(len(t))
 
+            px = _np.zeros(len(t))
+            py = _np.zeros(len(t))
+            pz = _np.zeros(len(t))
+
+            E = _np.zeros(len(t))
+
+                        
             for j in range(0,len(t)) : 
+                # position
                 x[j] = t[j].X()
                 y[j] = t[j].Y()
                 z[j] = t[j].Z()
                 
+                # momenta 
+                px[j] = p[j].X()
+                py[j] = p[j].Y()
+                pz[j] = p[j].Z()                
+                
+                # energy
+                E[j] = e[j]
+
             pyTrajectory['x'] = x
             pyTrajectory['y'] = y
             pyTrajectory['z'] = z
 
-            self.pyTrajectories.append(pyTrajectory)
+            pyTrajectory['px'] = px
+            pyTrajectory['py'] = py
+            pyTrajectory['pz'] = pz
+
+            pyTrajectory['E'] = E
+
+            self.trajectories.append(pyTrajectory)
 
