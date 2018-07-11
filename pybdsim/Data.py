@@ -522,6 +522,22 @@ def PadHistogram1D(hist, padValue=1e-20):
     r.contents  = _np.pad(hist.contents, 1, 'constant', constant_values=padValue)
     r.errors    = _np.pad(hist.errors,   1, 'constant', constant_values=padValue)
     return r
+
+def ReplaceZeroWithMinimum(hist, value=1e-20):
+    """
+    Replace zero values with given value. Useful for log plots.
+
+    For log plots we want a small but +ve number instead of 0 so the line
+    is continuous on the plot. This is also required for padding to work
+    for the edge of the lines.
+
+    Works for TH1, TH2, TH3.
+
+    returns a new instance of the pybdsim.Data.TH1, TH2 or TH3.
+    """
+    r = _copy.deepcopy(hist)
+    r.contents[hist.contents==0] = value
+    return r
         
 class ROOTHist(object):
     """
