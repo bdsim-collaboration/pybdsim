@@ -320,7 +320,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
         f.suptitle(title)
     return f
 
-def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel=""):
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="equal"):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm   - logarithmic colour scale
@@ -333,10 +333,10 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlab
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     ext = [_np.min(h.xcentres),_np.max(h.xcentres),_np.min(h.ycentres),_np.max(h.ycentres)]
     if logNorm:
-        _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal', norm=_LogNorm())
+        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm())
         _plt.colorbar()
     else:
-        _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal')
+        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect)
         _plt.colorbar(format='%.0e', label=zlabel)
 
     if xlogscale:
@@ -706,3 +706,28 @@ def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
         b = int(b)
         fst = r'$10^{{{}}}$'.format(b)
     return fst
+
+def Trajectory3D(rootFileName,traj=0, bottomLeft = None, topRight = None) :
+    rootFile = _Data.Load(rootFileName)
+    trajData = _Data.TrajectoryData(rootFile,traj)
+
+    for t in trajData.trajectories : 
+        if t['partID'] == 11 :
+            _plt.subplot(1,2,1)
+            _plt.plot(t['x'],t['z'],'r', lw=0.35)
+            _plt.subplot(1,2,2)
+            _plt.plot(t['y'],t['z'],'r', lw=0.35)
+        elif t['partID'] == -11 :
+            _plt.subplot(1,2,1)
+            _plt.plot(t['x'],t['z'],'b', lw=0.35)
+            _plt.subplot(1,2,2)
+            _plt.plot(t['y'],t['z'],'b', lw=0.35)
+        elif t['partID'] == 22 : 
+            _plt.subplot(1,2,1)
+            _plt.plot(t['x'],t['z'],'g--',lw=0.35)
+            _plt.subplot(1,2,2)
+            _plt.plot(t['y'],t['z'],'g--',lw=0.35)
+
+    if bottomLeft != None and topRight != None : 
+        xlim(bottomLeft[0],topRight[0])
+        xlim(bottomLeft[1],topRight[1])
