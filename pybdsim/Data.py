@@ -1,21 +1,16 @@
-# pybdsim.Data - output data loader for pybdsim
-# Version 1.0
-# L. Nevay, S.Boogert
-# laurie.nevay@rhul.ac.uk
-
 """
-Output
+Output loading
 
 Read bdsim output
 
 Classes:
 Data - read various output files
 
-
 """
 import Constants as _Constants
 import _General
 
+import copy as _copy
 import glob as _glob
 import numpy as _np
 import os as _os
@@ -47,12 +42,12 @@ def _LoadROOTLibraries():
         import ROOT as _ROOT
     except ImportError:
         raise Warning("ROOT in python not available")
-    reLoad  = _ROOT.gSystem.Load("libRebdsim")
-    bdsLoad = _ROOT.gSystem.Load("libBdsimRootEvent")
+    bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
+    reLoad  = _ROOT.gSystem.Load("librebdsim")
     if reLoad is not 0:
-        raise Warning("libRebdsim not found")
+        raise Warning("librebdsim not found")
     if bdsLoad is not 0:
-        raise Warning("libBdsimRootEvent not found")
+        raise Warning("libbdsimRootEvent not found")
     _libsLoaded = True
 
 def Load(filepath):
@@ -82,8 +77,9 @@ def Load(filepath):
         print '.dat file - trying general loader'
         try:
             return _LoadAscii(filepath)
+        except IOError:
+            raise IOError("No such file or directory: '{}'".format(filepath))
         except:
-            print "Didn't work"
             raise IOError("Unknown file type - not BDSIM data")
     else:
         raise IOError("Unknown file type - not BDSIM data")
@@ -224,7 +220,7 @@ class RebdsimFile(object):
         if 'Optics' in trees:
             branches = _rnp.list_branches(self.filename,'Optics')
             treedata = _rnp.root2array(self.filename,'Optics')
-            self.optics = _prepare_data(branches, treedata)
+            self.Optics = _prepare_data(branches, treedata)
         if 'Orbit' in trees:
             branches = _rnp.list_branches(self.filename, 'Orbit')
             treedata = _rnp.root2array(self.filename, 'Orbit')
@@ -337,9 +333,11 @@ class BDSAsciiData(list):
             return _np.array([event[ind] for event in self])
         setattr(self,variablename,GetAttribute)
 
-    def ConcatenateMachine(self,*args):
+    def ConcatenateMachine(self, *args):
         """
-        This is used to concatenate machines.
+        Add 1 or more data instances to this one - suitable only for things that
+        could be loaded by this class. Argument can be one or iterable. Either
+        of str type or this class.
         """
         #Get final position of the machine (different param for survey)
         if _General.IsSurvey(self):
@@ -440,8 +438,6 @@ class BDSAsciiData(list):
 
     def NameFromNearestS(self,S):
         i = self.IndexFromNearestS(S)
-        if not hasattr(self,"Name"):
-            raise ValueError("This file doesn't have the required column Name")
         return self.Name()[i]
     
     def IndexFromNearestS(self,S) : 
@@ -455,10 +451,10 @@ class BDSAsciiData(list):
         #check this particular instance has the required columns for this function
         if not hasattr(self,"SStart"):
             raise ValueError("This file doesn't have the required column SStart")
-        if not hasattr(self,"Arc_len"):
+        if not hasattr(self,"ArcLength"):
             raise ValueError("This file doesn't have the required column Arc_len")
         s = self.SStart()
-        l = self.Arc_len()
+        l = self.ArcLength()
 
         #iterate over beamline and record element if S is between the
         #sposition of that element and then next one
@@ -507,6 +503,42 @@ class BDSAsciiData(list):
         else:
             return False        
 
+def PadHistogram1D(hist, padValue=1e-20):
+    """
+    Pad a 1D histogram with padValue. 
+
+    This adds an extra 'bin' to xwidths, xcentres, xlowedge, xhighedge,
+    contents and errors with either pad value or a linearly interpolated
+    step in the range (i.e. for xcentres).
+
+    returns a new pybdsim.Data.TH1 instance.
+    """
+    r = _copy.deepcopy(hist)
+    r.nbinsx  = hist.nbinsx+2
+    r.xwidths   = _np.pad(hist.xwidths,  1, 'edge')
+    r.xcentres  = _np.pad(hist.xcentres, 1, 'reflect',  reflect_type='odd')
+    r.xlowedge  = _np.pad(hist.xlowedge, 1, 'reflect',  reflect_type='odd')
+    r.xhighedge = _np.pad(hist.xlowedge, 1, 'reflect',  reflect_type='odd')
+    r.contents  = _np.pad(hist.contents, 1, 'constant', constant_values=padValue)
+    r.errors    = _np.pad(hist.errors,   1, 'constant', constant_values=padValue)
+    return r
+
+def ReplaceZeroWithMinimum(hist, value=1e-20):
+    """
+    Replace zero values with given value. Useful for log plots.
+
+    For log plots we want a small but +ve number instead of 0 so the line
+    is continuous on the plot. This is also required for padding to work
+    for the edge of the lines.
+
+    Works for TH1, TH2, TH3.
+
+    returns a new instance of the pybdsim.Data.TH1, TH2 or TH3.
+    """
+    r = _copy.deepcopy(hist)
+    r.contents[hist.contents==0] = value
+    return r
+        
 class ROOTHist(object):
     """
     Base class for histogram wrappers.
@@ -731,3 +763,82 @@ class SamplerData(_SamplerData):
         params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
                   'weight','partID','parentID','trackID','modelID','turnNumber','S']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
+
+class TrajectoryData : 
+    """
+    Pull trajectory data from a loaded Dataloader instance of raw data
+
+    Loads all trajector data in a event event 
+
+    >>> f = pybdsim.Data.Laod("file.root")
+    >>> trajectories = pbdsim.Data.TrajectoryData(f,0)
+    >>>
+    """
+
+    def __init__(self, data, eventNumber=0): 
+        params = ['n','trajID','partID','x','y','z']
+        self._data       = data 
+        self._eventTree  = data.GetEventTree()
+        self._event      = data.GetEvent() 
+        self._trajectory = self._event.GetTrajectory()
+
+        self.trajectoryData(eventNumber)
+        
+    def trajectoryData(self,eventNumber) : 
+
+        if eventNumber >= self._eventTree.GetEntries() :
+            raise IndexError
+
+        self._eventTree.GetEntry(eventNumber)
+
+        self.trajectories = []
+        
+        # loop over all trajectories 
+        for i in range(0,self._trajectory.n) : 
+            
+            pyTrajectory = {}
+            pyTrajectory['trackID']  = self._trajectory.trackID[i]
+            pyTrajectory['partID']   = self._trajectory.partID[i]
+            pyTrajectory['parentID'] = self._trajectory.parentID[i]
+            
+            t = self._trajectory.trajectories[i]
+            p = self._trajectory.momenta[i]
+            e = self._trajectory.energies[i]
+
+            x = _np.zeros(len(t))
+            y = _np.zeros(len(t))
+            z = _np.zeros(len(t))
+
+            px = _np.zeros(len(t))
+            py = _np.zeros(len(t))
+            pz = _np.zeros(len(t))
+
+            E = _np.zeros(len(t))
+
+                        
+            for j in range(0,len(t)) : 
+                # position
+                x[j] = t[j].X()
+                y[j] = t[j].Y()
+                z[j] = t[j].Z()
+                
+                # momenta 
+                px[j] = p[j].X()
+                py[j] = p[j].Y()
+                pz[j] = p[j].Z()                
+                
+                # energy
+                E[j] = e[j]
+
+            pyTrajectory['x'] = x
+            pyTrajectory['y'] = y
+            pyTrajectory['z'] = z
+
+            pyTrajectory['px'] = px
+            pyTrajectory['py'] = py
+            pyTrajectory['pz'] = pz
+
+            pyTrajectory['E'] = E
+
+            self.trajectories.append(pyTrajectory)
+

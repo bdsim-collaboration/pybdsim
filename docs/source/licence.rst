@@ -2,7 +2,7 @@
 Licence & Disclaimer
 ====================
 
-pybdsim copyright (c) Royal Holloway, University of London, 2017.  All rights reserved.
+pybdsim copyright (c) Royal Holloway, University of London, 2018.  All rights reserved.
 
 This software is provided "AS IS" and any express or limit warranties, including, but not
 limited to, implied warranties of merchantability, of satisfactory quality, and fitness

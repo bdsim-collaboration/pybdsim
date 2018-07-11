@@ -1,8 +1,3 @@
-#pybdsim plotting tools
-# Version 1.0
-# L. Nevay, S.T.Boogert
-# laurie.nevay@rhul.ac.uk
-
 """
 Useful plots for bdsim output
 
@@ -91,25 +86,28 @@ def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
         bbox = ax.get_position()
         bbox.y0 = bbox.y0 * fraction
         bbox.y1 = bbox.y1 * fraction
-        ax.set_position(bbox)    
+        ax.set_position(bbox)
 
-def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
+def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=True):
     """
-    kwargs - 'tightLayout' is set to True by default - can be supplied
-              in kwargs to force it to false.
-
+    Similar to AddMachineLatticeFromSurveyToFigure() but accepts multiple machines.
     """
-    #concatenate machine lattices
-    sf = _CheckItsBDSAsciiData(args[0])
+    d = _CheckItsBDSAsciiData(machines[0])
     if len(args) > 1:
-        for machine in args[1:]:
-            sf.ConcatenateMachine(machine)
-    
-    # options
-    tightLayout = True
-    if 'tightLayout' in kwargs:
-        tightLayout = kwargs['tightLayout']
+        for machine in machines[1:]:
+            d.ConcatenateMachine(machine)
+    return d
 
+def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
+    """
+    Add a machine diagram to the top of the plot in a current figure
+
+    """
+    import Data as _Data
+    sf = _CheckItsBDSAsciiData(surveyfile)
+    # we don't need to check this has the required columns because we control a
+    # BDSIM survey contents.
+    
     axoptics  = figure.get_axes()[0]
     _AdjustExistingAxes(figure, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
@@ -122,8 +120,11 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
         axoptics.set_xlim(axmachine.get_xlim())
 
     def Click(a) : 
-        if a.button == 3 : 
-            print 'Closest element: ',sf.NameFromNearestS(a.xdata)
+        if a.button == 3:
+            try:
+                print 'Closest element: ',sf.NameFromNearestS(a.xdata)
+            except ValueError:
+                pass # don't complain if the S is out of bounds
             
     MachineXlim(axmachine)
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
@@ -132,26 +133,14 @@ def AddMachineLatticeFromSurveyToFigure(figure, *args, **kwargs):
 def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     ax  = axesinstance #handy shortcut
     bds = bdsasciidataobject
-
-    if not hasattr(bds,"SStart"):
-        raise ValueError("This file doesn't have the required column SStart")
-    if not hasattr(bds,"ArcLength"):
-        raise ValueError("This file doesn't have the required column ArcLength")
     
     def DrawBend(start,length,color='b',alpha=1.0):
         br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
         ax.add_patch(br)
-    def DrawHKicker(start, length, color='purple', alpha=1.0):
-        br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
-        ax.add_patch(br)
-    def DrawVKicker(start, length, color='magenta', alpha=1.0):
-        br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
-        ax.add_patch(br)
-    def DrawQuad(start,length,k1l,color='r',alpha=1.0):
-        #survey file doesn't have k values
-        if k1l > 0 :
+    def DrawQuad(start,length,k1,color='r',alpha=1.0):
+        if k1 > 0 :
             qr = _patches.Rectangle((start,0),length,0.2,color=color,alpha=alpha)
-        elif k1l < 0: 
+        elif k1 < 0: 
             qr = _patches.Rectangle((start,-0.2),length,0.2,color=color,alpha=alpha)
         else:
             #quadrupole off
@@ -178,10 +167,8 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     types   = bds.Type()
     lengths = bds.ArcLength()
     starts  = bds.SStart()
-    if hasattr(bds,'k1'):
-        k1  = bds.k1()
-    elif hasattr(bds,'K1'):
-        k1  = bds.K1()
+    k1      = bds.k1()
+
     for i in range(len(bds)):
         kw = types[i]
         if kw == 'quadrupole': 
@@ -190,6 +177,10 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'sbend': 
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
+        elif kw == 'hkicker':
+            DrawRect(starts[i],lengths[i], u'#4c33b2') #purple
+        elif kw == 'vkicker':
+            DrawRect(starts[i],lengths[i], u'#ba55d3') #medium orchid
         elif kw == 'rcol': 
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'ecol': 
@@ -202,10 +193,6 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawHex(starts[i],lengths[i], u'#00994c') #green
         elif kw == 'decapole':
             DrawHex(starts[i],lengths[i], u'#4c33b2') #purple
-        elif kw == 'hkick':
-            DrawHKicker(starts[i],lengths[i], u'#4c33b2') #purple
-        elif kw == 'vkick':
-            DrawVKicker(starts[i],lengths[i], u'#ba55d3') #medium orchid
         elif kw == 'drift':
             pass
         elif kw == 'multipole':
@@ -296,7 +283,7 @@ PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP
 PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
 
-def PlotBdsimOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
+def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
     """
     Display all the optical function plots for a rebdsim optics root file.
     """
@@ -333,7 +320,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
         f.suptitle(title)
     return f
 
-def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel=""):
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="equal"):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm   - logarithmic colour scale
@@ -346,10 +333,10 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlab
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     ext = [_np.min(h.xcentres),_np.max(h.xcentres),_np.min(h.ycentres),_np.max(h.ycentres)]
     if logNorm:
-        _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal', norm=_LogNorm())
+        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm())
         _plt.colorbar()
     else:
-        _plt.imshow(h.contents[::-1,:], extent=ext, aspect='equal')
+        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect)
         _plt.colorbar(format='%.0e', label=zlabel)
 
     if xlogscale:
@@ -382,13 +369,14 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None):
     import Data as _Data
     d = _Data.Load(filename)
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
-    PhaseSpace(psd, outputfilename)    
+    PhaseSpace(psd, outputfilename)
 
 def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
     """
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
 
-    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot.
+    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. If both are provided,
+    the machine diagram is plotted from the MADX survey.
     """
     import Data as _Data
     d = _Data.Load(filename)
@@ -396,15 +384,176 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
         raise IOError("Not a rebdsim file")
     eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
 
-    xwidth = eloss.xwidths[0]
-    ylabel = 'Energy Deposition / Event (GeV / '+str(xwidth)+" m)"
+    xwidth    = eloss.xwidths[0]
+    xlabel = r"S (m)"
+    ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
     f = Histogram1D(eloss, xlabel='S (m)', ylabel=ylabel, title="")
+
     ax = f.get_axes()[0]
     ax.set_yscale('log')
+
     if tfssurvey:
         AddMachineLatticeToFigure(f, tfssurvey)
     elif bdsimsurvey:
         AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey)
+
+    if outputfilename is not None:
+        _plt.savefig(outputfilename)
+
+def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
+    """
+    Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
+
+    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. 
+    If both are provided, the machine diagram is plotted from the MADX survey.
+
+    If a BDSIM survey is provided, collimator positions and dimensions can be taken and 
+    used to split losses into categories: collimator, warm and cold based on warm aperture
+    infomation provided. To enable this, the "warmaperinfo" option must be set according 
+    to the prescription below.
+
+    The user can supply a list of upper and lower edges of warm regions or give the path
+    to a coulmn-formated data file with this information via the "warmaperinfo" option.
+    Set warmaperinfo=1 to treat all non-collimator losses as warm or set warmaperinfo=-1 
+    to treat them as cold. Default is not perform the loss classification.
+
+    If no warm aperture information is provided, the plotting falls back to the standard 
+    simple plotting provided by a pybdsimm.Plot.Hisgogram1D interface.
+
+    Args:
+        filename       (str):  Path to the REBDSIM data file
+        outputfilename (str, optional):  Path where to save a pdf file with the plot. Default is None.
+    
+        tfssurvey      (str, optional):  Path to MADX survey used to plot machine diagram on top of figure. Default is None.
+    
+        tfssurvey      (str, optional):  Path to BDSIM survey used to classify losses into collimator/warm/cold and/or plot machine diagram on top of figure. Default is None.
+    
+        warmaperinfo  (int|list|str, optional): Information about warm aperture in the machine. Default is None.
+        \*\*kwargs: Arbitrary keyword arguments.
+
+    Kwargs:
+        skipMachineLattice   (bool): If enabled, use the BDSIM survey to classify losses, but do not plot the lattice on top.
+
+    Returns:
+        matplotlib.pyplot.Figure object
+
+    """
+    if not warmaperinfo:
+        EnergyDeposition(filename, outputfilename, tfssurvey, bdsimsurvey)
+
+    else:
+        import Data as _Data
+        d = _Data.Load(filename)
+        if type(d) is not _Data.RebdsimFile:
+            raise IOError("Not a rebdsim file")
+        eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
+
+        xwidth    = eloss.xwidths[0]
+        xlabel = r"S (m)"
+        ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
+
+        skipMachineLattice = False
+        if "skipMachineLattice" in kwargs:
+            skipMachineLattice = kwargs["skipMachineLattice"]
+
+        print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
+
+        collimators=[]
+        if bdsimsurvey:
+            bsu   = _Data.Load(bdsimsurvey)
+            relfields = [bsu.Name(), bsu.Type(), bsu.SStart(), bsu.SEnd()]
+            collimators = [element for element in zip(*relfields) if element[1]=="rcol"]
+
+        warmapers=[]
+        if warmaperinfo:
+            if warmaperinfo == -1:
+                warmapers = []
+            elif warmaperinfo == 1:
+                warmapers = [[0, 1.e9]] #Crude, but no need to be exact
+            elif isinstance(warmaperinfo, list):
+                warmapers = warmaperinfo
+            elif isinstance(warmaperinfo, str):
+                warmapers=_np.genfromtxt(warmaperinfo)
+            else:
+                raise SystemExit("Unrecognised warmaperinfo option: {}".format(aperinfo))
+
+        coll_binmask = []
+        warm_binmask = []
+        cold_binmask = []
+
+        ledges   = eloss.xlowedge
+        contents = eloss.contents
+        errors   = eloss.errors
+
+        for i in range(len(contents)):
+            """
+            The check here is done on the presence of a lower bin edge in a region of
+            interest (collimator or warm segment). For bin of similar or larger size
+            than the size of the region of interest, a misidenfication is possible.
+            Can reduce probabliluty of misclassification by also checking for the presencce
+            of an upper bin edge, but it increasses processing time and ultimately, for
+            bins that are too large it is impossible to overcome resolution constraints.
+            """
+            in_coll=False
+            in_warm=False
+            for coll in collimators:
+                smin, smax = coll[2], coll[3]
+                if ledges[i]>smin and ledges[i]<smax:
+                    in_coll=True
+
+            for waper in warmapers:
+                smin, smax = waper[0], waper[1]
+                if ledges[i]>smin and ledges[i]<smax:
+                    in_warm=True
+
+            coll_binmask.append(int(in_coll)) #collimators have priority over warm aper
+            warm_binmask.append(int(in_warm and not in_coll))
+            cold_binmask.append(int(not in_coll and not in_warm))
+
+        coll_binmask = _np.array(coll_binmask)
+        warm_binmask = _np.array(warm_binmask)
+        cold_binmask = _np.array(cold_binmask)
+
+        coll_bins = _np.multiply(contents, coll_binmask)
+        coll_errs = _np.multiply(errors, coll_binmask)
+        warm_bins = _np.multiply(contents, warm_binmask)
+        warm_errs = _np.multiply(errors, warm_binmask)
+        cold_bins = _np.multiply(contents, cold_binmask)
+        cold_errs = _np.multiply(errors, cold_binmask)
+
+        scale=1
+
+        coll_col = "k"
+        warm_col = "r"
+        cold_col = "b"
+
+        f = _plt.figure(figsize=(10,5))
+        ax  = _plt.gca()
+
+        if any(coll_binmask):
+            ax.plot(ledges, scale*coll_bins, ls="steps", color=coll_col, label="Collimator", zorder=10)
+            ax.errorbar(ledges-xwidth/2, scale*coll_bins, scale*coll_errs, linestyle="*", fmt="none", color=coll_col, zorder=10)
+
+        if any(warm_binmask):
+            ax.plot(ledges, scale*warm_bins, ls="steps", color=warm_col, label="Warm")
+            ax.errorbar(ledges-xwidth/2, scale*warm_bins, scale*warm_errs, linestyle="", fmt="none", color=warm_col)
+
+        if any(cold_binmask):
+            ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
+            ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
+
+        ax.set_yscale("log", nonposy='clip')
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.yaxis.set_major_locator(_plt.LogLocator(subs=(1.0,))) #TODO: Find a way to disable auto ticks and always display all int powers
+        ax.yaxis.grid(which="major", linestyle='--')
+        _plt.legend(fontsize="small", framealpha=1)# bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0., framealpha=1)
+
+    if tfssurvey:
+        AddMachineLatticeToFigure(f, tfssurvey)
+    elif bdsimsurvey and not skipMachineLattice:
+        #AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey) #TODO: Fix this, currenly gives an error
+        print "Lattice diagram not added, module under maintenance"
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
@@ -557,3 +706,28 @@ def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
         b = int(b)
         fst = r'$10^{{{}}}$'.format(b)
     return fst
+
+def Trajectory3D(rootFileName,traj=0, bottomLeft = None, topRight = None) :
+    rootFile = _Data.Load(rootFileName)
+    trajData = _Data.TrajectoryData(rootFile,traj)
+
+    for t in trajData.trajectories : 
+        if t['partID'] == 11 :
+            _plt.subplot(1,2,1)
+            _plt.plot(t['x'],t['z'],'r', lw=0.35)
+            _plt.subplot(1,2,2)
+            _plt.plot(t['y'],t['z'],'r', lw=0.35)
+        elif t['partID'] == -11 :
+            _plt.subplot(1,2,1)
+            _plt.plot(t['x'],t['z'],'b', lw=0.35)
+            _plt.subplot(1,2,2)
+            _plt.plot(t['y'],t['z'],'b', lw=0.35)
+        elif t['partID'] == 22 : 
+            _plt.subplot(1,2,1)
+            _plt.plot(t['x'],t['z'],'g--',lw=0.35)
+            _plt.subplot(1,2,2)
+            _plt.plot(t['y'],t['z'],'g--',lw=0.35)
+
+    if bottomLeft != None and topRight != None : 
+        xlim(bottomLeft[0],topRight[0])
+        xlim(bottomLeft[1],topRight[1])

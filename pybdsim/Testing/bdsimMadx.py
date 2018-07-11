@@ -22,11 +22,8 @@ import time
 import string as _string
 import threading
 
-try:
-    from scipy.stats import binned_statistic
-    import scipy.constants as _scpconsts
-except ImportError:
-    pass
+from scipy.stats import binned_statistic
+import scipy.constants as _scpconsts
 
 class LatticeTest:
     def __init__(self,filepath, nparticles = 1000, verbose=False):        
