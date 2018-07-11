@@ -2,7 +2,7 @@
 Writer
 
 Write files for a pybdsim.Builder.Machine instance. Each section of the written output
-(e.g. components, sequence, beam etc.) can be written in the main gmad file, written 
+(e.g. components, sequence, beam etc.) can be written in the main gmad file, written
 in its own separate file, or called from an external, pre-existing file.
 
 Classes:
@@ -10,6 +10,7 @@ File - A class that represents each section of the written output - contains boo
 Writer - A class that writes the data to disk.
 
 """
+import pybdsim
 import _General
 import Beam as _Beam
 import Options as _Options
@@ -29,7 +30,7 @@ class FileSection():
     """
     A class that represents a section of a gmad file. The sections that this
     class can represent are:
-    
+
     * Components
     * Sequence
     * Samplers
@@ -37,19 +38,19 @@ class FileSection():
     * Options
     * Bias
 
-    The class contains booleans and strings relating to the location of 
+    The class contains booleans and strings relating to the location of
     that sections data. The section can set to be:
-    
+
     * Written in its own separate file (default)
     * Written in the main gmad file
     * Called from an external file
 
-    These classes are instantiated in the writer class for each section. 
-    An optional string passed in upon class instantiation is purely for 
-    the representation of the object which will state where the data will 
-    be written/called. This string should be one of the section names 
+    These classes are instantiated in the writer class for each section.
+    An optional string passed in upon class instantiation is purely for
+    the representation of the object which will state where the data will
+    be written/called. This string should be one of the section names
     listed above.
-    
+
     Example:
 
     >>> beam = FileSection('beam')
@@ -57,20 +58,20 @@ class FileSection():
     >>> beam
     pybdsim.Writer.File instance
     File data will be called from the external file:
-    ../myBeam.gmad  
-    
+    ../myBeam.gmad
+
     """
-    
+
     def __init__(self,willContain=''):
         #bool for file location/calling
         self._writeInMain         = False
         self._isWrittenSeparately = True
         self._isUserDefined       = False
         self._filePath            = ''
-        
+
         #bool for written status, used to determine if required sections have been written
         self._hasBeenWritten      = False
-        
+
         #string for __repr__ output
         self._willContain=''
         if isinstance(willContain, basestring) and willContain in sections:
@@ -79,7 +80,7 @@ class FileSection():
     def __repr__(self):
         s = ''
         s += 'pybdsim.Writer.File instance\n'
-        
+
         if self._writeInMain:
             s += 'File data will be written into the main file.\n'
         elif self._isWrittenSeparately:
@@ -116,27 +117,27 @@ class FileSection():
 class Writer():
     """
     A class for writing a pybdsim.Builder.Machine instance to file.
-    
+
     This class allows the user to write individual sections of a BDSIM input file
     (e.g. components, sequence, beam etc.) or write the machine as a whole.
-    
+
     There are 6 attributes in this class which are FileSection instances representing each
     section of the data. The location where these sections will be written/read is
-    stored in these instances. See the FileSection class for further details. 
-    
+    stored in these instances. See the FileSection class for further details.
+
     The optional boolean 'singlefile' in the WriteMachine function for writing
     the sections to a single file overrides any sections locations set in their
     respective FileSection instances.
-    
+
     This class also has individual functions (e.g. WriteBeam) to write each file section
     and the main file (WriteMain) separately. These section functions must be called BEFORE
-    the WriteMain function is called otherwise the main file will have no reference to 
+    the WriteMain function is called otherwise the main file will have no reference to
     these sections.
-    
+
     Examples:
-    
+
     Writing the Builder.Machine instance myMachine to separate files:
-    
+
     >>> a = Writer()
     >>> a.WriteMachine(myMachine,'lattice.gmad')
     Lattice written to:
@@ -165,7 +166,7 @@ class Writer():
         self.Beam       = FileSection('beam')
         self.Options    = FileSection('options')
         self.Bias       = FileSection('bias')
-        
+
         self._mainFileLines   = []        #lines that will be written to the main file.
         self._elementsperline = 100       #number of machine elements per bdsim line (not text line)
         self._basefilename    = 'lattice' #default base file name
@@ -176,19 +177,19 @@ class Writer():
         self._defaultSectionFilenames  = {}
         for sectiontype in sections:
             self._defaultSectionFilenames[sectiontype] = self._basefilename + '_' + sectiontype + '.gmad'
-        
+
         #list of sections that will be / have been written. This is for both user feedback and
         #for any include lines that will be written in the main file.
         self._sectionsToBeWritten = []
 
     def WriteMachine(self,machine, filename, singlefile=False,
-                     verbose=True, summary=True, overwrite=True):
+                     verbose=True, overwrite=True):
         """
         WriteMachine(machine(machine),filename(string),singlefile(bool),verbose(bool))
-        
+
         Write a machine to disk. By default, the machine will be written
         into the following individual files:
-        
+
         +---------------------------+----------------------------------------+
         | filename_components.gmad  | component files (max 10k per file)     |
         +---------------------------+----------------------------------------+
@@ -236,9 +237,9 @@ class Writer():
         self.WriteBeam(machine)
         self.WriteOptions(machine)
         self.WriteBias(machine)
-        
+
         #Write main
-        self.WriteMain(machine, summary=summary)
+        self.WriteMain(machine)
 
         if verbose:
             #user feedback
@@ -249,19 +250,19 @@ class Writer():
                 print(fn)
             print 'All included in main file: \n',self._mainFilename
 
-    def WriteMain(self,machine,filename='',summary=True):
+    def WriteMain(self,machine,filename=''):
         """
         WriteMain(machine(machine),filename(string))
-        
+
         Write the main gmad file:
         filename.gmad
-        
+
         The functions for the other sections of the machine (components,sequence,beam,options,samplers,bias)
         must be written BEFORE this function is called.
-        
+
         """
         self._machineCheck(machine)
-        
+
         if filename == '':
             fn_main = self._mainFilename #default
         else:
@@ -275,33 +276,28 @@ class Writer():
             raise Exception(exceptionString)
 
         #write main file
-        f = open(fn_main,'w')
-        f.write(self._timestring)
-        if (summary):
-            f.write('! pybdsim.Builder Lattice \n')
-            f.write('! number of elements = ' + str(len(machine.elements)) + '\n')
-            f.write('! total length       = ' + str(machine.length) + ' m\n\n')
-        else:
+        with open(fn_main, 'w') as f:
+            self._writeFileheader(
+                f, ["! Number of Elements:\t{}".format(len(machine.elements)),
+                    "! Total length:\t\t{}m".format(machine.length)])
+
+            #other files to include
+            for section in self._sectionsToBeWritten:
+                sectObject = getattr(self,section)
+                fn = getattr(sectObject,'_filePath')
+                isUserDefined = getattr(sectObject,'_isUserDefined')
+                if not isUserDefined:
+                    fn = fn.split('/')[-1]
+                f.write('include '+fn+';\n')
             f.write('\n\n')
-            
-        #other files to include
-        for section in self._sectionsToBeWritten:
-            sectObject = getattr(self,section)
-            fn = getattr(sectObject,'_filePath')
-            isUserDefined = getattr(sectObject,'_isUserDefined')
-            if not isUserDefined:
-                fn = fn.split('/')[-1]
-            f.write('include '+fn+';\n')
-        f.write('\n\n')
-        
-        # write lines to main file from components, sequence etc.
-        for line in self._mainFileLines:
-            f.write(line)
-        #write samplers in this main file if less than 10 samplers.
-        if len(machine.samplers) <= 10:
-            for sampler in machine.samplers:
-                f.write(str(sampler))
-        f.close()
+
+            # write lines to main file from components, sequence etc.
+            for line in self._mainFileLines:
+                f.write(line)
+            #write samplers in this main file if less than 10 samplers.
+            if len(machine.samplers) <= 10:
+                for sampler in machine.samplers:
+                    f.write(str(sampler))
         self._mainFilename = fn_main
 
     def WriteComponents(self,machine,filename=''):
@@ -316,13 +312,10 @@ class Writer():
                 self._mainFileLines.append(str(element))
             self._mainFileLines.append('\r\n')
         elif self.Components._isWrittenSeparately:      #if _isWrittenSeparately, write directly to file here.
-            f = open(fn_components,'w')
-            f.write(self._timestring)
-            f.write('! pybdsim.Builder Lattice \n')
-            f.write('! COMPONENT DEFINITION\n\n')
-            for element in machine.elements:
-                f.write(str(element))
-            f.close()
+            with open(fn_components, 'w') as f:
+                self._writeFileheader(f, ['! COMPONENT DEFINITION'])
+                for element in machine.elements:
+                    f.write(str(element))
             self._sectionsToBeWritten.append('Components')
             self.Components._filePath = fn_components   #update FileSection path
         elif self.Components._isUserDefined:
@@ -344,10 +337,10 @@ class Writer():
                     self._mainFileLines.append(str(bias))
                 self._mainFileLines.append('\r\n')
             elif self.Bias._isWrittenSeparately:
-                f = open(fn_bias,'w')
-                for bias in machine.bias:
-                    f.write(str(bias))
-                f.close()
+                with open(fn_bias, 'w') as f:
+                    self._writeFileheader(f, ["! BIAS DEFINITION"])
+                    for bias in machine.bias:
+                        f.write(str(bias))
                 self.Bias._filePath = fn_bias
                 self._sectionsToBeWritten.append('Bias')
         elif self.Bias._isUserDefined:
@@ -358,7 +351,7 @@ class Writer():
         """
         Write a machines beam to disk:
         filename.gmad
-        
+
         Machine can be either a pybdsim.Builder.Machine instance
         or a pybdsim.Beam.Beam instance.
         """
@@ -368,19 +361,16 @@ class Writer():
         else:
             self._machineCheck(machine)
             object = machine.beam
-        
+
         fn_beam = self._getName(filename,'beam')
 
         if self.Beam._writeInMain:
             self._mainFileLines.append(object.ReturnBeamString())
             self._mainFileLines.append('\r\n')
         elif self.Beam._isWrittenSeparately:
-            f = open(fn_beam,'w')
-            f.write(self._timestring)
-            f.write('! pybdsim.Builder \n')
-            f.write('! BEAM DEFINITION \n\n')
-            f.write(object.ReturnBeamString())
-            f.close()
+            with open(fn_beam, 'w') as f:
+                self._writeFileheader(f, ["! BEAM DEFINITION"])
+                f.write(object.ReturnBeamString())
             self.Beam._filePath = fn_beam
             self._sectionsToBeWritten.append('Beam')
         elif self.Beam._isUserDefined:
@@ -403,13 +393,10 @@ class Writer():
                     self._mainFileLines.append(str(sampler))
                 self._mainFileLines.append('\r\n')
             elif self.Samplers._isWrittenSeparately:
-                f = open(fn_samplers,'w')
-                f.write(self._timestring)
-                f.write('! pybdsim.Builder \n')
-                f.write('! SAMPLER DEFINITION\n\n')
-                for sampler in machine.samplers:
-                    f.write(str(sampler))
-                f.close()
+                with open(fn_samplers, 'w') as f:
+                    self._writeFileheader(f, ["! SAMPLER DEFINITION"])
+                    for sampler in machine.samplers:
+                        f.write(str(sampler))
                 self.Samplers._filePath = fn_samplers
                 self._sectionsToBeWritten.append('Samplers')
         elif self.Samplers._isUserDefined:
@@ -420,7 +407,7 @@ class Writer():
         """
         Write a machines options to disk:
         filename.gmad
-        
+
         Machine can be either a pybdsim.Builder.Machine instance
         or a pybdsim.Options.Options instance.
         """
@@ -430,7 +417,7 @@ class Writer():
         else:
             self._machineCheck(machine)
             object = machine.options
-        
+
         fn_options = self._getName(filename,'options')
 
         # write options - only if specified
@@ -439,12 +426,9 @@ class Writer():
                 self._mainFileLines.append(object.ReturnOptionsString())
                 self._mainFileLines.append('\r\n')
             elif self.Options._isWrittenSeparately:
-                f = open(fn_options,'w')
-                f.write(self._timestring)
-                f.write('! pybdsim.Builder \n')
-                f.write('! OPTIONS DEFINITION \n\n')
-                f.write(object.ReturnOptionsString())
-                f.close()
+                with open(fn_options, 'w') as f:
+                    self._writeFileheader(f, ['! OPTIONS DEFINITION'])
+                    f.write(object.ReturnOptionsString())
                 self.Options._filePath = fn_options
                 self._sectionsToBeWritten.append('Options')
         elif self.Options._isUserDefined:
@@ -477,21 +461,18 @@ class Writer():
             self._mainFileLines.append('use, period=lattice;\n')
             self._mainFileLines.append('\r\n')
         elif self.Sequence._isWrittenSeparately:
-            f = open(fn_sequence,'w')
-            f.write(self._timestring)
-            f.write('! pybdsim.Builder \n')
-            f.write('! LATTICE SEQUENCE DEFINITION\n\n')
-            for line in _General.Chunks(machine.sequence,self._elementsperline):
-                # Use _textwrap.wrap to wrap very long lines
-                linetxt = '\n\t'.join(_textwrap.wrap(
-                    "l{}: line = ({});".format(ti, ', '.join(line))))
-                f.write("{}\n".format(linetxt))
-                linelist.append('l'+str(ti))
-                ti += 1
+            with open(fn_sequence, 'w') as f:
+                self._writeFileheader(f, ["! LATTICE SEQUENCE DEFINITION"])
+                for line in _General.Chunks(machine.sequence,self._elementsperline):
+                    # Use _textwrap.wrap to wrap very long lines
+                    linetxt = '\n\t'.join(_textwrap.wrap(
+                        "l{}: line = ({});".format(ti, ', '.join(line))))
+                    f.write("{}\n".format(linetxt))
+                    linelist.append('l'+str(ti))
+                    ti += 1
 
-            f.write('lattice: line = ('+', '.join(linelist)+');\n')
-            f.write('use, period=lattice;\n')
-            f.close()
+                f.write('lattice: line = ('+', '.join(linelist)+');\n')
+                f.write('use, period=lattice;\n')
             self.Sequence._filePath = fn_sequence
             self._sectionsToBeWritten.append('Sequence')
         elif self.Sequence._isUserDefined:
@@ -504,10 +485,10 @@ class Writer():
             raise TypeError("Filename not a string")
         if not isinstance(sectiontype,_np.str):
             raise TypeError("Sectiontype not a string")
-        
+
         if filename == '' and sectiontype == '':
             raise ValueError("Both filename and sectiontype cannot be empty strings")
-        
+
         #get section file name
         if sectiontype in sections:
             if (filename == '') or (filename == self._basefilename):
@@ -568,3 +549,26 @@ class Writer():
                 _os.system("mkdir -p " + directory)
         return filename
 
+    def _writeFileheader(self, f, extralines):
+        """Write the comment header for a gmad file.  Format:
+        date and time
+        pybdsim version info
+        extraline1
+        extraline2
+        ...
+
+
+        the gmad file...
+
+        extra lines should be provided without newlines chars at the end.
+        """
+        f.write(self._timestring)
+        f.write(
+            '! pybdsim.Builder Lattice, using pybdsim version {} \n'.format(
+            pybdsim.__version__))
+        for extraline in extralines:
+            f.write("{}\n".format(extraline))
+        if extralines:
+            f.write('\n')
+        else:
+            f.write('\n\n')

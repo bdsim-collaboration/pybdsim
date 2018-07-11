@@ -10,6 +10,7 @@ Data - read various output files
 import Constants as _Constants
 import _General
 
+import copy as _copy
 import glob as _glob
 import numpy as _np
 import os as _os
@@ -76,8 +77,9 @@ def Load(filepath):
         print '.dat file - trying general loader'
         try:
             return _LoadAscii(filepath)
+        except IOError:
+            raise IOError("No such file or directory: '{}'".format(filepath))
         except:
-            print "Didn't work"
             raise IOError("Unknown file type - not BDSIM data")
     else:
         raise IOError("Unknown file type - not BDSIM data")
@@ -501,6 +503,42 @@ class BDSAsciiData(list):
         else:
             return False        
 
+def PadHistogram1D(hist, padValue=1e-20):
+    """
+    Pad a 1D histogram with padValue. 
+
+    This adds an extra 'bin' to xwidths, xcentres, xlowedge, xhighedge,
+    contents and errors with either pad value or a linearly interpolated
+    step in the range (i.e. for xcentres).
+
+    returns a new pybdsim.Data.TH1 instance.
+    """
+    r = _copy.deepcopy(hist)
+    r.nbinsx  = hist.nbinsx+2
+    r.xwidths   = _np.pad(hist.xwidths,  1, 'edge')
+    r.xcentres  = _np.pad(hist.xcentres, 1, 'reflect',  reflect_type='odd')
+    r.xlowedge  = _np.pad(hist.xlowedge, 1, 'reflect',  reflect_type='odd')
+    r.xhighedge = _np.pad(hist.xlowedge, 1, 'reflect',  reflect_type='odd')
+    r.contents  = _np.pad(hist.contents, 1, 'constant', constant_values=padValue)
+    r.errors    = _np.pad(hist.errors,   1, 'constant', constant_values=padValue)
+    return r
+
+def ReplaceZeroWithMinimum(hist, value=1e-20):
+    """
+    Replace zero values with given value. Useful for log plots.
+
+    For log plots we want a small but +ve number instead of 0 so the line
+    is continuous on the plot. This is also required for padding to work
+    for the edge of the lines.
+
+    Works for TH1, TH2, TH3.
+
+    returns a new instance of the pybdsim.Data.TH1, TH2 or TH3.
+    """
+    r = _copy.deepcopy(hist)
+    r.contents[hist.contents==0] = value
+    return r
+        
 class ROOTHist(object):
     """
     Base class for histogram wrappers.
@@ -725,3 +763,82 @@ class SamplerData(_SamplerData):
         params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
                   'weight','partID','parentID','trackID','modelID','turnNumber','S']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
+
+class TrajectoryData : 
+    """
+    Pull trajectory data from a loaded Dataloader instance of raw data
+
+    Loads all trajector data in a event event 
+
+    >>> f = pybdsim.Data.Laod("file.root")
+    >>> trajectories = pbdsim.Data.TrajectoryData(f,0)
+    >>>
+    """
+
+    def __init__(self, data, eventNumber=0): 
+        params = ['n','trajID','partID','x','y','z']
+        self._data       = data 
+        self._eventTree  = data.GetEventTree()
+        self._event      = data.GetEvent() 
+        self._trajectory = self._event.GetTrajectory()
+
+        self.trajectoryData(eventNumber)
+        
+    def trajectoryData(self,eventNumber) : 
+
+        if eventNumber >= self._eventTree.GetEntries() :
+            raise IndexError
+
+        self._eventTree.GetEntry(eventNumber)
+
+        self.trajectories = []
+        
+        # loop over all trajectories 
+        for i in range(0,self._trajectory.n) : 
+            
+            pyTrajectory = {}
+            pyTrajectory['trackID']  = self._trajectory.trackID[i]
+            pyTrajectory['partID']   = self._trajectory.partID[i]
+            pyTrajectory['parentID'] = self._trajectory.parentID[i]
+            
+            t = self._trajectory.trajectories[i]
+            p = self._trajectory.momenta[i]
+            e = self._trajectory.energies[i]
+
+            x = _np.zeros(len(t))
+            y = _np.zeros(len(t))
+            z = _np.zeros(len(t))
+
+            px = _np.zeros(len(t))
+            py = _np.zeros(len(t))
+            pz = _np.zeros(len(t))
+
+            E = _np.zeros(len(t))
+
+                        
+            for j in range(0,len(t)) : 
+                # position
+                x[j] = t[j].X()
+                y[j] = t[j].Y()
+                z[j] = t[j].Z()
+                
+                # momenta 
+                px[j] = p[j].X()
+                py[j] = p[j].Y()
+                pz[j] = p[j].Z()                
+                
+                # energy
+                E[j] = e[j]
+
+            pyTrajectory['x'] = x
+            pyTrajectory['y'] = y
+            pyTrajectory['z'] = z
+
+            pyTrajectory['px'] = px
+            pyTrajectory['py'] = py
+            pyTrajectory['pz'] = pz
+
+            pyTrajectory['E'] = E
+
+            self.trajectories.append(pyTrajectory)
+

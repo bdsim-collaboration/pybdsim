@@ -1,0 +1,9 @@
+# Collimator Settings
+name      	material	xsize[m]	ysize[m]
+COLPRIMY  	carbon         	3.17816151e-02	2.66231070e-02
+COLSECY   	copper         	5.89578575e-02	3.68391587e-02
+COLPRIMX  	carbon         	3.13513810e-02	6.07125249e-02
+COLSECX   	copper         	3.15970720e-02	3.25433214e-02
+COLTERT   	tungsten       	1.43504061e-02	4.43260955e-03
+COLTERT2  	tungsten       	8.00859745e-03	6.12971944e-03
+COLTERT3  	tungsten       	5.22548795e-03	5.84306373e-03
