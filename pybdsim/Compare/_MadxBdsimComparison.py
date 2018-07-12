@@ -28,7 +28,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
     +-----------------+---------------------------------------------------------+
     | figsize         | Figure size for all figures - default is (12,5)         |
     +-----------------+---------------------------------------------------------+
-    
+
     """
 
     _CheckFilesExist(tfs, bdsim, survey)
@@ -45,7 +45,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
     bdsopt  = _GetBDSIMOptics(bdsinst)
 
     if survey is None:
-        survey = tfsinst
+        survey = pybdsim.Data.ModelData(bdsinst)
 
     figures = [PlotBetas(tfsopt, bdsopt, survey=survey,
                          functions=functions,
@@ -122,8 +122,8 @@ def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None, postfunctions=None
 
 def PrepareResiduals(tfs, bds, survey=None, verbose=False):
     """
-    Filter the tfs to provide data that will match the 
-    BDSIM data in s position. 
+    Filter the tfs to provide data that will match the
+    BDSIM data in s position.
     """
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
@@ -140,7 +140,7 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
         'Y':[],
         'PY':[]
         }
-    
+
     for s in bdss:
         ind = tfsinst.IndexFromNearestS(s)
         if (verbose):
@@ -176,7 +176,7 @@ def _GetBDSIMOptics(optics):
     Takes a BDSAscii instance.
     Return a dictionary of lists matching the variable with the list of values.
     '''
-    
+
     optvars = {}
     for variable in optics.names:
         datum = getattr(optics, variable)()
@@ -263,7 +263,7 @@ def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, f
     _CallUserFigureFunctions(functions)
     _AddSurvey(betaPlot, survey)
     _CallUserFigureFunctions(postfunctions)
-    
+
     _plt.show(block=False)
     return betaPlot
 
@@ -292,7 +292,7 @@ def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, 
     _CallUserFigureFunctions(functions)
     _AddSurvey(alphaPlot, survey)
     _CallUserFigureFunctions(postfunctions)
-    
+
     _plt.show(block=False)
     return alphaPlot
 
@@ -321,7 +321,7 @@ def PlotDs(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figs
     _CallUserFigureFunctions(functions)
     _AddSurvey(dispPlot, survey)
     _CallUserFigureFunctions(postfunctions)
-    
+
     _plt.show(block=False)
     return dispPlot
 
@@ -350,7 +350,7 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     _CallUserFigureFunctions(functions)
     _AddSurvey(dispPPlot, survey)
     _CallUserFigureFunctions(postfunctions)
-    
+
     _plt.show(block=False)
     return dispPPlot
 
@@ -404,7 +404,7 @@ def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, 
                   yerr=bdsopt['Sigma_Sigma_y'],
                   label=r'BDSIM $\sigma_{y}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
-    
+
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\sigma_{x,y}$ / m')
     axes.set_xlabel('S / m')
@@ -413,7 +413,7 @@ def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, 
     _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPlot, survey)
     _CallUserFigureFunctions(postfunctions)
-    
+
     _plt.show(block=False)
     return sigmaPlot
 
@@ -435,7 +435,7 @@ def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None,
                   yerr=bdsopt['Sigma_Sigma_yp'],
                   label=r'BDSIM $\sigma_{yp}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
-    
+
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\sigma_{xp,yp}$ / rad')
     axes.set_xlabel('S / m')
@@ -474,7 +474,7 @@ def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, f
     _CallUserFigureFunctions(functions)
     _AddSurvey(meanPlot, survey)
     _CallUserFigureFunctions(postfunctions)
-    
+
     _plt.show(block=False)
     return meanPlot
 
@@ -507,7 +507,7 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, f
     _plt.plot(bdsopt['s'], bdsopt['x'], 'b-', alpha=0.4)
     _plt.plot(bdsopt['s'], bdsopt['y'], 'g.', label='BDSIM y')
     _plt.plot(bdsopt['s'], bdsopt['y'], 'g-', alpha=0.4)
-    
+
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
     axes.set_xlabel('S / m')
@@ -528,7 +528,7 @@ def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None
 
     if survey is None:
         survey = tfsinst
-    
+
     s   = bdsinst.s()
     dx  = tfsd['X']  - bdsinst.x()
     dxp = tfsd['PX'] - bdsinst.xp()
