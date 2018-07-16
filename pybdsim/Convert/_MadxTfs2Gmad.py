@@ -274,6 +274,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         print itemsomitted
         print 'number of omitted items: ', len(itemsomitted)
 
+    machine.Write(outputfilename, overwrite=overwrite)
     return b, a, itemsomitted
 
 
