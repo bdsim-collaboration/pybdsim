@@ -247,15 +247,16 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                               zerolength, ignorezerolengthitems,
                                               allNamesUnique)
 
-        if gmadElement is None:
+        if gmadElement is None: # factory returned nothing, go to next item.
             continue
-
-        if aperlocalpositions:
+        elif name in collimatordict: # Don't add apertures to collimators
+            machine.Append(gmadElement)
+        elif aperlocalpositions: # split aperture if provided.
             elements_split_with_aper = _GetElementSplitByAperture(
                 gmadElement, aperlocalpositions[i])
             for ele in elements_split_with_aper:
                 machine.Append(ele)
-        else:
+        else: # Get element with single aperture
             element_with_aper = _GetSingleElementWithAper(item,
                                                           gmadElement,
                                                           aperturedict,
