@@ -187,6 +187,9 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # test whether filepath or tfs instance supplied
     madx = _pymadx.Data.CheckItsTfs(tfs)
 
+    if usemadxaperture:
+        aperturedict = madx
+
     if madx.header.has_key('PARTICLE') and flipmagnets is None:
         # try to check automatically
         particleName = madx.header['PARTICLE']
