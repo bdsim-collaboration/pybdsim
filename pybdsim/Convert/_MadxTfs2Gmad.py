@@ -236,7 +236,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
                 and zerolength
                 and ignorezerolengthitems
                 and t in ignoreableThinElements):
-            print "SKIPPING ELEMENT", t, name
             if verbose:
                 print 'skipping zero-length item: {}'.format(name)
             itemsomitted.append(name)
