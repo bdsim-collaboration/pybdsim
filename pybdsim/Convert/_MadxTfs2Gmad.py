@@ -180,6 +180,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     """
 
     # machine instance that will be added to
+    machine = _Builder.Machine()
     a = _Builder.Machine()  # raw converted machine
     b = _Builder.Machine()  # final machine, split with aperture
 
@@ -204,8 +205,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
                            " will be converted to DRIFTs.")
 
     if biases is not None:
-        a.AddBias(biases)
-        b.AddBias(biases)
+        machine.AddBias(biases)
 
     # check whether it has all the required columns.
     ZeroMissingRequiredColumns(madx)
@@ -247,32 +247,26 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                                 aperModel=rawAper)
 
     # add a single marker at the end of the line
-    a.AddMarker('theendoftheline')
-    b.AddMarker('theendoftheline')
+    machine.AddMarker('theendoftheline')
 
     if (samplers != None):
-        a.AddSampler(samplers)
-        b.AddSampler(samplers)
+        machine.AddSampler(samplers)
 
     # Make beam file
     if beam:
         bm = MadxTfs2GmadBeam(madx, startname, verbose)
         for k, v in beamParmsDict.iteritems():
             bm[k] = v
-        a.AddBeam(bm)
-        b.AddBeam(bm)
+        machine.AddBeam(bm)
 
     options = _Options()
     if (len(optionsDict) > 0):
         options.update(optionsDict)  # expand with user supplied bdsim options
-    a.AddOptions(options)
-    b.AddOptions(options)
+    machine.AddOptions(options)
 
-    b.Write(outputfilename, overwrite=overwrite)
     if verbose:
-        a.Write(outputfilename + "_raw", overwrite=overwrite)
-        print 'Total length: ', a.GetIntegratedLength()
-        print 'Total angle:  ', a.GetIntegratedAngle()
+        print 'Total length: ', machine.GetIntegratedLength()
+        print 'Total angle:  ', machine.GetIntegratedAngle()
         print 'items omitted: '
         print itemsomitted
         print 'number of omitted items: ', len(itemsomitted)
@@ -573,7 +567,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
             return _Builder.Sextupole(rname, l, k2, **kws)
     elif t == 'SOLENOID':
         #ks = item['KSI'] / l
-        # a.AddSolenoid(rname,l,ks=ks
+        # machine.AddSolenoid(rname,l,ks=ks
         print 'Solenoid not supported currently'
         return _Builder.Drift(rname, l, **kws)
     else:
