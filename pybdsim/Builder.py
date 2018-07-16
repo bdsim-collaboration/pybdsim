@@ -1070,19 +1070,20 @@ class Machine:
             cellname = basename+'_'+str(i).zfill(maxn)
             self.AddFodoCellSplitDrift(cellname,magnetlength,driftlength,kabs,nsplits=10,**kwargs)
 
-    def AddSampler(self,*elementnames):
-        if elementnames[0] == 'all':
-            self.samplers.append(Sampler('all'))
-        elif elementnames[0] == 'first':
-            self.samplers.append(Sampler(self.elements[0].name))
-        elif elementnames[0] == 'last':
-            self.samplers.append(Sampler(self.elements[-1].name))
-        else:
-            for element in elementnames:
-                if element not in self.sequence:
-                    raise ValueError(element+" is not a valid element in this machine")
-                else:
-                    self.samplers.append(Sampler(element))
+    def AddSampler(self, names):
+        if isinstance(names, basestring):
+            if names == "first":
+                self.samplers.append(Sampler(self.elements[0].name))
+            elif names == "last":
+                self.samplers.append(Sampler(self.elements[-1].name))
+            else:
+                self.samplers.append(Sampler(names))
+        else: # assume some flat iterable of sampler names.
+            for name in names:
+                if name not in self.sequence:
+                    msg = "{} not found to attach sampler to.".format(name)
+                    raise ValueError(msg)
+                self.samplers.append(Sampler(name))
 
 
 # General scripts below this point
