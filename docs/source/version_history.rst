@@ -2,17 +2,60 @@
 Version History
 ===============
 
-v 1.7 - 2018 / ?? / ??
-======================
+v1.9 - 2018 / 07 / ??
+=====================
 
 General
 -------
 
+* Significant new tests.
+* Trajectory loading from BDSIM ROOT output.
+* Plot trajectories.
+* New padding function for 1D histogram to ensure lines in plots.
+* New value replacement function for histograms to ensure continuous line in log plots.
+* Control over aspect ration in default 2D histogram plots.
+
+Bug Fixes
+---------
+
+* Fix orientation of 2D histograms in plotting.
+* Fix header information labels when writing field maps with reversed order.
+
+v1.8 - 2018 / 06 / 23
+=====================
+
+General
+-------
+
+* Setup requires pytest-runner.
+* Introduction of testing.
+* Removed line wrapping written to GMAD files in Builder.
 * "PlotBdsimOptics" is now "BDSIMOptics" in the Plot module.
+* New comparison plots for arbitrary inputs from different tracking codes.
+* Prepare PTC coordinates from any BDSIM sampler.
+
+Bug Fixes
+---------
+
+* Fixes for "Optics" vs "optics" naming change in ROOT files.
 
 
-v 1.6 - 2018 / 05 / 23
-======================
+v1.7 - 2018 / 06 / 30
+=====================
+
+General
+-------
+
+* Can specify which dimension in Field class construction (i.e. 'x':'z' instead of default 'x':'y').
+
+Bug Fixes
+---------
+
+* 'nx' and 'ny' were written the wrong way around from a 2D field map in pybdsim.
+
+
+v1.6 - 2018 / 05 / 23
+=====================
 
 Bug Fixes
 ---------
@@ -20,8 +63,8 @@ Bug Fixes
 * Fix machine diagram plotting from BDSIM survey.
 * Fix machine diagram searching with right-click in plots.
 
-v 1.5 - 2018 / 05 / 17
-======================
+v1.5 - 2018 / 05 / 17
+=====================
 
 New Features
 ------------
@@ -46,8 +89,8 @@ Bug Fixes
 * Fixes for collimator conversion from MADX.
 
 
-v 1.4 - 2018 / 10 / 04
-======================
+v1.4 - 2018 / 10 / 04
+=====================
 
 New Features
 ------------
@@ -76,8 +119,8 @@ Bug Fixes
 * MADX BDSIM testing suite now works with subrelativistic particles.
 * Many small fixes to conversion.
 
-v 1.3 - 2017 / 12 / 05
-======================
+v1.3 - 2017 / 12 / 05
+=====================
 
 New Features
 ------------

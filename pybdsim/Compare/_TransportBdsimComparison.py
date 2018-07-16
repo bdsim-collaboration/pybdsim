@@ -39,6 +39,26 @@ _SIGMA = [("Sigma_x", "Sigma_Sigma_x", r"$\sigma_{x}$"),
 _SIGMA_P = [("Sigma_xp", "Sigma_Sigma_xp", r"$\sigma_{xp}$"),
             ("Sigma_yp", "Sigma_Sigma_yp", r"$\sigma_{yp}$")]
 
+def _parse_bdsim_input(bdsim_in, name):
+   """Return bdsim_in as a BDSAsciiData instance, which should either
+   be a path to a BDSIM root output file, rebdsimOptics output file,
+   or a BDSAsciiData instance, and in either case, generate a
+   name if None is provided, and return that as well."""
+   if isinstance(bdsim_in, basestring):
+       if not _path.isfile(bdsim_in):
+           raise IOError("file \"{}\" not found!".format(bdsim_in))
+       name = (_path.splitext(_path.basename(bdsim_in))[0]
+               if name is None else name)
+       return pybdsim.Data.Load(bdsim_in).Optics, name
+   try:
+       if isinstance(bdsim_in, pybdsim.Data.RebdsimFile):
+           bdsim_in = bdsim_in.Optics
+       name = bdsim_in.filename if name is None else name
+       return bdsim_in, name
+   except AttributeError:
+       raise TypeError(
+           "Expected Tfs input is neither a "
+           "file path nor a Tfs instance: {}".format(bdsim_in))
 
 # use closure to avoid tonnes of boilerplate code as happened with
 # MadxBdsimComparison.py
@@ -96,6 +116,8 @@ def TransportVsBDSIM(first, second, first_name=None,
     """
     Display all the optical function plots for the two input optics files.
     """
+    second, second_name = _parse_bdsim_input(second, second_name)
+
     figures=[PlotBeta(first, second, first_name=first_name,
                       second_name=second_name, survey=survey, **kwargs),
              PlotAlpha(first, second, first_name=first_name,

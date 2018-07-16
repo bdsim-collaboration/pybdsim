@@ -74,12 +74,12 @@ class Field1D(Field):
     >>> a.Write('outputFileName.dat')
 
     """
-    def __init__(self, data, doublePrecision=False):
-        columns = ['X','Fx','Fy','Fz']
+    def __init__(self, data, doublePrecision=False, column='X'):
+        columns = [column,'Fx','Fy','Fz']
         super(Field1D, self).__init__(data,columns,doublePrecision=doublePrecision)
-        self.header['xmin'] = _np.min(self.data[:,0])
-        self.header['xmax'] = _np.max(self.data[:,0])
-        self.header['nx']   = _np.shape(self.data)[0]
+        self.header[column.lower() + 'min'] = _np.min(self.data[:,0])
+        self.header[column.lower() + 'max'] = _np.max(self.data[:,0])
+        self.header['n' + column.lower()]   = _np.shape(self.data)[0]
 
 class Field2D(Field):
     """
@@ -101,15 +101,18 @@ class Field2D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False):
-        columns = ['X','Y','Fx','Fy','Fz']
+    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y'):
+        columns = [firstColumn, secondColumn, 'Fx', 'Fy', 'Fz']
         super(Field2D, self).__init__(data,columns,flip,doublePrecision)
-        self.header['xmin'] = _np.min(self.data[:,:,0])
-        self.header['xmax'] = _np.max(self.data[:,:,0])
-        self.header['nx']   = _np.shape(self.data)[1]
-        self.header['ymin'] = _np.min(self.data[:,:,1])
-        self.header['ymax'] = _np.max(self.data[:,:,1])
-        self.header['ny']   = _np.shape(self.data)[0]
+        inds = [0,1] if flip else [1,0]
+        fcl = firstColumn.lower()
+        scl = secondColumn.lower()
+        self.header[fcl+'min'] = _np.min(self.data[:,:,0])
+        self.header[fcl+'max'] = _np.max(self.data[:,:,0])
+        self.header['n'+fcl]   = _np.shape(self.data)[inds[0]]
+        self.header[scl+'min'] = _np.min(self.data[:,:,1])
+        self.header[scl+'max'] = _np.max(self.data[:,:,1])
+        self.header['n'+scl]   = _np.shape(self.data)[inds[1]]
 
 class Field3D(Field):
     """
@@ -131,18 +134,22 @@ class Field3D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False):
-        columns = ['X','Y','Z','Fx','Fy','Fz']
+    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
+        columns = [firstColumn,secondColumn,thirdColumn,'Fx','Fy','Fz']
         super(Field3D, self).__init__(data,columns,flip,doublePrecision)
-        self.header['xmin'] = _np.min(self.data[:,:,:,0])
-        self.header['xmax'] = _np.max(self.data[:,:,:,0])
-        self.header['nx']   = _np.shape(self.data)[2]
-        self.header['ymin'] = _np.min(self.data[:,:,:,1])
-        self.header['ymax'] = _np.max(self.data[:,:,:,1])
-        self.header['ny']   = _np.shape(self.data)[1]
-        self.header['zmin'] = _np.min(self.data[:,:,:,2])
-        self.header['zmax'] = _np.max(self.data[:,:,:,2])
-        self.header['nz']   = _np.shape(self.data)[0]
+        inds = [0,1,2] if flip else [2,1,0]
+        fcl = firstColumn.lower()
+        scl = secondColumn.lower()
+        tcl = thirdColumn.lower()
+        self.header[fcl+'min'] = _np.min(self.data[:,:,:,0])
+        self.header[fcl+'max'] = _np.max(self.data[:,:,:,0])
+        self.header['n'+fcl]   = _np.shape(self.data)[inds[0]]
+        self.header[scl+'min'] = _np.min(self.data[:,:,:,1])
+        self.header[scl+'max'] = _np.max(self.data[:,:,:,1])
+        self.header['n'+scl]   = _np.shape(self.data)[inds[1]]
+        self.header[tcl+'min'] = _np.min(self.data[:,:,:,2])
+        self.header[tcl+'max'] = _np.max(self.data[:,:,:,2])
+        self.header['n'+tcl]   = _np.shape(self.data)[inds[2]]
 
 class Field4D(Field):
     """
@@ -167,15 +174,16 @@ class Field4D(Field):
     def __init__(self, data, flip=True, doublePrecision=False):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
         super(Field4D, self).__init__(data,columns,flip,doublePrecision)
+        inds = [0,1,2,3] if flip else [3,2,1,0]
         self.header['xmin'] = _np.min(self.data[:,:,:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,:,:,0])
-        self.header['nx']   = _np.shape(self.data)[3]
+        self.header['nx']   = _np.shape(self.data)[inds[0]]
         self.header['ymin'] = _np.min(self.data[:,:,:,:,1])
         self.header['ymax'] = _np.max(self.data[:,:,:,:,1])
-        self.header['ny']   = _np.shape(self.data)[2]
+        self.header['ny']   = _np.shape(self.data)[inds[1]]
         self.header['zmin'] = _np.min(self.data[:,:,:,:,2])
         self.header['zmax'] = _np.max(self.data[:,:,:,:,2])
-        self.header['nz']   = _np.shape(self.data)[1]
+        self.header['nz']   = _np.shape(self.data)[inds[2]]
         self.header['tmin'] = _np.min(self.data[:,:,:,:,3])
         self.header['tmax'] = _np.max(self.data[:,:,:,:,3])
-        self.header['nt']   = _np.shape(self.data)[0]
+        self.header['nt']   = _np.shape(self.data)[inds[3]]

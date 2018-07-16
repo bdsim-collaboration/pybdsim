@@ -1,4 +1,4 @@
-! Sat, 23 Jun 2018 16:55:32 +0000
+! Mon, 16 Jul 2018 21:41:29 +0000
 ! pybdsim.Builder Lattice, using pybdsim version 1.6 
 ! COMPONENT DEFINITION
 
@@ -14,7 +14,6 @@ L002B: drift, l=0.7028333967;
 ZH101RX: hkicker, hkick=-0.0, l=0.1679;
 L002C: drift, l=0.05068234611;
 ZV100RX: vkicker, l=0.13874, vkick=-0.0;
-L002D: marker;
 L002E: drift, l=0.1894692706;
 QM7RX: quadrupole, k1=-4.8399816029, l=0.0421716479;
 L003: drift, l=0.1478305058;

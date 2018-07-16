@@ -221,6 +221,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # keep list of omitted zero length items
     itemsomitted = []
 
+    ignoreableThinElements = ['MONITOR', 'PLACEHOLDER', 'MARKER',
+                              "DRIFT"]
+
+    # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
         name = item['NAME']
         t = item['KEYWORD']
