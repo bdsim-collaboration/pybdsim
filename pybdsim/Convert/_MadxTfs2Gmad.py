@@ -585,7 +585,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         else:
             print 'putting drift in instead as it has a finite length'
             return _Builder.Drift(rname, l)
-
+    raise ValueError("Unable to construct Element.")
 
 def _GetElementSplitByAperture(gmadElement, localApertures):
     apertures = [PrepareApertureModel(aper) for point, aper in localApertures]
