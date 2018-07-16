@@ -555,7 +555,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
                 aperturedict.GetApertureAtS(sMid), defaultAperture)
             #apermodel = aperturedict.GetApertureForElementNamed(name)
             # print 'Using aperture instance'
-            should, lengths, apers = aperturedict.ShouldSplit(item)
+            # should, lengths, apers = aperturedict.ShouldSplit(item)
             should = False
             if should:
                 if verbose:
