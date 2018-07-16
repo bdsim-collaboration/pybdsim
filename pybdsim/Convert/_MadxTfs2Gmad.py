@@ -51,6 +51,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  ignorezerolengthitems = True,
                  samplers              = 'all',
                  aperturedict          = {},
+                 aperlocalpositions    = {},
                  collimatordict        = {},
                  userdict              = {},
                  verbose               = False,
@@ -113,6 +114,11 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | keys (must be valid bdsim syntax). Alternatively, this can be a   |
     |                               | pymadx.Aperture instance that will be queried.                    |
     +-------------------------------+-------------------------------------------------------------------+
+    | **aperlocalpositions**        | Dictionary of element indices to a list of pairs of the form      |
+    |                               | (local_point, aperdict), for example                              |
+    |                               | (0.1, {"APER1": "CIRCULAR", "APER1": 0.4}).                       |
+    |                               |  This kwarg is mutually exclusive with "aperturedict".            |
+    +-------------------------------+-------------------------------------------------------------------+
     | **collimatordict**            | A dictionary of dictionaries with collimator information keys     |
     |                               | should be exact string match of element name in tfs file value    |
     |                               | should be dictionary with the following keys:                     |
@@ -144,7 +150,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
     | **usemadxaperture**           | True \| False - use the aperture information in the TFS file if   |
     |                               | APER_1 and APER_2 columns exist.  Will only set if they're        |
-    |                               | non-zero.                                                         |
+    |                               | non-zero.  Supercedes kwargs `aperturedict` and                   |
+    |                               | `aperlocalpositions`.                                              |
     +-------------------------------+-------------------------------------------------------------------+
     | **defaultAperture**           | The default aperture model to assume if none is specified.        |
     +-------------------------------+-------------------------------------------------------------------+
@@ -168,14 +175,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | guaranteed to appear only once in the entire resulting GMAD       |
     |                               | lattice.                                                          |
     +-------------------------------+-------------------------------------------------------------------+
-    | **apertureAlgorithm**         | Only alters functionality when aperturedict is a                  |
-    |                               | pymadx.Data.Aperture instance.  Determines how the apertures are  |
-    |                               | set.  If "latch", then the last aperture in the sequence (by S)   |
-    |                               | is used, and should the aperture change within the element, then  |
-    |                               | the element will be split.                                        |
-    |                               | If "nearest", then the aperture nearest to the mid point of the   |
-    |                               | element is used.  This is the default behaviour.                  |
-    +-------------------------------+-------------------------------------------------------------------+
 
     """
 
@@ -189,6 +188,9 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     if usemadxaperture:
         aperturedict = madx
+    elif aperturedict and aperlocalpositions:
+        msg = "'aperturedict' and 'aperlocalpositions' are mutually exclusive."
+        raise TypeError(msg)
 
     if "PARTICLE" in madx.header and flipmagnets is None:
         # try to check automatically
@@ -219,35 +221,37 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # keep list of omitted zero length items
     itemsomitted = []
 
-    ignoreableThinElements = {'MONITOR', 'PLACEHOLDER', 'MARKER',
-                              'RCOLLIMATOR', 'ECOLLIMATOR', 'COLLIMATOR'}
-
-    # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
         name = item['NAME']
         t = item['KEYWORD']
         l = item['L']
+        i = item['INDEX']
+
         zerolength = True if item['L'] < 1e-9 else False
 
-        if (not madx.ElementPerturbs(item)
-                and zerolength
-                and ignorezerolengthitems
-                and t in ignoreableThinElements):
+        if (zerolength and not madx.ElementPerturbs(item)):
             if verbose:
                 print 'skipping zero-length item: {}'.format(name)
             itemsomitted.append(name)
             continue  # skip this item.
-        rawAper, splitApertures = _GetElementAperModel(item, madx,
-                                                       usemadxaperture,
-                                                       aperturedict,
-                                                       defaultAperture,
-                                                       apertureAlgorithm)
-        gmadElement = _MadxToGmadElementFactory(item, allelementdict, verbose,
-                                                allNamesUnique, userdict,
-                                                flipmagnets, linear,
-                                                zerolength,
-                                                ignorezerolengthitems,
-                                                aperModel=rawAper)
+
+        gmadElement = _Tfs2GmadElementFactory(item, allelementdict, verbose,
+                                              userdict, collimatordict,
+                                              flipmagnets, linear,
+                                              zerolength, ignorezerolengthitems,
+                                              allNamesUnique)
+
+        if aperlocalpositions:
+            elements_split_with_aper = _GetElementSplitByAperture(
+                gmadElement, aperlocalpositions[i])
+            for ele in elements_split_with_aper:
+                machine.Append(ele)
+        else:
+            element_with_aper = _GetSingleElementWithAper(item,
+                                                          gmadElement,
+                                                          aperturedict,
+                                                          defaultAperture)
+            machine.Append(element_with_aper)
 
     # add a single marker at the end of the line
     machine.AddMarker('theendoftheline')
@@ -583,36 +587,43 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
             return _Builder.Drift(rname, l)
 
 
-def _GetElementAperModel(item, tfs, usemadxaperture, aperturedict,
-                         defaultAperture, apertureAlgorithm):
+def _GetElementSplitByAperture(gmadElement, localApertures):
+    apertures = [PrepareApertureModel(aper) for point, aper in localApertures]
+    if localApertures[0][0] != 0.0 :
+        raise ValueError("No aperture defined at start of element.")
+    if len(localApertures) > 1:
+        split_points = [point for point, _  in localApertures[1:]]
+        split_elements = gmadElement.split(split_points)
+        for i,  in enumerate(split_elements):
+            element.update(apertures[i])
+        return split_elements
+    elif len(localApertures) == 0:
+        gmadElement = _deepcopy(gmadElement)
+        gmadElement.update(apertures[0])
+        return [gmadElement]
+
+def _GetSingleElementWithAper(item, gmadElement,
+                              aperturedict, defaultAperture):
     """Returns the raw aperture model (i.e. unsplit), and a list of
     split apertures."""
-    rawAperture = None
-    splitApertures = []
+    gmadElement = _deepcopy(gmadElement)
     name = item["NAME"]
-    if (isinstance(aperturedict, _pymadx.Data.Aperture)
-        and apertureAlgorithm == "nearest"):
-        s_mid = item["SMID"]
-        rawAperture = _Builder.PrepareApertureModel(
-            aperturedict.GetApertureAtS(s_mid), defaultAperture)
-    elif (isinstance(aperturedict, _pymadx.Data.Aperture)
-          and apertureAlgorithm == "latch"):
-        s_end = item["S"]
-        s_mid = item["SMID"]
-        s_start = s_end - item["L"]
-        rawAperture = _Builder.PrepareApertureModel(
+    # note SORIGINAL not S.  This is so it works still after slicing.
+    sMid = item["SORIGINAL"] - item["L"] / 2.0
+    aper = {}
+    try:
+        aper = _Builder.PrepareApertureModel(
             aperturedict.GetApertureAtS(sMid), defaultAperture)
-        apermodel.append(_Builder.PrepareApertureModel(item) for item in
-                         aperturedict.GetLatchedAperturesForSRange(s_start,
-                                                                   s_end))
-    elif name in aperturedict:
-        rawAperture = _Builder.PrepareApertureModel(name, defaultAperture)
-    elif usemadxaperture:
-        rawAperture = _Builder.PrepareApertureModel(item, defaultAperture)
+    except AttributeError:
+        pass
+    try:
+        aper =  _Builder.PrepareApertureModel(aperturedict[name],
+                                              defaultAperture)
+    except KeyError:
+        pass
+    gmadElement.update(aper)
+    return gmadElement
 
-    if not splitApertures:
-        splitApertures = [rawAperture]
-    return rawAperture, splitApertures
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     """
