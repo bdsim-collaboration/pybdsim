@@ -30,6 +30,7 @@ import os as _os
 import numpy as _np
 import copy as _copy
 import textwrap as _textwrap
+import numbers
 
 bdsimcategories = [
     'marker',
@@ -75,17 +76,34 @@ class ElementBase(collections.MutableMapping):
     """
     def __init__(self, name, isMultipole=False, **kwargs):
         self._store = dict()
-        self['name']      = name
         self.name         = name
+        self['name']      = name
         self._isMultipole = isMultipole
         self._keysextra   = set()
-        self.__Update(kwargs)
+        for k, v in kwargs.iteritems():
+            self[k] = v
 
     def __getitem__(self, key):
         return self._store[key]
 
     def __setitem__(self, key, value):
-        self._store[key] = value
+
+        if (key == "name" or key == "category") and value:
+            self._store[key] = value
+        elif value == "":
+            return
+        elif type(value) == tuple and self._isMultipole:
+            self._store[key] = value
+        elif isinstance(value, tuple):
+            self._store[key] = (float(value[0]), value[1])
+        elif isinstance(value, numbers.Number):
+            if "aper" in key.lower() and value < 1e-6:
+                return
+            else:
+                self._store[key] = value
+        else:
+            self._store[key] = '"{}"'.format(value)
+
         if key not in {"name", "category"}: # keys which are not # 'extra'.
             self._keysextra.add(key)
 
@@ -94,26 +112,6 @@ class ElementBase(collections.MutableMapping):
 
     def __iter__(self):
         return iter(self._store)
-
-    def __Update(self,d):
-        for key,value in d.iteritems():
-            if value == "" :
-                continue
-            if type(value) == tuple and self._isMultipole:
-                self[key] = value
-            elif type(value) == tuple:
-                #use a tuple for (value,units)
-                self[key] = (float(value[0]),value[1])
-            elif isinstance(value, (float, int)):
-                #must be a number
-                if 'aper' in str.lower(key) and value < 1e-6:
-                    continue
-                else:
-                    self[key] = value
-            else:
-                #must be a string
-                self[key] = '"'+value+'"'
-            self._keysextra.add(str(key))
 
     def keysextra(self):
         #so behaviour is similar to dict.keys()
@@ -127,20 +125,21 @@ class ElementBase(collections.MutableMapping):
             pass
 
     def __repr__(self):
-        s = ''
-        s += self.name + ': '
+        s = "{s.name}: ".format(s=self)
         for i,key in enumerate(self._keysextra):
-            if i > 0:
+            if i > 0: # Separate with commas
                 s += ", "
+            # Write multipole syntax
             if type(self[key]) == tuple and self._isMultipole:
                 s += key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
+            # Write tuple (i.e. number + units) syntax
             elif type(self[key]) == tuple:
                 s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            # everything else (most things!)
             else:
                 s += key + '=' + str(self[key])
         s += ';\n'
         return s
-
 
 def _scale_element_parameters_by_length(parameters, elements, total_length):
     """Scale a list of elements' parameters by their length.  So if
@@ -199,12 +198,7 @@ class Element(ElementBase):
         self['category'] = category
         self.category    = category
         self.length      = 0.0 #for book keeping only
-        self.__Update()
         self._UpdateLength()
-
-    def __Update(self, d=None):
-        if d != None:
-            ElementModifier.__update(self,d)
 
     def _UpdateLength(self):
         if 'l' in self:
