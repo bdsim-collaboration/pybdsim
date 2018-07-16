@@ -1389,5 +1389,5 @@ def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=Tr
     #write the output
     f = open(outputfilename,'w')
     for sampler in samplers:
-        f.write(sampler.__repr__())
+        f.write(repr(sampler))
     f.close()
