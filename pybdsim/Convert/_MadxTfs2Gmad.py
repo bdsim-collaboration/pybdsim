@@ -232,8 +232,11 @@ def MadxTfs2Gmad(tfs, outputfilename,
         i = item['INDEX']
 
         zerolength = True if item['L'] < 1e-9 else False
-
-        if (zerolength and not madx.ElementPerturbs(item)):
+        if (not madx.ElementPerturbs(item)
+                and zerolength
+                and ignorezerolengthitems
+                and t in ignoreableThinElements):
+            print "SKIPPING ELEMENT", t, name
             if verbose:
                 print 'skipping zero-length item: {}'.format(name)
             itemsomitted.append(name)
@@ -244,6 +247,9 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                               flipmagnets, linear,
                                               zerolength, ignorezerolengthitems,
                                               allNamesUnique)
+
+        if gmadElement is None:
+            continue
 
         if aperlocalpositions:
             elements_split_with_aper = _GetElementSplitByAperture(
@@ -411,6 +417,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             if finiteStrength:
                 return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
+            else:
+                return None # don't write it if all strengths are zero
         else:
             if finiteStrength:
                 return _Builder.Multipole(rname, l, knl=knl, ksl=ksl, **kws)
@@ -589,7 +597,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         else:
             print 'putting drift in instead as it has a finite length'
             return _Builder.Drift(rname, l)
-    raise ValueError("Unable to construct Element.")
+
+    raise ValueError("Unable to construct Element: {}, {}".format(t, name))
 
 def _GetElementSplitByAperture(gmadElement, localApertures):
     apertures = [PrepareApertureModel(aper) for point, aper in localApertures]
