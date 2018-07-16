@@ -190,7 +190,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     if usemadxaperture:
         aperturedict = madx
 
-    if madx.header.has_key('PARTICLE') and flipmagnets is None:
+    if "PARTICLE" in madx.header and flipmagnets is None:
         # try to check automatically
         particleName = madx.header['PARTICLE']
         if particleName == "ELECTRON":
