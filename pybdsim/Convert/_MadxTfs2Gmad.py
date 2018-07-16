@@ -399,11 +399,10 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
 
         finiteStrength = _np.any(
             [k1, k2, k3, k4, k5, k6, k1s, k2s, k3s, k4s, k5s, k6s])
+
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             if finiteStrength:
                 return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
-            else:
-                return  # don't write it if all strengths are zero
         else:
             if finiteStrength:
                 return _Builder.Multipole(rname, l, knl=knl, ksl=ksl, **kws)
