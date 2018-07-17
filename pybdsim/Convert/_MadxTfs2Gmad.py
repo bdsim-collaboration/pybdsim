@@ -610,10 +610,10 @@ def _GetElementSplitByAperture(gmadElement, localApertures):
     if len(localApertures) > 1:
         split_points = [point for point, _  in localApertures[1:]]
         split_elements = gmadElement.split(split_points)
-        for i,  in enumerate(split_elements):
-            element.update(apertures[i])
+        for i, _ in enumerate(split_elements):
+            gmadElement.update(apertures[i])
         return split_elements
-    elif len(localApertures) == 0:
+    elif len(localApertures) == 1:
         gmadElement = _deepcopy(gmadElement)
         gmadElement.update(apertures[0])
         return [gmadElement]
