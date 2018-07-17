@@ -601,7 +601,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
     raise ValueError("Unable to construct Element: {}, {}".format(t, name))
 
 def _GetElementSplitByAperture(gmadElement, localApertures):
-    if gmadElement.l == 0.0: # No apertures for thin elements
+    if gmadElement.length == 0.0: # No apertures for thin elements, just return
         return [gmadElement]
 
     apertures = [PrepareApertureModel(aper) for point, aper in localApertures]
