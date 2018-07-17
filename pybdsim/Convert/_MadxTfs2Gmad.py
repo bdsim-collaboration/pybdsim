@@ -617,6 +617,7 @@ def _GetElementSplitByAperture(gmadElement, localApertures):
         gmadElement = _deepcopy(gmadElement)
         gmadElement.update(apertures[0])
         return [gmadElement]
+    raise ValueError("Unable to split element by apertures.")
 
 def _GetSingleElementWithAper(item, gmadElement,
                               aperturedict, defaultAperture):
