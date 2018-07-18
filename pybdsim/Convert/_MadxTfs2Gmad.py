@@ -222,7 +222,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     itemsomitted = []
     ignoreableThinElements = {"MONITOR", "PLACEHOLDER", "MARKER",
                               "RCOLLIMATOR", "ECOLLIMATOR",
-                              "COLLIMATOR", "DRIFT"}
+                              "COLLIMATOR", "INSTRUMENT"}
 
     # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
@@ -246,9 +246,16 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                               flipmagnets, linear,
                                               zerolength, ignorezerolengthitems,
                                               allNamesUnique)
-
         if gmadElement is None: # factory returned nothing, go to next item.
             continue
+        # We generally convert unsupported elements in the factory to
+        # drifts, but if that then results in a drift with zero
+        # length, then skip it.
+        elif gmadElement.length == 0.0 and isinstance(gmadElement,
+                                                      _Builder.Drift):
+            continue
+        elif l == 0.0: # Don't try to attach apertures to thin elements.
+            machine.Append(gmadElement)
         elif name in collimatordict: # Don't add apertures to collimators
             machine.Append(gmadElement)
         elif aperlocalpositions: # split aperture if provided.
