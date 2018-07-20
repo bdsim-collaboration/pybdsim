@@ -102,6 +102,9 @@ class ElementBase(collections.MutableMapping):
             else:
                 self._store[key] = value
         else:
+            if value.startswith('"') and value.endswith('"'):
+                # Prevent the buildup of quotes for multiple setitem calls
+                value = value.strip('"')
             self._store[key] = '"{}"'.format(value)
 
         if key not in {"name", "category"}: # keys which are not # 'extra'.
