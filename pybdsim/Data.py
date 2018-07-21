@@ -870,3 +870,8 @@ class ModelData(object):
             sHigh = self.endS[i]
             if (s >= sLow and s < sHigh):
                 return i
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
