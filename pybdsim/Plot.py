@@ -45,6 +45,25 @@ def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True):
     """
     _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout)
 
+def DispatchMachineLatticeToFigure(figure, survey=None, bdsimfile=None,
+                                   tfsfile=None, tightLayout=True):
+    """Adds a machine lattice to the figure from either survey,
+    tfsfile, or bdsimfile (with Model branch present), in that order
+    of precedence.  If none are specified, then TypeError is raised."""
+    if survey is not None:
+        AddMachineLatticeFromSurveyToFigure(figure, survey,
+                                            tightLayout=tightLayout)
+        return
+    if bdsimdata is not None:
+        AddMachineLatticeFromROOTOutputToFigure(figure, bdsimdata,
+                                                tightLayout=tightLayout)
+        return
+    if tfsdata is None:
+        AddMachineLatticeToFigure(figure, tfsfile, tightLayout=tightLayout)
+        return
+    raise TypeError("No survey source has been provided")
+
+
 def ProvideWrappedS(sArray, index):
     s = sArray #shortcut
     smax = s[-1]
