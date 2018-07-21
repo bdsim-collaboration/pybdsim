@@ -9,7 +9,7 @@ import pybdsim._General
 
 _requiredKeys = frozenset([
     'L', 'ANGLE', 'KSI',
-    'K1L',  'K2L',  'K3L',  'K4L',  'K5L',  'K6L',
+    'K1L', 'K2L', 'K3L', 'K4L', 'K5L', 'K6L',
     'K1SL', 'K2SL', 'K3SL', 'K4SL', 'K5SL', 'K6SL',
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
     'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX', 'HGAP'])
@@ -180,8 +180,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     # machine instance that will be added to
     machine = _Builder.Machine()
-    a = _Builder.Machine()  # raw converted machine
-    b = _Builder.Machine()  # final machine, split with aperture
 
     # test whether filepath or tfs instance supplied
     madx = _pymadx.Data.CheckItsTfs(tfs)
@@ -273,7 +271,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # add a single marker at the end of the line
     machine.AddMarker('theendoftheline')
 
-    if (samplers != None):
+    if (samplers is not None):
         machine.AddSampler(samplers)
 
     # Make beam file
@@ -284,7 +282,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         machine.AddBeam(bm)
 
     options = _Options()
-    if (len(optionsDict) > 0):
+    if optionsDict:
         options.update(optionsDict)  # expand with user supplied bdsim options
     machine.AddOptions(options)
 
@@ -296,7 +294,9 @@ def MadxTfs2Gmad(tfs, outputfilename,
         print 'number of omitted items: ', len(itemsomitted)
 
     machine.Write(outputfilename, overwrite=overwrite)
-    return b, a, itemsomitted
+    # We return machine twice to not break old interface of returning
+    # two machines.
+    return machine, machine, itemsomitted
 
 
 def _Tfs2GmadElementFactory(item, allelementdict, verbose,
@@ -386,10 +386,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         # most 'instruments' are just markers
         if zerolength and not ignorezerolengthitems:
             return _Builder.Marker(rname)
-            if verbose:
-                print name, ' -> marker instead of instrument'
-        else:
-            return _Builder.Drift(rname, l, **kws)
+        return _Builder.Drift(rname, l, **kws)
     elif t == 'MARKER':
         if not ignorezerolengthitems:
             return _Builder.Marker(rname)
@@ -397,10 +394,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         # most monitors are just markers
         if zerolength and not ignorezerolengthitems:
             return _Builder.Marker(rname)
-            if verbose:
-                print name, ' -> marker instead of monitor'
-        else:
-            return _Builder.Drift(rname, l, **kws)
+        return _Builder.Drift(rname, l, **kws)
     elif t == 'MULTIPOLE':
         k1 = item['K1L'] * factor
         k2 = item['K2L'] * factor if not linear else 0
@@ -424,35 +418,28 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             if finiteStrength:
                 return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
-            else:
-                return None # don't write it if all strengths are zero
-        else:
-            if finiteStrength:
-                return _Builder.Multipole(rname, l, knl=knl, ksl=ksl, **kws)
-            else:
-                return _Builder.Drift(rname, l, **kws)
+            return None # don't write it if all strengths are zero
+        if finiteStrength:
+            return _Builder.Multipole(rname, l, knl=knl, ksl=ksl, **kws)
+        return _Builder.Drift(rname, l, **kws)
     elif t == 'OCTUPOLE':
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             k3 = item['K3L'] * factor if not linear else 0
             return _Builder.ThinMultipole(rname, knl=(0, 0, k3), **kws)
-        else:
-            k3 = item['K3L'] / l * factor if not linear else 0
-            return _Builder.Octupole(rname, l, k3=k3, **kws)
+        k3 = item['K3L'] / l * factor if not linear else 0
+        return _Builder.Octupole(rname, l, k3=k3, **kws)
     elif t == 'PLACEHOLDER':
         if zerolength:
             if not ignorezerolengthitems:
                 return _Builder.Marker(rname)
-                if verbose:
-                    print name, ' -> marker instead of placeholder'
         else:
             return _Builder.Drift(rname, l, **kws)
     elif t == 'QUADRUPOLE':
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             k1 = item['K1L'] * factor
             return _Builder.ThinMultipole(rname, knl=(k1), **kws)
-        else:
-            k1 = item['K1L'] / l * factor
-            return _Builder.Quadrupole(rname, l, k1, **kws)
+        k1 = item['K1L'] / l * factor
+        return _Builder.Quadrupole(rname, l, k1, **kws)
     elif t == 'RBEND':
         angle = item['ANGLE']
         e1 = item['E1']
@@ -568,8 +555,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                                                 ysize * 2.5])
                 if t == 'RCOLLIMATOR' or t == "COLLIMATOR":
                     return _Builder.RCol(rname, l, xsize, ysize, **kws)
-                else:
-                    return _Builder.ECol(rname, l, xsize, ysize, **kws)
+                return _Builder.ECol(rname, l, xsize, ysize, **kws)
         # dict is incomplete or the component is erroneously
         # reffered to as a collimator even when it can be thought
         # of as a drift (e.g. LHC TAS).
@@ -588,9 +574,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             k2 = item['K2L'] * factor if not linear else 0
             return _Builder.ThinMultipole(rname, knl=(0, k2), **kws)
-        else:
-            k2 = item['K2L'] / l * factor if not linear else 0
-            return _Builder.Sextupole(rname, l, k2, **kws)
+        k2 = item['K2L'] / l * factor if not linear else 0
+        return _Builder.Sextupole(rname, l, k2, **kws)
     elif t == 'SOLENOID':
         #ks = item['KSI'] / l
         # machine.AddSolenoid(rname,l,ks=ks
@@ -601,9 +586,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         if zerolength and not ignorezerolengthitems:
             print 'putting marker in instead as its zero length'
             return _Builder.Marker(rname)
-        else:
-            print 'putting drift in instead as it has a finite length'
-            return _Builder.Drift(rname, l)
+        print 'putting drift in instead as it has a finite length'
+        return _Builder.Drift(rname, l)
 
     raise ValueError("Unable to construct Element: {}, {}".format(t, name))
 
