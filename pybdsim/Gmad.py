@@ -166,6 +166,7 @@ def _LoadLib():
         parserlib.GetBeampipeThickness.argtypes = [_ctypes.c_int]
 
         return parserlib
+from pymadx.Data import GetApertureExtent
 
 class Lattice(object):
     """
@@ -397,6 +398,25 @@ class Lattice(object):
         for element in self.lattice:
             data.append(element[column])
         return data
+
+    def GetApertureExtents(self):
+        s = []
+        x = []
+        y = []
+        for element in self.lattice:
+            if element['ApertureType'] == '':
+                continue
+            a1 = element['Aper1']
+            a2 = element['Aper2']
+            a3 = element['Aper3']
+            a4 = element['Aper4']
+            atype = element['ApertureType'].upper()
+            xextent, yextent = GetApertureExtent(a1, a2, a3, a4, atype)
+            x.append(xextent)
+            y.append(yextent)
+            s.append(element['SPosStart'])
+
+        return s, x, y
 
 class GmadFile(object) :
     """
