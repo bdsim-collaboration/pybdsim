@@ -1069,19 +1069,20 @@ class Machine:
 
     def AddSampler(self, names):
         if isinstance(names, basestring):
-            if names == "first":
+            if names == "all":
+                self.samplers.append(Sampler("all"))
+            elif names == "first":
                 self.samplers.append(Sampler(self.elements[0].name))
             elif names == "last":
                 self.samplers.append(Sampler(self.elements[-1].name))
             else:
+                if names not in self.sequence:
+                    msg = "{} not found to attach sampler to.".format(name)
+                    raise ValueError(msg)
                 self.samplers.append(Sampler(names))
         else: # assume some flat iterable of sampler names.
             for name in names:
-                if name not in self.sequence:
-                    msg = "{} not found to attach sampler to.".format(name)
-                    raise ValueError(msg)
-                self.samplers.append(Sampler(name))
-
+                self.AddSampler(name)
 
 # General scripts below this point
 
