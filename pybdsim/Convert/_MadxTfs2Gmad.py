@@ -307,7 +307,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         factor = -1 if flipmagnets else 1  # flipping magnets
 
     # if it's already a prepared element, just return it
-    if type(item) == _Builder.Element:
+    if isinstance(item, _Builder.Element):
         return item
 
     kws = {}  # ensure empty
