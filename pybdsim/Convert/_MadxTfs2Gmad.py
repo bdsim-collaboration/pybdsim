@@ -14,9 +14,6 @@ _requiredKeys = frozenset([
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
     'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX', 'HGAP'])
 
-_lFake = 1e-6  # fake length for thin magnets
-
-
 # Constants
 # anything below this length is treated as a thin element
 _THIN_ELEMENT_THRESHOLD = 1e-6
@@ -65,8 +62,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  beamParmsDict         = {},
                  linear                = False,
                  overwrite             = True,
-                 allNamesUnique        = False,
-                 apertureAlgorithm     = 'nearest'):
+                 allNamesUnique        = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
