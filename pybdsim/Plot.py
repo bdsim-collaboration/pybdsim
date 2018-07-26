@@ -73,15 +73,15 @@ def _PrepareMachineAxes(figure):
 def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
     """
     Fraction is fraction of height all subplots will be after adjustment.
-    Default is 0.9 for 90% of height. 
+    Default is 0.9 for 90% of height.
     """
     # we have to set tight layout before adjustment otherwise if called
     # later it will cause an overlap with the machine diagram
     if (tightLayout):
         _plt.tight_layout()
-    
+
     axs = figure.get_axes()
-    
+
     for ax in axs:
         bbox = ax.get_position()
         bbox.y0 = bbox.y0 * fraction
@@ -107,7 +107,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     sf = _CheckItsBDSAsciiData(surveyfile)
     # we don't need to check this has the required columns because we control a
     # BDSIM survey contents.
-    
+
     axoptics  = figure.get_axes()[0]
     _AdjustExistingAxes(figure, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
@@ -115,17 +115,17 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     _DrawMachineLattice(axmachine,sf)
 
     #put callbacks for linked scrolling
-    def MachineXlim(ax): 
+    def MachineXlim(ax):
         axmachine.set_autoscale_on(False)
         axoptics.set_xlim(axmachine.get_xlim())
 
-    def Click(a) : 
+    def Click(a) :
         if a.button == 3:
             try:
                 print 'Closest element: ',sf.NameFromNearestS(a.xdata)
             except ValueError:
                 pass # don't complain if the S is out of bounds
-            
+
     MachineXlim(axmachine)
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
@@ -133,14 +133,14 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
 def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     ax  = axesinstance #handy shortcut
     bds = bdsasciidataobject
-    
+
     def DrawBend(start,length,color='b',alpha=1.0):
         br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
         ax.add_patch(br)
     def DrawQuad(start,length,k1,color='r',alpha=1.0):
         if k1 > 0 :
             qr = _patches.Rectangle((start,0),length,0.2,color=color,alpha=alpha)
-        elif k1 < 0: 
+        elif k1 < 0:
             qr = _patches.Rectangle((start,-0.2),length,0.2,color=color,alpha=alpha)
         else:
             #quadrupole off
@@ -157,12 +157,12 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
         ax.add_patch(rect)
     def DrawLine(start,color,alpha=1.0):
         ax.plot([start,start],[-0.2,0.2],'-',color=color,alpha=alpha)
-            
+
     # plot beam line
     smax = bds.SEnd()[-1]
     ax.plot([0,smax],[0,0],'k-',lw=1)
     ax.set_ylim(-0.2,0.2)
- 
+
     # loop over elements and Draw on beamline
     types   = bds.Type()
     lengths = bds.ArcLength()
@@ -171,21 +171,21 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
 
     for i in range(len(bds)):
         kw = types[i]
-        if kw == 'quadrupole': 
+        if kw == 'quadrupole':
             DrawQuad(starts[i],lengths[i],k1[i], u'#d10000') #red
-        elif kw == 'rbend': 
+        elif kw == 'rbend':
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
-        elif kw == 'sbend': 
+        elif kw == 'sbend':
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'hkicker':
             DrawRect(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'vkicker':
             DrawRect(starts[i],lengths[i], u'#ba55d3') #medium orchid
-        elif kw == 'rcol': 
+        elif kw == 'rcol':
             DrawRect(starts[i],lengths[i],'k')
-        elif kw == 'ecol': 
+        elif kw == 'ecol':
             DrawRect(starts[i],lengths[i],'k')
-        elif kw == 'degrader': 
+        elif kw == 'degrader':
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'sextupole':
             DrawHex(starts[i],lengths[i], u'#ffcc00') #yellow
@@ -295,7 +295,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     PlotSigma(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
     PlotSigmaP(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
     PlotMean(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
-    
+
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
@@ -406,30 +406,30 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     """
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
 
-    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. 
+    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot.
     If both are provided, the machine diagram is plotted from the MADX survey.
 
-    If a BDSIM survey is provided, collimator positions and dimensions can be taken and 
+    If a BDSIM survey is provided, collimator positions and dimensions can be taken and
     used to split losses into categories: collimator, warm and cold based on warm aperture
-    infomation provided. To enable this, the "warmaperinfo" option must be set according 
+    infomation provided. To enable this, the "warmaperinfo" option must be set according
     to the prescription below.
 
     The user can supply a list of upper and lower edges of warm regions or give the path
     to a coulmn-formated data file with this information via the "warmaperinfo" option.
-    Set warmaperinfo=1 to treat all non-collimator losses as warm or set warmaperinfo=-1 
+    Set warmaperinfo=1 to treat all non-collimator losses as warm or set warmaperinfo=-1
     to treat them as cold. Default is not perform the loss classification.
 
-    If no warm aperture information is provided, the plotting falls back to the standard 
+    If no warm aperture information is provided, the plotting falls back to the standard
     simple plotting provided by a pybdsimm.Plot.Hisgogram1D interface.
 
     Args:
         filename       (str):  Path to the REBDSIM data file
         outputfilename (str, optional):  Path where to save a pdf file with the plot. Default is None.
-    
+
         tfssurvey      (str, optional):  Path to MADX survey used to plot machine diagram on top of figure. Default is None.
-    
+
         tfssurvey      (str, optional):  Path to BDSIM survey used to classify losses into collimator/warm/cold and/or plot machine diagram on top of figure. Default is None.
-    
+
         warmaperinfo  (int|list|str, optional): Information about warm aperture in the machine. Default is None.
         \*\*kwargs: Arbitrary keyword arguments.
 
@@ -562,7 +562,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
 def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
     """
     Load a REBDSIM output file and plot the merged histograms automatically generated by BDSIM.
-    
+
     Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot.
     """
     import Data as _Data
@@ -594,7 +594,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
 
     ax1.legend(loc='upper left')
     ax2.legend(loc='upper right')
-    
+
     ax1.set_xlabel('S (m)')
 
     if tfssurvey:
@@ -604,7 +604,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
-    
+
 def PhaseSpace(data, nbins=None, outputfilename=None):
     """
     Make two figures for coordinates and correlations.
@@ -617,7 +617,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None):
         entries = data._entries
         nbins = int(_np.ceil(25*(entries/100.)**0.2))
         print 'Automatic number of bins> ',nbins
-    
+
     d = data.data #shortcut
     f = _plt.figure(figsize=(12,6))
 
@@ -673,7 +673,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None):
     axYPYP.hist2d(d['xp'],d['yp'],bins=nbins,cmin=1)
     axYPYP.set_xlabel('X$^{\prime}$')
     axYPYP.set_ylabel('Y$^{\prime}$')
-    
+
     axXY = f2.add_subplot(234)
     axXY.hist2d(d['x'],d['y'],bins=nbins,cmin=1)
     axXY.set_xlabel('X (m)')
@@ -688,7 +688,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None):
     axYE.hist2d(d['energy'],d['y'],bins=nbins,cmin=1)
     axYE.set_xlabel('Energy (GeV)')
     axYE.set_ylabel('Y (m)')
-    
+
     _plt.suptitle('Correlations at '+data.samplerName,fontsize='xx-large')
     _plt.tight_layout()
     _plt.subplots_adjust(top=0.92)
@@ -712,7 +712,7 @@ def Trajectory3D(rootFileName,traj=0, bottomLeft = None, topRight = None) :
     rootFile = _Data.Load(rootFileName)
     trajData = _Data.TrajectoryData(rootFile,traj)
 
-    for t in trajData.trajectories : 
+    for t in trajData.trajectories :
         if t['partID'] == 11 :
             _plt.subplot(1,2,1)
             _plt.plot(t['x'],t['z'],'r', lw=0.35)
@@ -723,12 +723,12 @@ def Trajectory3D(rootFileName,traj=0, bottomLeft = None, topRight = None) :
             _plt.plot(t['x'],t['z'],'b', lw=0.35)
             _plt.subplot(1,2,2)
             _plt.plot(t['y'],t['z'],'b', lw=0.35)
-        elif t['partID'] == 22 : 
+        elif t['partID'] == 22 :
             _plt.subplot(1,2,1)
             _plt.plot(t['x'],t['z'],'g--',lw=0.35)
             _plt.subplot(1,2,2)
             _plt.plot(t['y'],t['z'],'g--',lw=0.35)
 
-    if bottomLeft != None and topRight != None : 
+    if bottomLeft != None and topRight != None :
         xlim(bottomLeft[0],topRight[0])
         xlim(bottomLeft[1],topRight[1])
