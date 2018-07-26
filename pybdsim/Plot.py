@@ -442,114 +442,113 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     """
     if not warmaperinfo:
         EnergyDeposition(filename, outputfilename, tfssurvey, bdsimsurvey)
+        return
 
-    else:
-        import Data as _Data
-        d = _Data.Load(filename)
-        if type(d) is not _Data.RebdsimFile:
-            raise IOError("Not a rebdsim file")
-        eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
+    d = _Data.Load(filename)
+    if type(d) is not _Data.RebdsimFile:
+        raise IOError("Not a rebdsim file")
+    eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
 
-        xwidth    = eloss.xwidths[0]
-        xlabel = r"S (m)"
-        ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
+    xwidth    = eloss.xwidths[0]
+    xlabel = r"S (m)"
+    ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
 
-        skipMachineLattice = False
-        if "skipMachineLattice" in kwargs:
-            skipMachineLattice = kwargs["skipMachineLattice"]
+    skipMachineLattice = False
+    if "skipMachineLattice" in kwargs:
+        skipMachineLattice = kwargs["skipMachineLattice"]
 
-        print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
+    print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
 
-        collimators=[]
-        if bdsimsurvey:
-            bsu   = _Data.Load(bdsimsurvey)
-            relfields = [bsu.Name(), bsu.Type(), bsu.SStart(), bsu.SEnd()]
-            collimators = [element for element in zip(*relfields) if element[1]=="rcol"]
+    collimators=[]
+    if bdsimsurvey:
+        bsu   = _Data.Load(bdsimsurvey)
+        relfields = [bsu.Name(), bsu.Type(), bsu.SStart(), bsu.SEnd()]
+        collimators = [element for element in zip(*relfields) if element[1]=="rcol"]
 
-        warmapers=[]
-        if warmaperinfo:
-            if warmaperinfo == -1:
-                warmapers = []
-            elif warmaperinfo == 1:
-                warmapers = [[0, 1.e9]] #Crude, but no need to be exact
-            elif isinstance(warmaperinfo, list):
-                warmapers = warmaperinfo
-            elif isinstance(warmaperinfo, str):
-                warmapers=_np.genfromtxt(warmaperinfo)
-            else:
-                raise SystemExit("Unrecognised warmaperinfo option: {}".format(aperinfo))
+    warmapers=[]
+    if warmaperinfo:
+        if warmaperinfo == -1:
+            warmapers = []
+        elif warmaperinfo == 1:
+            warmapers = [[0, 1.e9]] #Crude, but no need to be exact
+        elif isinstance(warmaperinfo, list):
+            warmapers = warmaperinfo
+        elif isinstance(warmaperinfo, str):
+            warmapers=_np.genfromtxt(warmaperinfo)
+        else:
+            raise SystemExit("Unrecognised warmaperinfo option: {}".format(aperinfo))
 
-        coll_binmask = []
-        warm_binmask = []
-        cold_binmask = []
+    coll_binmask = []
+    warm_binmask = []
+    cold_binmask = []
 
-        ledges   = eloss.xlowedge
-        contents = eloss.contents
-        errors   = eloss.errors
+    ledges   = eloss.xlowedge
+    contents = eloss.contents
+    errors   = eloss.errors
 
-        for i in range(len(contents)):
-            """
-            The check here is done on the presence of a lower bin edge in a region of
-            interest (collimator or warm segment). For bin of similar or larger size
-            than the size of the region of interest, a misidenfication is possible.
-            Can reduce probabliluty of misclassification by also checking for the presencce
-            of an upper bin edge, but it increasses processing time and ultimately, for
-            bins that are too large it is impossible to overcome resolution constraints.
-            """
-            in_coll=False
-            in_warm=False
-            for coll in collimators:
-                smin, smax = coll[2], coll[3]
-                if ledges[i]>smin and ledges[i]<smax:
-                    in_coll=True
+    for i in range(len(contents)):
+        """
+        The check here is done on the presence of a lower bin edge in a region of
+        interest (collimator or warm segment). For bin of similar or larger size
+        than the size of the region of interest, a misidenfication is possible.
+        Can reduce probabliluty of misclassification by also checking for the presencce
+        of an upper bin edge, but it increasses processing time and ultimately, for
+        bins that are too large it is impossible to overcome resolution constraints.
+        """
+        in_coll=False
+        in_warm=False
+        for coll in collimators:
+            smin, smax = coll[2], coll[3]
+            if ledges[i]>smin and ledges[i]<smax:
+                in_coll=True
 
-            for waper in warmapers:
-                smin, smax = waper[0], waper[1]
-                if ledges[i]>smin and ledges[i]<smax:
-                    in_warm=True
+        for waper in warmapers:
+            smin, smax = waper[0], waper[1]
+            if ledges[i]>smin and ledges[i]<smax:
+                in_warm=True
 
-            coll_binmask.append(int(in_coll)) #collimators have priority over warm aper
-            warm_binmask.append(int(in_warm and not in_coll))
-            cold_binmask.append(int(not in_coll and not in_warm))
+        coll_binmask.append(int(in_coll)) #collimators have priority over warm aper
+        warm_binmask.append(int(in_warm and not in_coll))
+        cold_binmask.append(int(not in_coll and not in_warm))
 
-        coll_binmask = _np.array(coll_binmask)
-        warm_binmask = _np.array(warm_binmask)
-        cold_binmask = _np.array(cold_binmask)
+    coll_binmask = _np.array(coll_binmask)
+    warm_binmask = _np.array(warm_binmask)
+    cold_binmask = _np.array(cold_binmask)
 
-        coll_bins = _np.multiply(contents, coll_binmask)
-        coll_errs = _np.multiply(errors, coll_binmask)
-        warm_bins = _np.multiply(contents, warm_binmask)
-        warm_errs = _np.multiply(errors, warm_binmask)
-        cold_bins = _np.multiply(contents, cold_binmask)
-        cold_errs = _np.multiply(errors, cold_binmask)
+    coll_bins = _np.multiply(contents, coll_binmask)
+    coll_errs = _np.multiply(errors, coll_binmask)
+    warm_bins = _np.multiply(contents, warm_binmask)
+    warm_errs = _np.multiply(errors, warm_binmask)
+    cold_bins = _np.multiply(contents, cold_binmask)
+    cold_errs = _np.multiply(errors, cold_binmask)
 
-        scale=1
+    scale=1
 
-        coll_col = "k"
-        warm_col = "r"
-        cold_col = "b"
+    coll_col = "k"
+    warm_col = "r"
+    cold_col = "b"
 
-        f = _plt.figure(figsize=(10,5))
-        ax  = _plt.gca()
+    f = _plt.figure(figsize=(10,5))
+    ax  = _plt.gca()
 
-        if any(coll_binmask):
-            ax.plot(ledges, scale*coll_bins, ls="steps", color=coll_col, label="Collimator", zorder=10)
-            ax.errorbar(ledges-xwidth/2, scale*coll_bins, scale*coll_errs, linestyle="*", fmt="none", color=coll_col, zorder=10)
+    if any(coll_binmask):
+        ax.plot(ledges, scale*coll_bins, ls="steps", color=coll_col, label="Collimator", zorder=10)
+        ax.errorbar(ledges-xwidth/2, scale*coll_bins, scale*coll_errs, linestyle="*", fmt="none", color=coll_col, zorder=10)
 
-        if any(warm_binmask):
-            ax.plot(ledges, scale*warm_bins, ls="steps", color=warm_col, label="Warm")
-            ax.errorbar(ledges-xwidth/2, scale*warm_bins, scale*warm_errs, linestyle="", fmt="none", color=warm_col)
+    if any(warm_binmask):
+        ax.plot(ledges, scale*warm_bins, ls="steps", color=warm_col, label="Warm")
+        ax.errorbar(ledges-xwidth/2, scale*warm_bins, scale*warm_errs, linestyle="", fmt="none", color=warm_col)
 
-        if any(cold_binmask):
-            ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
-            ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
+    if any(cold_binmask):
+        ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
+        ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
 
-        ax.set_yscale("log", nonposy='clip')
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.yaxis.set_major_locator(_plt.LogLocator(subs=(1.0,))) #TODO: Find a way to disable auto ticks and always display all int powers
-        ax.yaxis.grid(which="major", linestyle='--')
-        _plt.legend(fontsize="small", framealpha=1)# bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0., framealpha=1)
+    ax.set_yscale("log", nonposy='clip')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.yaxis.set_major_locator(_plt.LogLocator(subs=(1.0,))) #TODO: Find a way to disable auto ticks and always display all int powers
+    ax.yaxis.grid(which="major", linestyle='--')
+    _plt.legend(fontsize="small", framealpha=1)# bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0., framealpha=1)
 
     if tfssurvey:
         AddMachineLatticeToFigure(f, tfssurvey)
