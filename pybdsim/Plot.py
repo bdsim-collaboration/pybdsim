@@ -399,6 +399,8 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
+    else:
+        _plt.show()
 
 def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
     """
