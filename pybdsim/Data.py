@@ -60,11 +60,7 @@ def Load(filepath):
 
     """
     extension = filepath.split('.')[-1]
-    if ("elosshist" in filepath) or (".hist" in filepath):
-        return _LoadAsciiHistogram(filepath)
-    elif "eloss" in filepath:
-        return _LoadAscii(filepath)
-    elif extension == 'txt':
+    if extension == 'txt':
         return _LoadAscii(filepath)
     elif extension == 'root':
         return _LoadRoot(filepath)
@@ -81,6 +77,10 @@ def Load(filepath):
             raise IOError("No such file or directory: '{}'".format(filepath))
         except:
             raise IOError("Unknown file type - not BDSIM data")
+    elif ("elosshist" in filepath) or (".hist" in filepath):
+        return _LoadAsciiHistogram(filepath)
+    elif "eloss" in filepath:
+        return _LoadAscii(filepath)
     else:
         raise IOError("Unknown file type - not BDSIM data")
 
