@@ -170,7 +170,7 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     #TODO: Add more particle masses and particle numbers as needed.
 
     if mass == 0:
-        raise ValueError('Unknown primary particle species.')
+        raise ValueError('Unknown particle species.')
 
     npart       = len(x)
     E = _np.array([val[0] for val in E])
@@ -273,7 +273,9 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     E      = _np.array(E)
     priPid = _np.array(pid)
 
-    pid = _np.int(_np.mean(priPid)[0])  # cast to int to match pdg id
+    # reshape to 1D array
+    priPid = priPid.reshape(priPid.shape[0])
+    pid = _np.int(_np.mean(priPid))  # cast to int to match pdg id
 
     # Particle mass needed for calculating momentum, in turn needed for dE.
     mass = 0
@@ -290,7 +292,6 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
         raise ValueError('Unknown particle species.')
 
     npart = len(x)
-    E = _np.array([val[0] for val in E])
 
     # use design energy for primaries as a significant mean offset can exist with small number of particles
     # Otherwise use the mean energy as there may have been a designed energy change (from RF, degrader, etc)
@@ -305,8 +306,8 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     p = _np.sqrt(E ** 2 - _np.full_like(E, mass) ** 2)
     p0 = _np.sqrt(Em ** 2 - mass ** 2)
     # convert tof to 1d array as mean on line below may return multiple numbers
-    tof1D = _np.concatenate(tof, axis=0)
-    tofm = _np.mean(tof1D)
+    #tof1D = _np.concatenate(tof, axis=0)
+    tofm = _np.mean(tof)
 
     # Use deltap and pathlength as needed for the time=false flag in PTC
     # Reference on p.201 of the MADX User's Reference Manual V5.03.07
@@ -330,7 +331,11 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
         t = t[start:ninrays]
         dE = dE[start:ninrays]
 
-    # Agglomerate the coordinate arrays and return reuslting superarray
-    sampler_coords = _np.stack((x, xp, y, yp, t, dE))
+    # reshape energy to correct shape for writing.
+    dE = dE.reshape(1000,)
+
+    # Agglomerate the coordinate arrays as a list so data container has the correct dimensions for writing
+    # Superarray (np.stack) cannot handle arrays of different shapes despite LoadBdsimPrimaries somehow doing so.
+    sampler_coords = [x,xp,y,yp,t,dE]
 
     return sampler_coords

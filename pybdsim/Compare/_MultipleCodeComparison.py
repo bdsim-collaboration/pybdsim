@@ -478,7 +478,7 @@ def PlotNPart(data, names, survey=None, figsize=(10, 5), **kwargs):
         ptcdata   = data["ptc"][i]
         ptcname   = names["ptc"][i]
         if ptcdata is not None:
-            _plt.plot(ptcdata.GetColumn('S'), ptcdata.GetColumn('Npart'), 'k-', label="{};".format(ptcname))
+            _plt.plot(ptcdata.GetColumn('S'), ptcdata.GetColumn('Npart'), 'kx', label="{};".format(ptcname))
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'N Particles')
