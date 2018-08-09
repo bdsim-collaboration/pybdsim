@@ -715,15 +715,15 @@ def Trajectory3D(rootFileName,traj=0, bottomLeft = None, topRight = None) :
     for t in trajData.trajectories :
         if t['partID'] == 11 :
             _plt.subplot(1,2,1)
-            _plt.plot(t['x'],t['z'],'r', lw=0.35)
+            _plt.plot(t['x'],t['z'],'r-.', lw=0.35)
             _plt.subplot(1,2,2)
-            _plt.plot(t['y'],t['z'],'r', lw=0.35)
+            _plt.plot(t['y'],t['z'],'r-.', lw=0.35)
         elif t['partID'] == -11 :
             _plt.subplot(1,2,1)
-            _plt.plot(t['x'],t['z'],'b', lw=0.35)
+            _plt.plot(t['x'],t['z'],'b-.', lw=0.35)
             _plt.subplot(1,2,2)
-            _plt.plot(t['y'],t['z'],'b', lw=0.35)
-        elif t['partID'] == 22 :
+            _plt.plot(t['y'],t['z'],'b-.', lw=0.35)
+        elif t['partID'] == 22 : 
             _plt.subplot(1,2,1)
             _plt.plot(t['x'],t['z'],'g--',lw=0.35)
             _plt.subplot(1,2,2)
