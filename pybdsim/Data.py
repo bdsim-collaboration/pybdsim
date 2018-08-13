@@ -841,3 +841,51 @@ class TrajectoryData(object):
             pyTrajectory['E'] = E
 
             self.trajectories.append(pyTrajectory)
+
+
+class EventInfoData(object):
+    """Extract data from the Info branch of the Event tree."""
+    def __init__(self, data):
+        event = data.GetEvent()
+        eventTree = data.GetEventTree()
+        info = event.Info
+        interface = self._filterROOTObject(info)
+        self._getData(interface, info, eventTree)
+
+    def _filterROOTObject(self, rootobj):
+        """Gets the names of the attributes which are just data and
+        specific to the class.  That is to say it removes all the
+        clutter inherited from TObject, any methods, and some other
+        stuff.  Should retain strictly only the data."""
+        # Define an instance of TObject which we can use to extract
+        # the interface of our rootobj, leaving out all the rubbish.
+        tobject_interface = set(dir(_ROOT.TObject()))
+        rootobj_interface = set(dir(rootobj))
+        interface = rootobj_interface.difference(tobject_interface)
+
+        # remove other stuff
+        interface.remove("__lifeline") # don't know what this is :)
+        interface = [attr for attr in interface # remove functions
+                     if not callable(getattr(rootobj, attr))]
+
+        return interface
+
+    def _getData(self, interface, rootobj, tree):
+        # Set lists to append to
+        for name in interface:
+            setattr(self, name, [])
+
+        for i in range(tree.GetEntries()):
+            tree.GetEntry(i)
+            for name in interface:
+                data = getattr(rootobj, name)
+                iterable = getattr(self, name)
+                iterable.append(data)
+
+        for name in interface: # Convert lists to numpy arrays.
+            setattr(self, name, _np.array(getattr(self, name)))
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
