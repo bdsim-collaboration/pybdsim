@@ -764,7 +764,7 @@ class SamplerData(_SamplerData):
                   'weight','partID','parentID','trackID','modelID','turnNumber','S']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
 
-class TrajectoryData : 
+class TrajectoryData(object):
     """
     Pull trajectory data from a loaded Dataloader instance of raw data
 
