@@ -130,9 +130,11 @@ def _ROOTFileType(filepath):
     except IndexError:
         raise IOError("File(s) not found.")
     f = _ROOT.TFile(fileToCheck)
+    if f.IsZombie():
+        raise IOError("ROOT file \"{}\" is a zombie file".format(fileToCheck))
     htree = f.Get("Header")
     if not htree:
-        raise Warning("ROOT file is not a BDSIM one")
+        raise Warning("ROOT file \"{}\" is not a BDSIM one".format(fileToCheck))
     h = _ROOT.Header()
     h.SetBranchAddress(htree)
     htree.GetEntry(0)
