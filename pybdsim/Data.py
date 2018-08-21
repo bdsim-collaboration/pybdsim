@@ -130,7 +130,7 @@ def _ROOTFileType(filepath):
     try:
         fileToCheck = files[0] # just check first file
     except IndexError:
-        raise IOError("File(s) not found.")
+        raise IOError("File(s) \"{}\" not found.".format(filepath))
     f = _ROOT.TFile(fileToCheck)
     if f.IsZombie():
         raise IOError("ROOT file \"{}\" is a zombie file".format(fileToCheck))
