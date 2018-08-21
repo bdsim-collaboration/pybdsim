@@ -82,7 +82,9 @@ def Load(filepath):
     elif "eloss" in filepath:
         return _LoadAscii(filepath)
     else:
-        raise IOError("Unknown file type - not BDSIM data")
+        msg = "Unknown file type for file \"{}\" - not BDSIM data".format(filepath)
+        raise IOError(msg)
+
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
