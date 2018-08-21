@@ -853,26 +853,8 @@ class EventInfoData(object):
         event = data.GetEvent()
         eventTree = data.GetEventTree()
         info = event.Info
-        interface = self._filterROOTObject(info)
-        self._getData(interface, info, eventTree)
-
-    def _filterROOTObject(self, rootobj):
-        """Gets the names of the attributes which are just data and
-        specific to the class.  That is to say it removes all the
-        clutter inherited from TObject, any methods, and some other
-        stuff.  Should retain strictly only the data."""
-        # Define an instance of TObject which we can use to extract
-        # the interface of our rootobj, leaving out all the rubbish.
-        tobject_interface = set(dir(_ROOT.TObject()))
-        rootobj_interface = set(dir(rootobj))
-        interface = rootobj_interface.difference(tobject_interface)
-
-        # remove other stuff
-        interface.remove("__lifeline") # don't know what this is :)
-        interface = [attr for attr in interface # remove functions
-                     if not callable(getattr(rootobj, attr))]
-
-        return interface
+        interface = _filterROOTObject(info)
+        _getData(interface, info, eventTree)
 
     def _getData(self, interface, rootobj, tree):
         # Set lists to append to
@@ -893,3 +875,40 @@ class EventInfoData(object):
     def FromROOTFile(cls, path):
         data = Load(path)
         return cls(data)
+
+class ModelData(object):
+    def __init__(self, data):
+        model = data.GetModel()
+        modelTree = data.GetModelTree()
+        model = model.model
+        modelTree.GetEntry(0)
+        interface = _filterROOTObject(model)
+        self._getData(interface, model)
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
+
+    def _getData(self, interface, rootobj):
+        for name in interface:
+            setattr(self, name, _np.array(getattr(rootobj, name)))
+
+
+def _filterROOTObject(rootobj):
+    """Gets the names of the attributes which are just data and
+    specific to the class.  That is to say it removes all the
+    clutter inherited from TObject, any methods, and some other
+    stuff.  Should retain strictly only the data."""
+    # Define an instance of TObject which we can use to extract
+    # the interface of our rootobj, leaving out all the rubbish.
+    tobject_interface = set(dir(_ROOT.TObject()))
+    rootobj_interface = set(dir(rootobj))
+    interface = rootobj_interface.difference(tobject_interface)
+
+    # remove other stuff
+    interface.remove("__lifeline") # don't know what this is :)
+    interface = [attr for attr in interface # remove functions
+                 if not callable(getattr(rootobj, attr))]
+
+    return interface
