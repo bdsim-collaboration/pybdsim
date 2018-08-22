@@ -113,7 +113,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     | **aperlocalpositions**        | Dictionary of element indices to a list of pairs of the form      |
     |                               | (local_point, aperdict), for example                              |
     |                               | (0.1, {"APER1": "CIRCULAR", "APER1": 0.4}).                       |
-    |                               |  This kwarg is mutually exclusive with "aperturedict".            |
+    |                               | This kwarg is mutually exclusive with "aperturedict".             |
     +-------------------------------+-------------------------------------------------------------------+
     | **collimatordict**            | A dictionary of dictionaries with collimator information keys     |
     |                               | should be exact string match of element name in tfs file value    |
@@ -147,7 +147,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     | **usemadxaperture**           | True \| False - use the aperture information in the TFS file if   |
     |                               | APER_1 and APER_2 columns exist.  Will only set if they're        |
     |                               | non-zero.  Supercedes kwargs `aperturedict` and                   |
-    |                               | `aperlocalpositions`.                                              |
+    |                               | `aperlocalpositions`.                                             |
     +-------------------------------+-------------------------------------------------------------------+
     | **defaultAperture**           | The default aperture model to assume if none is specified.        |
     +-------------------------------+-------------------------------------------------------------------+
