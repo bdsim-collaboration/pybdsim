@@ -854,7 +854,7 @@ class EventInfoData(object):
         eventTree = data.GetEventTree()
         info = event.Info
         interface = _filterROOTObject(info)
-        _getData(interface, info, eventTree)
+        self._getData(interface, info, eventTree)
 
     def _getData(self, interface, rootobj, tree):
         # Set lists to append to
