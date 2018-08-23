@@ -448,7 +448,9 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         k1l = item['K1L']
         # set element length to be the chord length - tfs output rbend
         # length is arc length
-        chordLength = 2 * (l / angle) * _np.sin(angle / 2.)
+        chordLength = l
+        if angle != 0:
+            chordLength = 2 * (l / angle) * _np.sin(angle / 2.) #protect against 0 angle rbends
         # subtract dipole angle/2 added on to poleface angles internally by
         # madx
         poleInAngle = e1 - 0.5 * angle
