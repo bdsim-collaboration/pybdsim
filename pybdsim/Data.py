@@ -895,6 +895,25 @@ class ModelData(object):
             setattr(self, name, _np.array(getattr(rootobj, name)))
 
 
+class OptionsData(object):
+    def __init__(self, data):
+        options = data.GetOptions()
+        optionsTree = data.GetOptionsTree()
+        options = options.options
+        optionsTree.GetEntry(0)
+        interface = _filterROOTObject(options)
+        self._getData(interface, options)
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
+
+    def _getData(self, interface, rootobj):
+        for name in interface:
+            setattr(self, name, getattr(rootobj, name))
+
+
 def _filterROOTObject(rootobj):
     """Gets the names of the attributes which are just data and
     specific to the class.  That is to say it removes all the
