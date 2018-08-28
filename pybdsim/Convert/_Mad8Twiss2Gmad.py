@@ -37,7 +37,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    enableSr                     = False,
                    enableSrScaling              = False,
                    enableMuon                   = False,
-                   enableMuonBias               = True):
+                   enableMuonBias               = True,
+                   rmat                         = ""):
     """
     Convert MAD8 twiss output to a BDSIM model in GMAD syntax.
 
@@ -64,19 +65,22 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         apertures = Mad8ApertureDatabase(apertures) 
         if openApertures :
             apertures.openApertures()
-
+    if rmat != "":
+        c, rmat = o.readFile(rmat,'rmat')
+    
     print 'Collimator database'
     print collimator
     print 'Aperture database'
     print apertures 
-
+    print 'RMat database'
+    print rmat
 
     # Need nominal energy for acceleration  and SR calculations
     s       = t.getColumn('suml')
+    s0      = s[istart]
     energy  = c.getColumn('E')
-    energy0 = energy[0]
+    energy0 = energy[istart]
     scale   = energy/energy0
-    
     # create machine instance
     # TODO : Need to extract nominal energy from file
     a = Builder.Machine(sr=enableSrScaling, energy0=energy0)
@@ -115,7 +119,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
     # create beam (emit and energy spread)
     esprd = 0.0
-    if type(gemit) == str : 
+    if type(gemit) == str :
+        print "reading emittance"
         echoVals = pymad8.Output.EchoValue(gemit)
         echoVals.loadValues()
         gemit = _np.zeros(2)
@@ -433,8 +438,41 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                     a.AddDrift(name    = prepend+c.name[i]+'_'+str(eCount),
                                length  = float(c.data[i][c.keys['rcol']['l']]))
 #       ###################################################################
+        elif c.type[i] == 'MATR' :
+            print "RMAT> ",c.name[i]
+            RMATRIX=rmat.data[i]
+            length=float(c.data[i][c.keys['matr']['l']])
+            a.AddRmat(name     = prepend+c.name[i]+'_'+str(eCount), 
+                        length    = float(c.data[i][c.keys['matr']['l']]),
+                        r11       = RMATRIX[0],
+                        r12       = RMATRIX[1],
+                        r13       = RMATRIX[2],
+                        r14       = RMATRIX[3],
+                        r21       = RMATRIX[6],
+                        r22       = RMATRIX[7],
+                        r23       = RMATRIX[8],
+                        r24       = RMATRIX[9],
+                        r31       = RMATRIX[12],
+                        r32       = RMATRIX[13],
+                        r33       = RMATRIX[14],
+                        r34       = RMATRIX[15],
+                        r41       = RMATRIX[18],
+                        r42       = RMATRIX[19],
+                        r43       = RMATRIX[20],
+                        r44       = RMATRIX[21])
+
+#       ###################################################################
+        elif c.type[i] == 'SROT' :
+            print "SROT here: " + str(i)
+
+#       ###################################################################
+        elif c.type[i] == 'YROT' :
+            print "YROT here: " + str(i)
+            
+#       ###################################################################
         else :
             print "UNKN> ",c.type[i]
+
 #       ###################################################################
         nameDict[c.name[i]] += 1 
 
