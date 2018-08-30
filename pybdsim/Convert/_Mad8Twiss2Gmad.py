@@ -38,7 +38,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    enableSrScaling              = False,
                    enableMuon                   = False,
                    enableMuonBias               = True,
-                   rmat                         = ""):
+				   rmat                         = ""):
     """
     Convert MAD8 twiss output to a BDSIM model in GMAD syntax.
 
@@ -65,15 +65,15 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         apertures = Mad8ApertureDatabase(apertures) 
         if openApertures :
             apertures.openApertures()
+    #load r matrices
     if rmat != "":
-        c, rmat = o.readFile(rmat,'rmat')
-    
+        c2, rmat = o.readFile(rmat,'rmat')
+
     print 'Collimator database'
     print collimator
     print 'Aperture database'
     print apertures 
-    print 'RMat database'
-    print rmat
+
 
     # Need nominal energy for acceleration  and SR calculations
     s       = t.getColumn('suml')
@@ -81,10 +81,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     energy  = c.getColumn('E')
     energy0 = energy[istart]
     scale   = energy/energy0
+    
     # create machine instance
     # TODO : Need to extract nominal energy from file
     a = Builder.Machine(sr=enableSrScaling, energy0=energy0)
-    
+    #temporarily add a drift to account for displacement of section when cutting
+    if s0 > 0:
+        a.AddDrift('temp_spacer',length=s0)
     # load mad8
     if mad8FileName != "" : 
         particle = 'e+'
@@ -119,8 +122,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
     # create beam (emit and energy spread)
     esprd = 0.0
-    if type(gemit) == str :
-        print "reading emittance"
+    if type(gemit) == str : 
         echoVals = pymad8.Output.EchoValue(gemit)
         echoVals.loadValues()
         gemit = _np.zeros(2)
@@ -132,12 +134,20 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     beamname = beam[0]
     if beamname == "reference" :
         b = Beam.Beam(particle, energy0, "reference")
+
+        #(temporary) set beam origin to end of blank drift
+        b.SetS0(s0)
+        
         a.AddBeam(b)
     elif beamname == "nominal" :
         b = Mad8Twiss2Beam(t,istart,particle,energy0)
         b._SetEmittanceX(gemit[0],'m')
         b._SetEmittanceY(gemit[1],'m')
         b._SetSigmaE(esprd)
+
+        #(temporary) set beam origin to end of blank drift
+        b.SetS0(s0)
+
         a.AddBeam(b)
     elif beamname == "halo" :
         b = Mad8Twiss2Beam(t,istart,particle,energy0)
@@ -165,6 +175,10 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         b._SetHaloPSWeightParameter(-1.0)
         b._SetHaloPSWeightFunction("oneoverr")
         b._SetSigmaE(esprd)
+
+        #(temporary) set beam origin to end of blank drift
+        b.SetS0(s0)
+
         a.AddBeam(b)
 
     # create options 
@@ -437,6 +451,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 else : 
                     a.AddDrift(name    = prepend+c.name[i]+'_'+str(eCount),
                                length  = float(c.data[i][c.keys['rcol']['l']]))
+
 #       ###################################################################
         elif c.type[i] == 'MATR' :
             print "RMAT> ",c.name[i]
@@ -462,17 +477,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                         r44       = RMATRIX[21])
 
 #       ###################################################################
-        elif c.type[i] == 'SROT' :
-            print "SROT here: " + str(i)
-
-#       ###################################################################
-        elif c.type[i] == 'YROT' :
-            print "YROT here: " + str(i)
-            
-#       ###################################################################
         else :
             print "UNKN> ",c.type[i]
-
 #       ###################################################################
         nameDict[c.name[i]] += 1 
 
