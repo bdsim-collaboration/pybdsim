@@ -30,7 +30,10 @@ def Load(filename, debug=False):
         elif '>' in line:
             d = line.strip().split('>')
             k = d[0].strip()
-            v = float(d[1].strip())
+            try:
+                v = float(d[1].strip())
+            except ValueError:
+                v = d[1].strip()
             header[k] = v
 
         elif '!' in line:
