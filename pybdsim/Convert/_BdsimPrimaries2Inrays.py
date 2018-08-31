@@ -55,11 +55,11 @@ def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
     outfile.writelines(headstr)
     for n in range(0, nentries):  # n denotes a given particle
         s = 'ptc_start'
-        s += ', x=' + repr(sampler_coords[0][n][0])
-        s += ', px=' + repr(sampler_coords[1][n][0])
-        s += ', y=' + repr(sampler_coords[2][n][0])
-        s += ', py=' + repr(sampler_coords[3][n][0])
-        s += ', t=' + repr(sampler_coords[4][n][0])
+        s += ', x=' + repr(sampler_coords[0][n])
+        s += ', px=' + repr(sampler_coords[1][n])
+        s += ', y=' + repr(sampler_coords[2][n])
+        s += ', py=' + repr(sampler_coords[3][n])
+        s += ', t=' + repr(sampler_coords[4][n])
         s += ', pt=' + repr(sampler_coords[5][n])
         s += ';\n'
         outfile.writelines(s)
@@ -89,15 +89,15 @@ def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     outfile.writelines(headstr)
     for n in range(0,nentries):               # n denotes a given particle
         s  =  'start'
-        s += ', x='  + repr(primary_coords[0][n][0])
-        s += ', px=' + repr(primary_coords[1][n][0])
-        s += ', y='  + repr(primary_coords[2][n][0])
-        s += ', py=' + repr(primary_coords[3][n][0])
-        s += ', t='  + repr(primary_coords[4][n][0])
-        s += ', pt=' + repr(primary_coords[5][n][0])   
+        s += ', x='  + repr(primary_coords[0][n])
+        s += ', px=' + repr(primary_coords[1][n])
+        s += ', y='  + repr(primary_coords[2][n])
+        s += ', py=' + repr(primary_coords[3][n])
+        s += ', t='  + repr(primary_coords[4][n])
+        s += ', pt=' + repr(primary_coords[5][n])
         s += ';\n'
         outfile.writelines(s)
-        
+
     outfile.close()
 
 def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
@@ -123,13 +123,13 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     outfile.writelines(headstr)
     for n in range(0,nentries):    #n denotes a given particle
         s  =  'START'
-        s += ', X='  + repr(primary_coords[0][n][0])
-        s += ', PX=' + repr(primary_coords[1][n][0])
-        s += ', Y='  + repr(primary_coords[2][n][0])
+        s += ', X='  + repr(primary_coords[0][n])
+        s += ', PX=' + repr(primary_coords[1][n])
+        s += ', Y='  + repr(primary_coords[2][n])
         s += ', &\n'                             #line continuation needed to obey FORTRAN 80 char input limit
-        s += 'PY=' + repr(primary_coords[3][n][0])
-        s += ', T='  + repr(primary_coords[4][n][0])
-        s += ', DELTAP=' + repr(primary_coords[5][n][0])   
+        s += 'PY=' + repr(primary_coords[3][n])
+        s += ', T='  + repr(primary_coords[4][n])
+        s += ', DELTAP=' + repr(primary_coords[5][n])
         s += '\n'
         outfile.writelines(s)
         
@@ -154,6 +154,16 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     tof         =  _rnp.tree2array(tree, branches="Primary.T")
     E           =  _rnp.tree2array(tree, branches="Primary.energy")
 
+    # Change these arrays of 1-entry arrays into just an array of numbers
+    x  = _np.array([val[0] for val in x])
+    xp = _np.array([val[0] for val in xp])
+    y  = _np.array([val[0] for val in y])
+    yp = _np.array([val[0] for val in yp])
+    tof  = _np.array([val[0] for val in tof])
+    E = _np.array([val[0] for val in E])
+
+    # Don't need to do dE because for some reason it's already correct.
+
     #Get particle pdg number
     priPid      =  _rnp.tree2array(tree, branches="Primary.partID")
     pid         =  _np.int(_np.mean(priPid)[0])  #cast to int to match pdg id
@@ -173,7 +183,6 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
         raise ValueError('Unknown particle species.')
 
     npart       = len(x)
-    E = _np.array([val[0] for val in E])
 
     beam = rootin.Get("Beam")
     Em = _rnp.tree2array(beam, branches="Beam.GMAD::BeamBase.beamEnergy")[0]
