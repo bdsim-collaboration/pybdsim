@@ -74,20 +74,21 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     print 'Aperture database'
     print apertures 
 
-
-    # Need nominal energy for acceleration  and SR calculations
-    s       = t.getColumn('suml')
-    s0      = s[istart]
-    energy  = c.getColumn('E')
-    energy0 = energy[istart]
-    scale   = energy/energy0
+    #val0=value at 0th element. val_cut=value at start-point for cut beamlines
+    # Need nominal energy for acceleration and SR calculations
+    s           = t.getColumn('suml')
+    s_cut       = s[istart]
+    energy      = c.getColumn('E')
+    energy0     = energy[0]
+    energy_cut  = energy[istart]
+    scale       = energy/energy_cut
     
     # create machine instance
     # TODO : Need to extract nominal energy from file
     a = Builder.Machine(sr=enableSrScaling, energy0=energy0)
     #temporarily add a drift to account for displacement of section when cutting
-    if s0 > 0:
-        a.AddDrift('temp_spacer',length=s0)
+    if s_cut > 0:
+        a.AddDrift('temp_spacer',length=s_cut)
     # load mad8
     if mad8FileName != "" : 
         particle = 'e+'
@@ -120,6 +121,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     print 'brho0     ',brho0
 
 
+
     # create beam (emit and energy spread)
     esprd = 0.0
     if type(gemit) == str : 
@@ -130,13 +132,51 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         gemit[1] = echoVals.valueDict['EMITY']
         esprd    = echoVals.valueDict['ESPRD']
 
+    if istart !=0:
+        #relativistic factors at 0
+        rGamma0    = (energy0*1000)/(mass)
+        rBeta0     = _np.sqrt(1-1/(rGamma0**2))       
+        
+        #momentum & relativistic factors at cut
+        energy_cut=energy[istart]
+        momentum_cut =_np.sqrt(energy_cut**2+mass**2)
+        rGamma_cut = (energy_cut*1000)/mass
+        rBeta_cut = _np.sqrt(1-(1/(rGamma_cut**2)))
+        
+        #Normalised emittance
+        Nemitx     = rBeta0*rGamma0*gemit[0]
+        Nemity     = rBeta0*rGamma0*gemit[1]
+        emitx  = Nemitx/(rBeta_cut*rGamma_cut)
+        emity  = Nemity/(rBeta_cut*rGamma_cut)
+        #emittance at cut
+        print 'Derived Initial Conditions:'
+        print 'Energy                       ',energy_cut
+        print 'Energy0                      ',energy0
+        print 'Momentum                     ',momentum_cut
+        print 'Momentum0                    ',momentum0
+        print 'Beta Factor - initial        ',rBeta0
+        print 'Beta Factor                  ',rBeta_cut
+        print 'Gamma Factor - initial       ',rGamma0
+        print 'Gamma Factor                 ',rGamma_cut
+        print 'Normalised Emittance (x)     ',Nemitx
+        print 'Normalised Emittance (y)     ',Nemity
+        print 'Emittance (x)                ',emitx
+        print 'Emittance (y)                ',emity
+        
+    else:
+        emitx=gemit[0]
+        emity=gemit[1]
+        print 'Emittance (x)                ',emitx
+        print 'Emittance (y)                ',emity
+    
+    
     # create beam
     beamname = beam[0]
     if beamname == "reference" :
         b = Beam.Beam(particle, energy0, "reference")
 
         #(temporary) set beam origin to end of blank drift
-        b.SetS0(s0)
+        b.SetS0(s_cut)
         
         a.AddBeam(b)
     elif beamname == "nominal" :
@@ -146,7 +186,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         b._SetSigmaE(esprd)
 
         #(temporary) set beam origin to end of blank drift
-        b.SetS0(s0)
+        b.SetS0(s_cut)
 
         a.AddBeam(b)
     elif beamname == "halo" :
@@ -177,7 +217,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         b._SetSigmaE(esprd)
 
         #(temporary) set beam origin to end of blank drift
-        b.SetS0(s0)
+        b.SetS0(s_cut)
 
         a.AddBeam(b)
 
