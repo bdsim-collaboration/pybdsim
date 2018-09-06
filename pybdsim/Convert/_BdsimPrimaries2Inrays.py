@@ -8,6 +8,7 @@ except ImportError:
     
 import numpy as _np
 import matplotlib.pyplot as _plt
+import os.path as _path
 
 import sys
 import time
@@ -137,12 +138,16 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
 
 def _LoadBdsimPrimaries(inputfile, start, ninrays):
     c = 299792458.0     #speed of light in vacuum
-    
-    print "Loading input file: ", inputfile
-    rootin      = _rt.TFile(inputfile)
-    if (rootin.IsZombie()):
-        print "No such file. Terminating..."
-        sys.exit(1)
+
+    if isinstance(inputfile, basestring):
+        if not _path.isfile(inputfile):
+            raise IOError("file \"{}\" not found!".format(inputfile))
+        else:
+            print "Loading input file: ", inputfile
+            rootin = _rt.TFile(inputfile)
+            if (rootin.IsZombie()):
+                print "No such file. Terminating..."
+                sys.exit(1)
 
     tree        = rootin.Get("Event")
 
@@ -224,11 +229,15 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
 def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     c = 299792458.0  # speed of light in vacuum
 
-    print "Loading input file: ", inputfile
-    rootin = _rt.TFile(inputfile)
-    if (rootin.IsZombie()):
-        print "No such file. Terminating..."
-        sys.exit(1)
+    if isinstance(inputfile, basestring):
+        if not _path.isfile(inputfile):
+            raise IOError("file \"{}\" not found!".format(inputfile))
+        else:
+            print "Loading input file: ", inputfile
+            rootin = _rt.TFile(inputfile)
+            if (rootin.IsZombie()):
+                print "No such file. Terminating..."
+                sys.exit(1)
 
     # add . to the sampler name to match branch names from file
     if samplername[-1] != ".":
