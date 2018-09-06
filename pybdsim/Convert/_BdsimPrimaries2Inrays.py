@@ -146,7 +146,7 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
             print "Loading input file: ", inputfile
             rootin = _rt.TFile(inputfile)
             if (rootin.IsZombie()):
-                print "No such file. Terminating..."
+                print "Root file is zombie..."
                 sys.exit(1)
 
     tree        = rootin.Get("Event")
@@ -236,7 +236,7 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
             print "Loading input file: ", inputfile
             rootin = _rt.TFile(inputfile)
             if (rootin.IsZombie()):
-                print "No such file. Terminating..."
+                print "Root file is zombie..."
                 sys.exit(1)
 
     # add . to the sampler name to match branch names from file
