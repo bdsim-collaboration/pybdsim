@@ -5,7 +5,7 @@ try:
     import ROOT as _rt
 except ImportError:
     warnings.warn("ROOT not available - some functionality missing", UserWarning)
-    
+
 import numpy as _np
 import matplotlib.pyplot as _plt
 import os.path as _path
@@ -78,9 +78,9 @@ def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     """
     if not (outfile[-5:] == ".madx"):
         outfile = outfile+".madx"
-    
+
     primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
-    
+
     outfile = open(outfile,'w' )
 
     nentries =  len(primary_coords[0])
@@ -112,9 +112,9 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     """
     if not (outfile[-5:] == ".mad8"):
         outfile = outfile+".mad8"
-    
+
     primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
-   
+
     outfile = open(outfile,'w' )
 
     nentries =  len(primary_coords[0])
@@ -133,7 +133,7 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
         s += ', DELTAP=' + repr(primary_coords[5][n])
         s += '\n'
         outfile.writelines(s)
-        
+
     outfile.close()
 
 def _LoadBdsimPrimaries(inputfile, start, ninrays):
@@ -198,6 +198,11 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     p0          = _np.sqrt(Em**2 - mass**2)
     tofm        = _np.mean(tof)
 
+    # BDSIM output momenta are normalised w.r.t the individual particle
+    # momentum.  But PTC expects normalised w.r.t the reference momentum.
+    xp *= (p / p0)
+    yp *= (p / p0)
+
     #Use deltap and pathlength as needed for the time=false flag in PTC
     #Reference on p.201 of the MADX User's Reference Manual V5.03.07
     dE          = (p-p0)/p0
@@ -211,7 +216,7 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
         yp = yp[start:]
         t  = t[start:]
         dE = dE[start:]
-        
+
     else:
         x  = x[start:ninrays]
         y  = y[start:ninrays]
@@ -219,7 +224,7 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
         yp = yp[start:ninrays]
         t  = t[start:ninrays]
         dE = dE[start:ninrays]
-        
+
 
     #Agglomerate the coordinate arrays and return reuslting superarray
     primary_coords = _np.stack((x,xp,y,yp,t,dE))
