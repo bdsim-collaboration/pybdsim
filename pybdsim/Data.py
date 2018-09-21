@@ -772,38 +772,55 @@ class TrajectoryData(object):
     """
     Pull trajectory data from a loaded Dataloader instance of raw data
 
-    Loads all trajector data in a event event
+    Loads all trajectory data in a event event
 
     >>> f = pybdsim.Data.Laod("file.root")
     >>> trajectories = pbdsim.Data.TrajectoryData(f,0)
-    >>>
     """
 
-    def __init__(self, data, eventNumber=0):
+    def __init__(self, dataLoader, eventNumber=0):
         params = ['n','trajID','partID','x','y','z']
-        self._data       = data
-        self._eventTree  = data.GetEventTree()
-        self._event      = data.GetEvent()
-        self._trajectory = self._event.GetTrajectory()
+        self._dataLoader  = dataLoader
+        self._eventTree   = dataLoader.GetEventTree()
+        self._event       = dataLoader.GetEvent()
+        self._trajectory  = self._event.GetTrajectory()
+        self.trajectories = []
+        self._GetTrajectory(eventNumber)
 
-        self.trajectoryData(eventNumber)
+    def __len__(self):
+        return len(self.trajectories)
 
-    def trajectoryData(self,eventNumber) :
+    def __repr__(self):
+        s = ''
+        s += str(len(self)) + ' trajectories'
+        return s
 
-        if eventNumber >= self._eventTree.GetEntries() :
+    def __getitem__(self, index):
+        return self.trajectories[index]
+        
+    def __iter__(self):
+        self._iterindex = -1
+        return self
+
+    def next(self):
+        if self._iterindex == len(self.trajectories)-1:
+            raise StopIteration
+        self._iterindex += 1
+        return self.trajectories[self._iterindex]
+
+    def _GetTrajectory(self, eventNumber):
+
+        if eventNumber >= self._eventTree.GetEntries():
             raise IndexError
 
-        self._eventTree.GetEntry(eventNumber)
-
-        self.trajectories = []
-
         # loop over all trajectories
-        for i in range(0,self._trajectory.n) :
+        self._eventTree.GetEntry(eventNumber)
+        for i in range(0, self._trajectory.n):
 
             pyTrajectory = {}
-            pyTrajectory['trackID']  = self._trajectory.trackID[i]
-            pyTrajectory['partID']   = self._trajectory.partID[i]
-            pyTrajectory['parentID'] = self._trajectory.parentID[i]
+            pyTrajectory['trackID']  = float(self._trajectory.trackID[i])
+            pyTrajectory['partID']   = int(self._trajectory.partID[i])
+            pyTrajectory['parentID'] = int(self._trajectory.parentID[i])
 
             t = self._trajectory.trajectories[i]
             p = self._trajectory.momenta[i]
@@ -819,8 +836,7 @@ class TrajectoryData(object):
 
             E = _np.zeros(len(t))
 
-
-            for j in range(0,len(t)) :
+            for j in range(0, len(t)):
                 # position
                 x[j] = t[j].X()
                 y[j] = t[j].Y()
