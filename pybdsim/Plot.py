@@ -708,27 +708,47 @@ def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
         fst = r'$10^{{{}}}$'.format(b)
     return fst
 
-def Trajectory3D(rootFileName,traj=0, bottomLeft = None, topRight = None) :
-    rootFile = _Data.Load(rootFileName)
-    trajData = _Data.TrajectoryData(rootFile,traj)
+def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
+    """
+    Plot e-, e+ and photons only as r,g,b respectively for a given event from
+    a BDSIM output file.
 
-    for t in trajData.trajectories :
+    bottomLeft and topRight are optional [xlow,xhigh] limits for plots.
+    """
+    rootFile = _Data.Load(rootFileName)
+    trajData = _Data.TrajectoryData(rootFile, eventNumber)
+
+    f = _plt.figure()
+    ax0 = f.add_subplot(121)
+    ax1 = f.add_subplot(122)
+    labelledEM = False
+    labelledEP = False
+    labelledG  = False
+    for i,t in enumerate(trajData):
         if t['partID'] == 11 :
-            _plt.subplot(1,2,1)
-            _plt.plot(t['x'],t['z'],'r-.', lw=0.35)
-            _plt.subplot(1,2,2)
-            _plt.plot(t['y'],t['z'],'r-.', lw=0.35)
+            if not labelledEM:
+                ax0.plot(t['x'],t['z'],'r-.', lw=0.35, label=r'e$^{-}$')
+                labelledEM = True
+            else:
+                ax0.plot(t['x'],t['z'],'r-.', lw=0.35)
+            ax1.plot(t['y'],t['z'],'r-.', lw=0.35)
         elif t['partID'] == -11 :
-            _plt.subplot(1,2,1)
-            _plt.plot(t['x'],t['z'],'b-.', lw=0.35)
-            _plt.subplot(1,2,2)
-            _plt.plot(t['y'],t['z'],'b-.', lw=0.35)
+            if not labelledEP:
+                ax0.plot(t['x'],t['z'],'b-.', lw=0.35, label=r'e$^{+}$')
+                labelledEP = True
+            else:
+                ax0.plot(t['x'],t['z'],'b-.', lw=0.35)
+            ax1.plot(t['y'],t['z'],'b-.', lw=0.35)
         elif t['partID'] == 22 : 
-            _plt.subplot(1,2,1)
-            _plt.plot(t['x'],t['z'],'g--',lw=0.35)
-            _plt.subplot(1,2,2)
-            _plt.plot(t['y'],t['z'],'g--',lw=0.35)
+            if not labelledG:
+                ax0.plot(t['x'],t['z'],'g--',lw=0.35, label='photon')
+                labelledG = True
+            else:
+                ax0.plot(t['x'],t['z'],'g--',lw=0.35)
+            ax1.plot(t['y'],t['z'],'g--',lw=0.35)
 
     if bottomLeft != None and topRight != None :
         xlim(bottomLeft[0],topRight[0])
         xlim(bottomLeft[1],topRight[1])
+
+    ax0.legend(fontsize='small')
