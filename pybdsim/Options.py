@@ -111,7 +111,7 @@ class Options(dict):
 
     def SetBeamPipeRadius(self,beampiperadius=5,unitsstring='cm'):
         self['beampipeRadius'] = str(beampiperadius) + '*' +unitsstring
-
+        
     def SetOuterDiameter(self,outerdiameter=2,unitsstring='m'):
         self['outerDiameter'] = str(outerdiameter) + '*' + unitsstring
 
@@ -375,6 +375,9 @@ class Options(dict):
 
     def SetDefaultBiasMaterial(self, biases=""):
         self["defaultBiasMaterial"] = biases
+        
+    def SetBeamlineS(self,beamlineS=0,unitsstring='m'):
+        self["beamlineS"] = str(beamlineS) + '*' +unitsstring
 
 class Editor :
     def __init__(self, fileName) :

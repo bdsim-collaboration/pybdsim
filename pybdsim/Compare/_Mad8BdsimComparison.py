@@ -286,9 +286,11 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
               _np.sqrt(mad8opt['envel'].getColumn('s33')),
               'g', label=r'MAD8 $\sigma_{y}$')
     
-    # Own calculation of beam sizes
+    # Own calculation of beam sizes.
     emitX0 = 1e-8
     emitY0 = 1e-8
+	
+    sige = 1e-3
 
     e      = mad8opt['comm'].getColumn('E')
     rgamma = e/(0.5109989461/1e3)
@@ -297,8 +299,8 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     emitXN0 = emitX0*rgamma[0]*rbeta[0]
     emitYN0 = emitY0*rgamma[0]*rbeta[0]
 
-    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma))
-    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma))
+    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')*sige)
+    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')*sige)
 
     _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'b--')
     _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'g--')
@@ -440,6 +442,7 @@ def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=No
     emitX0 = 1e-8
     emitY0 = 1e-8
 
+    
     e      = mad8opt['comm'].getColumn('E')
     rgamma = e/(0.5109989461/1e3)
     rbeta  = _np.sqrt(1-1.0/rgamma**2)
