@@ -530,7 +530,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 PRIORMATRIX = _np.matrix(str(RMATPRIOR[0]) + " " + str(RMATPRIOR[1]) + " " + str(RMATPRIOR[2]) + " " + str(RMATPRIOR[3]) + "; " + str(RMATPRIOR[6]) + " " + str(RMATPRIOR[7]) + " " + str(RMATPRIOR[8]) + " " + str(RMATPRIOR[9]) + "; " + str(RMATPRIOR[12]) + " " + str(RMATPRIOR[13]) + " " + str(RMATPRIOR[14]) + " " + str(RMATPRIOR[15]) + "; " + str(RMATPRIOR[18]) + " " + str(RMATPRIOR[19]) + " " + str(RMATPRIOR[20]) + " " + str(RMATPRIOR[21]))
                 POSTMATRIX = _np.matrix(str(RMATRIX[0]) + " " + str(RMATRIX[1]) + " " + str(RMATRIX[2]) + " " + str(RMATRIX[3]) + "; " + str(RMATRIX[6]) + " " + str(RMATRIX[7]) + " " + str(RMATRIX[8]) + " " + str(RMATRIX[9]) + "; " + str(RMATRIX[12]) + " " + str(RMATRIX[13]) + " " + str(RMATRIX[14]) + " " + str(RMATRIX[15]) + "; " + str(RMATRIX[18]) + " " + str(RMATRIX[19]) + " " + str(RMATRIX[20]) + " " + str(RMATRIX[21]))
             
-                EFFECTMATRIX=(POSTMATRIX*PRIORMATRIX.I).T
+                EFFECTMATRIX=(POSTMATRIX*PRIORMATRIX.I)
                 print '\n Effect Matrix: \n',EFFECTMATRIX,'\n Cumulative Matrix: \n',POSTMATRIX,'\n Prior Effect Matrix: \n',PRIORMATRIX
                 a.AddRmat(name      = prepend+c.name[i]+'_'+str(eCount), 
                           length    = float(c.data[i][c.keys['matr']['l']]),
@@ -538,17 +538,17 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                           r12       = EFFECTMATRIX[0,1],
                           r13       = EFFECTMATRIX[0,2],
                           r14       = EFFECTMATRIX[0,3],
-                          r21       = EFFECTMATRIX[1,0],
+                          r21       = -EFFECTMATRIX[1,0],
                           r22       = EFFECTMATRIX[1,1],
                           r23       = EFFECTMATRIX[1,2],
                           r24       = EFFECTMATRIX[1,3],
-                          r31       = EFFECTMATRIX[2,0],
-                          r32       = EFFECTMATRIX[2,1],
+                          r31       = -EFFECTMATRIX[2,0],
+                          r32       = -EFFECTMATRIX[2,1],
                           r33       = EFFECTMATRIX[2,2],
                           r34       = EFFECTMATRIX[2,3],
-                          r41       = EFFECTMATRIX[3,0],
-                          r42       = EFFECTMATRIX[3,1],
-                          r43       = EFFECTMATRIX[3,2],
+                          r41       = -EFFECTMATRIX[3,0],
+                          r42       = -EFFECTMATRIX[3,1],
+                          r43       = -EFFECTMATRIX[3,2],
                           r44       = EFFECTMATRIX[3,3])                
 
 #       ###################################################################
