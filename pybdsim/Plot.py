@@ -111,6 +111,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     axoptics  = figure.get_axes()[0]
     _AdjustExistingAxes(figure, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
+    axmachine.margins(x=0.02)
 
     _DrawMachineLattice(axmachine,sf)
 
