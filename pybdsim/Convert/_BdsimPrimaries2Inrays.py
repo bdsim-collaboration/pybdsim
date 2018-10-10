@@ -18,7 +18,7 @@ try:
 except ImportError:
     warnings.warn("No root_numpy found - some functionality missing", UserWarning)
 
-def BdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
+def BdsimPrimaries2Ptc(inputfile, outfile=None, start=0, ninrays=-1):
     """"
     Takes .root file generated from a BDSIM run an an input and creates
     a PTC inrays file from the primary particle tree.
@@ -27,6 +27,10 @@ def BdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
     start     - <int> starting primary particle index
     ninrays   - <int> total number of inrays to generate
     """
+    if outfile is None:
+        outfile = inputfile.rstrip(".root")
+        outfile += ".madx"
+
     BdsimSampler2Ptc(inputfile, outfile, "Primary", start, ninrays)
 
 def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
