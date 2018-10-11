@@ -77,7 +77,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     #val0=value at 0th element of INPUT mad8 file. val_cut=value at start-point for cut beamlines - i.e. 0th element of OUTPUT bdsim file. 
     # Need nominal energy for acceleration and SR calculations
     s           = t.getColumn('suml')
-    s_cut       = s[istart]
+    s_cut       = s[istart]-c.getRowByIndex(istart)['l']
+    print s_cut
     energy      = c.getColumn('E')
     energy0     = energy[0] 
     energy_cut  = energy[istart]
@@ -167,24 +168,40 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         a.AddBeam(b)
         
     elif beamname == "nominal" :
-        b = Mad8Twiss2Beam(t,istart,particle,energy_cut)
+        if istart >= 1:
+            b = Mad8Twiss2Beam(t,istart-1,particle,energy_cut)
+            b._SetDispX(xdisp[istart-1])
+            b._SetDispY(ydisp[istart-1])
+            b._SetDispXP(xpdisp[istart-1])
+            b._SetDispYP(ypdisp[istart-1])
+        else:
+            b = Mad8Twiss2Beam(t,istart,particle,energy_cut)
+            b._SetDispX(xdisp[istart])
+            b._SetDispY(ydisp[istart])
+            b._SetDispXP(xpdisp[istart])
+            b._SetDispYP(ypdisp[istart])
         b._SetEmittanceX(gemit[0],'m')
         b._SetEmittanceY(gemit[1],'m')
-        b._SetDispX(xdisp[istart])
-        b._SetDispY(ydisp[istart])
-        b._SetDispXP(xpdisp[istart])
-        b._SetDispYP(ypdisp[istart])
         b._SetSigmaE(esprd)
         b._SetSigmaT(bleng)
     
         a.AddBeam(b)
     elif beamname == "halo" :
-        b = Mad8Twiss2Beam(t,istart,particle,energy_cut)
-        b.SetDistributionType("halo")
-        betx = t.data[istart][t.keys['betx']]
-        bety = t.data[istart][t.keys['bety']]
-        alfx = t.data[istart][t.keys['alfx']]
-        alfy = t.data[istart][t.keys['alfy']]
+        if istart >= 1:
+            b = Mad8Twiss2Beam(t,istart-1,particle,energy_cut)
+            b.SetDistributionType("halo")
+            betx = t.data[istart-1][t.keys['betx']]
+            bety = t.data[istart-1][t.keys['bety']]
+            alfx = t.data[istart-1][t.keys['alfx']]
+            alfy = t.data[istart-1][t.keys['alfy']]
+        else:
+            b = Mad8Twiss2Beam(t,istart,particle,energy_cut)
+            b.SetDistributionType("halo")
+            betx = t.data[istart][t.keys['betx']]
+            bety = t.data[istart][t.keys['bety']]
+            alfx = t.data[istart][t.keys['alfx']]
+            alfy = t.data[istart][t.keys['alfy']]
+
 
         # 5 13
         # 36 92

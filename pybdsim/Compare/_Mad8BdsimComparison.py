@@ -43,7 +43,7 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     # load bdsim optics
     bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
     bdsopt  = _GetBDSIMOptics(bdsinst)
-    
+
     # make plots 
     mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL}
     
@@ -167,10 +167,10 @@ def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('alfx'),
-              'b', label=r'MAD8 $\beta_{x}$')
+              'b--', label=r'MAD8 $\beta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('alfy'),
-              'g', label=r'MAD8 $\beta_{y}$')
+              'g--', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
@@ -281,16 +281,15 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
 
     _plt.plot(mad8opt['envel'].getColumn('suml'),
               _np.sqrt(mad8opt['envel'].getColumn('s11')),
-              'b', label=r'MAD8 $\sigma_{x}$')
+              'b--', label=r'MAD8 $\sigma_{x}$')
     _plt.plot(mad8opt['envel'].getColumn('suml'),
               _np.sqrt(mad8opt['envel'].getColumn('s33')),
-              'g', label=r'MAD8 $\sigma_{y}$')
+              'g--', label=r'MAD8 $\sigma_{y}$')
     
     # Own calculation of beam sizes.
     emitX0 = 1e-8
     emitY0 = 1e-8
-	
-    sige = 1e-3
+    sige = 1e-4
 
     e      = mad8opt['comm'].getColumn('E')
     rgamma = e/(0.5109989461/1e3)
@@ -299,11 +298,11 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     emitXN0 = emitX0*rgamma[0]*rbeta[0]
     emitYN0 = emitY0*rgamma[0]*rbeta[0]
 
-    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')*sige)
-    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')*sige)
+    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
+    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')**2*sige**2)
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'b--')
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'g--')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'r--',label=r'MAD8 $\sigma_{x}$(calculated)')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'y--',label=r'MAD8 $\sigma_{y}$(calculated)')
 
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'],
@@ -342,6 +341,23 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
     _plt.plot(mad8opt['envel'].getColumn('suml'), 
               _np.sqrt(mad8opt['envel'].getColumn('s44')),
               'g', label=r'MAD8 $\sigma_{yp}$')
+    
+    emitX0 = 1e-8
+    emitY0 = 1e-8
+    sigE   = 0.0001
+
+    e      = mad8opt['comm'].getColumn('E')
+    rgamma = e/(0.5109989461/1e3)
+    rbeta  = _np.sqrt(1-1.0/rgamma**2)
+
+    emitXN0 = emitX0*rgamma[0]*rbeta[0]
+    emitYN0 = emitY0*rgamma[0]*rbeta[0]
+    #calcualte alpha, use sigma_xp = sqrt(alpha_x * emittance_x + dispersion_xp^2 * sigE^2)
+    sigmaXP = _np.sqrt(emitXN0/(rbeta*rgamma)*(mad8opt['twiss'].getColumn('alfx')**(2)+1)/mad8opt['twiss'].getColumn('betx') + (mad8opt['twiss'].getColumn('dpx')**(2))*(sigE**(2)))
+    sigmaYP = _np.sqrt(emitYN0/(rbeta*rgamma)*(mad8opt['twiss'].getColumn('alfy')**(2)+1)/mad8opt['twiss'].getColumn('bety') + (mad8opt['twiss'].getColumn('dpy')**(2))*(sigE**(2)))
+
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaXP,'b--')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaYP,'g--')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Sigma_xp'],
