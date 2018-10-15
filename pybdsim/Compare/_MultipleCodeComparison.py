@@ -15,7 +15,7 @@ _BETA =    {"bdsimdata"  : ("Beta_x", "Beta_y"),
             "madx"       : ("BETX", "BETY"),
             "legend"     : (r'$\beta_{x}$', r'$\beta_{y}$'),
             "xlabel"     : "S / m",
-            "ylabel"     : r"$\beta_{x,y}$ / m",
+            "ylabel"     : (r"$\beta_{x,y}$ / m",r"$\beta_{x}$ / m",r"$\beta_{y}$ / m"),
             "title"      : "Beta"
             }
 
@@ -24,7 +24,7 @@ _ALPHA =   {"bdsimdata"  : ("Alpha_x", "Alpha_y"),
             "madx"       : ("ALFX", "ALFY"),
             "legend"     : (r'$\alpha_{x}$', r'$\alpha_{y}$'),
             "xlabel"     : "S / m",
-            "ylabel"     : r"$\alpha_{x,y}$ / m",
+            "ylabel"     : (r"$\alpha_{x,y}$ / m",r"$\alpha_{x}$ / m",r"$\alpha_{y}$ / m"),
             "title"      : "Alpha"
            }
 
@@ -33,7 +33,7 @@ _DISP  =   {"bdsimdata"  : ("Disp_x", "Disp_y"),
             "madx"       : ("DXBETA", "DYBETA"),
             "legend"     : (r"$D_{x}$", r"$D_{y}$"),
             "xlabel"     : "S / m",
-            "ylabel"     : r"$D_{x,y} / m$",
+            "ylabel"     : (r"$D_{x,y} / m$",r"$D_{x} / m$",r"$D_{y} / m$"),
             "title"      : "Dispersion"
             }
 
@@ -42,7 +42,7 @@ _DISP_P=   {"bdsimdata"  : ("Disp_xp", "Disp_yp"),
             "madx"       : ("DPXBETA", "DPYBETA"),
             "legend"     : (r"$D_{p_{x}}$", r"$D_{p_{y}}$"),
             "xlabel"     : "S / m",
-            "ylabel"     : r"$D_{p_{x},p_{y}}$ / m",
+            "ylabel"     : (r"$D_{p_{x},p_{y}}$ / m",r"$D_{p_{x}}$ / m",r"$D_{p_{y}}$ / m"),
             "title"      : "Momentum_Dispersion"
             }
 
@@ -51,7 +51,7 @@ _SIGMA =   {"bdsimdata"  : ("Sigma_x", "Sigma_y"),
             "madx"       : ("SIGMAX", "SIGMAY"),
             "legend"     : (r"$\sigma_{x}$",r"$\sigma_{y}$"),
             "xlabel"     : "S / m",
-            "ylabel"     : r"$\sigma_{x,y}$ / m",
+            "ylabel"     : (r"$\sigma_{x,y}$ / m",r"$\sigma_{x}$ / m",r"$\sigma_{y}$ / m"),
             "title"      : "Sigma"
             }
 
@@ -60,7 +60,7 @@ _SIGMA_P = {"bdsimdata"  : ("Sigma_xp", "Sigma_yp"),
             "madx"       : ("SIGMAXP", "SIGMAYP"),
             "legend"     : (r"$\sigma_{xp}$",r"$\sigma_{yp}$"),
             "xlabel"     : "S / m",
-            "ylabel"     : r"$\sigma_{xp,yp}$ / rad",
+            "ylabel"     : (r"$\sigma_{xp,yp}$ / rad",r"$\sigma_{xp}$ / rad",r"$\sigma_{yp}$ / rad"),
             "title"      : "SigmaP"
             }
 
@@ -69,7 +69,7 @@ _MEAN    = {"bdsimdata"  : ("Mean_x", "Mean_y"),
             "madx"       : ("X", "Y"),
             "legend"     : (r"$\bar{x}$", r"$\bar{y}$"),
             "xlabel"     : "S / m",
-            "ylabel"     : r"$\bar{x}, \bar{y}$ / m",
+            "ylabel"     : (r"$\bar{x}, \bar{y}$ / m",r"$\bar{x}$ / m",r"$\bar{y}$ / m"),
             "title"      : "Mean"
             }
 
@@ -78,7 +78,7 @@ _EMITT   = {"bdsimdata"  : ("Emitt_x", "Emitt_y"),
             "madx"       : ("EX", "EY"),
             "legend"     : (r"$E_{x}$", r"$E_{y}$"),
             "xlabel"     : "S / m",
-            "ylabel"     : r"$E_{x}, E_{y}$",
+            "ylabel"     : (r"$E_{x}, E_{y}$",r"$E_{x}$",r"$E_{y}$"),
             "title"      : "Emittance"
             }
 
@@ -130,7 +130,7 @@ def _LoadData(bdsim, bdsimname, madx, madxname, ptctwiss, ptctwissname, ptc, ptc
     ptctwiss, ptctwiss_name = Load(ptctwiss, ptctwissname, "ptctwiss", _parse_tfs_input)
     ptc, ptc_name = Load(ptc, ptcname, "ptc", _parse_bdsim_input)
 
-    #add data and names to dicts
+    # add data and names to dicts
     data = {"bdsim": bdsim,
             "madx": madx,
             "ptctwiss": ptctwiss,
@@ -164,8 +164,8 @@ def _parse_bdsim_input(bdsim_in, name):
         return bdsim_in, name
     except AttributeError:
         raise TypeError(
-            "Expected Tfs input is neither a "
-            "file path nor a Tfs instance: {}".format(bdsim_in))
+            "Expected BDSIM input is neither a "
+            "file path nor a BDSAsciiData instance: {}".format(bdsim_in))
 
 def _parse_tfs_input(tfs_in, name):
     """Return tfs_in as a Tfs instance, which should either be a path
@@ -193,28 +193,36 @@ def _plotBdsimType(data, name, plot_info, axis='both', **kwargs):
         name : supplied tfsname
         plot_info : one of the predefined dicts from top of this file
         axis : which axis to plot (x, y, or both)"""
-    def _plot(data, name, plot_info, n, **kwargs):
+    def _plot(data, name, plot_info, n, legLabel='', **kwargs):
         """ data : pymadx.Data.Tfs instance
             name : supplied tfsname
             plot_info : one of the predefined dicts from top of this file
             axis : index of tuple in predefined dict. """
         variable      = plot_info["bdsimdata"][n]  #variable name from predefined dict
         variableError = plot_info["bdsimerror"][n] #variable error name from predefined dict
-        legendname    = plot_info["legend"][n]     #legend name from predefined dict
         _plt.errorbar(data.GetColumn('S'),
                       data.GetColumn(variable),
                       yerr=data.GetColumn(variableError),
-                      label="{}; {}; N = {:.1E}".format(name, legendname, data.Npart()[0]),
+                      label=legLabel,
                       capsize=3, **kwargs)
     # plot specific axes according to tuple index in predefined dict
     # x = 0, y = 1
     if axis == 'x':
-        _plot(data, name, plot_info, 0, **kwargs)
+        legendname    = plot_info["legend"][0]     #legend name from predefined dict
+        legendLabel = "{}; N = {:.1E}".format(name, data.Npart()[0])
+        _plot(data, name, plot_info, 0, legendLabel, **kwargs)
     elif axis == 'y':
-        _plot(data, name, plot_info, 1, **kwargs)
+        legendname    = plot_info["legend"][1]     #legend name from predefined dict
+        legendLabel = "{}; N = {:.1E}".format(name, data.Npart()[0])
+
+        _plot(data, name, plot_info, 1, legendLabel, **kwargs)
     elif axis == 'both':
-        _plot(data, name, plot_info, 0, **kwargs)
-        _plot(data, name, plot_info, 1, **kwargs)
+        xlegendname    = plot_info["legend"][0]     #legend name from predefined dict
+        ylegendname    = plot_info["legend"][1]     #legend name from predefined dict
+        xlegendLabel = "{}; {}; N = {:.1E}".format(name, xlegendname, data.Npart()[0])
+        ylegendLabel = "{}; {}; N = {:.1E}".format(name, ylegendname, data.Npart()[0])
+        _plot(data, name, plot_info, 0, xlegendLabel, **kwargs)
+        _plot(data, name, plot_info, 1, ylegendLabel, **kwargs)
 
 # template plotter for madx type data (madx and ptctwiss)
 def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
@@ -222,13 +230,12 @@ def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
         name : supplied tfsname
         plot_info : one of the predefined dicts from top of this file
         axis : which axis to plot (x, y, or both) """
-    def _plot(data, name, plot_info, n, **kwargs):
+    def _plot(data, name, plot_info, n, legLabel='', **kwargs):
         """ data : pymadx.Data.Tfs instance
             name : supplied tfsname
             plot_info : one of the predefined dicts from top of this file
             axis : index of tuple in predefined dict. """
         variable   = plot_info["madx"][n]      #variable name from predefined dict
-        legendname = plot_info["legend"][n]    #legend name from predefined dict
         title      = plot_info['title'] + axis #add axis to distinguish plot titles
         s = data.GetColumn('S')
         #emittance is a number in the header so convert to an array for plotting
@@ -236,14 +243,19 @@ def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
             var = data.header[plot_info["madx"][n]] * _np.ones(len(data.GetColumn('S')))
         else:
             var = data.GetColumn(variable)
-        _plt.plot(s, var, label="{}: {}".format(name, legendname), **kwargs)
+        _plt.plot(s, var, label=legLabel, **kwargs)
+
     if axis == 'x':
-        _plot(data, name, plot_info, 0, **kwargs)
+        _plot(data, name, plot_info, 0, name, **kwargs)
     elif axis == 'y':
-        _plot(data, name, plot_info, 1, **kwargs)
+        _plot(data, name, plot_info, 1, name, **kwargs)
     elif axis == 'both':
-        _plot(data, name, plot_info, 0, **kwargs)
-        _plot(data, name, plot_info, 1, **kwargs)
+        xlegendname = plot_info["legend"][0]
+        ylegendname = plot_info["legend"][1]
+        xlegendLabel = "{}: {}".format(name, legendname)
+        ylegendLabel = "{}: {}".format(name, legendname)
+        _plot(data, name, plot_info, 0, xlegendLabel, **kwargs)
+        _plot(data, name, plot_info, 1, ylegendLabel, **kwargs)
 
 # use closure to avoid tonnes of boilerplate code
 def _make_plotter(plot_info):
@@ -257,7 +269,13 @@ def _make_plotter(plot_info):
             """
         # extract plot labelling from predefined dict
         x_label = plot_info['xlabel']
-        y_label = plot_info['ylabel']
+        if axis == 'x':
+            y_label = plot_info['ylabel'][1]
+        elif axis == 'y':
+            y_label = plot_info['ylabel'][2]
+        else:
+            y_label = plot_info['ylabel'][0] # both
+
         title   = plot_info['title'] + axis  #add axis to distinguish plot titles
 
         plot = _plt.figure(title, figsize, **kwargs)
@@ -308,7 +326,11 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
                           tfs=None, tfsname=None,
                           ptctwiss=None, ptctwissname=None,
                           ptc=None, ptcname=None,
-                          survey=None, figsize=(9, 5), saveAll=True, outputFilename=None, **kwargs):
+                          survey=None, figsize=(9, 5),
+                          saveAll=True,
+                          outputFilename=None,
+                          plotAxesSeparately=False,
+                          **kwargs):
     """
     Compares optics of multiple files supplied. Can be any combination of single or multiple
     BDSIM, Tfs, ptc_twiss output, or PTC output (PTC output converted to BDSIM compatible format).
@@ -325,54 +347,56 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
     If more than 2 files are supplied, the optical functions for the x and y axes are plotted on
     seperate figures.
 
-    +-----------------+---------------------------------------------------------+
-    | **Parameters**  | **Description**                                         |
-    +-----------------+---------------------------------------------------------+
-    | bdsim           | Optics root file (from rebdsimOptics or rebdsim),       |
-    |                 | or list of multiple optics root files.                  |
-    |                 | default = None                                          |
-    +-----------------+---------------------------------------------------------+
-    | bdsimname       | bdsim name that will appear in the plot legend          |
-    |                 | or list of multiple bdsim names.                        |
-    |                 | default = None                                          |
-    +-----------------+---------------------------------------------------------+
-    | tfs             | Tfs file (or pymadx.Data.Tfs instance),                 |
-    |                 | or list of multiple Tfs files.                          |
-    |                 | default = None                                          |
-    +-----------------+---------------------------------------------------------+
-    | tfsname         | tfs name that will appear in the plot legend            |
-    |                 | or list of multiple tfs names.                          |
-    |                 | default = None                                          |
-    +-----------------+---------------------------------------------------------+
-    | ptctwiss        | ptctwiss output file (or pymadx.Data.Tfs instance),     |
-    |                 | of list of multiple ptctwiss files.                     |
-    |                 | default = None                                          |
-    +-----------------+---------------------------------------------------------+
-    | ptctwissname    | ptctwiss name that will appear in the plot legend       |
-    |                 | or list of multiple ptctwiss names.                     |
-    |                 | default = None                                          |
-    +-----------------+---------------------------------------------------------+
-    | ptc             | Optics root file (from rebdsimOptics or rebdsim) that   |
-    |                 | was generated with PTC data that has been               |
-    |                 | converted to bdsim format via ptc2bdsim,                |
-    |                 | or list of multiple files.                              |
-    |                 | default = None                                          |
-    +-----------------+---------------------------------------------------------+
-    | ptcname         | ptc name that will appear in the plot legend            |
-    |                 | or list of multiple ptc names.                          |
-    |                 | default = None                                          |
-    +-----------------+---------------------------------------------------------+
-    | survey          | BDSIM model survey.                                     |
-    +-----------------+---------------------------------------------------------+
-    | figsize         | Figure size for all figures - default is (9,5)          |
-    +-----------------+---------------------------------------------------------+
-    | saveAll         | Save all plots generated in a single pdf file           |
-    |                 | default = True.                                         |
-    +-----------------+---------------------------------------------------------+
-    | outputFilename  | filename of generated plots.                            |
-    |                 | default = optics-report.pdf                             |
-    +-----------------+---------------------------------------------------------+
-
+    +--------------------+---------------------------------------------------------+
+    | **Parameters**     | **Description**                                         |
+    +--------------------+---------------------------------------------------------+
+    | bdsim              | Optics root file (from rebdsimOptics or rebdsim),       |
+    |                    | or list of multiple optics root files.                  |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
+    | bdsimname          | bdsim name that will appear in the plot legend          |
+    |                    | or list of multiple bdsim names.                        |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
+    | tfs                | Tfs file (or pymadx.Data.Tfs instance),                 |
+    |                    | or list of multiple Tfs files.                          |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
+    | tfsname            | tfs name that will appear in the plot legend            |
+    |                    | or list of multiple tfs names.                          |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
+    | ptctwiss           | ptctwiss output file (or pymadx.Data.Tfs instance),     |
+    |                    | of list of multiple ptctwiss files.                     |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
+    | ptctwissname       | ptctwiss name that will appear in the plot legend       |
+    |                    | or list of multiple ptctwiss names.                     |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
+    | ptc                | Optics root file (from rebdsimOptics or rebdsim) that   |
+    |                    | was generated with PTC data that has been               |
+    |                    | converted to bdsim format via ptc2bdsim,                |
+    |                    | or list of multiple files.                              |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
+    | ptcname            | ptc name that will appear in the plot legend            |
+    |                    | or list of multiple ptc names.                          |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
+    | survey             | BDSIM model survey.                                     |
+    +--------------------+---------------------------------------------------------+
+    | figsize            | Figure size for all figures - default is (9,5)          |
+    +--------------------+---------------------------------------------------------+
+    | saveAll            | Save all plots generated in a single pdf file           |
+    |                    | default = True.                                         |
+    +--------------------+---------------------------------------------------------+
+    | outputFilename     | filename of generated plots.                            |
+    |                    | default = optics-report.pdf                             |
+    +--------------------+---------------------------------------------------------+
+    | plotAxesSeparately | Plot x and y axes on separate plots                     |
+    |                    | default = false                                         |
+    +--------------------+---------------------------------------------------------+
     examples:
 
     pybdsim.Compare.CompareOptics(bdsim=["t1_optics.root","t2_optics.root"], bdsimname=["BDSIM 10 GeV","BDSIM 20 GeV"],
@@ -403,10 +427,9 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
         print("Too many files to compare")
         return
 
-    # if > 2, plot x and y seperately.
-    plotAxesSeperately = False
+    # if > 2, plot x and y separately.
     if total > 2:
-        plotAxesSeperately=True
+        plotAxesSeparately = True
 
     if isinstance(survey, basestring):
         if not _ospath.isfile(survey):
@@ -416,7 +439,7 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
     if survey is not None:
         survey = CheckItsBDSAsciiData(survey)
 
-    if plotAxesSeperately:
+    if plotAxesSeparately:
         figures = [
         PlotBeta(data,   names, axis='x', survey=survey, figsize=figsize, **kwargs),
         PlotBeta(data,   names, axis='y', survey=survey, figsize=figsize, **kwargs),
@@ -466,20 +489,24 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
 
 def PlotNPart(data, names, survey=None, figsize=(10, 5), **kwargs):
     """ Method for plotting the number of particles.
-        Seperate as only applicable to BDSIM/PTC type files.
+        Separate as only applicable to BDSIM/PTC type files.
         """
     npartPlot = _plt.figure('NParticles', figsize, **kwargs)
-    for i in range(len(data["bdsim"])):
-        bdsimdata = data["bdsim"][i]
-        bdsimname = names["bdsim"][i]
-        _plt.plot(bdsimdata.GetColumn('S'), bdsimdata.GetColumn('Npart'), 'k-', label="{};".format(bdsimname))
-
-    for i in range(len(data["ptc"])):
-        ptcdata   = data["ptc"][i]
-        ptcname   = names["ptc"][i]
-        if ptcdata is not None:
-            _plt.plot(ptcdata.GetColumn('S'), ptcdata.GetColumn('Npart'), 'kx', label="{};".format(ptcname))
-
+    try:
+        if data["bdsim"][0] is not None:
+            for i in range(len(data["bdsim"])):
+                bdsimdata = data["bdsim"][i]
+                bdsimname = names["bdsim"][i]
+                _plt.plot(bdsimdata.GetColumn('S'), bdsimdata.GetColumn('Npart'), 'k-', label="{};".format(bdsimname))
+        if data["ptc"][0] is not None:
+            for i in range(len(data["ptc"])):
+                ptcdata   = data["ptc"][i]
+                ptcname   = names["ptc"][i]
+                if ptcdata is not None:
+                    _plt.plot(ptcdata.GetColumn('S'), ptcdata.GetColumn('Npart'), 'kx', label="{};".format(ptcname))
+    except AttributeError:
+        pass
+    
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'N Particles')
     axes.set_xlabel('S / m')
