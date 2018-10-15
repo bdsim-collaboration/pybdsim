@@ -252,8 +252,8 @@ def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
     elif axis == 'both':
         xlegendname = plot_info["legend"][0]
         ylegendname = plot_info["legend"][1]
-        xlegendLabel = "{}: {}".format(name, legendname)
-        ylegendLabel = "{}: {}".format(name, legendname)
+        xlegendLabel = "{}: {}".format(name, xlegendname)
+        ylegendLabel = "{}: {}".format(name, ylegendname)
         _plot(data, name, plot_info, 0, xlegendLabel, **kwargs)
         _plot(data, name, plot_info, 1, ylegendLabel, **kwargs)
 
@@ -261,7 +261,7 @@ def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
 def _make_plotter(plot_info):
     """ plot_info : one of the predefined dicts from top of this file """
 
-    def f_out(alldata, allnames, axis='both', survey=None, figsize=(10,5), **kwargs):
+    def f_out(alldata, allnames, axis='both', survey=None, saveFig=False, figsize=(10,5), **kwargs):
         """ alldata  : dict of all data returned by _LoadData method
             allnames : dict of all names returned by _LoadData method
             axis     : axis/axes to plot. Can be 'x', 'y' or 'both'
@@ -309,6 +309,10 @@ def _make_plotter(plot_info):
             except IOError:
                 _pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
         _plt.show(block=False)
+
+        if saveFig:
+            _plt.savefig(title+".pdf")
+
         return plot
     return f_out
 
@@ -330,6 +334,7 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
                           saveAll=True,
                           outputFilename=None,
                           plotAxesSeparately=False,
+                          saveIndivFigs=False,
                           **kwargs):
     """
     Compares optics of multiple files supplied. Can be any combination of single or multiple
@@ -397,6 +402,9 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
     | plotAxesSeparately | Plot x and y axes on separate plots                     |
     |                    | default = false                                         |
     +--------------------+---------------------------------------------------------+
+    | saveIndivFigs      | Save each plot individually as PDF.                     |
+    |                    | default = false                                         |
+    +--------------------+---------------------------------------------------------+
     examples:
 
     pybdsim.Compare.CompareOptics(bdsim=["t1_optics.root","t2_optics.root"], bdsimname=["BDSIM 10 GeV","BDSIM 20 GeV"],
@@ -441,22 +449,22 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
 
     if plotAxesSeparately:
         figures = [
-        PlotBeta(data,   names, axis='x', survey=survey, figsize=figsize, **kwargs),
-        PlotBeta(data,   names, axis='y', survey=survey, figsize=figsize, **kwargs),
-        PlotAlpha(data,  names, axis='x', survey=survey, figsize=figsize, **kwargs),
-        PlotAlpha(data,  names, axis='y', survey=survey, figsize=figsize, **kwargs),
-        PlotDisp(data,   names, axis='x', survey=survey, figsize=figsize, **kwargs),
-        PlotDisp(data,   names, axis='y', survey=survey, figsize=figsize, **kwargs),
-        PlotDispP(data,  names, axis='x', survey=survey, figsize=figsize, **kwargs),
-        PlotDispP(data,  names, axis='y', survey=survey, figsize=figsize, **kwargs),
-        PlotSigma(data,  names, axis='x', survey=survey, figsize=figsize, **kwargs),
-        PlotSigma(data,  names, axis='y', survey=survey, figsize=figsize, **kwargs),
-        PlotSigmaP(data, names, axis='x', survey=survey, figsize=figsize, **kwargs),
-        PlotSigmaP(data, names, axis='y', survey=survey, figsize=figsize, **kwargs),
-        PlotMean(data,   names, axis='x', survey=survey, figsize=figsize, **kwargs),
-        PlotMean(data,   names, axis='y', survey=survey, figsize=figsize, **kwargs),
-        PlotEmitt(data,  names, axis='x', survey=survey, figsize=figsize, **kwargs),
-        PlotEmitt(data,  names, axis='y', survey=survey, figsize=figsize, **kwargs),
+        PlotBeta(data,   names, axis='x', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotBeta(data,   names, axis='y', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotAlpha(data,  names, axis='x', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotAlpha(data,  names, axis='y', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotDisp(data,   names, axis='x', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotDisp(data,   names, axis='y', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotDispP(data,  names, axis='x', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotDispP(data,  names, axis='y', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotSigma(data,  names, axis='x', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotSigma(data,  names, axis='y', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotSigmaP(data, names, axis='x', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotSigmaP(data, names, axis='y', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotMean(data,   names, axis='x', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotMean(data,   names, axis='y', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotEmitt(data,  names, axis='x', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotEmitt(data,  names, axis='y', survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
         PlotNPart(data,  names, survey=survey, figsize=figsize, **kwargs)
             ]
     else:
