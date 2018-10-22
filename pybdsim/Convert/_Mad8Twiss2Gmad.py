@@ -184,6 +184,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         b._SetEmittanceY(gemit[1],'m')
         b._SetSigmaE(esprd)
         b._SetSigmaT(bleng)
+        b._SetOffsetSampleMean(True)
     
         a.AddBeam(b)
     elif beamname == "halo" :
@@ -229,8 +230,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         o = Options.ElectronColliderOptions()
         o.SetBuildTunnel(False)
         o.SetBuildTunnelFloor(False)
+        o.SetStopSecondaries(True)
+        o.SetPrintModuloFraction(1e-2)
         o.SetMagnetGeometryType('"none"')
-        o.SetPrintModuloFraction(1e-5)
         o.SetBeamlineS(s_cut,'m')
         process = 'em'
         if enableSr :
@@ -260,6 +262,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # iterate through objects and build machine
     if iend == -1 :
         iend = len(c.name)
+    else :
+        iend += 1
     for i in range(istart,iend,1) :
         # unique(c.type)
         # print element
@@ -474,7 +478,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                                length = c.data[i][c.keys['rcol']['l']])
             else : 
                 # make collimator from file
- #              print "RCOL> ",c.name[i], "coll file"
+#               print "RCOL> ",c.name[i], "coll file"
                 length= float(c.data[i][c.keys['rcol']['l']])
                 xsize = float(collimator.getCollimator(c.name[i])['xsize'])
                 ysize = float(collimator.getCollimator(c.name[i])['ysize'])
@@ -497,78 +501,33 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
 #       ###################################################################
         elif c.type[i] == 'MATR' :
-            print "RMAT> ",c.name[i]
-            a.AddDrift(name    = c.name[i]+'_'+str(eCount),
-                               length  = float(c.data[i][c.keys['matr']['l']]))
-#            RMATRIX=rmat.data[i]
-#            length=float(c.data[i][c.keys['matr']['l']])
-#
-#            if i==0:
-#                if particle == 'e-':
-#                    a.AddRmat(name     = prepend+c.name[i]+'_'+str(eCount), 
-#                            length    = float(c.data[i][c.keys['matr']['l']]),
-#                            r11       = RMATRIX[0],
-#                            r12       = RMATRIX[1],
-#                            r13       = RMATRIX[2],
-#                            r14       = RMATRIX[3],
-#                            r21       = RMATRIX[6],
-#                            r22       = RMATRIX[7],
-#                            r23       = RMATRIX[8],
-#                            r24       = RMATRIX[9],
-#                            r31       = RMATRIX[12],
-#                            r32       = RMATRIX[13],
-#                            r33       = RMATRIX[14],
-#                            r34       = RMATRIX[15],
-#                            r41       = RMATRIX[18],
-#                            r42       = RMATRIX[19],
-#                            r43       = RMATRIX[20],
-#                            r44       = RMATRIX[21])                
-#                else:
-#                    a.AddRmat(name     = prepend+c.name[i]+'_'+str(eCount), 
-#                            length    = float(c.data[i][c.keys['matr']['l']]),
-#                            r11       = RMATRIX[0],
-#                            r12       = RMATRIX[1],
-#                            r13       = RMATRIX[2],
-#                            r14       = RMATRIX[3],
-#                            r21       = RMATRIX[6],
-#                            r22       = RMATRIX[7],
-#                            r23       = RMATRIX[8],
-#                            r24       = RMATRIX[9],
-#                            r31       = RMATRIX[12],
-#                            r32       = RMATRIX[13],
-#                            r33       = RMATRIX[14],
-#                            r34       = RMATRIX[15],
-#                            r41       = RMATRIX[18],
-#                            r42       = RMATRIX[19],
-#                            r43       = RMATRIX[20],
-#                            r44       = RMATRIX[21])
-#            else:
-#                RMATPRIOR=rmat.data[i-1]
+            #print "RMAT> ",c.name[i]
+            RMATRIX=rmat.data[i]
+            RMATPRIOR=rmat.data[i-1]
+            length=float(c.data[i][c.keys['matr']['l']])
 
-#                #
-#                PRIORMATRIX = _np.matrix(str(RMATPRIOR[0]) + " " + str(RMATPRIOR[1]) + " " + str(RMATPRIOR[2]) + " " + str(RMATPRIOR[3]) + "; " + str(RMATPRIOR[6]) + " " + str(RMATPRIOR[7]) + " " + str(RMATPRIOR[8]) + " " + str(RMATPRIOR[9]) + "; " + str(RMATPRIOR[12]) + " " + str(RMATPRIOR[13]) + " " + str(RMATPRIOR[14]) + " " + str(RMATPRIOR[15]) + "; " + str(RMATPRIOR[18]) + " " + str(RMATPRIOR[19]) + " " + str(RMATPRIOR[20]) + " " + str(RMATPRIOR[21]))
-#                POSTMATRIX = _np.matrix(str(RMATRIX[0]) + " " + str(RMATRIX[1]) + " " + str(RMATRIX[2]) + " " + str(RMATRIX[3]) + "; " + str(RMATRIX[6]) + " " + str(RMATRIX[7]) + " " + str(RMATRIX[8]) + " " + str(RMATRIX[9]) + "; " + str(RMATRIX[12]) + " " + str(RMATRIX[13]) + " " + str(RMATRIX[14]) + " " + str(RMATRIX[15]) + "; " + str(RMATRIX[18]) + " " + str(RMATRIX[19]) + " " + str(RMATRIX[20]) + " " + str(RMATRIX[21]))
-#            
-#                EFFECTMATRIX=(POSTMATRIX*PRIORMATRIX.I)
-#                print '\n Effect Matrix: \n',EFFECTMATRIX,'\n Cumulative Matrix: \n',POSTMATRIX,'\n Prior Effect Matrix: \n',PRIORMATRIX
-#                a.AddRmat(name      = prepend+c.name[i]+'_'+str(eCount), 
-#                          length    = float(c.data[i][c.keys['matr']['l']]),
-#                          r11       = EFFECTMATRIX[0,0],
-#                          r12       = EFFECTMATRIX[0,1],
-#                          r13       = EFFECTMATRIX[0,2],
-#                          r14       = EFFECTMATRIX[0,3],
-#                          r21       = -EFFECTMATRIX[1,0],
-#                          r22       = EFFECTMATRIX[1,1],
-#                          r23       = EFFECTMATRIX[1,2],
-#                          r24       = EFFECTMATRIX[1,3],
-#                          r31       = -EFFECTMATRIX[2,0],
-#                          r32       = -EFFECTMATRIX[2,1],
-#                          r33       = EFFECTMATRIX[2,2],
-#                          r34       = EFFECTMATRIX[2,3],
-#                          r41       = -EFFECTMATRIX[3,0],
-#                          r42       = -EFFECTMATRIX[3,1],
-#                          r43       = -EFFECTMATRIX[3,2],
-#                          r44       = EFFECTMATRIX[3,3])                
+			#Mad8 rmatrix elements are cumulative, code finds current element by finding difference between rmat [i] and [i-1].
+            PRIORMATRIX = _np.matrix(str(RMATPRIOR[0]) + " " + str(RMATPRIOR[1]) + " " + str(RMATPRIOR[2]) + " " + str(RMATPRIOR[3]) + "; " + str(RMATPRIOR[6]) + " " + str(RMATPRIOR[7]) + " " + str(RMATPRIOR[8]) + " " + str(RMATPRIOR[9]) + "; " + str(RMATPRIOR[12]) + " " + str(RMATPRIOR[13]) + " " + str(RMATPRIOR[14]) + " " + str(RMATPRIOR[15]) + "; " + str(RMATPRIOR[18]) + " " + str(RMATPRIOR[19]) + " " + str(RMATPRIOR[20]) + " " + str(RMATPRIOR[21]))
+            POSTMATRIX = _np.matrix(str(RMATRIX[0]) + " " + str(RMATRIX[1]) + " " + str(RMATRIX[2]) + " " + str(RMATRIX[3]) + "; " + str(RMATRIX[6]) + " " + str(RMATRIX[7]) + " " + str(RMATRIX[8]) + " " + str(RMATRIX[9]) + "; " + str(RMATRIX[12]) + " " + str(RMATRIX[13]) + " " + str(RMATRIX[14]) + " " + str(RMATRIX[15]) + "; " + str(RMATRIX[18]) + " " + str(RMATRIX[19]) + " " + str(RMATRIX[20]) + " " + str(RMATRIX[21]))
+            EFFECTMATRIX=(POSTMATRIX*PRIORMATRIX.I)
+            a.AddRmat(name      = prepend+c.name[i]+'_'+str(eCount), 
+                      length    = float(c.data[i][c.keys['matr']['l']]),
+                      r11       = EFFECTMATRIX[0,0],
+                      r12       = EFFECTMATRIX[0,1],
+                      r13       = EFFECTMATRIX[0,2],
+                      r14       = EFFECTMATRIX[0,3],
+                      r21       = EFFECTMATRIX[1,0],
+                      r22       = EFFECTMATRIX[1,1],
+                      r23       = EFFECTMATRIX[1,2],
+                      r24       = EFFECTMATRIX[1,3],
+                      r31       = EFFECTMATRIX[2,0],
+                      r32       = EFFECTMATRIX[2,1],
+                      r33       = EFFECTMATRIX[2,2],
+                      r34       = EFFECTMATRIX[2,3],
+                      r41       = EFFECTMATRIX[3,0],
+                      r42       = EFFECTMATRIX[3,1],
+                      r43       = EFFECTMATRIX[3,2],
+                      r44       = EFFECTMATRIX[3,3])                
 
 #       ###################################################################
         else :

@@ -279,12 +279,12 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma',figsize)
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'),
-              _np.sqrt(mad8opt['envel'].getColumn('s11')),
-              'b--', label=r'MAD8 $\sigma_{x}$')
-    _plt.plot(mad8opt['envel'].getColumn('suml'),
-              _np.sqrt(mad8opt['envel'].getColumn('s33')),
-              'g--', label=r'MAD8 $\sigma_{y}$')
+#    _plt.plot(mad8opt['envel'].getColumn('suml'),
+#              _np.sqrt(mad8opt['envel'].getColumn('s11')),
+#              'b--', label=r'MAD8 $\sigma_{x}$')
+#    _plt.plot(mad8opt['envel'].getColumn('suml'),
+#              _np.sqrt(mad8opt['envel'].getColumn('s33')),
+#              'g--', label=r'MAD8 $\sigma_{y}$')
     
     # Own calculation of beam sizes.
     emitX0 = 1e-8
@@ -335,12 +335,12 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPPlot = _plt.figure('SigmaP',figsize)
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'), 
-              _np.sqrt(mad8opt['envel'].getColumn('s22')),
-              'b', label=r'MAD8 $\sigma_{xp}$')
-    _plt.plot(mad8opt['envel'].getColumn('suml'), 
-              _np.sqrt(mad8opt['envel'].getColumn('s44')),
-              'g', label=r'MAD8 $\sigma_{yp}$')
+#    _plt.plot(mad8opt['envel'].getColumn('suml'), 
+#              _np.sqrt(mad8opt['envel'].getColumn('s22')),
+#              'b', label=r'MAD8 $\sigma_{xp}$')
+#    _plt.plot(mad8opt['envel'].getColumn('suml'), 
+#              _np.sqrt(mad8opt['envel'].getColumn('s44')),
+#              'g', label=r'MAD8 $\sigma_{yp}$')
     
     emitX0 = 1e-8
     emitY0 = 1e-8

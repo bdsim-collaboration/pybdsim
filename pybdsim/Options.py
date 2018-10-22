@@ -378,7 +378,7 @@ class Options(dict):
         
     def SetBeamlineS(self,beamlineS=0,unitsstring='m'):
         self["beamlineS"] = str(beamlineS) + '*' +unitsstring
-
+        
 class Editor :
     def __init__(self, fileName) :
         self.fileName = fileName

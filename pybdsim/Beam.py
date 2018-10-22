@@ -285,3 +285,8 @@ class Beam(dict) :
         self._UpdateMemberFunctions(name)
         self['zDistrType'] = '"' + name + '"'
 
+    def _SetOffsetSampleMean(self,on=False):
+        if on == True:
+            self["offsetSampleMean"] = 1
+        else:
+            self["OffsetSampleMean"] = 0
