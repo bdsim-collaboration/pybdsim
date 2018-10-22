@@ -321,13 +321,14 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
         f.suptitle(title)
     return f
 
-def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="equal"):
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="auto"):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm   - logarithmic colour scale
     xlogscale - x axis logarithmic scale
     ylogscale - y axis logarithmic scale
     zlabel    - label for color bar scale
+    aspect    - "auto", "equal", "none" - see imshow?
     """
     h = histogram
     f = _plt.figure()
