@@ -205,28 +205,28 @@ def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fig
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dx'),
-              'r--', label=r'MAD8 $\D_{x}$')
+              'r--', label=r'MAD8 $\eta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dy'),
-              'y--', label=r'MAD8 $D_{y}$')
+              'y--', label=r'MAD8 $\eta_{y}$')
      
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
                   yerr=bdsopt['Sigma_Disp_x'],
-                  label=r'BDSIM $D_{x}$' + ' ; N = ' + N,
+                  label=r'BDSIM $\eta_{x}$' + ' ; N = ' + N,
                   marker='x',
                   ls = '',
                   color='b')
     
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'],
                   yerr=bdsopt['Sigma_Disp_y'],
-                  label=r'BDSIM $D_{y}$' + ' ; N = ' + N,
+                  label=r'BDSIM $\eta_{y}$' + ' ; N = ' + N,
                   marker='x',
                   ls = '',
                   color='g')
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$D_{x,y} / m$')
+    axes.set_ylabel(r'$\eta_{x,y} / m$')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
@@ -243,7 +243,7 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dpx'),
-              'r--', label=r'MAD8 $\D_{p_x}$')
+              'r--', label=r'MAD8 $\eta_{p_x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dpy'),
               'y--', label=r'MAD8 $D_{p_y}$')
@@ -251,20 +251,20 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
                   yerr=bdsopt['Sigma_Disp_xp'],
-                  label=r'BDSIM $D_{p_x}$' + ' ; N = ' + N,
+                  label=r'BDSIM $\eta_{p_x}$' + ' ; N = ' + N,
                   marker='x',
                   ls = '',
                   color='b')
         
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
                   yerr=bdsopt['Sigma_Disp_yp'],
-                  label=r'BDSIM $D_{p_y}$' + ' ; N = ' + N,
+                  label=r'BDSIM $\eta_{p_y}$' + ' ; N = ' + N,
                   marker='x',
                   ls = '',
                   color='g')
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / rad')
+    axes.set_ylabel(r'$\eta_{p_{x},p_{y}}$ / rad')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
