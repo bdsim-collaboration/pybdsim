@@ -469,15 +469,15 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
             ]
     else:
         figures = [
-        PlotBeta(data,   names, survey=survey, figsize=figsize, **kwargs),
-        PlotAlpha(data,  names, survey=survey, figsize=figsize, **kwargs),
-        PlotDisp(data,   names, survey=survey, figsize=figsize, **kwargs),
-        PlotDispP(data,  names, survey=survey, figsize=figsize, **kwargs),
-        PlotSigma(data,  names, survey=survey, figsize=figsize, **kwargs),
-        PlotSigmaP(data, names, survey=survey, figsize=figsize, **kwargs),
-        PlotMean(data,   names, survey=survey, figsize=figsize, **kwargs),
-        PlotEmitt(data,  names, survey=survey, figsize=figsize, **kwargs),
-        PlotNPart(data,  names, survey=survey, figsize=figsize, **kwargs)
+        PlotBeta(data,   names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotAlpha(data,  names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotDisp(data,   names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotDispP(data,  names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotSigma(data,  names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotSigmaP(data, names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotMean(data,   names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotEmitt(data,  names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs),
+        PlotNPart(data,  names, survey=survey, figsize=figsize, saveFig=saveIndivFigs, **kwargs)
             ]
 
     if saveAll:
@@ -495,7 +495,7 @@ def CompareMultipleOptics(bdsim=None, bdsimname=None,
         print "Written ", output_filename
 
 
-def PlotNPart(data, names, survey=None, figsize=(10, 5), **kwargs):
+def PlotNPart(data, names, survey=None, figsize=(10, 5), saveFig=False, **kwargs):
     """ Method for plotting the number of particles.
         Separate as only applicable to BDSIM/PTC type files.
         """
@@ -526,4 +526,8 @@ def PlotNPart(data, names, survey=None, figsize=(10, 5), **kwargs):
         except IOError:
             _pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
     _plt.show(block=False)
+
+    if saveFig:
+        _plt.savefig("NPart" + ".pdf")
+
     return npartPlot
