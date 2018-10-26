@@ -198,6 +198,8 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             pass
         elif kw == 'multipole':
             DrawHex(starts[i],lengths[i],'grey',alpha=0.5)
+        elif kw == 'solenoid':
+            DrawRect(starts[i],lengths[i], u'#ffa500') #orange
         else:
             #unknown so make light in alpha
             if lengths[i] > 1e-1:
