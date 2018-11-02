@@ -301,10 +301,12 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
     """
     Plot a pybdsim.Data.TH1 instance.
     """
+    if 'drawstyle' not in errorbarKwargs:
+        errorbarKwargs['drawstyle'] = 'steps-mid'
     h = histogram
     f = _plt.figure(figsize=(10,5))
     ax = f.add_subplot(111)
-    ax.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, fmt='.', **errorbarKwargs)
+    ax.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
