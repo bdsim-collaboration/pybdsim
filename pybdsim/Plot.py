@@ -315,12 +315,12 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
         ax.set_ylabel(h.ylabel)
     else:
         ax.set_ylabel(ylabel)
-    if title is None:
-        f.suptitle(h.title)
-    elif title is "":
+    if title == "":
+        ax.set_title(h.title) # default to one in histogram
+    elif title is None:
         pass
     else:
-        f.suptitle(title)
+        ax.set_title(title)
     return f
 
 def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="auto"):
