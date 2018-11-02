@@ -153,4 +153,4 @@ def BDSIMVsBDSIM(first, second, first_name=None,
 def PTCVsBDSIM(first, second, first_name="PTC",
                second_name="BDSIM", survey=None, saveAll=True, 
                outputFileName=None, **kwargs):
-    BDSIMVsBDSIM(first, second, first_name, second_name, survey, **kwargs)
+    BDSIMVsBDSIM(first, second, first_name, second_name, survey, saveAll, outputFileName, **kwargs)
