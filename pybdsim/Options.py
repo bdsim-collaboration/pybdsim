@@ -82,20 +82,59 @@ class Options(dict):
 
     def SetPhysicsList(self,physicslist=''):
         physicslistlist = [
+            'charge_exchange',
+            'cherenkov',
+            'cuts_and_limits',
+            'decay',
+            'decay_radioactive',
             'em',
-            'em_low',
-            'synchrad',
+            'em_extra',
+            'em_livermore',
+            'em_livermore_polarised',
+            'em_low_ep',
+            'em_penelope',
+            'em_low', # alias to em_penelope
+            'em_ss',
+            'em_wvi',
+            'em_1',
+            'em_2',
+            'em_3',
+            'em_4',
+            'ftfp_bert',
+            'ftfp_bert_hp',
+            'hadronic', # alias to ftfp_bert
+            'hadronichp', # alias to ftfp_bert_hp
+            'hadronic_elastic',
+            'hadronic_elastic_d',
+            'hadronic_elastic_h',
+            'hadronic_elastic_hp',
+            'hadronic_elastic_lend',
+            'hadronic_elastic_xs',
+            'ion',
+            'ion_binary',
+            'ion_elastic',
+            'ion_elastic_qmd',
+            'ion_em_dissociation',
+            'ion_inclxx',
+            'lw',
+            'muon',
+            'neutron_tracking_cut',
             'optical',
-            'hadronic',
-            'hadronichp',
             'qgsp_bert',
             'qgsp_bert_hp',
             'qgsp_bic',
             'qgsp_bic_hp',
-            'ftfp_bert',
-            'ftfp_bert_hp',
-            'decay',
-            'muon'
+            'shielding',
+            'stopping',
+            'synch_rad',
+            'synchrad', # alias to synch_rad
+            'em_gs',
+            'decay_spin',
+            'ion_php',
+            'decay_muonic_atom',
+            'channelling',
+            'dna',
+            'shielding_lend'
             ]
         if len(physicslist.split()) == 1 :
             if physicslist not in physicslistlist:

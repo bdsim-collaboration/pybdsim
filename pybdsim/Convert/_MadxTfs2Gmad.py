@@ -113,7 +113,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     | **aperlocalpositions**        | Dictionary of element indices to a list of pairs of the form      |
     |                               | (local_point, aperdict), for example                              |
     |                               | (0.1, {"APER1": "CIRCULAR", "APER1": 0.4}).                       |
-    |                               |  This kwarg is mutually exclusive with "aperturedict".            |
+    |                               | This kwarg is mutually exclusive with "aperturedict".             |
     +-------------------------------+-------------------------------------------------------------------+
     | **collimatordict**            | A dictionary of dictionaries with collimator information keys     |
     |                               | should be exact string match of element name in tfs file value    |
@@ -147,7 +147,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     | **usemadxaperture**           | True \| False - use the aperture information in the TFS file if   |
     |                               | APER_1 and APER_2 columns exist.  Will only set if they're        |
     |                               | non-zero.  Supercedes kwargs `aperturedict` and                   |
-    |                               | `aperlocalpositions`.                                              |
+    |                               | `aperlocalpositions`.                                             |
     +-------------------------------+-------------------------------------------------------------------+
     | **defaultAperture**           | The default aperture model to assume if none is specified.        |
     +-------------------------------+-------------------------------------------------------------------+
@@ -448,7 +448,9 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         k1l = item['K1L']
         # set element length to be the chord length - tfs output rbend
         # length is arc length
-        chordLength = 2 * (l / angle) * _np.sin(angle / 2.)
+        chordLength = l
+        if angle != 0:
+            chordLength = 2 * (l / angle) * _np.sin(angle / 2.) #protect against 0 angle rbends
         # subtract dipole angle/2 added on to poleface angles internally by
         # madx
         poleInAngle = e1 - 0.5 * angle

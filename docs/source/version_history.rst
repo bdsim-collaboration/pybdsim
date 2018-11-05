@@ -2,7 +2,7 @@
 Version History
 ===============
 
-v1.9 - 2018 / 07 / ??
+v1.9 - 2018 / 08 / 24
 =====================
 
 General
@@ -14,6 +14,8 @@ General
 * New padding function for 1D histogram to ensure lines in plots.
 * New value replacement function for histograms to ensure continuous line in log plots.
 * Control over aspect ration in default 2D histogram plots.
+* New classes for each element in the Builder.
+* Refactor of MadxTfs2Gmad to use new classes in Builder.
 
 Bug Fixes
 ---------

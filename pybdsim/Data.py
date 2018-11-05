@@ -82,7 +82,9 @@ def Load(filepath):
     elif "eloss" in filepath:
         return _LoadAscii(filepath)
     else:
-        raise IOError("Unknown file type - not BDSIM data")
+        msg = "Unknown file type for file \"{}\" - not BDSIM data".format(filepath)
+        raise IOError(msg)
+
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
@@ -128,11 +130,13 @@ def _ROOTFileType(filepath):
     try:
         fileToCheck = files[0] # just check first file
     except IndexError:
-        raise IOError("File(s) not found.")
+        raise IOError("File(s) \"{}\" not found.".format(filepath))
     f = _ROOT.TFile(fileToCheck)
+    if f.IsZombie():
+        raise IOError("ROOT file \"{}\" is a zombie file".format(fileToCheck))
     htree = f.Get("Header")
     if not htree:
-        raise Warning("ROOT file is not a BDSIM one")
+        raise Warning("ROOT file \"{}\" is not a BDSIM one".format(fileToCheck))
     h = _ROOT.Header()
     h.SetBranchAddress(htree)
     htree.GetEntry(0)
@@ -150,7 +154,7 @@ def _LoadRoot(filepath):
         raise IOError("root_numpy not available - can't load ROOT file")
 
     _LoadROOTLibraries()
-    
+
     fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
 
     if fileType == "BDSIM":
@@ -216,7 +220,7 @@ class RebdsimFile(object):
                 data.append(elementlist)
             return data
 
-        trees = _rnp.list_trees(self.filename)            
+        trees = _rnp.list_trees(self.filename)
         if 'Optics' in trees:
             branches = _rnp.list_branches(self.filename,'Optics')
             treedata = _rnp.root2array(self.filename,'Optics')
@@ -253,7 +257,7 @@ class RebdsimFile(object):
             dName = currentDirName + '/' + d
             dName = dName.strip('/') # protect against starting /
             dob = currentDir.Get(d)
-            self._Map(dName, dob)      
+            self._Map(dName, dob)
 
     def _ListType(self, ob, typeName):
         keys = ob.GetListOfKeys()
@@ -262,7 +266,7 @@ class RebdsimFile(object):
             if typeName in keys.At(i).GetClassName():
                 result.append(keys.At(i).GetName())
         return result
-    
+
     def ListOfDirectories(self):
         """
         List all directories inside the root file.
@@ -321,7 +325,7 @@ class BDSAsciiData(list):
         Get a specific entry in the data as a tuple of values rather than a dictionary.
         """
         return list.__getitem__(self,index)
-        
+
     def _AddMethod(self, variablename):
         """
         This is used to dynamically add a getter function for a variable name.
@@ -344,15 +348,15 @@ class BDSAsciiData(list):
             lastSpos = self.GetColumn('SEnd')[-1]
         else:
             lastSpos = self.GetColumn('S')[-1]
-        
+
         for machine in args:
             if isinstance(machine,_np.str):
                 machine = Load(machine)
-        
+
             #check names sets are equal
             if len(set(self.names).difference(set(machine.names))) != 0:
                 raise AttributeError("Cannot concatenate machine, variable names do not match")
-        
+
             #surveys have multiple s positions per element
             if _General.IsSurvey(machine):
                 sstartind = self.names.index('SStart')
@@ -362,12 +366,12 @@ class BDSAsciiData(list):
                 sind = self.names.index('S')
             else:
                 raise KeyError("S is not a variable in this data")
-        
+
             #Have to convert each element to a list as tuples can't be modified
             for index in range(len(machine)):
                 element = machine.GetItemTuple(index)
                 elementlist = list(element)
-                
+
                 #update the elements S position
                 if _General.IsSurvey(machine):
                     elementlist[sstartind] += lastSpos
@@ -375,9 +379,9 @@ class BDSAsciiData(list):
                     elementlist[sendind] += lastSpos
                 else:
                     elementlist[sind] += lastSpos
-                
+
                 self.append(tuple(elementlist))
-                
+
             #update the total S position.
             if _General.IsSurvey(machine):
                 lastSpos += machine.GetColumn('SEnd')[-1]
@@ -406,7 +410,7 @@ class BDSAsciiData(list):
 
         >>> a = pybdsim.Data.Load("myfile.txt")
         >>> a.MatchValue("S",0.3,0.0004)
-        
+
         this will match the "S" variable in instance "a" to the value of 0.3
         within +- 0.0004.
 
@@ -439,12 +443,12 @@ class BDSAsciiData(list):
     def NameFromNearestS(self,S):
         i = self.IndexFromNearestS(S)
         return self.Name()[i]
-    
-    def IndexFromNearestS(self,S) : 
-        """
-        IndexFromNearestS(S) 
 
-        return the index of the beamline element clostest to S 
+    def IndexFromNearestS(self,S) :
+        """
+        IndexFromNearestS(S)
+
+        return the index of the beamline element clostest to S
 
         Only works if "SStart" column exists in data
         """
@@ -501,11 +505,11 @@ class BDSAsciiData(list):
         if type(obj) is str and nameAvailable:
             return obj in self.GetColumn('name',ignoreCase=True)
         else:
-            return False        
+            return False
 
 def PadHistogram1D(hist, padValue=1e-20):
     """
-    Pad a 1D histogram with padValue. 
+    Pad a 1D histogram with padValue.
 
     This adds an extra 'bin' to xwidths, xcentres, xlowedge, xhighedge,
     contents and errors with either pad value or a linearly interpolated
@@ -538,7 +542,7 @@ def ReplaceZeroWithMinimum(hist, value=1e-20):
     r = _copy.deepcopy(hist)
     r.contents[hist.contents==0] = value
     return r
-        
+
 class ROOTHist(object):
     """
     Base class for histogram wrappers.
@@ -570,7 +574,7 @@ class TH1(ROOTHist):
         self.contents  = _np.zeros(self.nbinsx)
         self.errors    = _np.zeros(self.nbinsx)
         self.xunderflow = hist.GetBinContent(0)
-        self.xoverflow  = hist.GetBinContent(self.nbinsx+1)      
+        self.xoverflow  = hist.GetBinContent(self.nbinsx+1)
 
         for i in range(self.nbinsx):
             xaxis = hist.GetXaxis()
@@ -613,8 +617,8 @@ class TH2(TH1):
             self.ycentres[i]  = yaxis.GetBinCenter(i+1)
 
         if extractData:
-            self._GetContents()   
-        
+            self._GetContents()
+
     def _GetContents(self):
         for i in range(self.nbinsx) :
             for j in range(self.nbinsy) :
@@ -648,15 +652,15 @@ class TH3(TH2):
             self.zcentres[i]  = zaxis.GetBinCenter(i+1)
 
         if extractData:
-            self._GetContents()   
-        
+            self._GetContents()
+
     def _GetContents(self):
         for i in range(self.nbinsx):
             for j in range(self.nbinsy):
                 for k in range(self.nbinsz):
                     self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
                     self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
-                    
+
 
 class _SamplerData(object):
     """
@@ -666,7 +670,7 @@ class _SamplerData(object):
     samplerIndexOrName - is the index of the sampler (0=primaries) or name.
 
     """
-    def __init__(self, data, params, samplerIndexOrName=0):        
+    def __init__(self, data, params, samplerIndexOrName=0):
         self._et           = data.GetEventTree()
         self._ev           = data.GetEvent()
         self._samplerNames = list(data.GetSamplerNames())
@@ -681,8 +685,8 @@ class _SamplerData(object):
             except ValueError:
                 self.samplerIndex = self._samplerNames.index(samplerIndexOrName+".")
         else:
-            self.samplerIndex = samplerIndexOrName   
-        
+            self.samplerIndex = samplerIndexOrName
+
         self.samplerName = self._samplerNames[self.samplerIndex]
         self.data        = self._GetVariables(self.samplerIndex, params)
 
@@ -691,7 +695,7 @@ class _SamplerData(object):
             return self._samplerNames.index(samplerName)
         except ValueError:
             raise ValueError("Invalid sampler name")
-        
+
     def _GetVariable(self, samplerIndex, var):
         result = []
         s = self._samplers[samplerIndex]
@@ -731,7 +735,7 @@ class PhaseSpaceData(_SamplerData):
     Extracts only: 'x','xp','y','yp','z','zp','energy','T'
 
     Can either supply the sampler name or index as the optional second
-    argument. The index is 0 counting including the primaries (ie +1 
+    argument. The index is 0 counting including the primaries (ie +1
     on the index in data.GetSamplerNames()). Examples::
 
     >>> f = pybdsim.Data.Load("file.root")
@@ -751,7 +755,7 @@ class SamplerData(_SamplerData):
     Loads all data in a given sampler.
 
     Can either supply the sampler name or index as the optional second
-    argument. The index is 0 counting including the primaries (ie +1 
+    argument. The index is 0 counting including the primaries (ie +1
     on the index in data.GetSamplerNames()). Examples::
 
     >>> f = pybdsim.Data.Load("file.root")
@@ -764,43 +768,60 @@ class SamplerData(_SamplerData):
                   'weight','partID','parentID','trackID','modelID','turnNumber','S']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
 
-class TrajectoryData : 
+class TrajectoryData(object):
     """
     Pull trajectory data from a loaded Dataloader instance of raw data
 
-    Loads all trajector data in a event event 
+    Loads all trajectory data in a event event
 
     >>> f = pybdsim.Data.Laod("file.root")
     >>> trajectories = pbdsim.Data.TrajectoryData(f,0)
-    >>>
     """
 
-    def __init__(self, data, eventNumber=0): 
+    def __init__(self, dataLoader, eventNumber=0):
         params = ['n','trajID','partID','x','y','z']
-        self._data       = data 
-        self._eventTree  = data.GetEventTree()
-        self._event      = data.GetEvent() 
-        self._trajectory = self._event.GetTrajectory()
+        self._dataLoader  = dataLoader
+        self._eventTree   = dataLoader.GetEventTree()
+        self._event       = dataLoader.GetEvent()
+        self._trajectory  = self._event.GetTrajectory()
+        self.trajectories = []
+        self._GetTrajectory(eventNumber)
 
-        self.trajectoryData(eventNumber)
+    def __len__(self):
+        return len(self.trajectories)
+
+    def __repr__(self):
+        s = ''
+        s += str(len(self)) + ' trajectories'
+        return s
+
+    def __getitem__(self, index):
+        return self.trajectories[index]
         
-    def trajectoryData(self,eventNumber) : 
+    def __iter__(self):
+        self._iterindex = -1
+        return self
 
-        if eventNumber >= self._eventTree.GetEntries() :
+    def next(self):
+        if self._iterindex == len(self.trajectories)-1:
+            raise StopIteration
+        self._iterindex += 1
+        return self.trajectories[self._iterindex]
+
+    def _GetTrajectory(self, eventNumber):
+
+        if eventNumber >= self._eventTree.GetEntries():
             raise IndexError
 
+        # loop over all trajectories
         self._eventTree.GetEntry(eventNumber)
+        for i in range(0, self._trajectory.n):
 
-        self.trajectories = []
-        
-        # loop over all trajectories 
-        for i in range(0,self._trajectory.n) : 
-            
             pyTrajectory = {}
-            pyTrajectory['trackID']  = self._trajectory.trackID[i]
-            pyTrajectory['partID']   = self._trajectory.partID[i]
-            pyTrajectory['parentID'] = self._trajectory.parentID[i]
-            
+            pyTrajectory['trackID']  = float(self._trajectory.trackID[i])
+            pyTrajectory['partID']   = int(self._trajectory.partID[i])
+            pyTrajectory['parentID'] = int(self._trajectory.parentID[i])
+
             t = self._trajectory.trajectories[i]
             p = self._trajectory.momenta[i]
             e = self._trajectory.energies[i]
@@ -815,18 +836,17 @@ class TrajectoryData :
 
             E = _np.zeros(len(t))
 
-                        
-            for j in range(0,len(t)) : 
+            for j in range(0, len(t)):
                 # position
                 x[j] = t[j].X()
                 y[j] = t[j].Y()
                 z[j] = t[j].Z()
-                
-                # momenta 
+
+                # momenta
                 px[j] = p[j].X()
                 py[j] = p[j].Y()
-                pz[j] = p[j].Z()                
-                
+                pz[j] = p[j].Z()
+
                 # energy
                 E[j] = e[j]
 
@@ -842,3 +862,88 @@ class TrajectoryData :
 
             self.trajectories.append(pyTrajectory)
 
+
+class EventInfoData(object):
+    """Extract data from the Info branch of the Event tree."""
+    def __init__(self, data):
+        event = data.GetEvent()
+        eventTree = data.GetEventTree()
+        info = event.Info
+        interface = _filterROOTObject(info)
+        self._getData(interface, info, eventTree)
+
+    def _getData(self, interface, rootobj, tree):
+        # Set lists to append to
+        for name in interface:
+            setattr(self, name, [])
+
+        for i in range(tree.GetEntries()):
+            tree.GetEntry(i)
+            for name in interface:
+                data = getattr(rootobj, name)
+                iterable = getattr(self, name)
+                iterable.append(data)
+
+        for name in interface: # Convert lists to numpy arrays.
+            setattr(self, name, _np.array(getattr(self, name)))
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
+
+class ModelData(object):
+    def __init__(self, data):
+        model = data.GetModel()
+        modelTree = data.GetModelTree()
+        model = model.model
+        modelTree.GetEntry(0)
+        interface = _filterROOTObject(model)
+        self._getData(interface, model)
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
+
+    def _getData(self, interface, rootobj):
+        for name in interface:
+            setattr(self, name, _np.array(getattr(rootobj, name)))
+
+
+class OptionsData(object):
+    def __init__(self, data):
+        options = data.GetOptions()
+        optionsTree = data.GetOptionsTree()
+        options = options.options
+        optionsTree.GetEntry(0)
+        interface = _filterROOTObject(options)
+        self._getData(interface, options)
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
+
+    def _getData(self, interface, rootobj):
+        for name in interface:
+            setattr(self, name, getattr(rootobj, name))
+
+
+def _filterROOTObject(rootobj):
+    """Gets the names of the attributes which are just data and
+    specific to the class.  That is to say it removes all the
+    clutter inherited from TObject, any methods, and some other
+    stuff.  Should retain strictly only the data."""
+    # Define an instance of TObject which we can use to extract
+    # the interface of our rootobj, leaving out all the rubbish.
+    tobject_interface = set(dir(_ROOT.TObject()))
+    rootobj_interface = set(dir(rootobj))
+    interface = rootobj_interface.difference(tobject_interface)
+
+    # remove other stuff
+    interface.remove("__lifeline") # don't know what this is :)
+    interface = [attr for attr in interface # remove functions
+                 if not callable(getattr(rootobj, attr))]
+
+    return interface
