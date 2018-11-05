@@ -41,7 +41,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    rmat                         = ""):
     """
     Convert MAD8 twiss output to a BDSIM model in GMAD syntax.
-
+    inputfilename        = mad8 TWISS output
+    outputfilename       = desired BDSIM .gmad output name
+    istart,iend          = integer number mad8 elements to begin and end conversion.
+    beam                 = desired BDSIM beamtype ("reference","nominal","halo")
+    gemit                = tuple of (emitx,emity) - default (1e-8,1e-8) - or filename of .txm with defined gemit and Esprd (and value, [name] declaration for each).
+    collimator,apertures =relevant .dat files generated from mad8 model using pybdsim.Convert.Mad8MakeApertureTemplate & pybdsim.Convert.Mad8MakeCollimatorTemplate.
+    rmat= mad8 r-matrix output.
     """
 
     # open mad output
@@ -107,6 +113,12 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             charge   =  1.
             mass     =  0.511
             flip     =  1
+            
+        elif m8.particle == 'PROTON':
+            particle = 'proton'
+            charge   =  1.
+            mass     =  938.
+            flip     =  1
     else : 
         particle = 'e-'
         charge   = -1.
@@ -122,8 +134,6 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     print 'energy0   ',energy0
     print 'momentum0 ',momentum0
     print 'brho0     ',brho0
-
-
 
     # create beam (emit and energy spread)
 
@@ -506,7 +516,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             RMATPRIOR=rmat.data[i-1]
             length=float(c.data[i][c.keys['matr']['l']])
 
-			#Mad8 rmatrix elements are cumulative, code finds current element by finding difference between rmat [i] and [i-1].
+            #Mad8 rmatrix elements are cumulative, code finds current element by finding difference between rmat [i] and [i-1].
             PRIORMATRIX = _np.matrix(str(RMATPRIOR[0]) + " " + str(RMATPRIOR[1]) + " " + str(RMATPRIOR[2]) + " " + str(RMATPRIOR[3]) + "; " + str(RMATPRIOR[6]) + " " + str(RMATPRIOR[7]) + " " + str(RMATPRIOR[8]) + " " + str(RMATPRIOR[9]) + "; " + str(RMATPRIOR[12]) + " " + str(RMATPRIOR[13]) + " " + str(RMATPRIOR[14]) + " " + str(RMATPRIOR[15]) + "; " + str(RMATPRIOR[18]) + " " + str(RMATPRIOR[19]) + " " + str(RMATPRIOR[20]) + " " + str(RMATPRIOR[21]))
             POSTMATRIX = _np.matrix(str(RMATRIX[0]) + " " + str(RMATRIX[1]) + " " + str(RMATRIX[2]) + " " + str(RMATRIX[3]) + "; " + str(RMATRIX[6]) + " " + str(RMATRIX[7]) + " " + str(RMATRIX[8]) + " " + str(RMATRIX[9]) + "; " + str(RMATRIX[12]) + " " + str(RMATRIX[13]) + " " + str(RMATRIX[14]) + " " + str(RMATRIX[15]) + "; " + str(RMATRIX[18]) + " " + str(RMATRIX[19]) + " " + str(RMATRIX[20]) + " " + str(RMATRIX[21]))
             EFFECTMATRIX=(POSTMATRIX*PRIORMATRIX.I)
