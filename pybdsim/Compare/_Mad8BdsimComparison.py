@@ -129,10 +129,10 @@ def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('betx'),
-              'r--', label=r'MAD8 $\beta_{x}$')
+              'b--', label=r'MAD8 $\beta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('bety'),
-              'y--', label=r'MAD8 $\beta_{y}$')
+              'g--', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'],
@@ -167,10 +167,10 @@ def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('alfx'),
-              'r--', label=r'MAD8 $\beta_{x}$')
+              'b--', label=r'MAD8 $\beta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('alfy'),
-              'y--', label=r'MAD8 $\beta_{y}$')
+              'g--', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
@@ -205,10 +205,10 @@ def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fig
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dx'),
-              'r--', label=r'MAD8 $\eta_{x}$')
+              'b--', label=r'MAD8 $\eta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dy'),
-              'y--', label=r'MAD8 $\eta_{y}$')
+              'g--', label=r'MAD8 $\eta_{y}$')
      
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
@@ -243,10 +243,10 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dpx'),
-              'r--', label=r'MAD8 $\eta_{p_x}$')
+              'b--', label=r'MAD8 $\eta_{p_x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dpy'),
-              'y--', label=r'MAD8 $D_{p_y}$')
+              'g--', label=r'MAD8 $D_{p_y}$')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
@@ -301,8 +301,8 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
     sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')**2*sige**2)
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'r--',label=r'MAD8 $\sigma_{x}$(calculated)')
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'y--',label=r'MAD8 $\sigma_{y}$(calculated)')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'b--',label=r'MAD8 $\sigma_{x}$(calculated)')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'g--',label=r'MAD8 $\sigma_{y}$(calculated)')
 
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'],
@@ -356,8 +356,8 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
     sigmaXP = _np.sqrt(emitXN0/(rbeta*rgamma)*(mad8opt['twiss'].getColumn('alfx')**(2)+1)/mad8opt['twiss'].getColumn('betx') + (mad8opt['twiss'].getColumn('dpx')**(2))*(sigE**(2)))
     sigmaYP = _np.sqrt(emitYN0/(rbeta*rgamma)*(mad8opt['twiss'].getColumn('alfy')**(2)+1)/mad8opt['twiss'].getColumn('bety') + (mad8opt['twiss'].getColumn('dpy')**(2))*(sigE**(2)))
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaXP,'r--')
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaYP,'y--')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaXP,'b--')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaYP,'g--')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Sigma_xp'],
@@ -392,7 +392,7 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'), # one missing energy due to initial 
               mad8opt['comm'].getColumn('E'),
-              'r--', label=r'MAD8 $E$')
+              'b--', label=r'MAD8 $E$')
 
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_E'],
                   yerr=bdsopt['Sigma_Mean_E'],
@@ -419,11 +419,11 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
               mad8opt['twiss'].getColumn('x'),
-              'r--', label=r'MAD8 $\overline{x}$')
+              'b--', label=r'MAD8 $\overline{x}$')
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
               mad8opt['twiss'].getColumn('y'),
-              'y--', label=r'MAD8 $\overline{y}$')
+              'g--', label=r'MAD8 $\overline{y}$')
     
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
                   yerr=bdsopt['Sigma_Mean_x'],
@@ -471,11 +471,11 @@ def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=No
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
               emitX,
-              'r--', label=r'MAD8 $\epsilon_x$')
+              'b--', label=r'MAD8 $\epsilon_x$')
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
               emitY,
-              'y--', label=r'MAD8 $\epsilon_y$')
+              'g--', label=r'MAD8 $\epsilon_y$')
 
     _plt.plot(bdsopt['S'], bdsopt['Emitt_x'],
               label=r'BDSIM $N$' + ' ; N = '+N,
