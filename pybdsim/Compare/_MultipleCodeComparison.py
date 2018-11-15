@@ -97,7 +97,15 @@ def _LoadData(bdsim, bdsimname, madx, madxname, ptctwiss, ptctwissname, ptc, ptc
             """
         datas = []
         names = []
-        if len(name) != len(data):
+        if isinstance(data, _pybdsim.Data.BDSAsciiData):
+            thisData, thisName = parsingfunction(data, None)
+            datas.append(thisData)
+            names.append(thisName)
+        elif isinstance(data, _pymadx.Data.Tfs):
+            thisData, thisName = parsingfunction(data, None)
+            datas.append(thisData)
+            names.append(thisName)
+        elif len(name) != len(data):
             print("Incorrect Number of "+datatype+" names supplied, ignoring supplied names...")
             for entryNumber, entry in enumerate(data):
                 thisData, thisName = parsingfunction(entry, None)
@@ -160,8 +168,16 @@ def _parse_bdsim_input(bdsim_in, name):
     try:
         if isinstance(bdsim_in, _pybdsim.Data.RebdsimFile):
             bdsim_in = bdsim_in.Optics
-        name = bdsim_in.filename if name is None else name
-        return bdsim_in, name
+            name = bdsim_in.filename if name is None else name
+            return bdsim_in, name
+        elif isinstance(bdsim_in, _pybdsim.Data.BDSAsciiData):
+            if hasattr(bdsim_in,'Optics'):
+                bdsim_in = bdsim_in.Optics
+                name = bdsim_in.filename if name is None else name
+                return bdsim_in, name
+            elif hasattr(bdsim_in,'S'):
+                name = bdsim_in.filename if name is None else name
+                return bdsim_in, name
     except AttributeError:
         raise TypeError(
             "Expected BDSIM input is neither a "
@@ -180,8 +196,12 @@ def _parse_tfs_input(tfs_in, name):
                 if name is None else name)
         return _pymadx.Data.Tfs(tfs_in), name
     try:
-        name = tfs_in.filename if name is None else name
-        return tfs_in, name
+        if isinstance(tfs_in, _pymadx.Data.Tfs):
+            name = tfs_in.header["NAME"] if name is None else name
+            return tfs_in, name
+        else:
+            name = tfs_in.filename if name is None else name
+            return tfs_in, name
     except AttributeError:
         raise TypeError(
             "Expected Tfs input is neither a "
