@@ -42,3 +42,6 @@ from _BdsimPrimaries2Inrays import BdsimPrimaries2Ptc
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Madx
 from _BdsimPrimaries2Inrays import BdsimPrimaries2Mad8
 from _BdsimPrimaries2Inrays import BdsimSampler2Ptc
+
+from _BdsimElement2TransferMatrix import BdsimElement2TransferMatrix
+
