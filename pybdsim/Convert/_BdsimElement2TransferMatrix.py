@@ -14,19 +14,25 @@ def BdsimElement2TransferMatrix(bdsfile,element,outputType="list"):
     outputtype - "list", "dict" (default "list"). Controls output type, list returns a 16-element list of 
     floats of the matrix elements, dict returns a dict of labelled elements r11 through r44.
     """
-
+    if element == 0:
+        raise ValueError('Element to convert must have a preceding Element.')
+    
+    #take sampler data before and after element
     rootfile    = pybdsim.Data.Load(bdsfile)
     priorund    = pybdsim.Data.SamplerData(rootfile,element-1)
     postund     = pybdsim.Data.SamplerData(rootfile,element)
-    priormatrix = _np.asmatrix([priorund.data['x'], priorund.data['xp'], priorund.data['y'], priorund.data['yp']]).T
-    postmatrix  = _np.asmatrix([postund.data['x'], postund.data['xp'], postund.data['y'], postund.data['yp']]).T
     
+    #put into matrix, transpose so each row is a single particle's co-ordinates.
+    priormatrix = _np.asmatrix([priorund.data['x'], priorund.data['xp'], priorund.data['y'], priorund.data['yp']]).T
     lefthandx  = _np.asmatrix(postund.data['x']).T
     lefthandxp = _np.asmatrix(postund.data['xp']).T
     lefthandy  = _np.asmatrix(postund.data['y']).T
     lefthandyp = _np.asmatrix(postund.data['yp']).T
     
+    #Pseudoinverse using SVD method
     righthandinverse = _np.linalg.pinv(priormatrix)
+    
+    #solve for matrix single row at a time for clarity
     xrow  = righthandinverse * lefthandx
     xprow = righthandinverse * lefthandxp
     yrow  = righthandinverse * lefthandy
