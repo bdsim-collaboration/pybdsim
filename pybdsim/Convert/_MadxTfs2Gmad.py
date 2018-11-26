@@ -575,10 +575,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         k2 = item['K2L'] / l * factor if not linear else 0
         return _Builder.Sextupole(rname, l, k2, **kws)
     elif t == 'SOLENOID':
-        #ks = item['KSI'] / l
-        # machine.AddSolenoid(rname,l,ks=ks
-        print 'Solenoid not supported currently'
-        return _Builder.Drift(rname, l, **kws)
+        ks = item['KSI'] / l
+        return _Builder.Solenoid(rname, l, ks=ks, **kws)
     else:
         print 'unknown element type:', t, 'for element named: ', name
         if zerolength and not ignorezerolengthitems:
