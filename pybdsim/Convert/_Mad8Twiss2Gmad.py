@@ -83,7 +83,11 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     #val0=value at 0th element of INPUT mad8 file. val_cut=value at start-point for cut beamlines - i.e. 0th element of OUTPUT bdsim file. 
     # Need nominal energy for acceleration and SR calculations
     s           = t.getColumn('suml')
-    s_cut       = s[istart]-c.getRowByIndex(istart)['l']
+    try:
+        elelength = c.getRowByIndex(istart)['l']
+    except:
+        elelength = 0
+    s_cut       = s[istart] - elelength
     print s_cut
     energy      = c.getColumn('E')
     energy0     = energy[0] 
