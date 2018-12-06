@@ -432,12 +432,14 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         elif c.type[i] == 'LCAV' : 
             length   = float(c.data[i][c.keys['lcav']['l']])
             deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV 
+            freq     = float(c.data[i][c.keys['lcav']['freq']])
+            lag      = float(c.data[i][c.keys['lcav']['lag']])
             gradient = deltaE/length
             a.AddRFCavity(name      = prepend+c.name[i]+'_'+str(eCount),
                           length    = length, 
                           gradient  = gradient,
-                          phase     = 0.0,
-                          frequency = 0e-9,
+                          phase     = lag * 2 * _np.pi,
+                          frequency = freq * 2 * _np.pi,
                           aper1     = apertures.aper[i])
 #       ###################################################################
         elif c.type[i] == 'ECOL' :
