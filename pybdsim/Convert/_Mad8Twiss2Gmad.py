@@ -37,10 +37,17 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    enableSr                     = False,
                    enableSrScaling              = False,
                    enableMuon                   = False,
-                   enableMuonBias               = True):
+                   enableMuonBias               = True,
+                   rmat                         = ""):
     """
     Convert MAD8 twiss output to a BDSIM model in GMAD syntax.
-
+    inputfilename        = mad8 TWISS output
+    outputfilename       = desired BDSIM .gmad output name
+    istart,iend          = integer number mad8 elements to begin and end conversion.
+    beam                 = desired BDSIM beamtype ("reference","nominal","halo")
+    gemit                = tuple of (emitx,emity) - default (1e-8,1e-8) - or filename of .txm with defined gemit and Esprd (and value, [name] declaration for each).
+    collimator,apertures =relevant .dat files generated from mad8 model using pybdsim.Convert.Mad8MakeApertureTemplate & pybdsim.Convert.Mad8MakeCollimatorTemplate.
+    rmat= mad8 r-matrix output.
     """
 
     # open mad output
@@ -64,23 +71,37 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         apertures = Mad8ApertureDatabase(apertures) 
         if openApertures :
             apertures.openApertures()
+    #load r matrices
+    if rmat != "":
+        c2, rmat = o.readFile(rmat,'rmat')
 
     print 'Collimator database'
     print collimator
     print 'Aperture database'
     print apertures 
 
-
-    # Need nominal energy for acceleration  and SR calculations
-    s       = t.getColumn('suml')
-    energy  = c.getColumn('E')
-    energy0 = energy[0]
-    scale   = energy/energy0
+    #val0=value at 0th element of INPUT mad8 file. val_cut=value at start-point for cut beamlines - i.e. 0th element of OUTPUT bdsim file. 
+    # Need nominal energy for acceleration and SR calculations
+    s           = t.getColumn('suml')
+    try:
+        elelength = c.getRowByIndex(istart)['l']
+    except:
+        elelength = 0
+    s_cut       = s[istart] - elelength
+    print s_cut
+    energy      = c.getColumn('E')
+    energy0     = energy[0] 
+    energy_cut  = energy[istart]
+    scale       = energy/energy_cut
+    print 'Initial element              ', istart
+    print 'Initial S                    ', s_cut
+    if s_cut!= 0 :
+        options = True
     
     # create machine instance
     # TODO : Need to extract nominal energy from file
-    a = Builder.Machine(sr=enableSrScaling, energy0=energy0)
-    
+    a = Builder.Machine(sr=enableSrScaling, energy0=energy_cut)
+
     # load mad8
     if mad8FileName != "" : 
         particle = 'e+'
@@ -95,6 +116,12 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             particle = 'e+'
             charge   =  1.
             mass     =  0.511
+            flip     =  1
+            
+        elif m8.particle == 'PROTON':
+            particle = 'proton'
+            charge   =  1.
+            mass     =  938.
             flip     =  1
     else : 
         particle = 'e-'
@@ -112,35 +139,84 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     print 'momentum0 ',momentum0
     print 'brho0     ',brho0
 
-
     # create beam (emit and energy spread)
-    esprd = 0.0
+
+
     if type(gemit) == str : 
         echoVals = pymad8.Output.EchoValue(gemit)
-        echoVals.loadValues()
+        echoVals.loadMarkedValues()
         gemit = _np.zeros(2)
         gemit[0] = echoVals.valueDict['EMITX']
         gemit[1] = echoVals.valueDict['EMITY']
         esprd    = echoVals.valueDict['ESPRD']
+        bleng    = echoVals.valueDict['BLENG']
+    else:
+        esprd = 0.0001
+        bleng = 0
+            
+    if istart !=0:
+        #relativistic factors at 0
+        rGamma0    = (energy0*1000)/(mass)
+        rBeta0     = _np.sqrt(1-1/(rGamma0**2))       
+        #momentum & relativistic factors at cut
+        energy_cut=energy[istart]
+        momentum_cut =_np.sqrt(energy_cut**2+mass**2)
+        rGamma_cut = (energy_cut*1000)/mass
+        rBeta_cut = _np.sqrt(1-(1/(rGamma_cut**2)))
+        #Normalised emittance
+        Nemitx     = rBeta0*rGamma0*gemit[0]
+        Nemity     = rBeta0*rGamma0*gemit[1]
+        emitx  = Nemitx/(rBeta_cut*rGamma_cut)
+        emity  = Nemity/(rBeta_cut*rGamma_cut)
+        gemit=[emitx,emity]
 
+    
+    xdisp=t.getColumn('dx')
+    ydisp=t.getColumn('dy')
+    xpdisp=t.getColumn('dpx')
+    ypdisp=t.getColumn('dpy')
     # create beam
     beamname = beam[0]
     if beamname == "reference" :
-        b = Beam.Beam(particle, energy0, "reference")
+        b = Beam.Beam(particle, energy_cut, "reference")
         a.AddBeam(b)
+        
     elif beamname == "nominal" :
-        b = Mad8Twiss2Beam(t,istart,particle,energy0)
+        if istart >= 1:
+            b = Mad8Twiss2Beam(t,istart-1,particle,energy_cut)
+            b._SetDispX(xdisp[istart-1])
+            b._SetDispY(ydisp[istart-1])
+            b._SetDispXP(xpdisp[istart-1])
+            b._SetDispYP(ypdisp[istart-1])
+        else:
+            b = Mad8Twiss2Beam(t,istart,particle,energy_cut)
+            b._SetDispX(xdisp[istart])
+            b._SetDispY(ydisp[istart])
+            b._SetDispXP(xpdisp[istart])
+            b._SetDispYP(ypdisp[istart])
         b._SetEmittanceX(gemit[0],'m')
         b._SetEmittanceY(gemit[1],'m')
         b._SetSigmaE(esprd)
+        b._SetSigmaT(bleng)
+        b._SetOffsetSampleMean(True)
+    
         a.AddBeam(b)
     elif beamname == "halo" :
-        b = Mad8Twiss2Beam(t,istart,particle,energy0)
-        b.SetDistributionType("halo")
-        betx = t.data[istart][t.keys['betx']]
-        bety = t.data[istart][t.keys['bety']]
-        alfx = t.data[istart][t.keys['alfx']]
-        alfy = t.data[istart][t.keys['alfy']]
+        if istart >= 1:
+            b = Mad8Twiss2Beam(t,istart-1,particle,energy_cut)
+            b.SetDistributionType("halo")
+            betx = t.data[istart-1][t.keys['betx']]
+            bety = t.data[istart-1][t.keys['bety']]
+            alfx = t.data[istart-1][t.keys['alfx']]
+            alfy = t.data[istart-1][t.keys['alfy']]
+        else:
+            b = Mad8Twiss2Beam(t,istart,particle,energy_cut)
+            b.SetDistributionType("halo")
+            betx = t.data[istart][t.keys['betx']]
+            bety = t.data[istart][t.keys['bety']]
+            alfx = t.data[istart][t.keys['alfx']]
+            alfy = t.data[istart][t.keys['alfy']]
+
 
         # 5 13
         # 36 92
@@ -160,6 +236,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         b._SetHaloPSWeightParameter(-1.0)
         b._SetHaloPSWeightFunction("oneoverr")
         b._SetSigmaE(esprd)
+
         a.AddBeam(b)
 
     # create options 
@@ -167,9 +244,10 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         o = Options.ElectronColliderOptions()
         o.SetBuildTunnel(False)
         o.SetBuildTunnelFloor(False)
+        o.SetStopSecondaries(True)
+        o.SetPrintModuloFraction(1e-2)
         o.SetMagnetGeometryType('"none"')
-        o.SetPrintModuloFraction(1e-5)
-
+        o.SetBeamlineS(s_cut,'m')
         process = 'em'
         if enableSr :
             process += ' synchrad'
@@ -198,6 +276,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # iterate through objects and build machine
     if iend == -1 :
         iend = len(c.name)
+    else :
+        iend += 1
     for i in range(istart,iend,1) :
         # unique(c.type)
         # print element
@@ -412,7 +492,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                                length = c.data[i][c.keys['rcol']['l']])
             else : 
                 # make collimator from file
- #              print "RCOL> ",c.name[i], "coll file"
+#               print "RCOL> ",c.name[i], "coll file"
                 length= float(c.data[i][c.keys['rcol']['l']])
                 xsize = float(collimator.getCollimator(c.name[i])['xsize'])
                 ysize = float(collimator.getCollimator(c.name[i])['ysize'])
@@ -432,6 +512,37 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                 else : 
                     a.AddDrift(name    = prepend+c.name[i]+'_'+str(eCount),
                                length  = float(c.data[i][c.keys['rcol']['l']]))
+
+#       ###################################################################
+        elif c.type[i] == 'MATR' :
+            #print "RMAT> ",c.name[i]
+            RMATRIX=rmat.data[i]
+            RMATPRIOR=rmat.data[i-1]
+            length=float(c.data[i][c.keys['matr']['l']])
+
+            #Mad8 rmatrix elements are cumulative, code finds current element by finding difference between rmat [i] and [i-1].
+            PRIORMATRIX = _np.matrix(str(RMATPRIOR[0]) + " " + str(RMATPRIOR[1]) + " " + str(RMATPRIOR[2]) + " " + str(RMATPRIOR[3]) + "; " + str(RMATPRIOR[6]) + " " + str(RMATPRIOR[7]) + " " + str(RMATPRIOR[8]) + " " + str(RMATPRIOR[9]) + "; " + str(RMATPRIOR[12]) + " " + str(RMATPRIOR[13]) + " " + str(RMATPRIOR[14]) + " " + str(RMATPRIOR[15]) + "; " + str(RMATPRIOR[18]) + " " + str(RMATPRIOR[19]) + " " + str(RMATPRIOR[20]) + " " + str(RMATPRIOR[21]))
+            POSTMATRIX = _np.matrix(str(RMATRIX[0]) + " " + str(RMATRIX[1]) + " " + str(RMATRIX[2]) + " " + str(RMATRIX[3]) + "; " + str(RMATRIX[6]) + " " + str(RMATRIX[7]) + " " + str(RMATRIX[8]) + " " + str(RMATRIX[9]) + "; " + str(RMATRIX[12]) + " " + str(RMATRIX[13]) + " " + str(RMATRIX[14]) + " " + str(RMATRIX[15]) + "; " + str(RMATRIX[18]) + " " + str(RMATRIX[19]) + " " + str(RMATRIX[20]) + " " + str(RMATRIX[21]))
+            EFFECTMATRIX=(POSTMATRIX*PRIORMATRIX.I)
+            a.AddRmat(name      = prepend+c.name[i]+'_'+str(eCount), 
+                      length    = float(c.data[i][c.keys['matr']['l']]),
+                      r11       = EFFECTMATRIX[0,0],
+                      r12       = EFFECTMATRIX[0,1],
+                      r13       = EFFECTMATRIX[0,2],
+                      r14       = EFFECTMATRIX[0,3],
+                      r21       = EFFECTMATRIX[1,0],
+                      r22       = EFFECTMATRIX[1,1],
+                      r23       = EFFECTMATRIX[1,2],
+                      r24       = EFFECTMATRIX[1,3],
+                      r31       = EFFECTMATRIX[2,0],
+                      r32       = EFFECTMATRIX[2,1],
+                      r33       = EFFECTMATRIX[2,2],
+                      r34       = EFFECTMATRIX[2,3],
+                      r41       = EFFECTMATRIX[3,0],
+                      r42       = EFFECTMATRIX[3,1],
+                      r43       = EFFECTMATRIX[3,2],
+                      r44       = EFFECTMATRIX[3,3])                
+
 #       ###################################################################
         else :
             print "UNKN> ",c.type[i]

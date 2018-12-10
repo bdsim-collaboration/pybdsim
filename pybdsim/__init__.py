@@ -54,7 +54,7 @@ Copyright Royal Holloway, University of London 2018.
 
 """
 
-__version__ = "1.6"
+__version__ = "1.9.0"
 
 import Beam
 import Builder

@@ -78,6 +78,10 @@ There are a few options that provide useful functionality for conversion:
 .. tabularcolumns:: |p{5cm}|p{10cm}|
 
 +-------------------------------+-------------------------------------------------------------------+
+| **tfs**                       | path to the input tfs file or pymadx.Data.Tfs instance            |
++-------------------------------+-------------------------------------------------------------------+
+| **outputfilename**            | requested output file                                             |
++-------------------------------+-------------------------------------------------------------------+
 | **startname**                 | the name (exact string match) of the lattice element to start the |
 |                               | machine at this can also be an integer index of the element       |
 |                               | sequence number in madx tfs.                                      |
@@ -86,9 +90,13 @@ There are a few options that provide useful functionality for conversion:
 |                               | machine at this can also be an integer index of the element       |
 |                               | sequence number in madx tfs.                                      |
 +-------------------------------+-------------------------------------------------------------------+
-| **linear**                    | Only linear optical components. This includes thin multipoles up  |
-|                               | and including the k1 component. Nonlinear elements are set to     |
-|                               | strength 0, but still converted. i.e. k2=0 for a sextupole.       |
+| **stepsize**                  | the slice step size. Default is 1, but -1 also useful for         |
+|                               | reversed line.                                                    |
++-------------------------------+-------------------------------------------------------------------+
+| **ignorezerolengthitems**     | nothing can be zero length in bdsim as real objects of course     |
+|                               | have some finite size.  Markers, etc are acceptable but for large |
+|                               | lattices this can slow things down. True allows to ignore these   |
+|                               | altogether, which doesn't affect the length of the machine.       |
 +-------------------------------+-------------------------------------------------------------------+
 | **samplers**                  | can specify where to set samplers - options are None, 'all', or a |
 |                               | list of names of elements (normal python list of strings). Note   |
@@ -97,9 +105,16 @@ There are a few options that provide useful functionality for conversion:
 |                               | file - you can comment out the include to therefore exclude all   |
 |                               | samplers and retain the samplers file.                            |
 +-------------------------------+-------------------------------------------------------------------+
-| **aperturedict**              | Aperture information - accepts one of 2 inputs: either a          |
-|                               | dictionary of dictionaries {exactName : {param : value} }, or a   |
-|                               | pymadx.Aperture instance.                                         |
+| **aperturedict**              | Aperture information. Can either be a dictionary of dictionaries  |
+|                               | with the the first key the exact name of the element and the      |
+|                               | daughter dictionary containing the relevant bdsim parameters as   |
+|                               | keys (must be valid bdsim syntax). Alternatively, this can be a   |
+|                               | pymadx.Aperture instance that will be queried.                    |
++-------------------------------+-------------------------------------------------------------------+
+| **aperlocalpositions**        | Dictionary of element indices to a list of pairs of the form      |
+|                               | (local_point, aperdict), for example                              |
+|                               | (0.1, {"APER1": "CIRCULAR", "APER1": 0.4}).                       |
+|                               | This kwarg is mutually exclusive with "aperturedict".             |
 +-------------------------------+-------------------------------------------------------------------+
 | **collimatordict**            | A dictionary of dictionaries with collimator information keys     |
 |                               | should be exact string match of element name in tfs file value    |
@@ -132,7 +147,8 @@ There are a few options that provide useful functionality for conversion:
 +-------------------------------+-------------------------------------------------------------------+
 | **usemadxaperture**           | True \| False - use the aperture information in the TFS file if   |
 |                               | APER_1 and APER_2 columns exist.  Will only set if they're        |
-|                               | non-zero.                                                         |
+|                               | non-zero.  Supercedes kwargs `aperturedict` and                   |
+|                               | `aperlocalpositions`.                                             |
 +-------------------------------+-------------------------------------------------------------------+
 | **defaultAperture**           | The default aperture model to assume if none is specified.        |
 +-------------------------------+-------------------------------------------------------------------+
@@ -146,6 +162,8 @@ There are a few options that provide useful functionality for conversion:
 | **optionsDict**               | Optional dictionary of general options to be written to the       |
 |                               | bdsim model options.                                              |
 +-------------------------------+-------------------------------------------------------------------+
+| **linear**                    | Only linear optical components                                    |
++-------------------------------+-------------------------------------------------------------------+
 | **overwrite**                 | Do not append an integer to the base file name if it already      |
 |                               | exists.  Instead overwrite the files.                             |
 +-------------------------------+-------------------------------------------------------------------+
@@ -153,14 +171,6 @@ There are a few options that provide useful functionality for conversion:
 |                               | This makes it easier to edit individual components as they are    |
 |                               | guaranteed to appear only once in the entire resulting GMAD       |
 |                               | lattice.                                                          |
-+-------------------------------+-------------------------------------------------------------------+
-| **stepsize**                  | The slice step size. Default is 1, but -1 also useful for         |
-|                               | reversed line.                                                    |
-+-------------------------------+-------------------------------------------------------------------+
-| **ignorezerolengthitems**     | Nothing can be zero length in bdsim as real objects of course     |
-|                               | have some finite size.  Markers, etc are acceptable but for large |
-|                               | lattices this can slow things down. True allows to ignore these   |
-|                               | altogether, which doesn't affect the length of the machine.       |
 +-------------------------------+-------------------------------------------------------------------+
 
 

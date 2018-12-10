@@ -122,37 +122,47 @@ def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None, postfunctions=None
 
 def PrepareResiduals(tfs, bds, survey=None, verbose=False):
     """
-    Filter the tfs to provide data that will match the 
-    BDSIM data in s position. 
+    Filter the tfs and bds to provide data that will match the 
+    BDSIM data in element name. 
     """
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
 
-    bdss = bdsinst.s()
+    bdel    = bdsinst.orbit.elementName()
+    bdslist = _np.array(bdel)
+    tfsa  = tfsinst.GetColumn("NAME")
 
     keys = ['S', 'X', 'PX', 'Y', 'PY']
 
     tfsdata = {
-        'S':[],
-        'X':[],
-        'PX':[],
-        'Y':[],
-        'PY':[]
+        'S':tfsinst.GetColumn("S"),
+        'X':tfsinst.GetColumn("X"),
+        'PX':tfsinst.GetColumn("PX"),
+        'Y':tfsinst.GetColumn("Y"),
+        'PY':tfsinst.GetColumn("PY")
         }
+
+    bdsdata = {
+        'S':_np.array(bdsinst.orbit.s()),
+        'X':_np.array(bdsinst.orbit.x()),
+        'PX':_np.array(bdsinst.orbit.xp()),
+        'Y':_np.array(bdsinst.orbit.y()),
+        'PY':_np.array(bdsinst.orbit.yp())
+        }
+
+    reducedName = [_pybdsim._General.PrepareReducedName(name) for name in tfsa]
+    rn = _np.array(reducedName)
+
+    for n in keys:
+	tfsdata[n]  = tfsdata[n][_np.isin(rn,bdslist)] 
+	bdsdata[n]  = bdsdata[n][_np.isin(bdslist,rn)] 
+        tfsdata[n] = _np.array(tfsdata[n])
+        bdsdata[n] = _np.array(bdsdata[n])
     
-    for s in bdss:
-        ind = tfsinst.IndexFromNearestS(s)
-        if (verbose):
-            print 'bdsim s:',s,' index in tfs:',ind, tfsinst[ind]
-        for key in keys:
-            tfsdata[key].append(tfsinst[ind][key])
 
-    for key in keys:
-        tfsdata[key] = _np.array(tfsdata[key])
-
-    return tfsdata
-
+    return tfsdata,bdsdata 
+ 
 
 def MadxVsBDSIMFromGMAD(tfs, gmad, outputfilename):
     """Runs the BDSIM model provided by the gmad file given, gets the
@@ -525,15 +535,18 @@ def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
     tfsd = PrepareResiduals(tfs, bds)
+    tdata = tfsd[0]
+    bdata = tfsd[1]
 
     if survey is None:
-        survey = tfsinst
-    
-    s   = bdsinst.s()
-    dx  = tfsd['X']  - bdsinst.x()
-    dxp = tfsd['PX'] - bdsinst.xp()
-    dy  = tfsd['Y']  - bdsinst.y()
-    dyp = tfsd['PY'] - bdsinst.yp()
+        survey = tfs
+
+    dx  = tdata['X']  - bdata['X']
+    dxp = tdata['PX'] - bdata['PX']
+    dy  = tdata['Y']  - bdata['Y']
+    dyp = tdata['PY'] - bdata['PY']
+
+    s   = tdata['S']
 
     orbRes = _plt.figure('OrbitResiduals', figsize=figsize)
     _plt.plot(s, abs(dx),  '.', label='x')

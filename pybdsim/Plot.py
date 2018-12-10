@@ -73,15 +73,15 @@ def _PrepareMachineAxes(figure):
 def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
     """
     Fraction is fraction of height all subplots will be after adjustment.
-    Default is 0.9 for 90% of height. 
+    Default is 0.9 for 90% of height.
     """
     # we have to set tight layout before adjustment otherwise if called
     # later it will cause an overlap with the machine diagram
     if (tightLayout):
         _plt.tight_layout()
-    
+
     axs = figure.get_axes()
-    
+
     for ax in axs:
         bbox = ax.get_position()
         bbox.y0 = bbox.y0 * fraction
@@ -107,25 +107,26 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     sf = _CheckItsBDSAsciiData(surveyfile)
     # we don't need to check this has the required columns because we control a
     # BDSIM survey contents.
-    
+
     axoptics  = figure.get_axes()[0]
     _AdjustExistingAxes(figure, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
+    axmachine.margins(x=0.02)
 
     _DrawMachineLattice(axmachine,sf)
 
     #put callbacks for linked scrolling
-    def MachineXlim(ax): 
+    def MachineXlim(ax):
         axmachine.set_autoscale_on(False)
         axoptics.set_xlim(axmachine.get_xlim())
 
-    def Click(a) : 
+    def Click(a) :
         if a.button == 3:
             try:
                 print 'Closest element: ',sf.NameFromNearestS(a.xdata)
             except ValueError:
                 pass # don't complain if the S is out of bounds
-            
+
     MachineXlim(axmachine)
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
@@ -133,14 +134,14 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
 def _DrawMachineLattice(axesinstance,bdsasciidataobject):
     ax  = axesinstance #handy shortcut
     bds = bdsasciidataobject
-    
+
     def DrawBend(start,length,color='b',alpha=1.0):
         br = _patches.Rectangle((start,-0.1),length,0.2,color=color,alpha=alpha)
         ax.add_patch(br)
     def DrawQuad(start,length,k1,color='r',alpha=1.0):
         if k1 > 0 :
             qr = _patches.Rectangle((start,0),length,0.2,color=color,alpha=alpha)
-        elif k1 < 0: 
+        elif k1 < 0:
             qr = _patches.Rectangle((start,-0.2),length,0.2,color=color,alpha=alpha)
         else:
             #quadrupole off
@@ -157,12 +158,12 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
         ax.add_patch(rect)
     def DrawLine(start,color,alpha=1.0):
         ax.plot([start,start],[-0.2,0.2],'-',color=color,alpha=alpha)
-            
+
     # plot beam line
     smax = bds.SEnd()[-1]
     ax.plot([0,smax],[0,0],'k-',lw=1)
     ax.set_ylim(-0.2,0.2)
- 
+
     # loop over elements and Draw on beamline
     types   = bds.Type()
     lengths = bds.ArcLength()
@@ -171,21 +172,21 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
 
     for i in range(len(bds)):
         kw = types[i]
-        if kw == 'quadrupole': 
+        if kw == 'quadrupole':
             DrawQuad(starts[i],lengths[i],k1[i], u'#d10000') #red
-        elif kw == 'rbend': 
+        elif kw == 'rbend':
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
-        elif kw == 'sbend': 
+        elif kw == 'sbend':
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'hkicker':
             DrawRect(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'vkicker':
             DrawRect(starts[i],lengths[i], u'#ba55d3') #medium orchid
-        elif kw == 'rcol': 
+        elif kw == 'rcol':
             DrawRect(starts[i],lengths[i],'k')
-        elif kw == 'ecol': 
+        elif kw == 'ecol':
             DrawRect(starts[i],lengths[i],'k')
-        elif kw == 'degrader': 
+        elif kw == 'degrader':
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'sextupole':
             DrawHex(starts[i],lengths[i], u'#ffcc00') #yellow
@@ -197,6 +198,8 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             pass
         elif kw == 'multipole':
             DrawHex(starts[i],lengths[i],'grey',alpha=0.5)
+        elif kw == 'solenoid':
+            DrawRect(starts[i],lengths[i], u'#ffa500') #orange
         else:
             #unknown so make light in alpha
             if lengths[i] > 1e-1:
@@ -295,15 +298,17 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     PlotSigma(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
     PlotSigmaP(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
     PlotMean(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
-    
+
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
     """
+    if 'drawstyle' not in errorbarKwargs:
+        errorbarKwargs['drawstyle'] = 'steps-mid'
     h = histogram
     f = _plt.figure(figsize=(10,5))
     ax = f.add_subplot(111)
-    ax.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, fmt='.', **errorbarKwargs)
+    ax.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
@@ -312,31 +317,32 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
         ax.set_ylabel(h.ylabel)
     else:
         ax.set_ylabel(ylabel)
-    if title is None:
-        f.suptitle(h.title)
-    elif title is "":
+    if title == "":
+        ax.set_title(h.title) # default to one in histogram
+    elif title is None:
         pass
     else:
-        f.suptitle(title)
+        ax.set_title(title)
     return f
 
-def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="equal"):
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="auto", **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm   - logarithmic colour scale
     xlogscale - x axis logarithmic scale
     ylogscale - y axis logarithmic scale
     zlabel    - label for color bar scale
+    aspect    - "auto", "equal", "none" - see imshow?
     """
     h = histogram
     f = _plt.figure()
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     ext = [_np.min(h.xcentres),_np.max(h.xcentres),_np.min(h.ycentres),_np.max(h.ycentres)]
     if logNorm:
-        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm())
-        _plt.colorbar()
+        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(), **imshowKwargs)
+        _plt.colorbar(label=zlabel)
     else:
-        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect)
+        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, **imshowKwargs)
         _plt.colorbar(format='%.0e', label=zlabel)
 
     if xlogscale:
@@ -399,35 +405,37 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
+    else:
+        _plt.show()
 
 def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
     """
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
 
-    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. 
+    Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot.
     If both are provided, the machine diagram is plotted from the MADX survey.
 
-    If a BDSIM survey is provided, collimator positions and dimensions can be taken and 
+    If a BDSIM survey is provided, collimator positions and dimensions can be taken and
     used to split losses into categories: collimator, warm and cold based on warm aperture
-    infomation provided. To enable this, the "warmaperinfo" option must be set according 
+    infomation provided. To enable this, the "warmaperinfo" option must be set according
     to the prescription below.
 
     The user can supply a list of upper and lower edges of warm regions or give the path
     to a coulmn-formated data file with this information via the "warmaperinfo" option.
-    Set warmaperinfo=1 to treat all non-collimator losses as warm or set warmaperinfo=-1 
+    Set warmaperinfo=1 to treat all non-collimator losses as warm or set warmaperinfo=-1
     to treat them as cold. Default is not perform the loss classification.
 
-    If no warm aperture information is provided, the plotting falls back to the standard 
+    If no warm aperture information is provided, the plotting falls back to the standard
     simple plotting provided by a pybdsimm.Plot.Hisgogram1D interface.
 
     Args:
         filename       (str):  Path to the REBDSIM data file
         outputfilename (str, optional):  Path where to save a pdf file with the plot. Default is None.
-    
+
         tfssurvey      (str, optional):  Path to MADX survey used to plot machine diagram on top of figure. Default is None.
-    
+
         tfssurvey      (str, optional):  Path to BDSIM survey used to classify losses into collimator/warm/cold and/or plot machine diagram on top of figure. Default is None.
-    
+
         warmaperinfo  (int|list|str, optional): Information about warm aperture in the machine. Default is None.
         \*\*kwargs: Arbitrary keyword arguments.
 
@@ -440,114 +448,113 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     """
     if not warmaperinfo:
         EnergyDeposition(filename, outputfilename, tfssurvey, bdsimsurvey)
+        return
 
-    else:
-        import Data as _Data
-        d = _Data.Load(filename)
-        if type(d) is not _Data.RebdsimFile:
-            raise IOError("Not a rebdsim file")
-        eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
+    d = _Data.Load(filename)
+    if type(d) is not _Data.RebdsimFile:
+        raise IOError("Not a rebdsim file")
+    eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
 
-        xwidth    = eloss.xwidths[0]
-        xlabel = r"S (m)"
-        ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
+    xwidth    = eloss.xwidths[0]
+    xlabel = r"S (m)"
+    ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
 
-        skipMachineLattice = False
-        if "skipMachineLattice" in kwargs:
-            skipMachineLattice = kwargs["skipMachineLattice"]
+    skipMachineLattice = False
+    if "skipMachineLattice" in kwargs:
+        skipMachineLattice = kwargs["skipMachineLattice"]
 
-        print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
+    print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
 
-        collimators=[]
-        if bdsimsurvey:
-            bsu   = _Data.Load(bdsimsurvey)
-            relfields = [bsu.Name(), bsu.Type(), bsu.SStart(), bsu.SEnd()]
-            collimators = [element for element in zip(*relfields) if element[1]=="rcol"]
+    collimators=[]
+    if bdsimsurvey:
+        bsu   = _Data.Load(bdsimsurvey)
+        relfields = [bsu.Name(), bsu.Type(), bsu.SStart(), bsu.SEnd()]
+        collimators = [element for element in zip(*relfields) if element[1]=="rcol"]
 
-        warmapers=[]
-        if warmaperinfo:
-            if warmaperinfo == -1:
-                warmapers = []
-            elif warmaperinfo == 1:
-                warmapers = [[0, 1.e9]] #Crude, but no need to be exact
-            elif isinstance(warmaperinfo, list):
-                warmapers = warmaperinfo
-            elif isinstance(warmaperinfo, str):
-                warmapers=_np.genfromtxt(warmaperinfo)
-            else:
-                raise SystemExit("Unrecognised warmaperinfo option: {}".format(aperinfo))
+    warmapers=[]
+    if warmaperinfo:
+        if warmaperinfo == -1:
+            warmapers = []
+        elif warmaperinfo == 1:
+            warmapers = [[0, 1.e9]] #Crude, but no need to be exact
+        elif isinstance(warmaperinfo, list):
+            warmapers = warmaperinfo
+        elif isinstance(warmaperinfo, str):
+            warmapers=_np.genfromtxt(warmaperinfo)
+        else:
+            raise SystemExit("Unrecognised warmaperinfo option: {}".format(aperinfo))
 
-        coll_binmask = []
-        warm_binmask = []
-        cold_binmask = []
+    coll_binmask = []
+    warm_binmask = []
+    cold_binmask = []
 
-        ledges   = eloss.xlowedge
-        contents = eloss.contents
-        errors   = eloss.errors
+    ledges   = eloss.xlowedge
+    contents = eloss.contents
+    errors   = eloss.errors
 
-        for i in range(len(contents)):
-            """
-            The check here is done on the presence of a lower bin edge in a region of
-            interest (collimator or warm segment). For bin of similar or larger size
-            than the size of the region of interest, a misidenfication is possible.
-            Can reduce probabliluty of misclassification by also checking for the presencce
-            of an upper bin edge, but it increasses processing time and ultimately, for
-            bins that are too large it is impossible to overcome resolution constraints.
-            """
-            in_coll=False
-            in_warm=False
-            for coll in collimators:
-                smin, smax = coll[2], coll[3]
-                if ledges[i]>smin and ledges[i]<smax:
-                    in_coll=True
+    for i in range(len(contents)):
+        """
+        The check here is done on the presence of a lower bin edge in a region of
+        interest (collimator or warm segment). For bin of similar or larger size
+        than the size of the region of interest, a misidenfication is possible.
+        Can reduce probabliluty of misclassification by also checking for the presencce
+        of an upper bin edge, but it increasses processing time and ultimately, for
+        bins that are too large it is impossible to overcome resolution constraints.
+        """
+        in_coll=False
+        in_warm=False
+        for coll in collimators:
+            smin, smax = coll[2], coll[3]
+            if ledges[i]>smin and ledges[i]<smax:
+                in_coll=True
 
-            for waper in warmapers:
-                smin, smax = waper[0], waper[1]
-                if ledges[i]>smin and ledges[i]<smax:
-                    in_warm=True
+        for waper in warmapers:
+            smin, smax = waper[0], waper[1]
+            if ledges[i]>smin and ledges[i]<smax:
+                in_warm=True
 
-            coll_binmask.append(int(in_coll)) #collimators have priority over warm aper
-            warm_binmask.append(int(in_warm and not in_coll))
-            cold_binmask.append(int(not in_coll and not in_warm))
+        coll_binmask.append(int(in_coll)) #collimators have priority over warm aper
+        warm_binmask.append(int(in_warm and not in_coll))
+        cold_binmask.append(int(not in_coll and not in_warm))
 
-        coll_binmask = _np.array(coll_binmask)
-        warm_binmask = _np.array(warm_binmask)
-        cold_binmask = _np.array(cold_binmask)
+    coll_binmask = _np.array(coll_binmask)
+    warm_binmask = _np.array(warm_binmask)
+    cold_binmask = _np.array(cold_binmask)
 
-        coll_bins = _np.multiply(contents, coll_binmask)
-        coll_errs = _np.multiply(errors, coll_binmask)
-        warm_bins = _np.multiply(contents, warm_binmask)
-        warm_errs = _np.multiply(errors, warm_binmask)
-        cold_bins = _np.multiply(contents, cold_binmask)
-        cold_errs = _np.multiply(errors, cold_binmask)
+    coll_bins = _np.multiply(contents, coll_binmask)
+    coll_errs = _np.multiply(errors, coll_binmask)
+    warm_bins = _np.multiply(contents, warm_binmask)
+    warm_errs = _np.multiply(errors, warm_binmask)
+    cold_bins = _np.multiply(contents, cold_binmask)
+    cold_errs = _np.multiply(errors, cold_binmask)
 
-        scale=1
+    scale=1
 
-        coll_col = "k"
-        warm_col = "r"
-        cold_col = "b"
+    coll_col = "k"
+    warm_col = "r"
+    cold_col = "b"
 
-        f = _plt.figure(figsize=(10,5))
-        ax  = _plt.gca()
+    f = _plt.figure(figsize=(10,5))
+    ax  = _plt.gca()
 
-        if any(coll_binmask):
-            ax.plot(ledges, scale*coll_bins, ls="steps", color=coll_col, label="Collimator", zorder=10)
-            ax.errorbar(ledges-xwidth/2, scale*coll_bins, scale*coll_errs, linestyle="*", fmt="none", color=coll_col, zorder=10)
+    if any(coll_binmask):
+        ax.plot(ledges, scale*coll_bins, ls="steps", color=coll_col, label="Collimator", zorder=10)
+        ax.errorbar(ledges-xwidth/2, scale*coll_bins, scale*coll_errs, linestyle="*", fmt="none", color=coll_col, zorder=10)
 
-        if any(warm_binmask):
-            ax.plot(ledges, scale*warm_bins, ls="steps", color=warm_col, label="Warm")
-            ax.errorbar(ledges-xwidth/2, scale*warm_bins, scale*warm_errs, linestyle="", fmt="none", color=warm_col)
+    if any(warm_binmask):
+        ax.plot(ledges, scale*warm_bins, ls="steps", color=warm_col, label="Warm")
+        ax.errorbar(ledges-xwidth/2, scale*warm_bins, scale*warm_errs, linestyle="", fmt="none", color=warm_col)
 
-        if any(cold_binmask):
-            ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
-            ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
+    if any(cold_binmask):
+        ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
+        ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
 
-        ax.set_yscale("log", nonposy='clip')
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.yaxis.set_major_locator(_plt.LogLocator(subs=(1.0,))) #TODO: Find a way to disable auto ticks and always display all int powers
-        ax.yaxis.grid(which="major", linestyle='--')
-        _plt.legend(fontsize="small", framealpha=1)# bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0., framealpha=1)
+    ax.set_yscale("log", nonposy='clip')
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.yaxis.set_major_locator(_plt.LogLocator(subs=(1.0,))) #TODO: Find a way to disable auto ticks and always display all int powers
+    ax.yaxis.grid(which="major", linestyle='--')
+    _plt.legend(fontsize="small", framealpha=1)# bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0., framealpha=1)
 
     if tfssurvey:
         AddMachineLatticeToFigure(f, tfssurvey)
@@ -558,19 +565,28 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     if outputfilename is not None:
         _plt.savefig(outputfilename)
 
-def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
+def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, hitslegendloc='upper left', elosslegendloc='upper right', perelement=False):
     """
     Load a REBDSIM output file and plot the merged histograms automatically generated by BDSIM.
-    
+
     Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot.
     """
     import Data as _Data
     d = _Data.Load(filename)
     if type(d) is not _Data.RebdsimFile:
         raise IOError("Not a rebdsim file")
-    phits = d.histogramspy['Event/MergedHistograms/PhitsHisto']
-    ploss = d.histogramspy['Event/MergedHistograms/PlossHisto']
-    eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
+
+    phitsHisto = 'PhitsHisto'
+    plossHisto = 'PlossHisto'
+    elossHisto = 'ElossHisto'
+    if perelement:
+        phitsHisto = 'PhitsPEHisto'
+        plossHisto = 'PlossPEHisto'
+        elossHisto = 'ElossPEHisto'
+
+    phits = d.histogramspy['Event/MergedHistograms/' + phitsHisto]
+    ploss = d.histogramspy['Event/MergedHistograms/' + plossHisto]
+    eloss = d.histogramspy['Event/MergedHistograms/' + elossHisto]
 
     fig = _plt.figure(figsize=(10,5))
     ax1 = fig.add_subplot(111)
@@ -588,12 +604,14 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     ax2.set_yscale('log')
 
     xwidth = eloss.xwidths[0]
-    ylabel = 'Energy Deposition / Event (GeV / '+str(xwidth)+" m)"
+    ylabel = 'Energy Deposition / Event (GeV / '+str(round(xwidth, 2))+" m)"
+    if perelement:
+        ylabel = 'Energy Deposition / Event (GeV / Element)'
     ax2.set_ylabel(ylabel)
 
-    ax1.legend(loc='upper left')
-    ax2.legend(loc='upper right')
-    
+    ax1.legend(loc=hitslegendloc)
+    ax2.legend(loc=elosslegendloc)
+
     ax1.set_xlabel('S (m)')
 
     if tfssurvey:
@@ -603,7 +621,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
-    
+
 def PhaseSpace(data, nbins=None, outputfilename=None):
     """
     Make two figures for coordinates and correlations.
@@ -616,7 +634,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None):
         entries = data._entries
         nbins = int(_np.ceil(25*(entries/100.)**0.2))
         print 'Automatic number of bins> ',nbins
-    
+
     d = data.data #shortcut
     f = _plt.figure(figsize=(12,6))
 
@@ -672,7 +690,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None):
     axYPYP.hist2d(d['xp'],d['yp'],bins=nbins,cmin=1)
     axYPYP.set_xlabel('X$^{\prime}$')
     axYPYP.set_ylabel('Y$^{\prime}$')
-    
+
     axXY = f2.add_subplot(234)
     axXY.hist2d(d['x'],d['y'],bins=nbins,cmin=1)
     axXY.set_xlabel('X (m)')
@@ -687,7 +705,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None):
     axYE.hist2d(d['energy'],d['y'],bins=nbins,cmin=1)
     axYE.set_xlabel('Energy (GeV)')
     axYE.set_ylabel('Y (m)')
-    
+
     _plt.suptitle('Correlations at '+data.samplerName,fontsize='xx-large')
     _plt.tight_layout()
     _plt.subplots_adjust(top=0.92)
@@ -707,27 +725,47 @@ def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
         fst = r'$10^{{{}}}$'.format(b)
     return fst
 
-def Trajectory3D(rootFileName,traj=0, bottomLeft = None, topRight = None) :
+def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
+    """
+    Plot e-, e+ and photons only as r,g,b respectively for a given event from
+    a BDSIM output file.
+
+    bottomLeft and topRight are optional [xlow,xhigh] limits for plots.
+    """
     rootFile = _Data.Load(rootFileName)
-    trajData = _Data.TrajectoryData(rootFile,traj)
+    trajData = _Data.TrajectoryData(rootFile, eventNumber)
 
-    for t in trajData.trajectories : 
+    f = _plt.figure()
+    ax0 = f.add_subplot(121)
+    ax1 = f.add_subplot(122)
+    labelledEM = False
+    labelledEP = False
+    labelledG  = False
+    for i,t in enumerate(trajData):
         if t['partID'] == 11 :
-            _plt.subplot(1,2,1)
-            _plt.plot(t['x'],t['z'],'r', lw=0.35)
-            _plt.subplot(1,2,2)
-            _plt.plot(t['y'],t['z'],'r', lw=0.35)
+            if not labelledEM:
+                ax0.plot(t['x'],t['z'],'r-.', lw=0.35, label=r'e$^{-}$')
+                labelledEM = True
+            else:
+                ax0.plot(t['x'],t['z'],'r-.', lw=0.35)
+            ax1.plot(t['y'],t['z'],'r-.', lw=0.35)
         elif t['partID'] == -11 :
-            _plt.subplot(1,2,1)
-            _plt.plot(t['x'],t['z'],'b', lw=0.35)
-            _plt.subplot(1,2,2)
-            _plt.plot(t['y'],t['z'],'b', lw=0.35)
+            if not labelledEP:
+                ax0.plot(t['x'],t['z'],'b-.', lw=0.35, label=r'e$^{+}$')
+                labelledEP = True
+            else:
+                ax0.plot(t['x'],t['z'],'b-.', lw=0.35)
+            ax1.plot(t['y'],t['z'],'b-.', lw=0.35)
         elif t['partID'] == 22 : 
-            _plt.subplot(1,2,1)
-            _plt.plot(t['x'],t['z'],'g--',lw=0.35)
-            _plt.subplot(1,2,2)
-            _plt.plot(t['y'],t['z'],'g--',lw=0.35)
+            if not labelledG:
+                ax0.plot(t['x'],t['z'],'g--',lw=0.35, label='photon')
+                labelledG = True
+            else:
+                ax0.plot(t['x'],t['z'],'g--',lw=0.35)
+            ax1.plot(t['y'],t['z'],'g--',lw=0.35)
 
-    if bottomLeft != None and topRight != None : 
+    if bottomLeft != None and topRight != None :
         xlim(bottomLeft[0],topRight[0])
         xlim(bottomLeft[1],topRight[1])
+
+    ax0.legend(fontsize='small')

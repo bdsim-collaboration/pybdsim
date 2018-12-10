@@ -24,8 +24,8 @@ _BETA = [("Beta_x", "Sigma_Beta_x", r'$\beta_{x}$'),
 _ALPHA = [("Alpha_x", "Sigma_Alpha_x", r"$\alpha_{x}$"),
           ("Alpha_y", "Sigma_Alpha_y", r"$\alpha_{y}$")]
 
-_DISP = [("Disp_x", "Sigma_Disp_x", r"$D_{x}$"),
-         ("Disp_y", "Sigma_Disp_y", r"$D_{y}$")]
+_DISP = [("Disp_x", "Sigma_Disp_x", r"$\eta_{x}$"),
+         ("Disp_y", "Sigma_Disp_y", r"$\eta_{y}$")]
 
 _DISP_P = [("Disp_xp", "Sigma_Disp_xp", r"$D_{p_{x}}$"),
            ("Disp_yp", "Sigma_Disp_yp", r"$D_{p_{y}}$")]
@@ -153,4 +153,4 @@ def BDSIMVsBDSIM(first, second, first_name=None,
 def PTCVsBDSIM(first, second, first_name="PTC",
                second_name="BDSIM", survey=None, saveAll=True, 
                outputFileName=None, **kwargs):
-    BDSIMVsBDSIM(first, second, first_name, second_name, survey, **kwargs)
+    BDSIMVsBDSIM(first, second, first_name, second_name, survey, saveAll, outputFileName, **kwargs)

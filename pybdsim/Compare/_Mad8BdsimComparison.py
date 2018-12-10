@@ -43,7 +43,7 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     # load bdsim optics
     bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
     bdsopt  = _GetBDSIMOptics(bdsinst)
-    
+
     # make plots 
     mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL}
     
@@ -129,10 +129,10 @@ def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('betx'),
-              'b', label=r'MAD8 $\beta_{x}$')
+              'b--', label=r'MAD8 $\beta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('bety'),
-              'g', label=r'MAD8 $\beta_{y}$')
+              'g--', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'],
@@ -167,10 +167,10 @@ def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('alfx'),
-              'b', label=r'MAD8 $\beta_{x}$')
+              'b--', label=r'MAD8 $\beta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('alfy'),
-              'g', label=r'MAD8 $\beta_{y}$')
+              'g--', label=r'MAD8 $\beta_{y}$')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
@@ -205,28 +205,28 @@ def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fig
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dx'),
-              'b', label=r'MAD8 $\beta_{x}$')
+              'b--', label=r'MAD8 $\eta_{x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dy'),
-              'g', label=r'MAD8 $D_{y}$')
+              'g--', label=r'MAD8 $\eta_{y}$')
      
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
                   yerr=bdsopt['Sigma_Disp_x'],
-                  label=r'BDSIM $D_{x}$' + ' ; N = ' + N,
+                  label=r'BDSIM $\eta_{x}$' + ' ; N = ' + N,
                   marker='x',
                   ls = '',
                   color='b')
     
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'],
                   yerr=bdsopt['Sigma_Disp_y'],
-                  label=r'BDSIM $D_{y}$' + ' ; N = ' + N,
+                  label=r'BDSIM $\eta_{y}$' + ' ; N = ' + N,
                   marker='x',
                   ls = '',
                   color='g')
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$D_{x,y} / m$')
+    axes.set_ylabel(r'$\eta_{x,y} / m$')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
@@ -243,28 +243,28 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
     
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dpx'),
-              'b', label=r'MAD8 $\beta_{x}$')
+              'b--', label=r'MAD8 $\eta_{p_x}$')
     _plt.plot(mad8opt['twiss'].getColumn('suml'), 
               mad8opt['twiss'].getColumn('dpy'),
-              'g', label=r'MAD8 $D_{y}$')
+              'g--', label=r'MAD8 $D_{p_y}$')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
                   yerr=bdsopt['Sigma_Disp_xp'],
-                  label=r'BDSIM $D_{p_x}$' + ' ; N = ' + N,
+                  label=r'BDSIM $\eta_{p_x}$' + ' ; N = ' + N,
                   marker='x',
                   ls = '',
                   color='b')
         
     _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
                   yerr=bdsopt['Sigma_Disp_yp'],
-                  label=r'BDSIM $D_{p_y}$' + ' ; N = ' + N,
+                  label=r'BDSIM $\eta_{p_y}$' + ' ; N = ' + N,
                   marker='x',
                   ls = '',
                   color='g')
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$D_{p_{x},p_{y}}$ / rad')
+    axes.set_ylabel(r'$\eta_{p_{x},p_{y}}$ / rad')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
@@ -279,16 +279,17 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma',figsize)
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'),
-              _np.sqrt(mad8opt['envel'].getColumn('s11')),
-              'b', label=r'MAD8 $\sigma_{x}$')
-    _plt.plot(mad8opt['envel'].getColumn('suml'),
-              _np.sqrt(mad8opt['envel'].getColumn('s33')),
-              'g', label=r'MAD8 $\sigma_{y}$')
+#    _plt.plot(mad8opt['envel'].getColumn('suml'),
+#              _np.sqrt(mad8opt['envel'].getColumn('s11')),
+#              'b--', label=r'MAD8 $\sigma_{x}$')
+#    _plt.plot(mad8opt['envel'].getColumn('suml'),
+#              _np.sqrt(mad8opt['envel'].getColumn('s33')),
+#              'g--', label=r'MAD8 $\sigma_{y}$')
     
-    # Own calculation of beam sizes
+    # Own calculation of beam sizes.
     emitX0 = 1e-8
     emitY0 = 1e-8
+    sige = 1e-4
 
     e      = mad8opt['comm'].getColumn('E')
     rgamma = e/(0.5109989461/1e3)
@@ -297,11 +298,11 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     emitXN0 = emitX0*rgamma[0]*rbeta[0]
     emitYN0 = emitY0*rgamma[0]*rbeta[0]
 
-    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma))
-    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma))
+    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
+    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')**2*sige**2)
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'b--')
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'g--')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'b--',label=r'MAD8 $\sigma_{x}$(calculated)')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'g--',label=r'MAD8 $\sigma_{y}$(calculated)')
 
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'],
@@ -334,12 +335,29 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPPlot = _plt.figure('SigmaP',figsize)
 
-    _plt.plot(mad8opt['envel'].getColumn('suml'), 
-              _np.sqrt(mad8opt['envel'].getColumn('s22')),
-              'b', label=r'MAD8 $\sigma_{xp}$')
-    _plt.plot(mad8opt['envel'].getColumn('suml'), 
-              _np.sqrt(mad8opt['envel'].getColumn('s44')),
-              'g', label=r'MAD8 $\sigma_{yp}$')
+#    _plt.plot(mad8opt['envel'].getColumn('suml'), 
+#              _np.sqrt(mad8opt['envel'].getColumn('s22')),
+#              'b', label=r'MAD8 $\sigma_{xp}$')
+#    _plt.plot(mad8opt['envel'].getColumn('suml'), 
+#              _np.sqrt(mad8opt['envel'].getColumn('s44')),
+#              'g', label=r'MAD8 $\sigma_{yp}$')
+    
+    emitX0 = 1e-8
+    emitY0 = 1e-8
+    sigE   = 0.0001
+
+    e      = mad8opt['comm'].getColumn('E')
+    rgamma = e/(0.5109989461/1e3)
+    rbeta  = _np.sqrt(1-1.0/rgamma**2)
+
+    emitXN0 = emitX0*rgamma[0]*rbeta[0]
+    emitYN0 = emitY0*rgamma[0]*rbeta[0]
+    #calcualte alpha, use sigma_xp = sqrt(alpha_x * emittance_x + dispersion_xp^2 * sigE^2)
+    sigmaXP = _np.sqrt(emitXN0/(rbeta*rgamma)*(mad8opt['twiss'].getColumn('alfx')**(2)+1)/mad8opt['twiss'].getColumn('betx') + (mad8opt['twiss'].getColumn('dpx')**(2))*(sigE**(2)))
+    sigmaYP = _np.sqrt(emitYN0/(rbeta*rgamma)*(mad8opt['twiss'].getColumn('alfy')**(2)+1)/mad8opt['twiss'].getColumn('bety') + (mad8opt['twiss'].getColumn('dpy')**(2))*(sigE**(2)))
+
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaXP,'b--')
+    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaYP,'g--')
     
     # bds plot
     _plt.errorbar(bdsopt['S'], bdsopt['Sigma_xp'],
@@ -374,7 +392,7 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'), # one missing energy due to initial 
               mad8opt['comm'].getColumn('E'),
-              'b', label=r'MAD8 $E$')
+              'b--', label=r'MAD8 $E$')
 
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_E'],
                   yerr=bdsopt['Sigma_Mean_E'],
@@ -401,11 +419,11 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
               mad8opt['twiss'].getColumn('x'),
-              'b', label=r'MAD8 $\overline{x}$')
+              'b--', label=r'MAD8 $\overline{x}$')
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
               mad8opt['twiss'].getColumn('y'),
-              'g', label=r'MAD8 $\overline{y}$')
+              'g--', label=r'MAD8 $\overline{y}$')
     
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
                   yerr=bdsopt['Sigma_Mean_x'],
@@ -440,6 +458,7 @@ def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=No
     emitX0 = 1e-8
     emitY0 = 1e-8
 
+    
     e      = mad8opt['comm'].getColumn('E')
     rgamma = e/(0.5109989461/1e3)
     rbeta  = _np.sqrt(1-1.0/rgamma**2)
@@ -452,11 +471,11 @@ def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=No
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
               emitX,
-              'b', label=r'MAD8 $\epsilon_x$')
+              'b--', label=r'MAD8 $\epsilon_x$')
 
     _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
               emitY,
-              'g', label=r'MAD8 $\epsilon_y$')
+              'g--', label=r'MAD8 $\epsilon_y$')
 
     _plt.plot(bdsopt['S'], bdsopt['Emitt_x'],
               label=r'BDSIM $N$' + ' ; N = '+N,

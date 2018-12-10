@@ -5,9 +5,10 @@ try:
     import ROOT as _rt
 except ImportError:
     warnings.warn("ROOT not available - some functionality missing", UserWarning)
-    
+
 import numpy as _np
 import matplotlib.pyplot as _plt
+import os.path as _path
 
 import sys
 import time
@@ -17,7 +18,7 @@ try:
 except ImportError:
     warnings.warn("No root_numpy found - some functionality missing", UserWarning)
 
-def BdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
+def BdsimPrimaries2Ptc(inputfile, outfile=None, start=0, ninrays=-1):
     """"
     Takes .root file generated from a BDSIM run an an input and creates
     a PTC inrays file from the primary particle tree.
@@ -26,6 +27,10 @@ def BdsimPrimaries2Ptc(inputfile,outfile,start=0, ninrays=-1):
     start     - <int> starting primary particle index
     ninrays   - <int> total number of inrays to generate
     """
+    if outfile is None:
+        outfile = inputfile.rstrip(".root")
+        outfile += ".madx"
+
     BdsimSampler2Ptc(inputfile, outfile, "Primary", start, ninrays)
 
 def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
@@ -55,11 +60,11 @@ def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
     outfile.writelines(headstr)
     for n in range(0, nentries):  # n denotes a given particle
         s = 'ptc_start'
-        s += ', x=' + repr(sampler_coords[0][n][0])
-        s += ', px=' + repr(sampler_coords[1][n][0])
-        s += ', y=' + repr(sampler_coords[2][n][0])
-        s += ', py=' + repr(sampler_coords[3][n][0])
-        s += ', t=' + repr(sampler_coords[4][n][0])
+        s += ', x=' + repr(sampler_coords[0][n])
+        s += ', px=' + repr(sampler_coords[1][n])
+        s += ', y=' + repr(sampler_coords[2][n])
+        s += ', py=' + repr(sampler_coords[3][n])
+        s += ', t=' + repr(sampler_coords[4][n])
         s += ', pt=' + repr(sampler_coords[5][n])
         s += ';\n'
         outfile.writelines(s)
@@ -77,9 +82,9 @@ def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     """
     if not (outfile[-5:] == ".madx"):
         outfile = outfile+".madx"
-    
+
     primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
-    
+
     outfile = open(outfile,'w' )
 
     nentries =  len(primary_coords[0])
@@ -89,15 +94,15 @@ def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     outfile.writelines(headstr)
     for n in range(0,nentries):               # n denotes a given particle
         s  =  'start'
-        s += ', x='  + repr(primary_coords[0][n][0])
-        s += ', px=' + repr(primary_coords[1][n][0])
-        s += ', y='  + repr(primary_coords[2][n][0])
-        s += ', py=' + repr(primary_coords[3][n][0])
-        s += ', t='  + repr(primary_coords[4][n][0])
-        s += ', pt=' + repr(primary_coords[5][n][0])   
+        s += ', x='  + repr(primary_coords[0][n])
+        s += ', px=' + repr(primary_coords[1][n])
+        s += ', y='  + repr(primary_coords[2][n])
+        s += ', py=' + repr(primary_coords[3][n])
+        s += ', t='  + repr(primary_coords[4][n])
+        s += ', pt=' + repr(primary_coords[5][n])
         s += ';\n'
         outfile.writelines(s)
-        
+
     outfile.close()
 
 def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
@@ -111,9 +116,9 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     """
     if not (outfile[-5:] == ".mad8"):
         outfile = outfile+".mad8"
-    
+
     primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
-   
+
     outfile = open(outfile,'w' )
 
     nentries =  len(primary_coords[0])
@@ -123,26 +128,30 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     outfile.writelines(headstr)
     for n in range(0,nentries):    #n denotes a given particle
         s  =  'START'
-        s += ', X='  + repr(primary_coords[0][n][0])
-        s += ', PX=' + repr(primary_coords[1][n][0])
-        s += ', Y='  + repr(primary_coords[2][n][0])
+        s += ', X='  + repr(primary_coords[0][n])
+        s += ', PX=' + repr(primary_coords[1][n])
+        s += ', Y='  + repr(primary_coords[2][n])
         s += ', &\n'                             #line continuation needed to obey FORTRAN 80 char input limit
-        s += 'PY=' + repr(primary_coords[3][n][0])
-        s += ', T='  + repr(primary_coords[4][n][0])
-        s += ', DELTAP=' + repr(primary_coords[5][n][0])   
+        s += 'PY=' + repr(primary_coords[3][n])
+        s += ', T='  + repr(primary_coords[4][n])
+        s += ', DELTAP=' + repr(primary_coords[5][n])
         s += '\n'
         outfile.writelines(s)
-        
+
     outfile.close()
 
 def _LoadBdsimPrimaries(inputfile, start, ninrays):
     c = 299792458.0     #speed of light in vacuum
-    
-    print "Loading input file: ", inputfile
-    rootin      = _rt.TFile(inputfile)
-    if (rootin.IsZombie()):
-        print "No such file. Terminating..."
-        sys.exit(1)
+
+    if isinstance(inputfile, basestring):
+        if not _path.isfile(inputfile):
+            raise IOError("file \"{}\" not found!".format(inputfile))
+        else:
+            print "Loading input file: ", inputfile
+            rootin = _rt.TFile(inputfile)
+            if (rootin.IsZombie()):
+                print "Root file is zombie..."
+                sys.exit(1)
 
     tree        = rootin.Get("Event")
 
@@ -153,6 +162,16 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     yp          =  _rnp.tree2array(tree, branches="Primary.yp")
     tof         =  _rnp.tree2array(tree, branches="Primary.T")
     E           =  _rnp.tree2array(tree, branches="Primary.energy")
+
+    # Change these arrays of 1-entry arrays into just an array of numbers
+    x  = _np.array([val[0] for val in x])
+    xp = _np.array([val[0] for val in xp])
+    y  = _np.array([val[0] for val in y])
+    yp = _np.array([val[0] for val in yp])
+    tof  = _np.array([val[0] for val in tof])
+    E = _np.array([val[0] for val in E])
+
+    # Don't need to do dE because for some reason it's already correct.
 
     #Get particle pdg number
     priPid      =  _rnp.tree2array(tree, branches="Primary.partID")
@@ -170,10 +189,9 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     #TODO: Add more particle masses and particle numbers as needed.
 
     if mass == 0:
-        raise ValueError('Unknown primary particle species.')
+        raise ValueError('Unknown particle species.')
 
     npart       = len(x)
-    E = _np.array([val[0] for val in E])
 
     beam = rootin.Get("Beam")
     Em = _rnp.tree2array(beam, branches="Beam.GMAD::BeamBase.beamEnergy")[0]
@@ -183,6 +201,11 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     p           = _np.sqrt(E**2 - _np.full_like(E, mass)**2)
     p0          = _np.sqrt(Em**2 - mass**2)
     tofm        = _np.mean(tof)
+
+    # BDSIM output momenta are normalised w.r.t the individual particle
+    # momentum.  But PTC expects normalised w.r.t the reference momentum.
+    xp *= (p / p0)
+    yp *= (p / p0)
 
     #Use deltap and pathlength as needed for the time=false flag in PTC
     #Reference on p.201 of the MADX User's Reference Manual V5.03.07
@@ -197,7 +220,7 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
         yp = yp[start:]
         t  = t[start:]
         dE = dE[start:]
-        
+
     else:
         x  = x[start:ninrays]
         y  = y[start:ninrays]
@@ -205,7 +228,7 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
         yp = yp[start:ninrays]
         t  = t[start:ninrays]
         dE = dE[start:ninrays]
-        
+
 
     #Agglomerate the coordinate arrays and return reuslting superarray
     primary_coords = _np.stack((x,xp,y,yp,t,dE))
@@ -215,11 +238,15 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
 def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     c = 299792458.0  # speed of light in vacuum
 
-    print "Loading input file: ", inputfile
-    rootin = _rt.TFile(inputfile)
-    if (rootin.IsZombie()):
-        print "No such file. Terminating..."
-        sys.exit(1)
+    if isinstance(inputfile, basestring):
+        if not _path.isfile(inputfile):
+            raise IOError("file \"{}\" not found!".format(inputfile))
+        else:
+            print "Loading input file: ", inputfile
+            rootin = _rt.TFile(inputfile)
+            if (rootin.IsZombie()):
+                print "Root file is zombie..."
+                sys.exit(1)
 
     # add . to the sampler name to match branch names from file
     if samplername[-1] != ".":
@@ -273,7 +300,9 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     E      = _np.array(E)
     priPid = _np.array(pid)
 
-    pid = _np.int(_np.mean(priPid)[0])  # cast to int to match pdg id
+    # reshape to 1D array
+    priPid = priPid.reshape(priPid.shape[0])
+    pid = _np.int(_np.mean(priPid))  # cast to int to match pdg id
 
     # Particle mass needed for calculating momentum, in turn needed for dE.
     mass = 0
@@ -290,7 +319,6 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
         raise ValueError('Unknown particle species.')
 
     npart = len(x)
-    E = _np.array([val[0] for val in E])
 
     # use design energy for primaries as a significant mean offset can exist with small number of particles
     # Otherwise use the mean energy as there may have been a designed energy change (from RF, degrader, etc)
@@ -305,8 +333,8 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     p = _np.sqrt(E ** 2 - _np.full_like(E, mass) ** 2)
     p0 = _np.sqrt(Em ** 2 - mass ** 2)
     # convert tof to 1d array as mean on line below may return multiple numbers
-    tof1D = _np.concatenate(tof, axis=0)
-    tofm = _np.mean(tof1D)
+    #tof1D = _np.concatenate(tof, axis=0)
+    tofm = _np.mean(tof)
 
     # Use deltap and pathlength as needed for the time=false flag in PTC
     # Reference on p.201 of the MADX User's Reference Manual V5.03.07
@@ -330,7 +358,11 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
         t = t[start:ninrays]
         dE = dE[start:ninrays]
 
-    # Agglomerate the coordinate arrays and return reuslting superarray
-    sampler_coords = _np.stack((x, xp, y, yp, t, dE))
+    # reshape energy to correct shape for writing.
+    dE = dE.reshape(1000,)
+
+    # Agglomerate the coordinate arrays as a list so data container has the correct dimensions for writing
+    # Superarray (np.stack) cannot handle arrays of different shapes despite LoadBdsimPrimaries somehow doing so.
+    sampler_coords = [x,xp,y,yp,t,dE]
 
     return sampler_coords

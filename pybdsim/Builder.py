@@ -16,17 +16,21 @@ Element - beam line element that always has name,type and length
 Machine - a list of elements
 
 """
+import pybdsim.XSecBias
 import Beam as _Beam
 import Options as _Options
 import Writer as _Writer
 import _General
 from   _General import IsFloat as _IsFloat
+
+import collections
 import math as _math
 import time as _time
 import os as _os
 import numpy as _np
 import copy as _copy
 import textwrap as _textwrap
+import numbers
 
 bdsimcategories = [
     'marker',
@@ -58,65 +62,102 @@ bdsimcategories = [
     'degrader',
     'shield',
     'gap',
+    'thinrmatrix',
+    'paralleltransporter',
+    'rmatrix',
     ]
 
-class ElementBase(dict):
+class ElementBase(collections.MutableMapping):
     """
     A class that represents an element / item in an accelerator beamline.
     Printing or string conversion produces the BDSIM syntax.
 
-    This class provides the basic dict(ionary) inheritance and functionality 
+    This class provides the basic dict(ionary) inheritance and functionality
     and the representation that allows modification of existing parameters
     of an already declared item.
 
     """
     def __init__(self, name, isMultipole=False, **kwargs):
-        dict.__init__(self)
-        self['name']      = name
+        self._store = dict()
         self.name         = name
+        self['name']      = name
         self._isMultipole = isMultipole
-        self._keysextra   = []
-        self.__Update(kwargs)
+        self._keysextra   = set()
+        for k, v in kwargs.iteritems():
+            self[k] = v
 
-    def __Update(self,d):
-        dict.update(d)
-        for key,value in d.iteritems():
-            if value == "" :
-                continue
-            if type(value) == tuple and self._isMultipole:
-                self[key] = value
-            elif type(value) == tuple:
-                #use a tuple for (value,units)
-                self[key] = (float(value[0]),value[1])
-            elif isinstance(value, (float, int)):
-                #must be a number
-                if 'aper' in str.lower(key) and value < 1e-6:
-                    continue
-                else:
-                    self[key] = value
+    def __getitem__(self, key):
+        return self._store[key]
+
+    def __setitem__(self, key, value):
+
+        if (key == "name" or key == "category") and value:
+            self._store[key] = value
+        elif value == "":
+            return
+        elif type(value) == tuple and self._isMultipole:
+            self._store[key] = value
+        elif isinstance(value, tuple):
+            self._store[key] = (float(value[0]), value[1])
+        elif isinstance(value, numbers.Number):
+            if "aper" in key.lower() and value < 1e-6:
+                return
             else:
-                #must be a string
-                self[key] = '"'+value+'"'
-            self._keysextra.append(str(key)) #order preserving
+                self._store[key] = value
+        else:
+            if value.startswith('"') and value.endswith('"'):
+                # Prevent the buildup of quotes for multiple setitem calls
+                value = value.strip('"')
+            self._store[key] = '"{}"'.format(value)
+
+        if key not in {"name", "category"}: # keys which are not # 'extra'.
+            self._keysextra.add(key)
+
+    def __len__(self):
+        return len(self._store)
+
+    def __iter__(self):
+        return iter(self._store)
 
     def keysextra(self):
         #so behaviour is similar to dict.keys()
         return self._keysextra
 
+    def __delitem__(self, key):
+        del self._store[key]
+        try: # it may be in _store, but not necessarily in _keyextra
+            self._keysextra.remove(key)
+        except:
+            pass
+
     def __repr__(self):
-        s = ''
-        s += self.name + ': '
+        s = "{s.name}: ".format(s=self)
         for i,key in enumerate(self._keysextra):
-            if i > 0:
+            if i > 0: # Separate with commas
                 s += ", "
+            # Write multipole syntax
             if type(self[key]) == tuple and self._isMultipole:
                 s += key + '=' + '{'+(','.join([str(s) for s in self[key]]))+'}'
+            # Write tuple (i.e. number + units) syntax
             elif type(self[key]) == tuple:
                 s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            # everything else (most things!)
             else:
                 s += key + '=' + str(self[key])
         s += ';\n'
         return s
+
+def _scale_element_parameters_by_length(parameters, elements, total_length):
+    """Scale a list of elements' parameters by their length.  So if
+    you have a list of hkickers you want to rescale based on their
+    length:
+    - _scale_element_parameters_by_length([('hkick', 0.5)], [hk1, hk2, hk3])
+    """
+    total_length = sum([element['l'] for element in elements])
+    for parameter, total_parameter in parameters:
+        for element in elements:
+            element[parameter] = total_parameter * element['l'] / total_length
+
 
 class Element(ElementBase):
     """
@@ -132,7 +173,7 @@ class Element(ElementBase):
     qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m;
     >>> str(c)
     qx1f: quadrupole, k1=0.2, l=0.4*m, aper1=0.223*m\\n;
-    
+
     A beam line element must ALWAYs have a name, and type.
     The keyword arguments are specific to the type and are up to
     the user to specify - these should match BDSIM GMAD syntax.
@@ -141,7 +182,7 @@ class Element(ElementBase):
     where the second entry must be a string (shown in second example).
     Without specified units, the parser assumes S.I. units.
 
-    An element may also be multiplied or divided.  This will scale the 
+    An element may also be multiplied or divided.  This will scale the
     length and angle appropriately.
 
     >>> c = Element('sb1', 'sbend', l=(0.4,'m'), angle=0.2)
@@ -163,12 +204,7 @@ class Element(ElementBase):
         self['category'] = category
         self.category    = category
         self.length      = 0.0 #for book keeping only
-        self.__Update()
         self._UpdateLength()
-        
-    def __Update(self, d=None):
-        if d != None:
-            ElementModifier.__update(self,d)
 
     def _UpdateLength(self):
         if 'l' in self:
@@ -197,21 +233,57 @@ class Element(ElementBase):
         s += ';\n'
         return s
 
-    def __mul__(self, factor):
-        newElement = _copy.copy(self)
-        newElement.length *= factor
-        newElement['l'] = factor * float(self['l'])
-        if 'angle' in self:
-            newElement['angle'] = factor * float(self['angle'])
-        return newElement
+    def _split_length(self, points):
+        """points = points along the start of the element.  So n
+        points will return n+1 elements.  """
+        try:
+            total_length = self['l']
+        except:
+            raise TypeError("Element has no length, cannot be split.")
+        accumulated_length = 0.0
+        split_elements = []
+        This = type(self) # This class, we use to construct the output.
+        # Not length or name.  We change these here.  We leave
+        # updating other parameters (based on length or otherwise) to
+        # other methods or functions.
+        other_kwargs = _copy.deepcopy(dict(self))
+        del other_kwargs['l']
+        del other_kwargs['name']
+        del other_kwargs['category'] # boilerplate argument we have to remove
 
-    def __div__(self, factor):
-        return self.__mul__(float(1./factor))
+        for i, point in enumerate(sorted(points)):
+            name = "{}_split_{}".format(self['name'], i)
+            length = round(point - accumulated_length, 15)
+            accumulated_length += length
+            split_elements.append(This(name, l=length, **other_kwargs))
+        # Add the final element (for n points we have n+1 elements, so
+        # we add the last one here "by hand").
+        split_elements.append(
+                This("{}_split_{}".format(self['name'], i + 1),
+                     l=round(total_length - accumulated_length, 15),
+                     **other_kwargs))
+
+        return split_elements
+
+    def _split_length_with_length_scaled_parameters(self, points, parameters):
+        split_elements = self._split_length(points)
+        parameters_and_original_values = [(parameter, self[parameter])
+                                          for parameter in parameters]
+        _scale_element_parameters_by_length(parameters_and_original_values,
+                                            split_elements, self['l'])
+        return split_elements
+
+    def split(self, points):
+        """Split this element into len(points)+1 elements, with the
+        correct lengths.  This does not affect magnetic strengths,
+        etc, which is left to derived classes where appropriate. """
+        return self._split_length(points)
+
 
 class ElementModifier(ElementBase):
     """
     A class  to MODIFY an already defined element in a gmad file by appending an
-    updated definition. Using this alone in BDSIM will result in an 
+    updated definition. Using this alone in BDSIM will result in an
     undefined type error. This class is particularly useful for creating
     a strength file.
 
@@ -227,7 +299,7 @@ class ElementModifier(ElementBase):
     qf1, quadrupole, l=0.3, k1=0.00345;
     qf1, k1=0.0245
 
-    This results in the quadrupole strength k1 in this example being 
+    This results in the quadrupole strength k1 in this example being
     changed to 0.0245.
     """
     def __init__(self, name, isMultipole=False, **kwargs):
@@ -239,7 +311,7 @@ class Line(list):
     """
     A class that represents a :class:`list` of :class:`Elements`
 
-    Provides ability to print out the sequence or define all 
+    Provides ability to print out the sequence or define all
     the components.
 
     Example:
@@ -255,10 +327,10 @@ class Line(list):
                 raise TypeError("Line is a list of Elements")
         list.__init__(self,*args)
         self.name   = name
-        self.length = 0.0 
+        self.length = 0.0
         for item in args[0]:
             self.length += item.length
-        
+
     def __repr__(self):
         s = ''
         for item in self:
@@ -334,7 +406,7 @@ class ApertureModel(dict):
         if self['apertureType'] in allowedTypes[1:] and aper2 == 0:
             print 'For aperture type "',self['apertureType'],'" at least aper1 and aper2 must be specified'
             raise ValueError("Too few aperture parameters supplied")
-        
+
         self['aper1'] = aper1
         self['aper2'] = aper2
         self['aper3'] = aper3
@@ -342,8 +414,8 @@ class ApertureModel(dict):
 
     def __repr__(self):
         # aper1 is always present at least.
-        out = ('apertureType="{}*m", aper1={}*m').format(self["apertureType"],
-                                                         self["aper1"])
+        out = ('apertureType="{}", aper1={}*m').format(self["apertureType"],
+                                                       self["aper1"])
         # Append any non-zero apertures.
         for i in [2,3,4]:
             aperKey = "aper{}".format(i)
@@ -352,10 +424,235 @@ class ApertureModel(dict):
                 out += ", {}={}*m".format(aperKey, aperValue)
         return out
 
+
+class Drift(Element):
+    def __init__(self, name, l, **kwargs):
+        Element.__init__(self, name, "drift", l=l, **kwargs)
+
+
+class HKicker(Element):
+    def __init__(self, name, hkick, **kwargs):
+        Element.__init__(self, name, 'hkicker', hkick=hkick, **kwargs)
+
+    def split(self, points):
+        return self._split_length_with_length_scaled_parameters(points,
+                                                                ['hkick'])
+
+class VKicker(Element):
+    def __init__(self, name, vkick, **kwargs):
+        Element.__init__(self, name, 'vkicker', vkick=vkick, **kwargs)
+
+
+    def split(self, points):
+        return self._split_length_with_length_scaled_parameters(points,
+                                                                ['vkick'])
+
+class Kicker(Element):
+    def __init__(self, name, hkick, vkick, **kwargs):
+        Element.__init__(self, name, 'kicker', hkick=hkick,
+                         vkick=vkick, **kwargs)
+
+    def split(self, points):
+        return self._split_length_with_length_scaled_parameters(points,
+                                                                ['vkick',
+                                                                 'hkick'])
+
+
+class TKicker(Element):
+    def __init__(self, name, hkick, vkick, **kwargs):
+        Element.__init__(self, name, 'tkicker', hkick=hkick,
+                         vkick=vkick, **kwargs)
+
+    def split(self, points):
+        return self._split_length_with_length_scaled_parameters(points,
+                                                                ['vkick',
+                                                                 'hkick'])
+
+
+class Gap(Element):
+    def __init__(self, name, l, **kwargs):
+        Element.__init__(self, name, 'gap', l=l, **kwargs)
+
+
+class Marker(Element):
+    def __init__(self, name):
+        Element.__init__(self, name, 'marker')
+
+
+class Multipole(Element):
+    def __init__(self, name, l, knl, ksl, **kwargs):
+        Element.__init__(self, name, 'multipole', l=l,
+                         knl=knl, ksl=ksl, **kwargs)
+
+    def split(self, points):
+        split_mps = self._split_length(points)
+        for mp in split_mps:
+            new_knl = tuple([integrated_strength * mp['l'] / self['l']
+                             for integrated_strength in mp['knl']])
+            new_ksl = tuple([integrated_strength * mp['l'] / self['l']
+                             for integrated_strength in mp['knl']])
+            mp['knl'] = new_knl
+            mp['ksl'] = new_ksl
+        return split_mps
+
+
+class ThinMultipole(Element):
+    def __init__(self, name, knl=(0,0), ksl=(0,0), **kwargs):
+        Element.__init__(self, name, 'thinmultipole', knl=knl, ksl=ksl, **kwargs)
+
+
+class Quadrupole(Element):
+    def __init__(self, name, l, k1, **kwargs):
+        Element.__init__(self, name, 'quadrupole', l=l,k1=k1, **kwargs)
+
+
+class Sextupole(Element):
+    def __init__(self, name, l, k2, **kwargs):
+        Element.__init__(self, name, 'sextupole', l=l, k2=k2, **kwargs)
+
+
+class Octupole(Element):
+    def __init__(self, name, l, k3, **kwargs):
+        Element.__init__(self, name, 'octupole', l=l, k3=k3, **kwargs)
+
+
+class Decapole(Element):
+    def __init__(self, name, l, k4, **kwargs):
+        Element.__init__(self, name,'decapole', l=l, k4=k4, **kwargs)
+
+
+class _Dipole(Element):
+    def __init__(self, name, category, l, angle=None, B=None, **kwargs):
+        if angle is None and b is None:
+            raise TypeError('angle XOR B must be specified for an SBend')
+        elif angle is not None:
+            Element.__init__(self, name, category, l=l,
+                             angle=angle, **kwargs)
+        else:
+            Element.__init__(self, name, category, l=l, B=B, **kwargs)
+
+    def split(self, points):
+        split_bends = self._split_length_with_length_scaled_parameters(
+            points, ['angle'])
+        # Delete all the in/out parameters.  pop syntax just a quicker
+        # way of doing try: del...  etc.
+        for bend in split_bends:
+            bend.pop('fint', None)
+            bend.pop('fintx', None)
+            bend.pop('e1', None)
+            bend.pop('e2', None)
+            bend.pop('h1', None)
+            bend.pop('h2', None)
+
+        # Assign following to their respective elements, but only if
+        # self (i.e., the unsplit element) had them.
+        if 'e1' in self: # assign e1 to first ele only
+            split_bends[0]['e1'] = self['e1']
+        if 'e2' in self: # assign e2 to last ele only
+            split_bends[-1]['e2'] = self['e2']
+        if 'fint' in self: # assign fint to first ele only
+            split_bends[0]['fint'] = self['fint']
+        if 'fintx' in self: # assign fintx to last ele only
+            split_bends[-1]['fintx'] = self['fintx']
+        if 'h1' in self: # assign h1 to first ele only
+            split_bends[0]['h1'] = self['h1']
+        if 'h2' in self: # assign h2 to last ele only
+            split_bends[-1]['h2'] = self['h2']
+
+        return split_bends
+
+class SBend(_Dipole):
+    def __init__(self, name, l, angle=None, B=None, **kwargs):
+        _Dipole.__init__(self, name, 'sbend', l, angle=angle, B=B, **kwargs)
+
+
+class RBend(_Dipole):
+    def __init__(self, name, l, angle=None, B=None, **kwargs):
+        _Dipole.__init__(self, name, 'rbend', l, angle=angle, B=B, **kwargs)
+
+
+class RFCavity(Element):
+    def __init__(self, name, l, gradient, **kwargs):
+        Element.__init__(self, name, 'rfcavity', l=l,
+                         gradient=gradient, **kwargs)
+
+
+class _Col(Element):
+    def __init__(self, name, category, l, xsize, ysize, **kwargs):
+        d = {}
+        # Strip aperture information:
+        kwargs = {key: value for key, value in kwargs.iteritems() if
+                  "aper" not in key.lower()}
+        Element.__init__(self, name, category, l=l, xsize=xsize,
+                         ysize=ysize, **kwargs)
+
+
+class RCol(_Col):
+    def __init__(self, name, l, xsize, ysize, **kwargs):
+        _Col.__init__(self, name, "rcol", l,
+                      xsize, ysize, **kwargs)
+
+
+class ECol(_Col):
+    def __init__(self, name, l, xsize, ysize, **kwargs):
+        _Col.__init__(self, name, "ecol", l,
+                      xsize, ysize, **kwargs)
+
+
+class Degrader(Element):
+    def __init__(self, name, l, nWedges,
+                 wedgeLength, degHeight, materialThickness=None,
+                 degraderOffset=None, **kwargs):
+        if (materialThickness is None and degraderOffset is None):
+            msg = "materialThickness or degraderOffset must be specified."
+            raise TypeError(msg)
+        elif materialThickness is not None:
+            Element.__init__(self, name, "degrader", l=l,
+                             numberWedges=nWedges,
+                             wedgeLength=wedgeLength,
+                             degraderHeight=degHeight,
+                             materialThickness=materialThickness, **kwargs)
+        else:
+            Element.__init__(self, name, "degrader", l=l,
+                             numberWedges=nWedges,
+                             wedgeLength=wedgeLength,
+                             degraderHeight=degHeight,
+                             degraderOffset=degraderOffset, **kwargs)
+
+
+class MuSpoiler(Element):
+    def __init__(self, name, l, B, **kwargs):
+        Element.__init__(self, name,'muspoiler',l=l,B=B,**kwargs)
+
+
+class Solenoid(Element):
+    def __init__(self, name, l, ks, **kwargs):
+        Element.__init__(self, name,'solenoid',l=l,ks=ks,**kwargs)
+
+
+class Shield(Element):
+    def __init__(self, name, l, **kwargs):
+        Element.__init__(self, name,'shield',l=l,**kwargs)
+
+
+class Laser(Element):
+    def __init__(self, name, l, x, y, z,
+                 waveLength, **kwargs):
+        Element.__init__(self, name,'laser',
+                         l=l,x=x,y=y,z=z,
+                         waveLength=waveLength,
+                         **kwargs)
+
+class ExternalGeometry(object):
+    def __init__(self, name, l, outerDiameter, geometryFile, **kws):
+        Element.__init__(self, name, 'element', l=l,
+                         outerDiameter=outerDiameter,
+                         geometryFile=geometryFile, **kwargs)
+
 class Sampler:
     """
     A sampler is unique in that it does not have a length unlike every
-    :class:`Element` hence it needs its own class to produce its 
+    :class:`Element` hence it needs its own class to produce its
     representation.
     """
     def __init__(self,name):
@@ -372,28 +669,28 @@ class Machine:
     A class represents an accelerator lattice as a sequence of
     components. Member functions allow various lattice components
     to be append to the sequence of the machine. This class allows
-    the user to programatically create a lattice and write the 
+    the user to programatically create a lattice and write the
     BDSIM gmad representation of it.
 
     Example:
-    
+
     >>> a = Machine()
     >>> a.AddDrift('mydrift', l=1.3)
     >>> a.Write("lattice.gmad")
 
     Example with Sychrotron rescaling:
-    
+
     >>> a = Machine(sr=True, energy0=250,charge=-1)
     >>> a.AddDipole('sb1','sbend',length=1.0,1e-5)
     >>> a.AddDrift('dr1',length=1)
     >>> a.AddDipole('sb2','sbend',length=1.0,1e-5)
     >>> a.AddDrift("dr2",length=1)
 
-    Caution: adding an element of the same name twice will result the 
+    Caution: adding an element of the same name twice will result the
     element being added only to the sequence again and not being
     redefined - irrespective of if the parameters are different. If
-    verbose is used (True), then a warning will be issued.    
-    
+    verbose is used (True), then a warning will be issued.
+
     """
     def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
@@ -429,7 +726,7 @@ class Machine:
             raise StopIteration
         self._iterindex += 1
         return self.elementsd[self.sequence[self._iterindex]]
-        
+
     def __getitem__(self,name):
         if _IsFloat(name):
             return self.elementsd[self.sequence[name]]
@@ -455,38 +752,39 @@ class Machine:
         """
         return self.length
 
-    def Append(self,object):
-        if type(object) not in (Element,Line):
-            raise TypeError("Only Elements or Lines can be added to the machine")
-        elif object.name not in self.elementsd.keys():
+    def Append(self, item):
+        if not isinstance(item, (Element, Line)):
+            msg = "Only Elements or Lines can be added to the machine"
+            raise TypeError(msg)
+        elif item.name not in self.elementsd.keys():
             #hasn't been used before - define it
-            if type(object) is Line:
-                for element in object:
-                    self.Append(object)
+            if type(item) is Line:
+                for element in item:
+                    self.Append(item)
             else:
-                self.elements.append(object)
-                self.elementsd[object.name] = object
+                self.elements.append(item)
+                self.elementsd[item.name] = item
         else:
             if self.verbose:
-                print "Element of name: ",object.name," already defined, simply adding to sequence"
+                print "Element of name: ",item.name," already defined, simply adding to sequence"
         #finally add it to the sequence
-        self.sequence.append(object.name)
+        self.sequence.append(item.name)
 
-        self.length += object.length
+        self.length += item.length
         self.lenint.append(self.length)
 
         # list of elements that produce SR
         elementsSR = ["sbend", "rbend"]
 
         # update energy if correct element category and has finite length.
-        if object.category in elementsSR and object.length > 0:
-            if object.has_key('angle'):
-                ang = object['angle']
+        if item.category in elementsSR and item.length > 0:
+            if "angle" in item:
+                ang = item['angle']
                 if type(ang) == tuple:
                     ang = ang[0]
                 else:
                     ang = ang
-            elif object.has_key('B'):
+            elif "B" in item:
                 # Assume a beam instance has been added to machine...
                 if (self.beam['particle'] == "e-") or (self.beam['particle'] == "e+"):
                     pMass = 0.000511
@@ -496,7 +794,7 @@ class Machine:
                     pMass = 0
                 if (self.energy[-1] > 0):
                     brho = 3.3356 * _np.sqrt(self.energy[-1]**2 - pMass**2)
-                    ang  = object['B'] * object.length / brho
+                    ang  = item['B'] * item.length / brho
                 else:
                     ang  = 0
             else:
@@ -506,7 +804,7 @@ class Machine:
 
             # bend so SR generated. Recompute beam energy
             energy = self.energy[-1]
-            self.energy.append(energy-14.1e-6*ang**2/object.length*energy**4)
+            self.energy.append(energy-14.1e-6*ang**2/item.length*energy**4)
         else :
             self.energy.append(self.energy[-1])
 
@@ -555,8 +853,20 @@ class Machine:
         writer = _Writer.Writer()
         writer.WriteMachine(self,filename,verboseresult)
 
-    def AddBias(self, biasobject):
-        self.bias.append(biasobject)
+    def AddBias(self, biases):
+        """Add a XSecBias.XSecBias instance or iterable of instances
+        to this machine."""
+        # If a single bias object
+        if isinstance(biases, pybdsim.XSecBias.XSecBias):
+            self.bias.append(biases)
+        else: # An iterable of biases.
+            try:
+                for bias in biases:
+                    self.AddBias(bias)
+            except TypeError:
+                msg = ("Unknown biases!  Biases must be a XSecBias"
+                       "instance or an iterable of XSecBias instances.")
+                raise TypeError(msg)
 
     def AddBeam(self, beam=None):
         """
@@ -571,20 +881,20 @@ class Machine:
 
     def AddOptions(self, options=None):
         """
-        Assign an options instance to this machine. 
+        Assign an options instance to this machine.
         """
         if type(options) != _Options.Options:
             raise TypeError("Incorrect type - please provide pybdsim.Options.Options instance")
         self.options = options
-        
+
     def AddMarker(self, name='mk'):
-        """ 
+        """
         Add a marker to the beam line.
         """
         if self.verbose:
             print 'AddMarker> ',name
         self.Append(Element(name,'marker'))
-    
+
     def AddDrift(self, name='dr', length=0.1, **kwargs):
         """
         Add a drift to the beam line
@@ -616,7 +926,7 @@ class Machine:
 
     def AddQuadrupole(self, name='qd', length=0.1, k1=0.0, **kwargs):
         self.Append(Element(name,'quadrupole',l=length,k1=k1,**kwargs))
-        
+
     def AddSextupole(self, name='sx', length=0.1, k2=0.0, **kwargs):
         self.Append(Element(name,'sextupole',l=length,k2=k2,**kwargs))
 
@@ -637,7 +947,7 @@ class Machine:
 
     def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
         self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
-        
+
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
         for k,v in kwargs.iteritems():
@@ -679,7 +989,7 @@ class Machine:
             if 'aper' not in str(k).lower():
                 d[k] = v
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
-        
+
     def AddHKicker(self, name='hk', hkick=0.0, **kwargs):
         self.Append(Element(name,'hkicker', hkick=hkick, **kwargs))
 
@@ -725,12 +1035,12 @@ class Machine:
         magnetlength - length of magnets in metres
         driftlength  - length of drift segment in metres
         kabs         - the absolute value of the quadrupole strength - alternates between magnets
-        nsplits      - number of segments drift length is split into 
+        nsplits      - number of segments drift length is split into
 
-        Will add qf quadrupole of strength +kabs, then drift of l=driftlength split into 
+        Will add qf quadrupole of strength +kabs, then drift of l=driftlength split into
         nsplit segments followed by a qd quadrupole of strength -kabs and the same pattern
         of drift segments.
-        
+
         nsplits will be cast to an even integer for symmetry purposes.
 
         \*\*kwargs are other parameters for bdsim - ie aper=0.2
@@ -759,21 +1069,29 @@ class Machine:
         for i in range(ncells):
             cellname = basename+'_'+str(i).zfill(maxn)
             self.AddFodoCellSplitDrift(cellname,magnetlength,driftlength,kabs,nsplits=10,**kwargs)
-            
-    def AddSampler(self,*elementnames):
-        if elementnames[0] == 'all':
-            self.samplers.append(Sampler('all'))
-        elif elementnames[0] == 'first':
-            self.samplers.append(Sampler(self.elements[0].name))
-        elif elementnames[0] == 'last':
-            self.samplers.append(Sampler(self.elements[-1].name))
-        else:
-            for element in elementnames:
-                if element not in self.sequence:
-                    raise ValueError(element+" is not a valid element in this machine")
-                else:
-                    self.samplers.append(Sampler(element))
 
+    def AddSampler(self, names):
+        if isinstance(names, basestring):
+            if names == "all":
+                self.samplers.append(Sampler("all"))
+            elif names == "first":
+                self.samplers.append(Sampler(self.elements[0].name))
+            elif names == "last":
+                self.samplers.append(Sampler(self.elements[-1].name))
+            else:
+                if names not in self.sequence:
+                    msg = "{} not found to attach sampler to.".format(name)
+                    raise ValueError(msg)
+                self.samplers.append(Sampler(names))
+        else: # assume some flat iterable of sampler names.
+            for name in names:
+                self.AddSampler(name)
+
+    def AddRmat(self, name='rmat', length=0.1, r11=1.0, r12=0, r13=0, r14=0, r21=0, r22=1.0, r23=0, r24=0, r31=0, r32=0, r33=1.0, r34=0, r41=0, r42=0, r43=0, r44=1.0, **kwargs):
+        self.Append(Element(name, 'rmatrix',l=length, rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14, rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24, rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34, rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44, **kwargs))
+
+    def AddThinRmat(self, name='rmatthin', r11=1.0, r12=0, r13=0, r14=0, r21=0, r22=1.0, r23=0, r24=0, r31=0, r32=0, r33=1.0, r34=0, r41=0, r42=0, r43=0, r44=1.0, **kwargs):
+        self.Append(Element(name, 'rmatrixthin', rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14, rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24, rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34, rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44, **kwargs))
 
 # General scripts below this point
 
@@ -802,7 +1120,7 @@ def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first
     ncells        - number of cells, each containing 1 dipole and a drift
     circumference - in metres
     samplers      - 'first', 'last' or 'all'
-    
+
     """
     ndipoles = int(ndipoles)
     a            = Machine()
@@ -821,7 +1139,7 @@ def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfractio
     circumference - in metres
     driftfraction - the fraction of drift in each cell (0.0 < driftfraction < 1.0)
     samplers      - 'first', 'last' or 'all'
-    
+
     """
     ncells = int(ncells)
     if driftfraction > 1.0:
@@ -850,7 +1168,7 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     ncells         - number of fodo+dipole cells to create
     circumference  - circumference of machine in metres
     samplers       - 'first','last' or 'all'
-    
+
     Hard coded to produce the following cell fractions:
     50% dipoles
     20% quadrupoles
@@ -884,17 +1202,17 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
         a.AddQuadrupole(cellname+'_qd_c',ql*0.5,k1)
     a.AddSampler(samplers)
     a.Write(filename)
-    
+
 def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, samplers='all',**kwargs):
     """
     Create a FODO lattice with ncells.
-    
+
     ncells       - number of fodo cells
     driftlength  - length of drift segment in between magnets
     magnetlength - length of quadrupoles
     samplers     - 'all','first' or 'last'
     \*\*kwargs   - kwargs to supply to quadrupole constructor
-    
+
     """
     ncells = int(ncells)
     a      = Machine()
@@ -923,23 +1241,23 @@ def WriteMachine(machine, filename, verbose=False):
 
     Write a machine to disk. This writes several files to make the
     machine, namely:
-    
+
     filename_components.gmad - component files (max 10k per file)
     filename_sequence.gmad   - lattice definition
     filename_samplers.gmad   - sampler definitions (max 10k per file)
     filename_options.gmad    - options
-    filename.gmad            - suitable main file with all sub 
+    filename.gmad            - suitable main file with all sub
                                files in correct order
-    
+
     these are prefixed with the specified filename / path
-    
+
     """
-    
+
     if not isinstance(machine,Machine):
         raise TypeError("Not machine instance")
-    
+
     elementsperline = 100 #number of machine elements per bdsim line (not text line)
-    
+
     #check filename
     if filename[-5:] != '.gmad':
         filename += '.gmad'
@@ -949,7 +1267,7 @@ def WriteMachine(machine, filename, verbose=False):
         directory = '/'.join(filename.split('/')[:-1]) #strip the filename off
         if not _os.path.exists(directory):
             _os.system("mkdir -p " + directory)
-    
+
     #check if file already exists
     ofilename = filename
     filename = _General.GenUniqueFilename(filename)
@@ -975,7 +1293,7 @@ def WriteMachine(machine, filename, verbose=False):
         for bias in machine.bias:
             f.write(str(bias))
         f.close()
-    
+
     #write component files
     f = open(fn_components, 'w')
     files.append(fn_components)
@@ -1016,10 +1334,10 @@ def WriteMachine(machine, filename, verbose=False):
             f.write(str(sampler))
         f.close()
 
-    # write beam 
-    f = open(fn_beam,'w') 
+    # write beam
+    f = open(fn_beam,'w')
     files.append(fn_beam)
-    f.write(timestring) 
+    f.write(timestring)
     f.write('! pybdsim.Builder \n')
     f.write('! BEAM DEFINITION \n\n')
     f.write(machine.beam.ReturnBeamString())
@@ -1029,7 +1347,7 @@ def WriteMachine(machine, filename, verbose=False):
     if machine.options != None:
         f = open(fn_options,'w')
         files.append(fn_options)
-        f.write(timestring) 
+        f.write(timestring)
         f.write('! pybdsim.Builder \n')
         f.write('! OPTIONS DEFINITION \n\n')
         f.write(machine.options.ReturnOptionsString())
@@ -1041,7 +1359,7 @@ def WriteMachine(machine, filename, verbose=False):
     f.write('! pybdsim.Builder Lattice \n')
     f.write('! number of elements = ' + str(len(machine.elements)) + '\n')
     f.write('! total length       = ' + str(machine.length) + ' m\n\n')
-    
+
     for fn in files:
         fn = fn.split('/')[-1]
         f.write('include '+fn+';\n')
@@ -1061,7 +1379,7 @@ def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=Tr
     """
     Create a gmad file with samplers for all the elements in a beamline
     as described by the survey outline from bdsim
-    
+
     bdsim --file=mylattice.gmad --outline=survey.dat --outline_type=survey
 
     excludesamplers - bool - exclude any existing samplers
@@ -1078,5 +1396,5 @@ def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=Tr
     #write the output
     f = open(outputfilename,'w')
     for sampler in samplers:
-        f.write(sampler.__repr__())
+        f.write(repr(sampler))
     f.close()
