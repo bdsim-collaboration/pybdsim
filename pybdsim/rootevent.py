@@ -5,8 +5,8 @@ import warnings
 import numpy as np
 import ROOT
 
-if ROOT.gSystem.Load("librebdsimLib") == -1:
-    raise ImportError("Cannot find librebdsimLib root library.")
+if ROOT.gSystem.Load("librebdsim") == -1:
+    raise ImportError("Cannot find librebdsim root library.")
 
 # These must be hardcoded, I think, as C++ has no reflection.
 # These are per component variables.
