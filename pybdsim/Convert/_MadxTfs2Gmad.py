@@ -575,6 +575,10 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         k2 = item['K2L'] / l * factor if not linear else 0
         return _Builder.Sextupole(rname, l, k2, **kws)
     elif t == 'SOLENOID':
+        if l == 0.0:
+            msg = "{} is a thin solenoid and is omitted.".format(name)
+            _warnings.warn(msg)
+            return None
         ks = item['KSI'] / l
         return _Builder.Solenoid(rname, l, ks=ks, **kws)
     else:
