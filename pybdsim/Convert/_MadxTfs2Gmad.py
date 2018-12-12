@@ -219,11 +219,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
                               "COLLIMATOR", "INSTRUMENT"}
 
     # iterate through input file and construct machine
-    for item in madx[startname:stopname:stepsize]:
+    for i, item in enumerate(madx[startname:stopname:stepsize]):
         name = item['NAME']
         t = item['KEYWORD']
         l = item['L']
-        i = item['INDEX']
 
         zerolength = True if item['L'] < 1e-9 else False
         if (not madx.ElementPerturbs(item)
