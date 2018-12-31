@@ -1,7 +1,7 @@
 """
 pybdsim - python tool for BDSIM.
 
-Copyright Royal Holloway, University of London 2018.
+Copyright Royal Holloway, University of London 2019.
 
 +-----------------+--------------------------------+
 | **Dependency**  | **Minimum Version Required**   |
