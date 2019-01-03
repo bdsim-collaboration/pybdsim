@@ -394,7 +394,7 @@ class Options(dict):
     def SetTrajectoryCutLTR(self,ltr=10.0,unitsstring='m'):
         self['trajCutLTR'] = str(ltr) + '*' + unitsstring
 
-    def SetPrintModuloFraction(self,pmf=1e-2):
+    def SetPrintModuloFraction(self,pmf=1e-1):
         self['printModuloFraction'] = pmf
 
     def SetNPerFile(self,nperfile=100):

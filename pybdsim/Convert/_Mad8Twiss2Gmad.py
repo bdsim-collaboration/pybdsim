@@ -60,7 +60,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         print "Mad8Twiss2Gmad> finding start : ",istart 
         istart = c.findByName(istart)[0]
         print "Mad8Twiss2Gmad> using index   : ",istart
-        
+
+    if type(istart) == int :
+        print "Mad8Twiss2Gmad> starting at element : ",istart
     # load Collimator db or use instance
     if type(collimator) == str : 
         collimator = Mad8CollimatorDatabase(collimator) 
@@ -90,9 +92,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     s_cut       = s[istart] - elelength
     print s_cut
     energy      = c.getColumn('E')
-    energy0     = energy[0] 
-    energy_cut  = energy[istart]
-    scale       = energy/energy_cut
+    energy0     = energy[0]
+    if istart == 0:
+        energy_cut  = energy[0]
+        scale       = 1
+    else:
+        energy_cut  = energy[istart-1]
+        scale       = energy/energy_cut
     print 'Initial element              ', istart
     print 'Initial S                    ', s_cut
     if s_cut!= 0 :
@@ -136,6 +142,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     print 'charge    ',charge
     print 'mass      ',mass
     print 'energy0   ',energy0
+    if energy_cut != energy0:
+        print 'energy_cut',energy_cut
     print 'momentum0 ',momentum0
     print 'brho0     ',brho0
 
@@ -159,7 +167,6 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         rGamma0    = (energy0*1000)/(mass)
         rBeta0     = _np.sqrt(1-1/(rGamma0**2))       
         #momentum & relativistic factors at cut
-        energy_cut=energy[istart]
         momentum_cut =_np.sqrt(energy_cut**2+mass**2)
         rGamma_cut = (energy_cut*1000)/mass
         rBeta_cut = _np.sqrt(1-(1/(rGamma_cut**2)))
@@ -431,7 +438,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 #       ###################################################################
         elif c.type[i] == 'LCAV' : 
             length   = float(c.data[i][c.keys['lcav']['l']])
-            deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV 
+#            deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV #Gives undesirable results if phase=/=0. Actual energy change, not wave amplitude. 
+            deltaE   = float(c.data[i][c.keys['lcav']['volt']]) #value labelled 'volt' in pymad8 is deltaE.
             freq     = float(c.data[i][c.keys['lcav']['freq']])
             lag      = float(c.data[i][c.keys['lcav']['lag']])
             gradient = deltaE/length
@@ -439,7 +447,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                           length    = length, 
                           gradient  = gradient,
                           phase     = lag * 2 * _np.pi,
-                          frequency = freq * 2 * _np.pi,
+                          frequency = freq,# * 2 * _np.pi,
                           aper1     = apertures.aper[i])
 #       ###################################################################
         elif c.type[i] == 'ECOL' :
