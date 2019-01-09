@@ -94,10 +94,10 @@ _EMITT   = {"bdsimdata"  : ("Emitt_x", "Emitt_y"),
 def _LoadData(bdsim, bdsimname, madx, madxname, ptctwiss, ptctwissname, ptc, ptcname, relativeTo=None):
     """
     Load the supplied data. Can handle lists of supplied data files and names.
-    Returns: listOfData, listOfNames
+    Returns: dictOfData, dictOfNames
     """
     def Load(data, name, datatype, parsingfunction):
-        """ data     : list of tfs output filenames
+        """ data     : list of output files or instances
             name     : list of names to be used in plot legend
             datatype : string of data type, e.g. "madx". used for error output only
             parsingfunction : callable function to parse the supplied input
@@ -219,10 +219,9 @@ def _parse_tfs_input(tfs_in, name):
             "Expected Tfs input is neither a "
             "file path nor a Tfs instance: {}".format(tfs_in))
 
-
 def _parse_relative_input(rel_in, name):
     """Return relative data as the appropriate instance, which should either be a path
-    to a TFS file or a Tfs instance, and in either case, generate a
+    to a TFS or BDSAsciiData file or instance, and in either case, generate a
     name if None is provided, and return that as well."""
     if rel_in is None:
         return None, None
@@ -271,31 +270,26 @@ def _plotBdsimType(data, name, plot_info, axis='both', **kwargs):
         name : supplied tfsname
         plot_info : one of the predefined dicts from top of this file
         axis : which axis to plot (x, y, or both)"""
-    def _plot(data, plot_info, n, legLabel='', **kwargs):
-        """ data : pymadx.Data.Tfs instance
-            name : supplied tfsname
-            plot_info : one of the predefined dicts from top of this file
-            axis : index of tuple in predefined dict. """
-        variable = plot_info["bdsimdata"][n]  # variable name from predefined dict
-        variableError = plot_info["bdsimerror"][n]  # variable error name from predefined dict
+    def _plot(data, variableName, errorVariableName , legLabel='', **kwargs):
+        """ Plots the BDSIM type data with errors."""
         _plt.errorbar(data.GetColumn('S'),
-                      data.GetColumn(variable),
-                      yerr=data.GetColumn(variableError),
+                      data.GetColumn(variableName),
+                      yerr=data.GetColumn(errorVariableName),
                       label=legLabel,
                       capsize=3, **kwargs)
-    # plot specific axes according to tuple index in predefined dict
-    # x = 0, y = 1
+
+    # plot specific axes according to tuple index in predefined dict. x = 0, y = 1
     if axis == 'x':
         legendLabel = "{}; N = {:.1E}".format(name, data.Npart()[0])
-        _plot(data, plot_info, 0, legendLabel, **kwargs)
+        _plot(data, plot_info["bdsimdata"][0], plot_info["bdsimerror"][0], legendLabel, **kwargs)
     elif axis == 'y':
         legendLabel = "{}; N = {:.1E}".format(name, data.Npart()[0])
-        _plot(data, plot_info, 1, legendLabel, **kwargs)
+        _plot(data, plot_info["bdsimdata"][1], plot_info["bdsimerror"][1], legendLabel, **kwargs)
     elif axis == 'both':
         xlegendLabel = "{}; {}; N = {:.1E}".format(name, plot_info["legend"][0], data.Npart()[0])
         ylegendLabel = "{}; {}; N = {:.1E}".format(name, plot_info["legend"][1], data.Npart()[0])
-        _plot(data, plot_info, 0, xlegendLabel, **kwargs)
-        _plot(data, plot_info, 1, ylegendLabel, **kwargs)
+        _plot(data, plot_info["bdsimdata"][0], plot_info["bdsimerror"][0], xlegendLabel, **kwargs)
+        _plot(data, plot_info["bdsimdata"][1], plot_info["bdsimerror"][1], ylegendLabel, **kwargs)
 
 # template plotter for madx type data (madx and ptctwiss)
 def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
@@ -304,10 +298,7 @@ def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
         plot_info : one of the predefined dicts from top of this file
         axis : which axis to plot (x, y, or both) """
     def _plot(data, plot_info, n, legLabel='', **kwargs):
-        """ data : pymadx.Data.Tfs instance
-            name : supplied tfsname
-            plot_info : one of the predefined dicts from top of this file
-            axis : index of tuple in predefined dict. """
+        """ Plots the MADX type data."""
         variable = plot_info["madx"][n]  # variable name from predefined dict
         title = plot_info['title'] + axis  # add axis to distinguish plot titles
         s = data.GetColumn('S')
@@ -328,7 +319,7 @@ def _plotMadxType(data, name, plot_info, axis='both', **kwargs):
         _plot(data, plot_info, 0, xlegendLabel, **kwargs)
         _plot(data, plot_info, 1, ylegendLabel, **kwargs)
 
-# template residua plotter for all data types
+# template residual plotter for all data types
 def _plotResiduals(alldata, allnames,
                    plot_info,
                    plotterData=None,
@@ -338,7 +329,9 @@ def _plotResiduals(alldata, allnames,
     """ alldata  : dict of supplied data
         allnames : dict of supplied data names for plot legend
         plot_info : one of the predefined dicts from top of this file
-        axis : which axis to plot (x, y, or both)"""
+        plotterData: dict with plotting info
+        axis : which axis to plot (x, y, or both)
+        plotErrors: bool for plotting errors."""
     def _getColumn(data, plot_info, n):
         variable = None
         variableError = None
@@ -354,15 +347,56 @@ def _plotResiduals(alldata, allnames,
         secondColumn, secondColumnError = _getColumn(seconddata, plot_info, n)
         relColumn, relColumnError = _getColumn(relativeData, plot_info, n)
 
-        residData = firstdata.GetColumn(firstColumn) - secondData.GetColumn(secondColumn)
+        # no errors in tfs or ptctwiss output
+        if (firstColumnError is None) or (secondColumnError is None):
+            plotErrors = False
+        # relative data supplied but it has no errors, i.e. is TFS data.
+        if (relativeData is not None) and relColumnError is None:
+            plotErrors = False
 
-        firstError2 = firstdata.GetColumn(firstColumnError)**2
-        secondError2 = secondData.GetColumn(secondColumnError)**2
-        residDataError = _np.sqrt(firstError2 + secondError2)
+        firstvarError = None
+        secondvarError = None
 
+        # emittance is a number in the header for tfs or ptctwiss so convert to an array for plotting
+        if (firstColumn == "EX") or (firstColumn == "EY"):
+            firstvar = firstdata.header[firstColumn] * _np.ones(len(firstdata.GetColumn('S')))
+        else:
+            firstvar = firstdata.GetColumn(firstColumn)
+            if plotErrors:
+                firstvarError = firstdata.GetColumn(firstColumnError)
+        if (secondColumn == "EX") or (secondColumn == "EY"):
+            secondvar = seconddata.header[secondColumn] * _np.ones(len(seconddata.GetColumn('S')))
+        else:
+            secondvar = secondData.GetColumn(secondColumn)
+            if plotErrors:
+                secondvarError = secondData.GetColumn(secondColumnError)
+
+        # residual data
+        residData = firstvar - secondvar
+
+        residDataError = None
+        # now calculate relative data and statistical errors
         if relativeData is not None:
-            relData = relativeData.GetColumn(relColumn)
-            residData /= relData
+            if (relColumn == "EX") or (relColumn == "EY"):
+                relvar = relativeData.header[relColumn] * _np.ones(len(relativeData.GetColumn('S')))
+            else:
+                relvar = relativeData.GetColumn(relColumn)
+
+            # relative residuals
+            residData /= relvar
+
+            # from error propagation formulae: f = (a-b)/c
+            # df**2 = (da**2 /c**2) + (db**2 /c**2) + (dc**2 /c**2)*((a**2 + b**2)/c**2)
+            if plotErrors:
+                relvarError = relativeData.GetColumn(relColumnError)
+                residDataError2 = (firstvarError**2 + secondvarError**2 +
+                                               (relvarError**2 * (firstvar**2 + secondvar**2)/relvar**2)) / relvar**2
+                residDataError = _np.sqrt(residDataError2)
+        else:
+            if plotErrors:
+                # from error propagation formulae: f = a-b
+                # df**2 = da**2 + db**2
+                residDataError = _np.sqrt(firstvarError**2 + secondvarError**2)
 
         if plotErrors:
             _plt.errorbar(firstData.GetColumn('S'),
@@ -372,6 +406,7 @@ def _plotResiduals(alldata, allnames,
         else:
             _plt.plot(firstData.GetColumn('S'), residData, label=legLabel)
 
+    # get correct data and names
     firsttype = plotterData["firsttype"]
     secondtype = plotterData["secondtype"]
 
@@ -383,29 +418,30 @@ def _plotResiduals(alldata, allnames,
     else:
         seconddata = alldata[secondtype][0]
         secondname = allnames[secondtype][0]
+    name = firstname + " - " + secondname
 
-    '''
-    # get data and names
-    firstdata = None
-    seconddata = None
-    firstname = ""
-    secondname = ""
-    if len(alldata["bdsim"]) == 2:
-        firstdata = alldata["bdsim"][0]
-        seconddata = alldata["bdsim"][1]
-        firstname = allnames["bdsim"][0]
-        secondname = allnames["bdsim"][1]
-    elif len(alldata["ptc"]) == 2:
-        firstdata = alldata["ptc"][0]
-        seconddata = alldata["ptc"][1]
-        firstname = allnames["ptc"][0]
-        secondname = allnames["ptc"][1]
-    elif (len(alldata["ptc"]) == 1) and (len(alldata["bdsim"]) == 1):
-        firstdata = alldata["bdsim"][0]
-        seconddata = alldata["ptc"][0]
-        firstname = allnames["bdsim"][0]
-        secondname = allnames["ptc"][0]
-    '''
+    # get number particles. Check needed as number only available in bdsim type data
+    if hasattr(firstdata,"Npart") and hasattr(seconddata,"Npart"):
+        if firstdata.Npart()[0] != seconddata.Npart()[0]:
+            numParticles = None
+        else:
+            numParticles= firstdata.Npart()[0]
+    elif hasattr(firstdata,"Npart"):
+        numParticles = firstdata.Npart()[0]
+    elif hasattr(seconddata, "Npart"):
+        numParticles = seconddata.Npart()[0]
+    else:
+        numParticles = None
+
+    if numParticles is not None:
+        legendLabel = "{}; N = {:.1E}".format(name, numParticles)
+        xlegendLabel = "{}; {}; N = {:.1E}".format(name, plot_info["legend"][0], numParticles)
+        ylegendLabel = "{}; {}; N = {:.1E}".format(name, plot_info["legend"][1], numParticles)
+    else:
+        legendLabel = name
+        xlegendLabel = "{}; {}; ".format(name, plot_info["legend"][0])
+        ylegendLabel = "{}; {}; ".format(name, plot_info["legend"][1])
+
     relativeData = None
     if len(alldata["rel"]) > 0:
         relativeData = alldata["rel"][0]
@@ -413,18 +449,12 @@ def _plotResiduals(alldata, allnames,
     if isinstance(firstdata, _pymadx.Data.Tfs) or isinstance(seconddata, _pymadx.Data.Tfs):
         plotErrors = False
 
-    # plot specific axes according to tuple index in predefined dict
-    # x = 0, y = 1
-    name = firstname + " - " + secondname
+    # plot specific axes according to tuple index in predefined dict. x = 0, y = 1
     if axis == 'x':
-        legendLabel = "{}; N = {:.1E}".format(name, firstdata.Npart()[0])
-        _plot(firstdata, seconddata, plot_info, 0, legendLabel, plotErrors, **kwargs)
+        _plot(firstdata, seconddata, plot_info, 0, legendLabel, plotErrors, relativeData, **kwargs)
     elif axis == 'y':
-        legendLabel = "{}; N = {:.1E}".format(name, firstdata.Npart()[0])
-        _plot(firstdata, seconddata, plot_info, 1, legendLabel, plotErrors, **kwargs)
+        _plot(firstdata, seconddata, plot_info, 1, legendLabel, plotErrors, relativeData, **kwargs)
     elif axis == 'both':
-        xlegendLabel = "{}; {}; N = {:.1E}".format(name, plot_info["legend"][0], firstdata.Npart()[0])
-        ylegendLabel = "{}; {}; N = {:.1E}".format(name, plot_info["legend"][1], firstdata.Npart()[0])
         _plot(firstdata, seconddata, plot_info, 0, xlegendLabel, plotErrors, relativeData, **kwargs)
         _plot(firstdata, seconddata, plot_info, 1, ylegendLabel, plotErrors, relativeData, **kwargs)
 
@@ -435,7 +465,8 @@ def _make_plotter(plot_info):
     def f_out(alldata, allnames, axis='both', plotterData=None, **kwargs):
         """ alldata  : dict of all data returned by _LoadData method
             allnames : dict of all names returned by _LoadData method
-            plotterData: plotting config data
+            axis     : which axis to plot (x, y, or both)
+            plotterData : plotting config data
             """
         # extract plot labelling from predefined dict
         x_label = plot_info['xlabel']
@@ -551,6 +582,18 @@ def _CompareOptics(bdsim=None, bdsimname=None,
             print("First and second files have different lengths. Residuals cannot be calculated.")
             return
 
+        # remove relative data if is not the same length as the residual data.
+        if data['rel'][0] is not None:
+            reldata = data['rel'][0]
+            if len(reldata) != len(firstdata):
+                print("Length of relative data is not equal to the residual data. Not plotting relative data.")
+                data['rel'] = []
+
+        # warn if number of initial primaries is different.
+        if hasattr(firstdata, "Npart") and hasattr(seconddata, "Npart"):
+            if firstdata.Npart()[0] != seconddata.Npart()[0]:
+                print("Data has different number of particles in inital distribution.")
+
     # now plot the graphs
     if plotAxesSeparately:
         figures = [
@@ -616,6 +659,7 @@ def CompareOptics(bdsim=None, bdsimname=None,
     """
     Compares optics of multiple files supplied. Can be any combination of single or multiple
     BDSIM, Tfs, ptc_twiss output, or PTC output (PTC output converted to BDSIM compatible format).
+    Pymadx.Data.TFS or pybdsim.Data.BDSAsciiData instances can also be supplied instead of filenames.
 
     Names can be supplied along with the filenames that will appear in the legend. Multiple filenames
     can be supplied in a list. If the number of names is not equal to the number of filenames, the supplied
@@ -624,7 +668,7 @@ def CompareOptics(bdsim=None, bdsimname=None,
     Up to 6 files can be compared to one another.
 
     If up to 2 files are supplied, the optical functions for the x and y axes are plotted on the
-    same figure
+    same figure.
 
     If more than 2 files are supplied, the optical functions for the x and y axes are plotted on
     seperate figures.
@@ -633,7 +677,8 @@ def CompareOptics(bdsim=None, bdsimname=None,
     | **Parameters**     | **Description**                                         |
     +--------------------+---------------------------------------------------------+
     | bdsim              | Optics root file (from rebdsimOptics or rebdsim),       |
-    |                    | or list of multiple optics root files.                  |
+    |                    | or BDSAsciiData instance, or list of multiple root      |
+    |                    | files or instances.                                     |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
     | bdsimname          | bdsim name that will appear in the plot legend          |
@@ -641,7 +686,7 @@ def CompareOptics(bdsim=None, bdsimname=None,
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
     | tfs                | Tfs file (or pymadx.Data.Tfs instance),                 |
-    |                    | or list of multiple Tfs files.                          |
+    |                    | or list of multiple Tfs files or instances.             |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
     | tfsname            | tfs name that will appear in the plot legend            |
@@ -649,17 +694,17 @@ def CompareOptics(bdsim=None, bdsimname=None,
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
     | ptctwiss           | ptctwiss output file (or pymadx.Data.Tfs instance),     |
-    |                    | of list of multiple ptctwiss files.                     |
+    |                    | of list of multiple ptctwiss files or instances.        |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
     | ptctwissname       | ptctwiss name that will appear in the plot legend       |
     |                    | or list of multiple ptctwiss names.                     |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
-    | ptc                | Optics root file (from rebdsimOptics or rebdsim) that   |
-    |                    | was generated with PTC data that has been               |
-    |                    | converted to bdsim format via ptc2bdsim,                |
-    |                    | or list of multiple files.                              |
+    | ptc                | Optics root file (from rebdsimOptics or rebdsim) or     |
+    |                    | BDSAsciiData instance that was generated with PTC data  |
+    |                    | and has been converted to bdsim format via ptc2bdsim,   |
+    |                    | or list of multiple files or instances.                 |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
     | ptcname            | ptc name that will appear in the plot legend            |
@@ -703,7 +748,7 @@ def CompareOptics(bdsim=None, bdsimname=None,
         if not _ospath.isfile(survey):
             raise IOError("Survey not found: ", survey)
 
-    # pass in plotting config data in a dict to minimise number of args (which will ony increase)
+    # pass in plotting config data in a dict to minimise number of args (which will only increase)
     plotterData = {"survey": survey,
                    "figsize": figsize,
                    "savefig": saveIndivFigs,
@@ -733,64 +778,65 @@ def CompareOpticsResiduals(first=None, firstname=None,
                            saveIndivFigs=False,
                            **kwargs):
     """
-    Compares optics of multiple files supplied. Can be any combination of single or multiple
+    Compares absolute residual optics of multiple files supplied. Can be any combination of single or multiple
     BDSIM, Tfs, ptc_twiss output, or PTC output (PTC output converted to BDSIM compatible format).
+    Pymadx.Data.TFS or pybdsim.Data.BDSAsciiData instances can also be supplied instead of filenames.
 
     Names can be supplied along with the filenames that will appear in the legend. Multiple filenames
     can be supplied in a list. If the number of names is not equal to the number of filenames, the supplied
     names will be ignored.
 
-    Up to 6 files can be compared to one another.
+    The "type" of data must also be supplied to help distinguish the data type and subsequent loading and processing.
+    Must be one of "bdsim", "tfs", "ptctwiss", or "ptc".
 
-    If up to 2 files are supplied, the optical functions for the x and y axes are plotted on the
-    same figure
-
-    If more than 2 files are supplied, the optical functions for the x and y axes are plotted on
-    seperate figures.
+    The residuals will be the first data minus the second data. The residuals can also be relative to a third
+    data set supplied by the relativeTo argument. This can be a filename or instance of a BDSIM, Tfs, ptc_twiss,
+    or PTC output. Errors are not plotted by default. If errors are desired, the errors plotted are calculated
+    from the supplied data (and relative data) using standard error propagation to ensure they are statistically
+    correct. If nothing is supplied to the relativeTo arguments, the residuals are plotted as absolute.
 
     +--------------------+---------------------------------------------------------+
     | **Parameters**     | **Description**                                         |
     +--------------------+---------------------------------------------------------+
-    | bdsim              | Optics root file (from rebdsimOptics or rebdsim),       |
-    |                    | or list of multiple optics root files.                  |
+    | first              | Optics root file (from rebdsimOptics or rebdsim),       |
+    |                    | BDSAsciiData instance, Tfs file, or pymadx.Data.Tfs     |
+    |                    | instance.                                               |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
-    | bdsimname          | bdsim name that will appear in the plot legend          |
-    |                    | or list of multiple bdsim names.                        |
+    | firstname          | Name that will appear in the plot legend.               |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
-    | tfs                | Tfs file (or pymadx.Data.Tfs instance),                 |
-    |                    | or list of multiple Tfs files.                          |
+    | second             | Optics root file (from rebdsimOptics or rebdsim),       |
+    |                    | BDSAsciiData instance, Tfs file, or pymadx.Data.Tfs     |
+    |                    | instance.                                               |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
-    | tfsname            | tfs name that will appear in the plot legend            |
-    |                    | or list of multiple tfs names.                          |
+    | secondname         | Name that will appear in the plot legend.               |
     |                    | default = None                                          |
     +--------------------+---------------------------------------------------------+
-    | ptctwiss           | ptctwiss output file (or pymadx.Data.Tfs instance),     |
-    |                    | of list of multiple ptctwiss files.                     |
-    |                    | default = None                                          |
+    | firstype           | Data type of first optics data, must be one of "bdsim", |
+    |                    | "tfs", "ptctwiss", or "ptc".                            |
+    |                    | default = ""                                            |
     +--------------------+---------------------------------------------------------+
-    | ptctwissname       | ptctwiss name that will appear in the plot legend       |
-    |                    | or list of multiple ptctwiss names.                     |
-    |                    | default = None                                          |
-    +--------------------+---------------------------------------------------------+
-    | ptc                | Optics root file (from rebdsimOptics or rebdsim) that   |
-    |                    | was generated with PTC data that has been               |
-    |                    | converted to bdsim format via ptc2bdsim,                |
-    |                    | or list of multiple files.                              |
-    |                    | default = None                                          |
-    +--------------------+---------------------------------------------------------+
-    | ptcname            | ptc name that will appear in the plot legend            |
-    |                    | or list of multiple ptc names.                          |
-    |                    | default = None                                          |
+    | secondtype         | Data type of second optics data, must be one of "bdsim",|
+    |                    | "tfs", "ptctwiss", or "ptc".                            |
+    |                    | default = ""                                            |
     +--------------------+---------------------------------------------------------+
     | survey             | BDSIM model survey.                                     |
     +--------------------+---------------------------------------------------------+
     | figsize            | Figure size for all figures - default is (9,5)          |
     +--------------------+---------------------------------------------------------+
+    | relativeTo         | Optics data that the residuals will be plotted relative |
+    |                    | to. Must be a root file (from rebdsimOptics or rebdsim),|
+    |                    | BDSAsciiData instance, Tfs file, or pymadx.Data.Tfs     |
+    |                    | instance.                                               |
+    |                    | default = None                                          |
+    +--------------------+---------------------------------------------------------+
     | saveAll            | Save all plots generated in a single pdf file           |
     |                    | default = True.                                         |
+    +--------------------+---------------------------------------------------------+
+    | includeErrors      | Include errors in the residual plots.                   |
+    |                    | default = False                                         |
     +--------------------+---------------------------------------------------------+
     | outputFilename     | filename of generated plots.                            |
     |                    | default = optics-report.pdf                             |
@@ -863,7 +909,7 @@ def CompareOpticsResiduals(first=None, firstname=None,
     if secondtype == 'tfs':
         secondtype = 'madx'
 
-    # pass in plotting config data in a dict to minimise number of args (which will ony increase)
+    # pass in plotting config data in a dict to minimise number of args (which will only increase)
     plotterData = {"survey": survey,
                    "figsize": figsize,
                    "savefig": saveIndivFigs,
@@ -879,43 +925,6 @@ def CompareOpticsResiduals(first=None, firstname=None,
     _CompareOptics(bdsim, bdsimname, tfs, tfsname, ptctwiss, ptctwissname, ptc, ptcname,
                    plotterData=plotterData, relativeTo=relativeTo)
 
-def PlotNPartOld(data, names, survey=None, figsize=(9, 5), saveFig=False, **kwargs):
-    """ Method for plotting the number of particles.
-        Separate as only applicable to BDSIM/PTC type files.
-        """
-    npartPlot = _plt.figure('NParticles', figsize, **kwargs)
-    try:
-        if data["bdsim"][0] is not None:
-            for i in range(len(data["bdsim"])):
-                bdsimdata = data["bdsim"][i]
-                bdsimname = names["bdsim"][i]
-                _plt.plot(bdsimdata.GetColumn('S'), bdsimdata.GetColumn('Npart'), 'k-', label="{};".format(bdsimname))
-        if data["ptc"][0] is not None:
-            for i in range(len(data["ptc"])):
-                ptcdata = data["ptc"][i]
-                ptcname = names["ptc"][i]
-                if ptcdata is not None:
-                    _plt.plot(ptcdata.GetColumn('S'), ptcdata.GetColumn('Npart'), 'kx', label="{};".format(ptcname))
-    except AttributeError:
-        pass
-    
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'N Particles')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    if survey is not None:
-        try:
-            _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
-        except IOError:
-            _pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
-    _plt.show(block=False)
-
-    if saveFig:
-        _plt.savefig("NPart" + ".pdf")
-
-    return npartPlot
-
 def PlotNPart(data, names, plotterData=None, **kwargs):
     """ Method for plotting the number of particles.
         Separate as only applicable to BDSIM/PTC type files.
@@ -923,6 +932,10 @@ def PlotNPart(data, names, plotterData=None, **kwargs):
     figsize = plotterData["figsize"]
     survey = plotterData["survey"]
     saveFig = plotterData["savefig"]
+
+    if (len(data["bdsim"]) == 0) and (len(data["ptc"]) == 0):
+        print("Data provided does not contain a particle count. Not plotting Npart comparison.")
+        return
 
     npartPlot = _plt.figure('NParticles', figsize, **kwargs)
     try:
