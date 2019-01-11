@@ -185,6 +185,38 @@ def _ParseHeaderLine(line):
             units.append('NA')
     return names, units
 
+def GetModelForPlotting(rootFile, beamlineIndex=0):
+    """
+    Returns BDSAsciiData object with just the columns from the model for plotting.
+    """
+    mt = rootFile.Get("Model")
+    if not mt:
+        print "No 'Model.' tree in file"
+        return
+
+    leaves = ['componentName', 'componentType', 'length',    'staS',   'endS', 'k1']
+    names  = ['Name',          'Type',          'ArcLength', 'SStart', 'SEnd', 'k1']
+    types  = [str,              str,             float,       float,    float,  float]
+
+    beamlines = [] # for future multiple beam line support
+    # use easy iteration on root file - iterate on tree
+    for beamline in mt:
+        beamlines.append(beamline.Model)
+
+    if beamlineIndex >= len(beamlines):
+        raise IOError('Invalid beam line index')
+
+    bl = beamlines[beamlineIndex]
+    result = BDSAsciiData()
+    tempdata = []
+    for leave,name,t in zip(leaves,names,types):
+        result._AddProperty(name)
+        tempdata.append(map(t, getattr(bl, leave)))
+
+    data = map(tuple, zip(*tempdata))
+    [result.append(d) for d in data]
+    return result
+
 class RebdsimFile(object):
     """
     Class to represent data in rebdsim output file.
@@ -232,6 +264,8 @@ class RebdsimFile(object):
             branches = _rnp.list_branches(self.filename, 'Orbit')
             treedata = _rnp.root2array(self.filename, 'Orbit')
             self.orbit = _prepare_data(branches, treedata)
+        if 'Model' in trees:
+            self.model = GetModelForPlotting(self._f)
 
     def _Map(self, currentDirName, currentDir):
         h1d = self._ListType(currentDir, "TH1D")
