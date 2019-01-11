@@ -261,8 +261,8 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         axes.legend(loc='best')
 
         if survey is not None:
-            AddMachineLatticeFromSurveyToFigure(plot, survey)
-        if (tightLayout):
+            AddMachineLatticeFromSurveyToFigure(plot, survey, tightLayout)
+        else:
             _plt.tight_layout()
 
         _plt.show(block=False)
