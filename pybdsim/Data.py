@@ -185,6 +185,25 @@ def _ParseHeaderLine(line):
             units.append('NA')
     return names, units
 
+def _LoadVectorTree(tree):
+    """
+    Simple utility to loop over the entries in a tree and get all the leaves
+    which are assumed to be a single number. Return BDSAsciiData instance.
+    """
+    result = BDSAsciiData()
+    lvs = tree.GetListOfLeaves()
+    lvs = [str(lvs[i].GetName()) for i in range(lvs.GetEntries())]
+    for l in lvs:
+        result._AddProperty(l)
+    
+    #tempData = []
+    for value in tree:
+        row = [getattr(value,l) for l in lvs]
+        result.append(row)
+
+    #result = map(tuple, *tempData)
+    return result
+    
 def GetModelForPlotting(rootFile, beamlineIndex=0):
     """
     Returns BDSAsciiData object with just the columns from the model for plotting.
