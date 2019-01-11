@@ -282,6 +282,16 @@ class RebdsimFile(object):
         """
         return self._ListType(self._f, 'Tree')
 
+    def ListOfLeavesInTree(self, tree):
+        """
+        List all leaves in a tree.
+        """
+        leaves = tree.GetListOfLeaves()
+        result = []
+        for i in range(leaves.GetEntries()):
+            result.append(str(leaves.At(i)))
+        return result
+
     def ConvertToPybdsimHistograms(self):
         """
         Convert all root histograms into numpy arrays.
