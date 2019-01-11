@@ -255,7 +255,7 @@ class RebdsimFile(object):
                 data.append(elementlist)
             return data
 
-        trees = _rnp.list_trees(self.filename)
+        trees = self.ListOfTrees()
         if 'Optics' in trees:
             branches = _rnp.list_branches(self.filename,'Optics')
             treedata = _rnp.root2array(self.filename,'Optics')
