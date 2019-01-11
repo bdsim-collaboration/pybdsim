@@ -183,9 +183,7 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawRect(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'vkicker':
             DrawRect(starts[i],lengths[i], u'#ba55d3') #medium orchid
-        elif kw == 'rcol':
-            DrawRect(starts[i],lengths[i],'k')
-        elif kw == 'ecol':
+        elif kw == 'rcol' or kw == 'ecol' or kw == 'jcol':
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'degrader':
             DrawRect(starts[i],lengths[i],'k')
@@ -201,6 +199,8 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawHex(starts[i],lengths[i],'grey',alpha=0.5)
         elif kw == 'solenoid':
             DrawRect(starts[i],lengths[i], u'#ffa500') #orange
+        elif kw == 'shield':
+            DrawRect(starts[i],lengths[i], u'#808080') #dark grey
         else:
             #unknown so make light in alpha
             if lengths[i] > 1e-1:
