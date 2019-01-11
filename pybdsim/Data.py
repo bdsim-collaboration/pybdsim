@@ -259,7 +259,7 @@ class RebdsimFile(object):
         if 'Optics' in trees:
             branches = _rnp.list_branches(self.filename,'Optics')
             treedata = _rnp.root2array(self.filename,'Optics')
-            self.Optics = _prepare_data(branches, treedata)
+            self.optics = _prepare_data(branches, treedata)
         if 'Orbit' in trees:
             branches = _rnp.list_branches(self.filename, 'Orbit')
             treedata = _rnp.root2array(self.filename, 'Orbit')
