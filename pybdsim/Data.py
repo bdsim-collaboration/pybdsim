@@ -16,14 +16,7 @@ import numpy as _np
 import os as _os
 
 _useRoot      = True
-_useRootNumpy = True
 _libsLoaded   = False
-
-try:
-    import root_numpy as _rnp
-except ImportError:
-    _useRootNumpy = False
-    pass
 
 try:
     import ROOT as _ROOT
@@ -87,7 +80,6 @@ def Load(filepath):
     else:
         msg = "Unknown file type for file \"{}\" - not BDSIM data".format(filepath)
         raise IOError(msg)
-
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
@@ -153,8 +145,6 @@ def _LoadRoot(filepath):
     """
     if not _useRoot:
         raise IOError("ROOT in python not available - can't load ROOT file")
-    if not _useRootNumpy:
-        raise IOError("root_numpy not available - can't load ROOT file")
 
     _LoadROOTLibraries()
 
@@ -276,13 +266,9 @@ class RebdsimFile(object):
 
         trees = self.ListOfTrees()
         if 'Optics' in trees:
-            branches = _rnp.list_branches(self.filename,'Optics')
-            treedata = _rnp.root2array(self.filename,'Optics')
-            self.optics = _prepare_data(branches, treedata)
+            self.optics = _LoadVectorTree(self._f.Get("Optics"))
         if 'Orbit' in trees:
-            branches = _rnp.list_branches(self.filename, 'Orbit')
-            treedata = _rnp.root2array(self.filename, 'Orbit')
-            self.orbit = _prepare_data(branches, treedata)
+            self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
         if 'Model' in trees:
             self.model = GetModelForPlotting(self._f)
 
