@@ -235,22 +235,20 @@ _MEAN = [("Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
 
 def _make_plotter(plot_info_tuples, x_label, y_label, title):
     def f_out(bds, outputfilename= None, survey=None, **kwargs):
-        sf = _CheckItsBDSAsciiData(bds)
-
         # options
         tightLayout = True
         if 'tightLayout' in kwargs:
             tightLayout = kwargs['tightLayout']
 
         # Get the initial N for the two sources
-        first_nparticles = sf.Npart()[0]
+        first_nparticles = bds.Npart()[0]
 
         plot = _plt.figure(title, figsize=(9,5), **kwargs)
         # Loop over the variables in plot_info_tuples and draw the plots.
         for var, error, legend_name in plot_info_tuples:
-            _plt.errorbar(sf.GetColumn('S'),
-                          sf.GetColumn(var),
-                          yerr=sf.GetColumn(error),
+            _plt.errorbar(bds.GetColumn('S'),
+                          bds.GetColumn(var),
+                          yerr=bds.GetColumn(error),
                           label="{} {}; N = {:.1E}".format(
                               "", legend_name, first_nparticles),
                           capsize=3, **kwargs)
@@ -290,14 +288,19 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     """
     Display all the optical function plots for a rebdsim optics root file.
     """
-    bdsdata = rebdsimOpticsOutput # shortcut
-    PlotBeta(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotAlpha(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDisp(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDispP(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigma(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigmaP(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotMean(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
+    bdsdata = rebdsimOpticsOutput
+    if type(bdsdata) is str:
+        bdsdata = _Data.Load(bdsdata)
+    optics  = bdsdata.optics
+    if survey is None:
+        survey = bdsdata.model
+    PlotBeta(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotAlpha(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotDisp(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotDispP(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotSigma(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotSigmaP(optics, survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
 
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
     """
