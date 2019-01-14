@@ -284,6 +284,36 @@ PlotSigma  = _make_plotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma"
 PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
 PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
+def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
+    # options
+    tightLayout = True
+    if 'tightLayout' in kwargs:
+        tightLayout = kwargs['tightLayout']
+    
+    plot = _plt.figure("Npart", figsize=(9,5), **kwargs)
+    # Loop over the variables in plot_info_tuples and draw the plots.
+    _plt.plot(bds.GetColumn('S'),bds.GetColumn('Npart'), 'k-', label='N Particles', **kwargs)
+    _plt.plot(bds.GetColumn('S'),bds.GetColumn('Npart'), 'k.')
+    
+    # Set axis labels and draw legend
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'N Particles')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    if survey is not None:
+        AddMachineLatticeFromSurveyToFigure(plot, survey, tightLayout)
+    else:
+        _plt.tight_layout()
+
+    _plt.show(block=False)
+
+    if outputfilename != None:
+        if '.' in outputfilename:
+            outputfilename = outputfilename.split('.')[0]
+        _plt.savefig(outputfilename + '.pdf')
+        _plt.savefig(outputfilename + '.png')
+    return plot
 
 def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
     """
