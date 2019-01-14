@@ -24,7 +24,7 @@ except ImportError:
     _useRoot = False
     pass
 
-def _LoadROOTLibraries():
+def LoadROOTLibraries():
     """
     Load root libraries. Only works once to prevent errors.
     """
@@ -146,7 +146,7 @@ def _LoadRoot(filepath):
     if not _useRoot:
         raise IOError("ROOT in python not available - can't load ROOT file")
 
-    _LoadROOTLibraries()
+    LoadROOTLibraries()
 
     fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
 
@@ -248,7 +248,7 @@ class RebdsimFile(object):
     to classes provided here with numpy data.
     """
     def __init__(self, filename, convert=True):
-        _LoadROOTLibraries()
+        LoadROOTLibraries()
         self.filename = filename
         self._f = _ROOT.TFile(filename)
         self.histograms   = {}
