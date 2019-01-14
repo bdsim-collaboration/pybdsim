@@ -255,7 +255,6 @@ class RebdsimFile(object):
         self.histograms1d = {}
         self.histograms2d = {}
         self.histograms3d = {}
-        dirs = self.ListOfDirectories()
         self._Map("", self._f)
         if convert:
             self.ConvertToPybdsimHistograms()
