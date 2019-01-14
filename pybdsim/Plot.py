@@ -67,6 +67,7 @@ def _SetMachineAxesStyle(ax):
 def _PrepareMachineAxes(figure):
     # create new machine axis with proportions 6 : 1
     axmachine = figure.add_subplot(911, projection="_My_Axes")
+    axmachine.set_facecolor('none') # make background transparent to allow scientific notation
     _SetMachineAxesStyle(axmachine)
     return axmachine
 
@@ -182,9 +183,7 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawRect(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'vkicker':
             DrawRect(starts[i],lengths[i], u'#ba55d3') #medium orchid
-        elif kw == 'rcol':
-            DrawRect(starts[i],lengths[i],'k')
-        elif kw == 'ecol':
+        elif kw == 'rcol' or kw == 'ecol' or kw == 'jcol':
             DrawRect(starts[i],lengths[i],'k')
         elif kw == 'degrader':
             DrawRect(starts[i],lengths[i],'k')
@@ -200,6 +199,8 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             DrawHex(starts[i],lengths[i],'grey',alpha=0.5)
         elif kw == 'solenoid':
             DrawRect(starts[i],lengths[i], u'#ffa500') #orange
+        elif kw == 'shield':
+            DrawRect(starts[i],lengths[i], u'#808080') #dark grey
         else:
             #unknown so make light in alpha
             if lengths[i] > 1e-1:
@@ -233,24 +234,22 @@ _SIGMA_P = [("Sigma_xp", "Sigma_Sigma_xp", r"$\sigma_{xp}$"),
 _MEAN = [("Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
          ("Mean_y", "Sigma_Mean_y", r"$\bar{y}$")]
 
-def _make_plotter(plot_info_tuples, x_label, y_label, title):
-    def f_out(bds, outputfilename= None, survey=None, **kwargs):
-        sf = _CheckItsBDSAsciiData(bds)
-
+def _MakePlotter(plot_info_tuples, x_label, y_label, title):
+    def f_out(bds, outputfilename=None, survey=None, **kwargs):
         # options
         tightLayout = True
         if 'tightLayout' in kwargs:
             tightLayout = kwargs['tightLayout']
 
         # Get the initial N for the two sources
-        first_nparticles = sf.Npart()[0]
+        first_nparticles = bds.Npart()[0]
 
         plot = _plt.figure(title, figsize=(9,5), **kwargs)
         # Loop over the variables in plot_info_tuples and draw the plots.
         for var, error, legend_name in plot_info_tuples:
-            _plt.errorbar(sf.GetColumn('S'),
-                          sf.GetColumn(var),
-                          yerr=sf.GetColumn(error),
+            _plt.errorbar(bds.GetColumn('S'),
+                          bds.GetColumn(var),
+                          yerr=bds.GetColumn(error),
                           label="{} {}; N = {:.1E}".format(
                               "", legend_name, first_nparticles),
                           capsize=3, **kwargs)
@@ -262,8 +261,8 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         axes.legend(loc='best')
 
         if survey is not None:
-            AddMachineLatticeFromSurveyToFigure(plot, survey)
-        if (tightLayout):
+            AddMachineLatticeFromSurveyToFigure(plot, survey, tightLayout)
+        else:
             _plt.tight_layout()
 
         _plt.show(block=False)
@@ -277,27 +276,65 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         return plot
     return f_out
 
-PlotBeta   = _make_plotter(_BETA,    "S / m", r"$\beta_{x,y}$ / m",      "Beta")
-PlotAlpha  = _make_plotter(_ALPHA,   "S / m", r"$\alpha_{x,y}$ / m",     "Alpha")
-PlotDisp   = _make_plotter(_DISP,    "S / m", r"$D_{x,y} / m$",          "Dispersion")
-PlotDispP  = _make_plotter(_DISP_P,  "S / m", r"$D_{p_{x},p_{y}}$ / m",  "Momentum_Dispersion")
-PlotSigma  = _make_plotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
-PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
-PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
+PlotBeta   = _MakePlotter(_BETA,    "S / m", r"$\beta_{x,y}$ / m",      "Beta")
+PlotAlpha  = _MakePlotter(_ALPHA,   "S / m", r"$\alpha_{x,y}$ / m",     "Alpha")
+PlotDisp   = _MakePlotter(_DISP,    "S / m", r"$D_{x,y} / m$",          "Dispersion")
+PlotDispP  = _MakePlotter(_DISP_P,  "S / m", r"$D_{p_{x},p_{y}}$ / m",  "Momentum_Dispersion")
+PlotSigma  = _MakePlotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
+PlotSigmaP = _MakePlotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
+PlotMean   = _MakePlotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
+def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
+    # options
+    tightLayout = True
+    if 'tightLayout' in kwargs:
+        tightLayout = kwargs['tightLayout']
+    
+    plot = _plt.figure("Npart", figsize=(9,5), **kwargs)
+    # Loop over the variables in plot_info_tuples and draw the plots.
+    _plt.plot(bds.GetColumn('S'),bds.GetColumn('Npart'), 'k-', label='N Particles', **kwargs)
+    _plt.plot(bds.GetColumn('S'),bds.GetColumn('Npart'), 'k.')
+    
+    # Set axis labels and draw legend
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'N Particles')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    if survey is not None:
+        AddMachineLatticeFromSurveyToFigure(plot, survey, tightLayout)
+    else:
+        _plt.tight_layout()
+
+    _plt.show(block=False)
+
+    if outputfilename != None:
+        if '.' in outputfilename:
+            outputfilename = outputfilename.split('.')[0]
+        _plt.savefig(outputfilename + '.pdf')
+        _plt.savefig(outputfilename + '.png')
+    return plot
 
 def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
     """
     Display all the optical function plots for a rebdsim optics root file.
     """
-    bdsdata = rebdsimOpticsOutput # shortcut
-    PlotBeta(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotAlpha(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDisp(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDispP(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigma(bdsdata,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigmaP(bdsdata, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotMean(bdsdata,   survey=survey, outputfilename=outputfilename, **kwargs)
+    bdsdata = rebdsimOpticsOutput
+    if type(bdsdata) is str:
+        bdsdata = _Data.Load(bdsdata)
+    optics  = bdsdata.optics
+    if survey is None:
+        survey = bdsdata.model
+
+    opfn = outputfilename #shortcut
+    PlotBeta(optics,   survey=survey, outputfilename=opfn+"_beta",   **kwargs)
+    PlotAlpha(optics,  survey=survey, outputfilename=opfn+"_alpha",  **kwargs)
+    PlotDisp(optics,   survey=survey, outputfilename=opfn+"_disp",   **kwargs)
+    PlotDispP(optics,  survey=survey, outputfilename=opfn+"_dispp",  **kwargs)
+    PlotSigma(optics,  survey=survey, outputfilename=opfn+"_sigma",  **kwargs)
+    PlotSigmaP(optics, survey=survey, outputfilename=opfn+"_sigmap", **kwargs)
+    PlotMean(optics,   survey=survey, outputfilename=opfn+"_mean",   **kwargs)
+    PlotNPart(optics,  survey=survey, outputfilename=opfn+"_npart",  **kwargs)
 
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
     """

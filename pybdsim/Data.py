@@ -16,14 +16,7 @@ import numpy as _np
 import os as _os
 
 _useRoot      = True
-_useRootNumpy = True
 _libsLoaded   = False
-
-try:
-    import root_numpy as _rnp
-except ImportError:
-    _useRootNumpy = False
-    pass
 
 try:
     import ROOT as _ROOT
@@ -87,7 +80,6 @@ def Load(filepath):
     else:
         msg = "Unknown file type for file \"{}\" - not BDSIM data".format(filepath)
         raise IOError(msg)
-
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
@@ -153,8 +145,6 @@ def _LoadRoot(filepath):
     """
     if not _useRoot:
         raise IOError("ROOT in python not available - can't load ROOT file")
-    if not _useRootNumpy:
-        raise IOError("root_numpy not available - can't load ROOT file")
 
     _LoadROOTLibraries()
 
@@ -184,6 +174,57 @@ def _ParseHeaderLine(line):
             names.append(word)
             units.append('NA')
     return names, units
+
+def _LoadVectorTree(tree):
+    """
+    Simple utility to loop over the entries in a tree and get all the leaves
+    which are assumed to be a single number. Return BDSAsciiData instance.
+    """
+    result = BDSAsciiData()
+    lvs = tree.GetListOfLeaves()
+    lvs = [str(lvs[i].GetName()) for i in range(lvs.GetEntries())]
+    for l in lvs:
+        result._AddProperty(l)
+    
+    #tempData = []
+    for value in tree:
+        row = [getattr(value,l) for l in lvs]
+        result.append(row)
+
+    #result = map(tuple, *tempData)
+    return result
+    
+def GetModelForPlotting(rootFile, beamlineIndex=0):
+    """
+    Returns BDSAsciiData object with just the columns from the model for plotting.
+    """
+    mt = rootFile.Get("Model")
+    if not mt:
+        print "No 'Model.' tree in file"
+        return
+
+    leaves = ['componentName', 'componentType', 'length',    'staS',   'endS', 'k1']
+    names  = ['Name',          'Type',          'ArcLength', 'SStart', 'SEnd', 'k1']
+    types  = [str,              str,             float,       float,    float,  float]
+
+    beamlines = [] # for future multiple beam line support
+    # use easy iteration on root file - iterate on tree
+    for beamline in mt:
+        beamlines.append(beamline.Model)
+
+    if beamlineIndex >= len(beamlines):
+        raise IOError('Invalid beam line index')
+
+    bl = beamlines[beamlineIndex]
+    result = BDSAsciiData()
+    tempdata = []
+    for leave,name,t in zip(leaves,names,types):
+        result._AddProperty(name)
+        tempdata.append(map(t, getattr(bl, leave)))
+
+    data = map(tuple, zip(*tempdata))
+    [result.append(d) for d in data]
+    return result
 
 class RebdsimFile(object):
     """
@@ -223,15 +264,13 @@ class RebdsimFile(object):
                 data.append(elementlist)
             return data
 
-        trees = _rnp.list_trees(self.filename)
+        trees = self.ListOfTrees()
         if 'Optics' in trees:
-            branches = _rnp.list_branches(self.filename,'Optics')
-            treedata = _rnp.root2array(self.filename,'Optics')
-            self.Optics = _prepare_data(branches, treedata)
+            self.optics = _LoadVectorTree(self._f.Get("Optics"))
         if 'Orbit' in trees:
-            branches = _rnp.list_branches(self.filename, 'Orbit')
-            treedata = _rnp.root2array(self.filename, 'Orbit')
-            self.orbit = _prepare_data(branches, treedata)
+            self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
+        if 'Model' in trees:
+            self.model = GetModelForPlotting(self._f)
 
     def _Map(self, currentDirName, currentDir):
         h1d = self._ListType(currentDir, "TH1D")
@@ -281,6 +320,16 @@ class RebdsimFile(object):
         List all trees inside the root file.
         """
         return self._ListType(self._f, 'Tree')
+
+    def ListOfLeavesInTree(self, tree):
+        """
+        List all leaves in a tree.
+        """
+        leaves = tree.GetListOfLeaves()
+        result = []
+        for i in range(leaves.GetEntries()):
+            result.append(str(leaves.At(i)))
+        return result
 
     def ConvertToPybdsimHistograms(self):
         """
