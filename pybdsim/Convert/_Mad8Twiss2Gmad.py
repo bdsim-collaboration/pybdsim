@@ -82,7 +82,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     print 'Aperture database'
     print apertures 
 
-    #val0=value at 0th element of INPUT mad8 file. val_cut=value at start-point for cut beamlines - i.e. 0th element of OUTPUT bdsim file. 
+    #val0=value at 0th element of INPUT mad8 file. val_cut=value at start-point for cut beamlines - i.e. 0th element of output bdsim file. 
     # Need nominal energy for acceleration and SR calculations
     s           = t.getColumn('suml')
     try:
@@ -438,17 +438,21 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 #       ###################################################################
         elif c.type[i] == 'LCAV' : 
             length   = float(c.data[i][c.keys['lcav']['l']])
-#            deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV #Gives undesirable results if phase=/=0. Actual energy change, not wave amplitude. 
-            deltaE   = float(c.data[i][c.keys['lcav']['volt']]) #value labelled 'volt' in pymad8 is deltaE.
+            deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV #Gives undesirable results if phase=/=0. Actual energy change, not wave amplitude. 
+            volt   = float(c.data[i][c.keys['lcav']['volt']]) #value labelled 'volt' in pymad8 is deltaE.
             freq     = float(c.data[i][c.keys['lcav']['freq']])
             lag      = float(c.data[i][c.keys['lcav']['lag']])
-            gradient = deltaE/length
+            gradient = volt/length
+            focusin= -(deltaE/length)/(2*energy[i-1]*1e3)
+            focusout= (deltaE/length)/(2*energy[i]*1e3)
+            a.AddThinRmat(name=prepend+c.name[i]+'_'+str(eCount)+'_fringe_in',r21=focusin,r43=focusin)
             a.AddRFCavity(name      = prepend+c.name[i]+'_'+str(eCount),
                           length    = length, 
                           gradient  = gradient,
                           phase     = lag * 2 * _np.pi,
                           frequency = freq,# * 2 * _np.pi,
                           aper1     = apertures.aper[i])
+            a.AddThinRmat(name=prepend+c.name[i]+'_'+str(eCount)+'_fringe_out',r21=focusout,r43=focusout)
 #       ###################################################################
         elif c.type[i] == 'ECOL' :
 
