@@ -153,7 +153,8 @@ def _LoadRoot(filepath):
     if fileType == "BDSIM":
         print 'BDSIM output file - using DataLoader'
         d = _ROOT.DataLoader(filepath)
-        return d # just return the DataLoader instance
+        d.model = GetModelForPlotting(d) # attach BDSAsciiData instance for convenience
+        return d
     elif fileType == "REBDSIM":
         print 'REBDSIM analysis file - using RebdsimFile'
         return RebdsimFile(filepath)
@@ -198,7 +199,14 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
     """
     Returns BDSAsciiData object with just the columns from the model for plotting.
     """
-    mt = rootFile.Get("Model")
+    mt = None
+    if hasattr(rootFile, "Get"):
+        # try first for ModelTree which we call it in histomerge output
+        mt = rootFile.Get("ModelTree")
+        if not mt:
+            mt = rootFile.Get("Model") # then try regular Model
+    elif hasattr(rootFile, "GetModelTree"):
+        mt = rootFile.GetModelTree() # must be data loader instance
     if not mt:
         print "No 'Model.' tree in file"
         return
@@ -269,7 +277,7 @@ class RebdsimFile(object):
             self.optics = _LoadVectorTree(self._f.Get("Optics"))
         if 'Orbit' in trees:
             self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
-        if 'Model' in trees:
+        if 'Model' in trees or 'ModelTree' in trees:
             self.model = GetModelForPlotting(self._f)
 
     def _Map(self, currentDirName, currentDir):
