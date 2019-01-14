@@ -427,10 +427,10 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
         raise IOError("Not a rebdsim file")
     eloss = d.histogramspy['Event/MergedHistograms/ElossHisto']
 
-    xwidth    = eloss.xwidths[0]
+    xwidth = eloss.xwidths[0]
     xlabel = r"S (m)"
-    ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
-    f = Histogram1D(eloss, xlabel='S (m)', ylabel=ylabel, title="")
+    ylabel = r"Energy Deposition / Event (Gev / {} m)".format(round(xwidth,2))
+    f = Histogram1D(eloss, xlabel='S (m)', ylabel=ylabel)
 
     ax = f.get_axes()[0]
     ax.set_yscale('log')
@@ -439,6 +439,8 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
         AddMachineLatticeToFigure(f, tfssurvey)
     elif bdsimsurvey:
         AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey)
+    elif hasattr(d, "model"):
+        AddMachineLatticeFromSurveyToFigure(f, d.model)
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
@@ -597,7 +599,9 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         AddMachineLatticeToFigure(f, tfssurvey)
     elif bdsimsurvey and not skipMachineLattice:
         #AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey) #TODO: Fix this, currenly gives an error
-        print "Lattice diagram not added, module under maintenance"
+        print "not working like this"
+    elif hasattr(d, "model"):
+        AddMachineLatticeFromSurveyToFigure(f, d.model)
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
@@ -655,6 +659,8 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
         AddMachineLatticeToFigure(fig, tfssurvey)
     elif bdsimsurvey:
         AddMachineLatticeFromSurveyToFigure(fig, bdsimsurvey)
+    elif hasattr(d, "model"):
+        AddMachineLatticeFromSurveyToFigure(fig, d.model)
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
