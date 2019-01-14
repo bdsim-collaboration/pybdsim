@@ -234,8 +234,8 @@ _SIGMA_P = [("Sigma_xp", "Sigma_Sigma_xp", r"$\sigma_{xp}$"),
 _MEAN = [("Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
          ("Mean_y", "Sigma_Mean_y", r"$\bar{y}$")]
 
-def _make_plotter(plot_info_tuples, x_label, y_label, title):
-    def f_out(bds, outputfilename= None, survey=None, **kwargs):
+def _MakePlotter(plot_info_tuples, x_label, y_label, title):
+    def f_out(bds, outputfilename=None, survey=None, **kwargs):
         # options
         tightLayout = True
         if 'tightLayout' in kwargs:
@@ -276,13 +276,13 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
         return plot
     return f_out
 
-PlotBeta   = _make_plotter(_BETA,    "S / m", r"$\beta_{x,y}$ / m",      "Beta")
-PlotAlpha  = _make_plotter(_ALPHA,   "S / m", r"$\alpha_{x,y}$ / m",     "Alpha")
-PlotDisp   = _make_plotter(_DISP,    "S / m", r"$D_{x,y} / m$",          "Dispersion")
-PlotDispP  = _make_plotter(_DISP_P,  "S / m", r"$D_{p_{x},p_{y}}$ / m",  "Momentum_Dispersion")
-PlotSigma  = _make_plotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
-PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
-PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
+PlotBeta   = _MakePlotter(_BETA,    "S / m", r"$\beta_{x,y}$ / m",      "Beta")
+PlotAlpha  = _MakePlotter(_ALPHA,   "S / m", r"$\alpha_{x,y}$ / m",     "Alpha")
+PlotDisp   = _MakePlotter(_DISP,    "S / m", r"$D_{x,y} / m$",          "Dispersion")
+PlotDispP  = _MakePlotter(_DISP_P,  "S / m", r"$D_{p_{x},p_{y}}$ / m",  "Momentum_Dispersion")
+PlotSigma  = _MakePlotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
+PlotSigmaP = _MakePlotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
+PlotMean   = _MakePlotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
 def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
     # options
@@ -325,13 +325,16 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     optics  = bdsdata.optics
     if survey is None:
         survey = bdsdata.model
-    PlotBeta(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotAlpha(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDisp(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDispP(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigma(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigmaP(optics, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
+
+    opfn = outputfilename #shortcut
+    PlotBeta(optics,   survey=survey, outputfilename=opfn+"_beta",   **kwargs)
+    PlotAlpha(optics,  survey=survey, outputfilename=opfn+"_alpha",  **kwargs)
+    PlotDisp(optics,   survey=survey, outputfilename=opfn+"_disp",   **kwargs)
+    PlotDispP(optics,  survey=survey, outputfilename=opfn+"_dispp",  **kwargs)
+    PlotSigma(optics,  survey=survey, outputfilename=opfn+"_sigma",  **kwargs)
+    PlotSigmaP(optics, survey=survey, outputfilename=opfn+"_sigmap", **kwargs)
+    PlotMean(optics,   survey=survey, outputfilename=opfn+"_mean",   **kwargs)
+    PlotNPart(optics,  survey=survey, outputfilename=opfn+"_npart",  **kwargs)
 
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
     """
