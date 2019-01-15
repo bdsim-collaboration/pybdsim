@@ -95,7 +95,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     energy0     = energy[0]
     if istart == 0:
         energy_cut  = energy[0]
-        scale       = 1
+        scale       = energy/energy_cut
     else:
         energy_cut  = energy[istart-1]
         scale       = energy/energy_cut
