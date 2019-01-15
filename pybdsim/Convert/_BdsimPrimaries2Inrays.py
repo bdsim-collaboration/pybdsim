@@ -230,7 +230,7 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
         dE = dE[start:ninrays]
 
 
-    #Agglomerate the coordinate arrays and return reuslting superarray
+    #Agglomerate the coordinate arrays and return resulting superarray
     primary_coords = _np.stack((x,xp,y,yp,t,dE))
 
     return primary_coords
@@ -285,13 +285,13 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     for index,particle in enumerate(parentID):
         if len(particle) > 0:
             if particle[0] == 0: # is a primary
-                x.append(xAll[index])
-                xp.append(xpAll[index])
-                y.append(yAll[index])
-                yp.append(ypAll[index])
-                tof.append(tofAll[index])
-                E.append(EAll[index])
-                pid.append(pidAll[index])
+                x.append(xAll[index][0])
+                xp.append(xpAll[index][0])
+                y.append(yAll[index][0])
+                yp.append(ypAll[index][0])
+                tof.append(tofAll[index][0])
+                E.append(EAll[index][0])
+                pid.append(pidAll[index][0])
     x      = _np.array(x)
     xp     = _np.array(xp)
     y      = _np.array(y)
@@ -358,11 +358,7 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
         t = t[start:ninrays]
         dE = dE[start:ninrays]
 
-    # reshape energy to correct shape for writing.
-    dE = dE.reshape(1000,)
-
-    # Agglomerate the coordinate arrays as a list so data container has the correct dimensions for writing
-    # Superarray (np.stack) cannot handle arrays of different shapes despite LoadBdsimPrimaries somehow doing so.
-    sampler_coords = [x,xp,y,yp,t,dE]
+    #Agglomerate the coordinate arrays and return resulting superarray
+    sampler_coords = _np.stack([x,xp,y,yp,t,dE])
 
     return sampler_coords
