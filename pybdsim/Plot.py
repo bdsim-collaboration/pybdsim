@@ -324,7 +324,8 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
         bdsdata = _Data.Load(bdsdata)
     optics  = bdsdata.optics
     if survey is None:
-        survey = bdsdata.model
+        if hasattr(bdsdata, "model"):
+            survey = bdsdata.model
 
     opfn = outputfilename #shortcut
     PlotBeta(optics,   survey=survey, outputfilename=opfn+"_beta",   **kwargs)
