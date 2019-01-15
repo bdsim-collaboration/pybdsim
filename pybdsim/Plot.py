@@ -433,7 +433,7 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
 
     xwidth = eloss.xwidths[0]
     xlabel = r"S (m)"
-    ylabel = r"Energy Deposition / Event (Gev / {} m)".format(round(xwidth,2))
+    ylabel = r"Energy Deposition / Event (GeV / {} m)".format(round(xwidth,2))
     f = Histogram1D(eloss, xlabel='S (m)', ylabel=ylabel)
 
     ax = f.get_axes()[0]
@@ -500,7 +500,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
 
     xwidth    = eloss.xwidths[0]
     xlabel = r"S (m)"
-    ylabel = r"Energy Deposition / Event (Gev / {}) m".format(xwidth)
+    ylabel = r"Energy Deposition / Event (GeV / {}) m".format(round(xwidth,2))
 
     skipMachineLattice = False
     if "skipMachineLattice" in kwargs:
