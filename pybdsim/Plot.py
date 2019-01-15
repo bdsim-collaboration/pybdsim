@@ -270,8 +270,8 @@ def _MakePlotter(plot_info_tuples, x_label, y_label, title):
         if outputfilename != None:
             if '.' in outputfilename:
                 outputfilename = outputfilename.split('.')[0]
-            _plt.savefig(outputfilename + '.pdf')
-            _plt.savefig(outputfilename + '.png')
+            _plt.savefig(outputfilename + '_' + title + '.pdf')
+            _plt.savefig(outputfilename + '_' + title + '.png')
 
         return plot
     return f_out
@@ -311,8 +311,8 @@ def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
     if outputfilename != None:
         if '.' in outputfilename:
             outputfilename = outputfilename.split('.')[0]
-        _plt.savefig(outputfilename + '.pdf')
-        _plt.savefig(outputfilename + '.png')
+        _plt.savefig(outputfilename + '_Npart.pdf')
+        _plt.savefig(outputfilename + '_Npart.png')
     return plot
 
 def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
@@ -326,16 +326,15 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     if survey is None:
         if hasattr(bdsdata, "model"):
             survey = bdsdata.model
-
-    opfn = outputfilename #shortcut
-    PlotBeta(optics,   survey=survey, outputfilename=opfn+"_beta",   **kwargs)
-    PlotAlpha(optics,  survey=survey, outputfilename=opfn+"_alpha",  **kwargs)
-    PlotDisp(optics,   survey=survey, outputfilename=opfn+"_disp",   **kwargs)
-    PlotDispP(optics,  survey=survey, outputfilename=opfn+"_dispp",  **kwargs)
-    PlotSigma(optics,  survey=survey, outputfilename=opfn+"_sigma",  **kwargs)
-    PlotSigmaP(optics, survey=survey, outputfilename=opfn+"_sigmap", **kwargs)
-    PlotMean(optics,   survey=survey, outputfilename=opfn+"_mean",   **kwargs)
-    PlotNPart(optics,  survey=survey, outputfilename=opfn+"_npart",  **kwargs)
+    
+    PlotBeta(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotAlpha(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotDisp(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotDispP(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotSigma(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotSigmaP(optics, survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
 
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
     """
