@@ -245,14 +245,18 @@ def _MakePlotter(plot_info_tuples, x_label, y_label, title):
         first_nparticles = bds.Npart()[0]
 
         plot = _plt.figure(title, figsize=(9,5), **kwargs)
+        colours = ('b', 'g')
         # Loop over the variables in plot_info_tuples and draw the plots.
-        for var, error, legend_name in plot_info_tuples:
-            _plt.errorbar(bds.GetColumn('S'),
-                          bds.GetColumn(var),
+        for a, colour in zip(plot_info_tuples, colours):
+            var, error, legend_name = a # unpack one tuple
+            s = bds.GetColumn('S') # cache data
+            d = bds.GetColumn(var)
+            _plt.errorbar(s, d, fmt=colour+".",
                           yerr=bds.GetColumn(error),
                           label="{} {}; N = {:.1E}".format(
                               "", legend_name, first_nparticles),
                           capsize=3, **kwargs)
+            _plt.plot(s, d, colour) # line plot without label
 
         # Set axis labels and draw legend
         axes = _plt.gcf().gca()
