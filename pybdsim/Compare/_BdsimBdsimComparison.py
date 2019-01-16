@@ -49,10 +49,22 @@ def _parse_bdsim_input(bdsim_in, name):
            raise IOError("file \"{}\" not found!".format(bdsim_in))
        name = (_path.splitext(_path.basename(bdsim_in))[0]
                if name is None else name)
-       return pybdsim.Data.Load(bdsim_in).Optics, name
+       data = pybdsim.Data.Load(bdsim_in)
+       if hasattr(data, 'optics'):
+           data = data.optics
+       elif hasattr(data, 'Optics'):
+           data = data.Optics
+       else:
+           raise AttributeError("No optics found for BDSIM file: {}".format(bdsim_in))
+       return data, name
    try:
        if isinstance(bdsim_in, pybdsim.Data.RebdsimFile):
-           bdsim_in = bdsim_in.Optics
+           if hasattr(bdsim_in, 'optics'):
+               bdsim_in = bdsim_in.optics
+           elif hasattr(bdsim_in,'Optics'):
+               bdsim_in = bdsim_in.Optics
+           else:
+               raise AttributeError("No optics found in rebdsim file.")
        name = bdsim_in.filename if name is None else name
        return bdsim_in, name
    except AttributeError:

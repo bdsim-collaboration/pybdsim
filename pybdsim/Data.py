@@ -272,6 +272,7 @@ class RebdsimFile(object):
             return data
 
         trees = self.ListOfTrees()
+        # keep as optics (not Optics) to preserve data loading in Bdsim comparison plotting methods.
         if 'Optics' in trees:
             self.optics = _LoadVectorTree(self._f.Get("Optics"))
         if 'Orbit' in trees:
