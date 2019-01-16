@@ -5,7 +5,7 @@ import numpy as _np
 import os.path as _ospath
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
-from pybdsim._General import CheckItsBDSAsciiData
+from pybdsim._General import CheckItsBDSAsciiData, CheckBdsimDataHasSurveyModel
 
 # Predefined dicts of variables for making the standard plots,
 # ptctwiss variables are the same as madx, ptc variables are the same as bdsim
@@ -176,24 +176,34 @@ def _parse_bdsim_input(bdsim_in, name):
             raise IOError("file \"{}\" not found!".format(bdsim_in))
         name = (_ospath.splitext(_ospath.basename(bdsim_in))[0]
                 if name is None else name)
-        return _pybdsim.Data.Load(bdsim_in).Optics, name
-    try:
-        if isinstance(bdsim_in, _pybdsim.Data.RebdsimFile):
+        data = _pybdsim.Data.Load(bdsim_in)
+        if hasattr(data,'Optics'):
+            return _pybdsim.Data.Load(bdsim_in).Optics, name
+        elif hasattr(data, 'optics'):
+            return _pybdsim.Data.Load(bdsim_in).optics, name
+        else:
+            raise AttributeError("Optics not found in supplied file : {}".format(bdsim_in))
+    if isinstance(bdsim_in, _pybdsim.Data.RebdsimFile):
+        if hasattr(bdsim_in,'Optics'):
+            bdsim_in = bdsim_in.Optics
+        elif hasattr(bdsim_in, 'optics'):
+            bdsim_in = bdsim_in.optics
+        else:
+            raise AttributeError("Optics not found in supplied file : {}".format(bdsim_in))
+        name = bdsim_in.filename if name is None else name
+        return bdsim_in, name
+    elif isinstance(bdsim_in, _pybdsim.Data.BDSAsciiData):
+        if hasattr(bdsim_in, 'Optics'):
             bdsim_in = bdsim_in.Optics
             name = bdsim_in.filename if name is None else name
             return bdsim_in, name
-        elif isinstance(bdsim_in, _pybdsim.Data.BDSAsciiData):
-            if hasattr(bdsim_in, 'Optics'):
-                bdsim_in = bdsim_in.Optics
-                name = bdsim_in.filename if name is None else name
-                return bdsim_in, name
-            elif hasattr(bdsim_in, 'S'):
-                name = bdsim_in.filename if name is None else name
-                return bdsim_in, name
-    except AttributeError:
-        raise TypeError(
-            "Expected BDSIM input is neither a "
-            "file path nor a BDSAsciiData instance: {}".format(bdsim_in))
+        elif hasattr(bdsim_in, 'optics'):
+            bdsim_in = bdsim_in.optics
+            name = bdsim_in.filename if name is None else name
+            return bdsim_in, name
+        elif hasattr(bdsim_in, 'S'):
+            name = bdsim_in.filename if name is None else name
+            return bdsim_in, name
 
 def _parse_tfs_input(tfs_in, name):
     """Return tfs_in as a Tfs instance, which should either be a path
@@ -742,11 +752,12 @@ def CompareOptics(bdsim=None, bdsimname=None,
 
     # load once here to save loading for every plot
     if survey is not None:
-        survey = CheckItsBDSAsciiData(survey)
-
-    if isinstance(survey, basestring):
-        if not _ospath.isfile(survey):
+        if isinstance(survey, basestring) and not _ospath.isfile(survey):
             raise IOError("Survey not found: ", survey)
+        if CheckBdsimDataHasSurveyModel(survey):
+            survey = _pybdsim.Data.Load(survey).model
+        else:
+            survey = CheckItsBDSAsciiData(survey)
 
     # pass in plotting config data in a dict to minimise number of args (which will only increase)
     plotterData = {"survey": survey,
@@ -862,11 +873,12 @@ def CompareOpticsResiduals(first=None, firstname=None,
 
     # load once here to save loading for every plot
     if survey is not None:
-        survey = CheckItsBDSAsciiData(survey)
-
-    if isinstance(survey, basestring):
-        if not _ospath.isfile(survey):
+        if isinstance(survey, basestring) and not _ospath.isfile(survey):
             raise IOError("Survey not found: ", survey)
+        if CheckBdsimDataHasSurveyModel(survey):
+            survey = _pybdsim.Data.Load(survey).model
+        else:
+            survey = CheckItsBDSAsciiData(survey)
 
     validtypes = ["bdsim", "tfs", "ptctwiss", "ptc"]
 
