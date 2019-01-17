@@ -991,6 +991,25 @@ class OptionsData(object):
             setattr(self, name, getattr(rootobj, name))
 
 
+class BeamData(object):
+    def __init__(self, data):
+        beam = data.GetBeam()
+        beamTree = data.GetBeamTree()
+        beam = beam.beam
+        beamTree.GetEntry(0)
+        interface = _filterROOTObject(beam)
+        self._getData(interface, beam)
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
+
+    def _getData(self, interface, rootobj):
+        for name in interface:
+            setattr(self, name, getattr(rootobj, name))
+
+
 def _filterROOTObject(rootobj):
     """Gets the names of the attributes which are just data and
     specific to the class.  That is to say it removes all the

@@ -9,14 +9,10 @@ except ImportError:
 import numpy as _np
 import matplotlib.pyplot as _plt
 import os.path as _path
-
 import sys
 import time
 
-try:
-    import root_numpy as _rnp
-except ImportError:
-    warnings.warn("No root_numpy found - some functionality missing", UserWarning)
+import pybdsim.Data as _Data
 
 def BdsimPrimaries2Ptc(inputfile, outfile=None, start=0, ninrays=-1):
     """"
@@ -148,34 +144,19 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
             raise IOError("file \"{}\" not found!".format(inputfile))
         else:
             print "Loading input file: ", inputfile
-            rootin = _rt.TFile(inputfile)
-            if (rootin.IsZombie()):
-                print "Root file is zombie..."
-                sys.exit(1)
+            f = _Data.Load(inputfile)
+    primaries = _Data.SamplerData(f)
 
-    tree        = rootin.Get("Event")
-
-    #Load the primary particle coordinates
-    x           =  _rnp.tree2array(tree, branches="Primary.x")
-    xp          =  _rnp.tree2array(tree, branches="Primary.xp")
-    y           =  _rnp.tree2array(tree, branches="Primary.y")
-    yp          =  _rnp.tree2array(tree, branches="Primary.yp")
-    tof         =  _rnp.tree2array(tree, branches="Primary.T")
-    E           =  _rnp.tree2array(tree, branches="Primary.energy")
-
-    # Change these arrays of 1-entry arrays into just an array of numbers
-    x  = _np.array([val[0] for val in x])
-    xp = _np.array([val[0] for val in xp])
-    y  = _np.array([val[0] for val in y])
-    yp = _np.array([val[0] for val in yp])
-    tof  = _np.array([val[0] for val in tof])
-    E = _np.array([val[0] for val in E])
-
-    # Don't need to do dE because for some reason it's already correct.
+    x   = primaries.data['x']
+    xp  = primaries.data['xp']
+    y   = primaries.data['y']
+    yp  = primaries.data['yp']
+    tof = primaries.data['T']
+    E   = primaries.data['energy']
 
     #Get particle pdg number
-    priPid      =  _rnp.tree2array(tree, branches="Primary.partID")
-    pid         =  _np.int(_np.mean(priPid)[0])  #cast to int to match pdg id
+    priPid =  primaries.data['partID']
+    pid    =  _np.int(_np.mean(priPid))  #cast to int to match pdg id
 
     #Particle mass needed for calculating momentum, in turn needed for dE.
     mass = 0
@@ -191,10 +172,8 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     if mass == 0:
         raise ValueError('Unknown particle species.')
 
-    npart       = len(x)
-
-    beam = rootin.Get("Beam")
-    Em = _rnp.tree2array(beam, branches="Beam.GMAD::BeamBase.beamEnergy")[0]
+    beam  = _Data.BeamData(f)
+    Em    = beam.beamEnergy
 
     beta = _np.sqrt(1 - (mass/Em)**2)
 
@@ -210,9 +189,9 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     #Use deltap and pathlength as needed for the time=false flag in PTC
     #Reference on p.201 of the MADX User's Reference Manual V5.03.07
     dE          = (p-p0)/p0
-    t           = beta*(tof-_np.full(npart,tofm))*1.e-9*c    #c is sof and the 1.e-9 factor is nm to m conversion
+    t           = beta*(tof-_np.full(len(tof),tofm))*1.e-9*c    #c is sof and the 1.e-9 factor is nm to m conversion
 
-    #Truncate the arrays to the desired lenght
+    #Truncate the arrays to the desired length
     if (ninrays<0):
         x  = x[start:]
         y  = y[start:]
@@ -243,65 +222,32 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
             raise IOError("file \"{}\" not found!".format(inputfile))
         else:
             print "Loading input file: ", inputfile
-            rootin = _rt.TFile(inputfile)
-            if (rootin.IsZombie()):
-                print "Root file is zombie..."
-                sys.exit(1)
+            f = _Data.Load(inputfile)
 
     # add . to the sampler name to match branch names from file
     if samplername[-1] != ".":
         samplername += "."
     # check branch exists
-    branches = _rnp.list_branches(inputfile, 'Event')
-    if not samplername in branches:
+    allSamplers = f.GetSamplerNames()
+    if not samplername in allSamplers:
         print "Sampler " + samplername + " not found in " + inputfile + ". Terminating..."
         sys.exit(1)
 
-    tree = rootin.Get("Event")
+    sampler = _Data.SamplerData(f, samplername)
 
     # get parentID for filtering out secondaries
-    parentID = _rnp.tree2array(tree, branches=samplername + "parentID")
+    parentID = sampler.data['parentID']
 
-    # Load the sampler particle coordinates
-    xAll   = _rnp.tree2array(tree, branches=samplername + "x")
-    xpAll  = _rnp.tree2array(tree, branches=samplername + "xp")
-    yAll   = _rnp.tree2array(tree, branches=samplername + "y")
-    ypAll  = _rnp.tree2array(tree, branches=samplername + "yp")
-    tofAll = _rnp.tree2array(tree, branches=samplername + "T")
-    EAll   = _rnp.tree2array(tree, branches=samplername + "energy")
-
-    # Get particle pdg number
-    pidAll = _rnp.tree2array(tree, branches=samplername + "partID")
-
-    x   = []
-    xp  = []
-    y   = []
-    yp  = []
-    tof = []
-    E   = []
-    pid = []
-
-    # only append primaries to coords lists
-    for index,particle in enumerate(parentID):
-        if len(particle) > 0:
-            if particle[0] == 0: # is a primary
-                x.append(xAll[index][0])
-                xp.append(xpAll[index][0])
-                y.append(yAll[index][0])
-                yp.append(ypAll[index][0])
-                tof.append(tofAll[index][0])
-                E.append(EAll[index][0])
-                pid.append(pidAll[index][0])
-    x      = _np.array(x)
-    xp     = _np.array(xp)
-    y      = _np.array(y)
-    yp     = _np.array(yp)
-    tof    = _np.array(tof)
-    E      = _np.array(E)
-    priPid = _np.array(pid)
+    # Get the sampler particle coordinates. Only append primaries to coords lists
+    x   = _np.array([sampler.data['x'][index] for index,particle in enumerate(parentID) if particle == 0])
+    xp  = _np.array([sampler.data['xp'][index] for index,particle in enumerate(parentID) if particle == 0])
+    y   = _np.array([sampler.data['y'][index] for index,particle in enumerate(parentID) if particle == 0])
+    yp  = _np.array([sampler.data['yp'][index] for index,particle in enumerate(parentID) if particle == 0])
+    tof = _np.array([sampler.data['T'][index] for index,particle in enumerate(parentID) if particle == 0])
+    E   = _np.array([sampler.data['energy'][index] for index,particle in enumerate(parentID) if particle == 0])
+    priPid = _np.array([sampler.data['partID'][index] for index,particle in enumerate(parentID) if particle == 0])
 
     # reshape to 1D array
-    priPid = priPid.reshape(priPid.shape[0])
     pid = _np.int(_np.mean(priPid))  # cast to int to match pdg id
 
     # Particle mass needed for calculating momentum, in turn needed for dE.
@@ -318,13 +264,11 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     if mass == 0:
         raise ValueError('Unknown particle species.')
 
-    npart = len(x)
-
     # use design energy for primaries as a significant mean offset can exist with small number of particles
     # Otherwise use the mean energy as there may have been a designed energy change (from RF, degrader, etc)
     if samplername == "Primary.":
-        beam = rootin.Get("Beam")
-        Em = _rnp.tree2array(beam, branches="Beam.GMAD::BeamBase.beamEnergy")[0]
+        beam = _Data.BeamData(f)
+        Em = beam.beamEnergy
     else:
         Em = _np.mean(E)
 
@@ -339,7 +283,7 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
     # Use deltap and pathlength as needed for the time=false flag in PTC
     # Reference on p.201 of the MADX User's Reference Manual V5.03.07
     dE = (p - p0) / p0
-    t = beta * (tof - _np.full(npart, tofm)) * 1.e-9 * c  # c is sof and the 1.e-9 factor is nm to m conversion
+    t = beta * (tof - _np.full(len(tof), tofm)) * 1.e-9 * c  # c is sof and the 1.e-9 factor is nm to m conversion
 
     # Truncate the arrays to the desired lenght
     if (ninrays < 0):
