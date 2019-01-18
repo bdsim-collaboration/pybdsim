@@ -67,6 +67,99 @@ def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
 
     outfile.close()
 
+def BdsimPrimaries2BdsimUserFile(inputfile, outfile, start=0, ninrays=-1):
+    """"
+    Takes .root file generated from a BDSIM run and creates
+    a BDSIM userFile file from the primary particle tree.
+    inputfile   - <str> root format output from BDSIM run
+    outfile     - <str> filename for the inrays file
+    start       - <int> starting sampler particle index
+    ninrays     - <int> total number of inrays to generate
+    """
+    BdsimSampler2BdsimUserFile(inputfile, outfile, "Primary", start, ninrays)
+
+def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays=-1):
+    """"
+    Takes .root file generated from a BDSIM run and creates
+    a BDSIM userFile file from the sampler particle tree.
+    inputfile   - <str> root format output from BDSIM run
+    outfile     - <str> filename for the inrays file
+    samplername - <str> sampler name in BDSIM root file
+    start       - <int> starting sampler particle index
+    ninrays     - <int> total number of inrays to generate
+    """
+    if not (outfile[-4:] == ".dat"):
+        outfile = outfile + ".dat"
+
+    if isinstance(inputfile, basestring):
+        if not _path.isfile(inputfile):
+            raise IOError("file \"{}\" not found!".format(inputfile))
+        else:
+            print "Loading input file: ", inputfile
+            f = _Data.Load(inputfile)
+
+    # add . to the sampler name to match branch names from file
+    if samplername[-1] != ".":
+        samplername += "."
+    # check branch exists
+    allSamplers = f.GetSamplerNames()
+    if not samplername in allSamplers:
+        print "Sampler " + samplername + " not found in " + inputfile + ". Terminating..."
+        sys.exit(1)
+
+    if samplername == "Primary":
+        sampler = _Data.SamplerData(f)
+        x = sampler.data['x']
+        xp = sampler.data['xp']
+        y = sampler.data['y']
+        yp = sampler.data['yp']
+        tof = sampler.data['T']
+        E = sampler.data['energy']
+        nentries = len(x)
+    else:
+        sampler = _Data.SamplerData(f, samplername)
+        # get parentID for filtering out secondaries
+        parentID = sampler.data['parentID']
+        nentries = len(parentID)
+
+        # Get the sampler particle coordinates. Only append primaries to coords lists
+        x   = _np.array([sampler.data['x'][index] for index,particle in enumerate(parentID) if particle == 0])
+        xp  = _np.array([sampler.data['xp'][index] for index,particle in enumerate(parentID) if particle == 0])
+        y   = _np.array([sampler.data['y'][index] for index,particle in enumerate(parentID) if particle == 0])
+        yp  = _np.array([sampler.data['yp'][index] for index,particle in enumerate(parentID) if particle == 0])
+        tof = _np.array([sampler.data['T'][index] for index,particle in enumerate(parentID) if particle == 0])
+        E   = _np.array([sampler.data['energy'][index] for index,particle in enumerate(parentID) if particle == 0])
+
+    #Truncate the arrays to the desired length
+    if (ninrays<0):
+        x  = x[start:]
+        y  = y[start:]
+        xp = xp[start:]
+        yp = yp[start:]
+        tof = tof[start:]
+        E  = E[start:]
+
+    else:
+        x  = x[start:ninrays]
+        y  = y[start:ninrays]
+        xp = xp[start:ninrays]
+        yp = yp[start:ninrays]
+        tof = tof[start:ninrays]
+        E  = E[start:ninrays]
+
+    outfile = open(outfile, 'w')
+    for n in range(0, nentries):  # n denotes a given particle
+        s =  ' ' + repr(x[n])
+        s += ' ' + repr(xp[n])
+        s += ' ' + repr(y[n])
+        s += ' ' + repr(yp[n])
+        s += ' ' + repr(tof[n])
+        s += ' ' + repr(E[n])
+        s += '\n'
+        outfile.writelines(s)
+
+    outfile.close()
+
 def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     """"
     Takes .root file generated from a BDSIM run an an input and creates
