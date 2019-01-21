@@ -32,7 +32,7 @@ def BdsimPrimaries2Ptc(inputfile, outfile=None, start=0, ninrays=-1):
 def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
     """"
     Takes .root file generated from a BDSIM run an an input and creates
-    a PTC inrays file from the sampler particle tree.
+    a PTC inrays file from the sampler particle tree. Converts primary particles only.
     inputfile   - <str> root format output from BDSIM run
     outfile     - <str> filename for the inrays file
     samplername - <str> sampler name in BDSIM root file
@@ -42,16 +42,14 @@ def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
     if not (outfile[-5:] == ".madx"):
         outfile = outfile + ".madx"
 
-    # specify if primaries as there's a difference in conversion. The primary sampler can use the nominal energy
-    # from the beam tree, however a sampler may be after an energy changing element (e.g degrader or RF cavity),
-    # so the energy is taken to be the mean particle energy in that sampler. Note that this is susceptible to incorrect
-    # conversion at low statistics.
+    # specify if primaries as there's a minor difference in conversion. The primary sampler can use the nominal
+    # energy from the beam tree, however a specified sampler may be after an energy changing element (e.g
+    # degrader or RF cavity), so the energy is taken to be the mean particle energy in that sampler. Note that
+    # this is susceptible to incorrect conversion at low statistics.
     if samplername == "Primary":
-        isPrimaries = True
+        sampler_coords = _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimaries=True)
     else:
-        isPrimaries = False
-
-    sampler_coords = _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimaries=isPrimaries)
+        sampler_coords = _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimaries=False)
 
     outfile = open(outfile, 'w')
 
@@ -81,6 +79,9 @@ def BdsimPrimaries2BdsimUserFile(inputfile, outfile, start=0, ninrays=-1):
     outfile     - <str> filename for the inrays file
     start       - <int> starting sampler particle index
     ninrays     - <int> total number of inrays to generate
+    Writes the following columns to file:
+      x[m] xp[rad] y[m] yp[rad] t[ns] E[GeV]
+    E is the total particle energy.
     """
     BdsimSampler2BdsimUserFile(inputfile, outfile, "Primary", start, ninrays)
 
@@ -93,6 +94,11 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
     samplername - <str> sampler name in BDSIM root file
     start       - <int> starting sampler particle index
     ninrays     - <int> total number of inrays to generate
+    Writes the following columns to file:
+      x[m] xp[rad] y[m] yp[rad] t[ns] E[GeV]
+    E is the total particle energy.
+    The t column is the time in the given sampler minus the mean time for that sampler.
+    If not mean subtracted, the particles may be significantly offset from the primary position.
     """
     if not (outfile[-4:] == ".dat"):
         outfile = outfile + ".dat"
@@ -104,14 +110,15 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
             print "Loading input file: ", inputfile
             data = _Data.Load(inputfile)
 
-    x,xp,y,yp,tof,E, pid = _LoadSampler(data, samplername)
+    x,xp,y,yp,tof,E,pid = _ExtractSamplerCoords(data, samplername)
 
     # subtract mean time as non-primary sampler will be at a finite T in the lattice - should be centred around 0.
-    meanT = _np.mean(tof)
-    t = tof - meanT
+    if samplername != "Primary":
+        meanT = _np.mean(tof)
+        tof = tof - meanT
     nentries = len(x)
 
-    x,xp,y,yp,t,E = _TruncateCoordinates(x,xp,y,yp,t,E,ninrays,start)
+    x,xp,y,yp,t,E = _TruncateCoordinates(x,xp,y,yp,tof,E,ninrays,start)
 
     outfile = open(outfile, 'w')
     for n in range(0, nentries):  # n denotes a given particle
@@ -119,7 +126,7 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
         s += ' ' + repr(xp[n])
         s += ' ' + repr(y[n])
         s += ' ' + repr(yp[n])
-        s += ' ' + repr(t[n])
+        s += ' ' + repr(tof[n])
         s += ' ' + repr(E[n])
         s += '\n'
         outfile.writelines(s)
@@ -196,6 +203,7 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     outfile.close()
 
 def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimaries):
+    """ Load BDSIM coordinates and convert to PTC format."""
     if isinstance(inputfile, basestring):
         if not _path.isfile(inputfile):
             raise IOError("file \"{}\" not found!".format(inputfile))
@@ -203,7 +211,8 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
             print "Loading input file: ", inputfile
             data = _Data.Load(inputfile)
 
-    x,xp,y,yp,tof,E,pid = _LoadSampler(data, samplername)
+    #Get sampler/primaries data
+    x,xp,y,yp,tof,E,pid = _ExtractSamplerCoords(data, samplername)
 
     #Get particle pdg number
     pid  =  _np.int(_np.mean(pid))  #cast to int to match pdg id
@@ -252,7 +261,8 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
     coords = _np.stack([x,xp,y,yp,t,E])
     return coords
 
-def _LoadSampler(data, samplername):
+def _ExtractSamplerCoords(data, samplername):
+    """ Extract sampler coordinates."""
     if samplername != "Primary":
         # add . to the sampler name to match branch names from file
         if samplername[-1] != ".":
