@@ -822,7 +822,7 @@ class SamplerData(_SamplerData):
     on the index in data.GetSamplerNames()). Examples::
 
     >>> f = pybdsim.Data.Load("file.root")
-    >>> primaries = pybdsim.Data.SampoerData(f)
+    >>> primaries = pybdsim.Data.SamplerData(f)
     >>> samplerfd45 = pybdsim.Data.SamplerData(f, "samplerfd45")
     >>> thirdAfterPrimaries = pybdsim.Data.SamplerData(f, 3)
     """
