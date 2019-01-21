@@ -215,6 +215,9 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
     names  = ['Name',          'Type',          'ArcLength', 'SStart', 'SEnd', 'k1']
     types  = [str,              str,             float,       float,    float,  float]
 
+    if mt.GetEntries() == 0:
+        return None
+    
     beamlines = [] # for future multiple beam line support
     # use easy iteration on root file - iterate on tree
     for beamline in mt:
