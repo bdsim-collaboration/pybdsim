@@ -42,10 +42,16 @@ def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
     if not (outfile[-5:] == ".madx"):
         outfile = outfile + ".madx"
 
+    # specify if primaries as there's a difference in conversion. The primary sampler can use the nominal energy
+    # from the beam tree, however a sampler may be after an energy changing element (e.g degrader or RF cavity),
+    # so the energy is taken to be the mean particle energy in that sampler. Note that this is susceptible to incorrect
+    # conversion at low statistics.
     if samplername == "Primary":
-        sampler_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
+        isPrimaries = True
     else:
-        sampler_coords = _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays)
+        isPrimaries = False
+
+    sampler_coords = _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimaries=isPrimaries)
 
     outfile = open(outfile, 'w')
 
@@ -96,56 +102,16 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
             raise IOError("file \"{}\" not found!".format(inputfile))
         else:
             print "Loading input file: ", inputfile
-            f = _Data.Load(inputfile)
+            data = _Data.Load(inputfile)
 
-    # add . to the sampler name to match branch names from file
-    if samplername[-1] != ".":
-        samplername += "."
-    # check branch exists
-    allSamplers = f.GetSamplerNames()
-    if not samplername in allSamplers:
-        print "Sampler " + samplername + " not found in " + inputfile + ". Terminating..."
-        sys.exit(1)
+    x,xp,y,yp,tof,E, pid = _LoadSampler(data, samplername)
 
-    if samplername == "Primary":
-        sampler = _Data.SamplerData(f)
-        x = sampler.data['x']
-        xp = sampler.data['xp']
-        y = sampler.data['y']
-        yp = sampler.data['yp']
-        tof = sampler.data['T']
-        E = sampler.data['energy']
-        nentries = len(x)
-    else:
-        sampler = _Data.SamplerData(f, samplername)
-        # get parentID for filtering out secondaries
-        parentID = sampler.data['parentID']
-        nentries = len(parentID)
+    # subtract mean time as non-primary sampler will be at a finite T in the lattice - should be centred around 0.
+    meanT = _np.mean(tof)
+    t = tof - meanT
+    nentries = len(x)
 
-        # Get the sampler particle coordinates. Only append primaries to coords lists
-        x   = _np.array([sampler.data['x'][index] for index,particle in enumerate(parentID) if particle == 0])
-        xp  = _np.array([sampler.data['xp'][index] for index,particle in enumerate(parentID) if particle == 0])
-        y   = _np.array([sampler.data['y'][index] for index,particle in enumerate(parentID) if particle == 0])
-        yp  = _np.array([sampler.data['yp'][index] for index,particle in enumerate(parentID) if particle == 0])
-        tof = _np.array([sampler.data['T'][index] for index,particle in enumerate(parentID) if particle == 0])
-        E   = _np.array([sampler.data['energy'][index] for index,particle in enumerate(parentID) if particle == 0])
-
-    #Truncate the arrays to the desired length
-    if (ninrays<0):
-        x  = x[start:]
-        y  = y[start:]
-        xp = xp[start:]
-        yp = yp[start:]
-        tof = tof[start:]
-        E  = E[start:]
-
-    else:
-        x  = x[start:ninrays]
-        y  = y[start:ninrays]
-        xp = xp[start:ninrays]
-        yp = yp[start:ninrays]
-        tof = tof[start:ninrays]
-        E  = E[start:ninrays]
+    x,xp,y,yp,t,E = _TruncateCoordinates(x,xp,y,yp,t,E,ninrays,start)
 
     outfile = open(outfile, 'w')
     for n in range(0, nentries):  # n denotes a given particle
@@ -153,7 +119,7 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
         s += ' ' + repr(xp[n])
         s += ' ' + repr(y[n])
         s += ' ' + repr(yp[n])
-        s += ' ' + repr(tof[n])
+        s += ' ' + repr(t[n])
         s += ' ' + repr(E[n])
         s += '\n'
         outfile.writelines(s)
@@ -172,7 +138,7 @@ def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     if not (outfile[-5:] == ".madx"):
         outfile = outfile+".madx"
 
-    primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
+    primary_coords = _LoadBdsimCoordsAndConvert(inputfile, "Primary", start, ninrays, isPrimaries=True)
 
     outfile = open(outfile,'w' )
 
@@ -206,7 +172,7 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     if not (outfile[-5:] == ".mad8"):
         outfile = outfile+".mad8"
 
-    primary_coords = _LoadBdsimPrimaries(inputfile, start, ninrays)
+    primary_coords = _LoadBdsimCoordsAndConvert(inputfile, "Primary", start, ninrays, isPrimaries=True)
 
     outfile = open(outfile,'w' )
 
@@ -229,34 +195,25 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
 
     outfile.close()
 
-def _LoadBdsimPrimaries(inputfile, start, ninrays):
-    c = 299792458.0     #speed of light in vacuum
-
+def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimaries):
     if isinstance(inputfile, basestring):
         if not _path.isfile(inputfile):
             raise IOError("file \"{}\" not found!".format(inputfile))
         else:
             print "Loading input file: ", inputfile
-            f = _Data.Load(inputfile)
-    primaries = _Data.SamplerData(f)
+            data = _Data.Load(inputfile)
 
-    x   = primaries.data['x']
-    xp  = primaries.data['xp']
-    y   = primaries.data['y']
-    yp  = primaries.data['yp']
-    tof = primaries.data['T']
-    E   = primaries.data['energy']
+    x,xp,y,yp,tof,E,pid = _LoadSampler(data, samplername)
 
     #Get particle pdg number
-    priPid =  primaries.data['partID']
-    pid    =  _np.int(_np.mean(priPid))  #cast to int to match pdg id
+    pid  =  _np.int(_np.mean(pid))  #cast to int to match pdg id
 
     #Particle mass needed for calculating momentum, in turn needed for dE.
     mass = 0
     if pid == 2212:                                     #proton
-        mass = _con.proton_mass * c**2 / _con.e / 1e9
+        mass = _con.proton_mass * _con.c**2 / _con.e / 1e9
     elif (pid == 11) or (pid == -11):                   #electron / positron
-        mass = _con.electron_mass * c**2 / _con.e / 1e9
+        mass = _con.electron_mass * _con.c**2 / _con.e / 1e9
     elif (pid == 13) or (pid == -13):                   #mu- / mu+
         mass = 0.1056583745
 
@@ -265,8 +222,13 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     if mass == 0:
         raise ValueError('Unknown particle species.')
 
-    beam  = _Data.BeamData(f)
-    Em    = beam.beamEnergy
+    if isPrimaries:
+        # use design energy for primaries as a significant mean offset can exist with small number of particles
+        beam = _Data.BeamData(data)
+        Em = beam.beamEnergy
+    else:
+        # Use the mean energy as there may have been a designed energy change (from RF, degrader, etc)
+        Em = _np.mean(E)
 
     beta = _np.sqrt(1 - (mass/Em)**2)
 
@@ -282,104 +244,42 @@ def _LoadBdsimPrimaries(inputfile, start, ninrays):
     #Use deltap and pathlength as needed for the time=false flag in PTC
     #Reference on p.201 of the MADX User's Reference Manual V5.03.07
     dE          = (p-p0)/p0
-    t           = beta*(tof-_np.full(len(tof),tofm))*1.e-9*c    #c is sof and the 1.e-9 factor is nm to m conversion
+    t           = beta*(tof-_np.full(len(tof),tofm))*1.e-9*_con.c    #c is sof and the 1.e-9 factor is nm to m conversion
 
-    #Truncate the arrays to the desired length
-    if (ninrays<0):
-        x  = x[start:]
-        y  = y[start:]
-        xp = xp[start:]
-        yp = yp[start:]
-        t  = t[start:]
-        dE = dE[start:]
-
-    else:
-        x  = x[start:ninrays]
-        y  = y[start:ninrays]
-        xp = xp[start:ninrays]
-        yp = yp[start:ninrays]
-        t  = t[start:ninrays]
-        dE = dE[start:ninrays]
-
+    x,xp,y,yp,t,E = _TruncateCoordinates(x,xp,y,yp,t,E,ninrays,start)
 
     #Agglomerate the coordinate arrays and return resulting superarray
-    primary_coords = _np.stack((x,xp,y,yp,t,dE))
+    coords = _np.stack([x,xp,y,yp,t,E])
+    return coords
 
-    return primary_coords
+def _LoadSampler(data, samplername):
+    if samplername != "Primary":
+        # add . to the sampler name to match branch names from file
+        if samplername[-1] != ".":
+            samplername += "."
+        # check branch exists
+        allSamplers = data.GetSamplerNames()
+        if not samplername in allSamplers:
+            print "Sampler " + samplername + " not found in inputfile. Terminating..."
+            sys.exit(1)
 
-def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
-    c = 299792458.0  # speed of light in vacuum
+    sampler = _Data.SamplerData(data, samplername)
 
-    if isinstance(inputfile, basestring):
-        if not _path.isfile(inputfile):
-            raise IOError("file \"{}\" not found!".format(inputfile))
-        else:
-            print "Loading input file: ", inputfile
-            f = _Data.Load(inputfile)
+    # get particle coords and filter out secondaries
+    primary = sampler.data['parentID'] == 0
+    x   = sampler.data['x'][primary]
+    xp  = sampler.data['xp'][primary]
+    y   = sampler.data['y'][primary]
+    yp  = sampler.data['yp'][primary]
+    tof = sampler.data['T'][primary]
+    E   = sampler.data['energy'][primary]
+    pid = sampler.data['partID'][primary]
 
-    # add . to the sampler name to match branch names from file
-    if samplername[-1] != ".":
-        samplername += "."
-    # check branch exists
-    allSamplers = f.GetSamplerNames()
-    if not samplername in allSamplers:
-        print "Sampler " + samplername + " not found in " + inputfile + ". Terminating..."
-        sys.exit(1)
+    return x,xp,y,yp,tof,E,pid
 
-    sampler = _Data.SamplerData(f, samplername)
-
-    # get parentID for filtering out secondaries
-    parentID = sampler.data['parentID']
-
-    # Get the sampler particle coordinates. Only append primaries to coords lists
-    x   = _np.array([sampler.data['x'][index] for index,particle in enumerate(parentID) if particle == 0])
-    xp  = _np.array([sampler.data['xp'][index] for index,particle in enumerate(parentID) if particle == 0])
-    y   = _np.array([sampler.data['y'][index] for index,particle in enumerate(parentID) if particle == 0])
-    yp  = _np.array([sampler.data['yp'][index] for index,particle in enumerate(parentID) if particle == 0])
-    tof = _np.array([sampler.data['T'][index] for index,particle in enumerate(parentID) if particle == 0])
-    E   = _np.array([sampler.data['energy'][index] for index,particle in enumerate(parentID) if particle == 0])
-    priPid = _np.array([sampler.data['partID'][index] for index,particle in enumerate(parentID) if particle == 0])
-
-    # reshape to 1D array
-    pid = _np.int(_np.mean(priPid))  # cast to int to match pdg id
-
-    # Particle mass needed for calculating momentum, in turn needed for dE.
-    mass = 0
-    if pid == 2212:  # proton
-        mass = _con.proton_mass * c ** 2 / _con.e / 1e9
-    elif (pid == 11) or (pid == -11):  # electron / positron
-        mass = _con.electron_mass * c ** 2 / _con.e / 1e9
-    elif (pid == 13) or (pid == -13):  # mu- / mu+
-        mass = 0.1056583745
-
-    # TODO: Add more particle masses and particle numbers as needed.
-
-    if mass == 0:
-        raise ValueError('Unknown particle species.')
-
-    # use design energy for primaries as a significant mean offset can exist with small number of particles
-    # Otherwise use the mean energy as there may have been a designed energy change (from RF, degrader, etc)
-    if samplername == "Primary.":
-        beam = _Data.BeamData(f)
-        Em = beam.beamEnergy
-    else:
-        Em = _np.mean(E)
-
-    beta = _np.sqrt(1 - (mass / Em) ** 2)
-
-    p = _np.sqrt(E ** 2 - _np.full_like(E, mass) ** 2)
-    p0 = _np.sqrt(Em ** 2 - mass ** 2)
-    # convert tof to 1d array as mean on line below may return multiple numbers
-    #tof1D = _np.concatenate(tof, axis=0)
-    tofm = _np.mean(tof)
-
-    # Use deltap and pathlength as needed for the time=false flag in PTC
-    # Reference on p.201 of the MADX User's Reference Manual V5.03.07
-    dE = (p - p0) / p0
-    t = beta * (tof - _np.full(len(tof), tofm)) * 1.e-9 * c  # c is sof and the 1.e-9 factor is nm to m conversion
-
-    # Truncate the arrays to the desired lenght
-    if (ninrays < 0):
+def _TruncateCoordinates(x,xp,y,yp,t,dE,ninrays,start):
+    # Truncate the arrays to the desired length
+    if ninrays < 0:
         x = x[start:]
         y = y[start:]
         xp = xp[start:]
@@ -395,7 +295,4 @@ def _LoadBdsimCoordsFromSampler(inputfile, samplername, start, ninrays):
         t = t[start:ninrays]
         dE = dE[start:ninrays]
 
-    #Agglomerate the coordinate arrays and return resulting superarray
-    sampler_coords = _np.stack([x,xp,y,yp,t,dE])
-
-    return sampler_coords
+    return x,xp,y,yp,t,dE
