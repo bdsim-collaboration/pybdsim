@@ -6,3 +6,4 @@
 build
 pybdsim.egg-info
 /.project
+.eggs*

@@ -93,6 +93,21 @@ def CheckItsBDSAsciiData(bfile, requireOptics=False):
         raise IOError("Not pybdsim.Data.BDSAsciiData file type: "+str(bfile))
     return data
 
+def CheckBdsimDataHasSurveyModel(bfile):
+    if isinstance(bfile,basestring):
+        data = pybdsim.Data.Load(bfile)
+    elif type(bfile) == pybdsim.Data.BDSAsciiData:
+        data = bfile
+    elif type(bfile) == pybdsim.Data.RebdsimFile:
+        data = bfile
+    else:
+        return False
+
+    if hasattr(data,"model"):
+        return True
+    else:
+        return False
+
 def PrepareReducedName(elementname):
     """
     Only allow alphanumeric characters and '_'

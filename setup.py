@@ -9,7 +9,6 @@ setup(
                       "numpy",
                       "scipy",
                       "fortranformat",
-                      "root-numpy",
                       "pymadx",
                       "pymad8",
                       "pytransport"],

@@ -14,7 +14,6 @@ import matplotlib.pyplot as _plt
 #import robdsim
 import ROOT as _ROOT
 import numpy as _np
-import root_numpy as _rnp
 import matplotlib.backends.backend_pdf
 import matplotlib.patches as mpatches
 import subprocess
@@ -219,7 +218,7 @@ class LatticeTest:
 
         _os.chdir(self.folderpath)
         _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=rootevent --outfile="+self.filename+"> bdsim.log")
-        pybdsim.Convert.bdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
+        pybdsim.Convert.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
@@ -305,24 +304,24 @@ class LatticeTest:
         processThread.join()
 
         #Load data
-        rootin     = _ROOT.TFile(self.filename+".root")
-        t          = rootin.Get("Event")
-        rng        = len(t.GetListOfBranches())
-        last_samp  = t.GetListOfBranches()[rng-1]
-        last_name  = last_samp.GetName()
-        
-        Bx         =  _rnp.tree2array(t, branches=last_name+"x")
-        By         =  _rnp.tree2array(t, branches=last_name+"y")
-        Bxp        =  _rnp.tree2array(t, branches=last_name+"xp")
-        Byp        =  _rnp.tree2array(t, branches=last_name+"yp")
-        Btof       =  _rnp.tree2array(t, branches=last_name+"T")
-        BE         =  _rnp.tree2array(t, branches=last_name+"energy")
-        meanE      = _np.mean(BE)
-        meantof    = _np.mean(Btof)
+        f = pybdsim.Data.Load(self.filename+".root")
+        last_name = f.GetSamplerNames()[-1]
+        sampler = pybdsim.Data.SamplerData(f, last_name)
+        primary = pybdsim.Data.SamplerData(f)
+
+        # Get the sampler particle coordinates.
+        Bx      = sampler.data['x']
+        Bxp     = sampler.data['xp']
+        By      = sampler.data['y']
+        Byp     = sampler.data['yp']
+        Btof    = sampler.data['T']
+        BE      = sampler.data['energy']
+        meanE   = _np.mean(BE)
+        meantof = _np.mean(Btof)
 
         #Get particle pdg number
-        priPid      =  _rnp.tree2array(t, branches="Primary.partID")
-        pid         =  _np.int(_np.mean(priPid)[0])  #cast to int to match pdg id
+        priPid = primary.data['partID']
+        pid    =  _np.int(_np.mean(priPid))  #cast to int to match pdg id
 
         #Particle mass needed for calculating momentum, in turn needed for dE.
         #All in GeV, taken from the PDG table http://pdg.lbl.gov/2017/reviews/rpp2017-rev-phys-constants.pdf
@@ -342,13 +341,6 @@ class LatticeTest:
         #get canonical coordinate t (time_offset_from_reference_part*speed_of_light) from
         #the recorded time of flight in bdsim
         Bt         = beta*(Btof - _np.full_like(Btof, meantof))*1.e-9*_scpconsts.c
-
-        Bx  = [val[0] for val in Bx] #rootnumpy.tree2array returns an array of arrays, get only values
-        By  = [val[0] for val in By]
-        Bxp = [val[0] for val in Bxp]
-        Byp = [val[0] for val in Byp]
-        Bt  = [val[0] for val in Bt]
-        BE  = [val[0] for val in BE]
 
         P = _np.sqrt(_np.square(BE) - _np.full_like(BE, mass**2))
         p0 = _np.sqrt(_np.mean(BE)**2 - 0.93827208148**2)
@@ -458,8 +450,7 @@ class LatticeTest:
         if noPlots:
             return
 
-        boptfile  = _ROOT.TFile(self.filename+'_optics.root') #TODO(aabramov): change to use pickled root output
-        bdata     = boptfile.Get('Optics')
+        bdata  = pybdsim.Data.Load(self.filename+'_optics.root').optics
 
         #ptcfile  = 'ptc_'+self.filename+'_opticalfns.dat'
         #print "ptcCalculateOpticalFunctions> processing... " , ptcfile 
@@ -469,7 +460,7 @@ class LatticeTest:
 
         #Get the S coordinate from all outputs
         M_s       = madx.GetColumn('S')
-        B_s       = _rnp.tree2array(bdata, branches = "S") 
+        B_s       = bdata.S()
         #PTC_s     = ptcdata.S()
 
         M_emittx  = madx.header['EX'] #Get emittance from tfs file header
@@ -505,10 +496,10 @@ class LatticeTest:
                 
                 M_optfn_x    = madx.GetColumn('BETX') 
                 M_optfn_y    = madx.GetColumn('BETY')
-                B_optfn_x    = _rnp.tree2array(bdata, branches = "Beta_x")
-                B_optfn_y    = _rnp.tree2array(bdata, branches = "Beta_y")
-                B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Beta_x")
-                B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Beta_y")
+                B_optfn_x    = bdata.Beta_x()
+                B_optfn_y    = bdata.Beta_y()
+                B_opterr_x   = bdata.Sigma_Beta_x()
+                B_opterr_y   = bdata.Sigma_Beta_y()
                 #PTC_optfn_x  = ptcdata.Beta_x()
                 #PTC_optfn_y  = ptcdata.Beta_y()
                 #PTC_opterr_x = ptcdata.Sigma_beta_x()
@@ -525,10 +516,10 @@ class LatticeTest:
                 
                 M_optfn_x    = madx.GetColumn('ALFX') 
                 M_optfn_y    = madx.GetColumn('ALFY')
-                B_optfn_x    = _rnp.tree2array(bdata, branches = "Alpha_x")
-                B_optfn_y    = _rnp.tree2array(bdata, branches = "Alpha_y")
-                B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Alpha_x")
-                B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Alpha_y")
+                B_optfn_x    = bdata.Alpha_x()
+                B_optfn_y    = bdata.Alpha_y()
+                B_opterr_x   = bdata.Sigma_Alpha_x()
+                B_opterr_y   = bdata.Sigma_Alpha_y()
                 #PTC_optfn_x  = ptcdata.Alph_x()
                 #PTC_optfn_y  = ptcdata.Alph_y()
                 #PTC_opterr_x = ptcdata.Sigma_alph_x()
@@ -544,10 +535,10 @@ class LatticeTest:
                 in_Tfs       = True
                 M_optfn_x    = madx.GetColumn('SIGMAX')
                 M_optfn_y    = madx.GetColumn('SIGMAY')
-                B_optfn_x    = _rnp.tree2array(bdata, branches = "Sigma_x")
-                B_optfn_y    = _rnp.tree2array(bdata, branches = "Sigma_y")
-                B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_x")
-                B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_y")
+                B_optfn_x    = bdata.Sigma_x()
+                B_optfn_y    = bdata.Sigma_y()
+                B_opterr_x   = bdata.Sigma_Sigma_x()
+                B_opterr_y   = bdata.Sigma_Sigma_y()
                 #PTC_optfn_x  = ptcdata.Sigma_x()
                 #PTC_optfn_y  = ptcdata.Sigma_y()
                 #PTC_opterr_x = 0.000001 #not implemented in PTC yet
@@ -563,10 +554,10 @@ class LatticeTest:
                 in_Tfs       = True
                 M_optfn_x    = madx.GetColumn('SIGMAXP')
                 M_optfn_y    = madx.GetColumn('SIGMAYP')
-                B_optfn_x    = _rnp.tree2array(bdata, branches = "Sigma_xp")
-                B_optfn_y    = _rnp.tree2array(bdata, branches = "Sigma_yp")
-                B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_xp")
-                B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Sigma_yp")
+                B_optfn_x    = bdata.Sigma_xp()
+                B_optfn_y    = bdata.Sigma_yp()
+                B_opterr_x   = bdata.Sigma_Sigma_xp()
+                B_opterr_y   = bdata.Sigma_Sigma_yp()
                 #PTC_optfn_x  = ptcdata.Sigma_xp()
                 #PTC_optfn_y  = ptcdata.Sigma_yp()
                 #PTC_opterr_x = 0.000001 #not implemented in PTC yet
@@ -584,10 +575,10 @@ class LatticeTest:
                 M_optfn_x.fill(M_emittx)       
                 M_optfn_y    = _np.empty(len(M_s));
                 M_optfn_y.fill(M_emitty)
-                B_optfn_x    = _rnp.tree2array(bdata, branches = "Emitt_x")
-                B_optfn_y    = _rnp.tree2array(bdata, branches = "Emitt_y")
-                B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Emitt_x")
-                B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Emitt_y")
+                B_optfn_x    = bdata.Emitt_x()
+                B_optfn_y    = bdata.Emitt_y()
+                B_opterr_x   = bdata.Sigma_Emitt_x()
+                B_opterr_y   = bdata.Sigma_Emitt_y()
                 #PTC_optfn_x  = ptcdata.Emitt_x()
                 #PTC_optfn_y  = ptcdata.Emitt_y()
                 #PTC_opterr_x = ptcdata.Sigma_emitt_x()
@@ -603,15 +594,15 @@ class LatticeTest:
                 in_Tfs       = True
                 M_optfn_x    = madx.GetColumn('DXBETA')
                 M_optfn_y    = madx.GetColumn('DYBETA')
-                B_optfn_x    = _rnp.tree2array(bdata, branches = "Disp_x")
-                B_optfn_y    = _rnp.tree2array(bdata, branches = "Disp_y")
+                B_optfn_x    = bdata.Disp_x()
+                B_optfn_y    = bdata.Disp_y()
                 #PTC_optfn_x  = ptcdata.Disp_x()
                 #PTC_optfn_y  = ptcdata.Disp_y()
                 #PTC_opterr_x = 0 #error calculations for dispersion not implemented yet
                 #PTC_opterr_y = 0
-                B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Disp_x")
-                B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Disp_y")
-                
+                B_opterr_x   = bdata.Sigma_Disp_x()
+                B_opterr_y   = bdata.Sigma_Disp_y()
+
             elif (opt=='dispersion_xpyp'):
                 fn_name      = r'D' #this is a raw string for Latex labels and titles
                 fn_rname     = 'dispersion_xpyp'   #this is reduced name for filename of saved figure
@@ -623,14 +614,14 @@ class LatticeTest:
                 in_Tfs       = True
                 M_optfn_x    = madx.GetColumn('DPXBETA')
                 M_optfn_y    = madx.GetColumn('DPYBETA')
-                B_optfn_x    = _rnp.tree2array(bdata, branches = "Disp_xp")
-                B_optfn_y    = _rnp.tree2array(bdata, branches = "Disp_yp")
+                B_optfn_x    = bdata.Disp_xp()
+                B_optfn_y    = bdata.Disp_yp()
                 #PTC_optfn_x  = ptcdata.Disp_xp()
                 #PTC_optfn_y  = ptcdata.Disp_yp()
                 #PTC_opterr_x = 0 #error calculations for dispersion not implemented yet
                 #PTC_opterr_y = 0
-                B_opterr_x   = _rnp.tree2array(bdata, branches = "Sigma_Disp_xp")
-                B_opterr_y   = _rnp.tree2array(bdata, branches = "Sigma_Disp_yp")
+                B_opterr_x   = bdata.Sigma_Disp_xp()
+                B_opterr_y   = bdata.Sigma_Disp_yp()
             else:
                 print "Error: Unrecognised plotting option:", plot
                 return

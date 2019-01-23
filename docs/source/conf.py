@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pybdsim'
-copyright = u'Royal Holloway, University of London 2018'
+copyright = u'Royal Holloway, University of London 2019'
 author = u'L Nevay, A Abramov, S Boogert, W Shields, J Snuverink, S Walker'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -73,7 +73,8 @@ language = None
 exclude_patterns = []
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+#pygments_style = 'sphinx'
+pygments_style = 'default'
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False

@@ -16,14 +16,7 @@ import numpy as _np
 import os as _os
 
 _useRoot      = True
-_useRootNumpy = True
 _libsLoaded   = False
-
-try:
-    import root_numpy as _rnp
-except ImportError:
-    _useRootNumpy = False
-    pass
 
 try:
     import ROOT as _ROOT
@@ -31,7 +24,7 @@ except ImportError:
     _useRoot = False
     pass
 
-def _LoadROOTLibraries():
+def LoadROOTLibraries():
     """
     Load root libraries. Only works once to prevent errors.
     """
@@ -87,7 +80,6 @@ def Load(filepath):
     else:
         msg = "Unknown file type for file \"{}\" - not BDSIM data".format(filepath)
         raise IOError(msg)
-
 
 def _LoadAscii(filepath):
     data = BDSAsciiData()
@@ -153,17 +145,16 @@ def _LoadRoot(filepath):
     """
     if not _useRoot:
         raise IOError("ROOT in python not available - can't load ROOT file")
-    if not _useRootNumpy:
-        raise IOError("root_numpy not available - can't load ROOT file")
 
-    _LoadROOTLibraries()
+    LoadROOTLibraries()
 
     fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
 
     if fileType == "BDSIM":
         print 'BDSIM output file - using DataLoader'
         d = _ROOT.DataLoader(filepath)
-        return d # just return the DataLoader instance
+        d.model = GetModelForPlotting(d) # attach BDSAsciiData instance for convenience
+        return d
     elif fileType == "REBDSIM":
         print 'REBDSIM analysis file - using RebdsimFile'
         return RebdsimFile(filepath)
@@ -185,6 +176,67 @@ def _ParseHeaderLine(line):
             units.append('NA')
     return names, units
 
+def _LoadVectorTree(tree):
+    """
+    Simple utility to loop over the entries in a tree and get all the leaves
+    which are assumed to be a single number. Return BDSAsciiData instance.
+    """
+    result = BDSAsciiData()
+    lvs = tree.GetListOfLeaves()
+    lvs = [str(lvs[i].GetName()) for i in range(lvs.GetEntries())]
+    for l in lvs:
+        result._AddProperty(l)
+    
+    #tempData = []
+    for value in tree:
+        row = [getattr(value,l) for l in lvs]
+        result.append(row)
+
+    #result = map(tuple, *tempData)
+    return result
+    
+def GetModelForPlotting(rootFile, beamlineIndex=0):
+    """
+    Returns BDSAsciiData object with just the columns from the model for plotting.
+    """
+    mt = None
+    if hasattr(rootFile, "Get"):
+        # try first for ModelTree which we call it in histomerge output
+        mt = rootFile.Get("ModelTree")
+        if not mt:
+            mt = rootFile.Get("Model") # then try regular Model
+    elif hasattr(rootFile, "GetModelTree"):
+        mt = rootFile.GetModelTree() # must be data loader instance
+    if not mt:
+        print "No 'Model.' tree in file"
+        return
+
+    leaves = ['componentName', 'componentType', 'length',    'staS',   'endS', 'k1']
+    names  = ['Name',          'Type',          'ArcLength', 'SStart', 'SEnd', 'k1']
+    types  = [str,              str,             float,       float,    float,  float]
+
+    if mt.GetEntries() == 0:
+        return None
+    
+    beamlines = [] # for future multiple beam line support
+    # use easy iteration on root file - iterate on tree
+    for beamline in mt:
+        beamlines.append(beamline.Model)
+
+    if beamlineIndex >= len(beamlines):
+        raise IOError('Invalid beam line index')
+
+    bl = beamlines[beamlineIndex]
+    result = BDSAsciiData()
+    tempdata = []
+    for leave,name,t in zip(leaves,names,types):
+        result._AddProperty(name)
+        tempdata.append(map(t, getattr(bl, leave)))
+
+    data = map(tuple, zip(*tempdata))
+    [result.append(d) for d in data]
+    return result
+
 class RebdsimFile(object):
     """
     Class to represent data in rebdsim output file.
@@ -199,14 +251,13 @@ class RebdsimFile(object):
     to classes provided here with numpy data.
     """
     def __init__(self, filename, convert=True):
-        _LoadROOTLibraries()
+        LoadROOTLibraries()
         self.filename = filename
         self._f = _ROOT.TFile(filename)
         self.histograms   = {}
         self.histograms1d = {}
         self.histograms2d = {}
         self.histograms3d = {}
-        dirs = self.ListOfDirectories()
         self._Map("", self._f)
         if convert:
             self.ConvertToPybdsimHistograms()
@@ -223,15 +274,14 @@ class RebdsimFile(object):
                 data.append(elementlist)
             return data
 
-        trees = _rnp.list_trees(self.filename)
+        trees = self.ListOfTrees()
+        # keep as optics (not Optics) to preserve data loading in Bdsim comparison plotting methods.
         if 'Optics' in trees:
-            branches = _rnp.list_branches(self.filename,'Optics')
-            treedata = _rnp.root2array(self.filename,'Optics')
-            self.Optics = _prepare_data(branches, treedata)
+            self.optics = _LoadVectorTree(self._f.Get("Optics"))
         if 'Orbit' in trees:
-            branches = _rnp.list_branches(self.filename, 'Orbit')
-            treedata = _rnp.root2array(self.filename, 'Orbit')
-            self.orbit = _prepare_data(branches, treedata)
+            self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
+        if 'Model' in trees or 'ModelTree' in trees:
+            self.model = GetModelForPlotting(self._f)
 
     def _Map(self, currentDirName, currentDir):
         h1d = self._ListType(currentDir, "TH1D")
@@ -281,6 +331,16 @@ class RebdsimFile(object):
         List all trees inside the root file.
         """
         return self._ListType(self._f, 'Tree')
+
+    def ListOfLeavesInTree(self, tree):
+        """
+        List all leaves in a tree.
+        """
+        leaves = tree.GetListOfLeaves()
+        result = []
+        for i in range(leaves.GetEntries()):
+            result.append(str(leaves.At(i)))
+        return result
 
     def ConvertToPybdsimHistograms(self):
         """
@@ -762,13 +822,14 @@ class SamplerData(_SamplerData):
     on the index in data.GetSamplerNames()). Examples::
 
     >>> f = pybdsim.Data.Load("file.root")
-    >>> primaries = pybdsim.Data.SampoerData(f)
+    >>> primaries = pybdsim.Data.SamplerData(f)
     >>> samplerfd45 = pybdsim.Data.SamplerData(f, "samplerfd45")
     >>> thirdAfterPrimaries = pybdsim.Data.SamplerData(f, 3)
     """
     def __init__(self, data, samplerIndexOrName=0):
         params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
-                  'weight','partID','parentID','trackID','modelID','turnNumber','S']
+                  'weight','partID','parentID','trackID','modelID','turnNumber','S',
+                  'charge', 'mass', 'rigidity','isIon','ionA','ionZ']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
 
 class TrajectoryData(object):
@@ -922,6 +983,25 @@ class OptionsData(object):
         optionsTree.GetEntry(0)
         interface = _filterROOTObject(options)
         self._getData(interface, options)
+
+    @classmethod
+    def FromROOTFile(cls, path):
+        data = Load(path)
+        return cls(data)
+
+    def _getData(self, interface, rootobj):
+        for name in interface:
+            setattr(self, name, getattr(rootobj, name))
+
+
+class BeamData(object):
+    def __init__(self, data):
+        beam = data.GetBeam()
+        beamTree = data.GetBeamTree()
+        beam = beam.beam
+        beamTree.GetEntry(0)
+        interface = _filterROOTObject(beam)
+        self._getData(interface, beam)
 
     @classmethod
     def FromROOTFile(cls, path):
