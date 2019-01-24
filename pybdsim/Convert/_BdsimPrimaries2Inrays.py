@@ -298,6 +298,8 @@ def _TruncateCoordinates(x,xp,y,yp,t,dE,ninrays,start):
         dE = dE[start:]
 
     else:
+        if start > 0:
+            ninrays += start
         x = x[start:ninrays]
         y = y[start:ninrays]
         xp = xp[start:ninrays]
