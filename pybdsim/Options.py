@@ -134,6 +134,14 @@ class Options(dict):
             'decay_muonic_atom',
             'channelling',
             'dna',
+            'dna_1',
+            'dna_2',
+            'dna_2',
+            'dna_3',
+            'dna_4',
+            'dna_5',
+            'dna_6',
+            'dna_7',
             'shielding_lend'
             ]
         if len(physicslist.split()) == 1 :
