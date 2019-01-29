@@ -2,6 +2,17 @@
 Version History
 ===============
 
+v2.0 - 2019 / 01 / XX
+=====================
+
+Bug Fixes
+---------
+
+* Fix bug where calling pybdsim.Plot.PrimaryPhaseSpace with an output file name
+  would result in an error as this argument was wrongly supplied to the number
+  of bins argument.
+
+
 v1.9 - 2018 / 08 / 24
 =====================
 
