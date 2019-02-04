@@ -1,3 +1,8 @@
+"""
+Module containing a similarly named Beam class for creating
+a BDSIM beam distribution programmatically.
+"""
+
 BDSIMDistributionTypes = [
     'reference',
     'gaussmatrix',

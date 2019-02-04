@@ -416,7 +416,7 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None):
     import Data as _Data
     d = _Data.Load(filename)
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
-    PhaseSpace(psd, outputfilename)
+    PhaseSpace(psd, outputfilename=outputfilename)
 
 def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
     """
