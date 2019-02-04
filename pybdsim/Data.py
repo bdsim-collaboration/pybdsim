@@ -829,7 +829,8 @@ class SamplerData(_SamplerData):
     def __init__(self, data, samplerIndexOrName=0):
         params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
                   'weight','partID','parentID','trackID','modelID','turnNumber','S',
-                  'charge', 'mass', 'rigidity','isIon','ionA','ionZ']
+                  'r', 'rp', 'phi', 'phip', 'charge', 'kineticEnergy',
+                  'mass', 'rigidity','isIon','ionA','ionZ']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
 
 class TrajectoryData(object):

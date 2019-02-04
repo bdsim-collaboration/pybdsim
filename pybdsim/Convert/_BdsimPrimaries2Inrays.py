@@ -255,10 +255,10 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
     dE          = (p-p0)/p0
     t           = beta*(tof-_np.full(len(tof),tofm))*1.e-9*_con.c    #c is sof and the 1.e-9 factor is nm to m conversion
 
-    x,xp,y,yp,t,E = _TruncateCoordinates(x,xp,y,yp,t,E,ninrays,start)
+    x,xp,y,yp,t,dE = _TruncateCoordinates(x,xp,y,yp,t,dE,ninrays,start)
 
     #Agglomerate the coordinate arrays and return resulting superarray
-    coords = _np.stack([x,xp,y,yp,t,E])
+    coords = _np.stack([x,xp,y,yp,t,dE])
     return coords
 
 def _ExtractSamplerCoords(data, samplername):
@@ -298,6 +298,8 @@ def _TruncateCoordinates(x,xp,y,yp,t,dE,ninrays,start):
         dE = dE[start:]
 
     else:
+        if start > 0:
+            ninrays += start
         x = x[start:ninrays]
         y = y[start:ninrays]
         xp = xp[start:ninrays]

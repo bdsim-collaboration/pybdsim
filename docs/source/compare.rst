@@ -18,7 +18,7 @@ To compare, a BDSIM model is run with samplers attached to each element. This
 records all of the particle coordinates at the end of each element. Once finished
 a separate program ('rebdsim') is used to calculate moments and optical functions
 from the distribution at each plane. This information can then be compared to
-an anlytical description of the lattice such as that from MADX.
+an analytical description of the lattice such as that from MADX.
 
 .. note:: It is important to open any apertures that are by design close to the beam
 	  such as collimators. A non-Gaussian distribution will affect the calculation of
@@ -89,6 +89,30 @@ The comparison for MAD8 is exactly the same as MADX - please see above for furth
 One difference is that both a TWISS and ENVELOPE file are required.::
 
   >>> pybdsim.Compare.Mad8VsBDSIM('../mad8/TWISS_T4D', '../mad8/ENVEL_T4D', 'xfel_optics.root')
+
+Comparing to BDSIM
+-----------------
+
+Two BDSIM optics files can also be compared with the following command::
+
+  >>> pybdsim.Compare.BDSIMVsBDSIM('optics1.root', 'optics2.root')
+
+Comparing to PTC
+-----------------
+
+BDSIM output can be compared to the PTC output from the PTC_TRACK routine available in MADX.
+The PTC output is written to a file typically named `trackone`, however it is necessary to convert
+this into a BDSIM-like ROOT output file. This can be easily accomplished with the `ptc2bdsim` tool,
+however the particle species and nominal momentum is required to correctly convert to the BDSIM
+coordinate convention. An example terminal command::
+
+  $> ptc2bdsim trackone ptc.root proton 0.9999
+
+Once the ROOT file has been generated, the `rebdsimOptics` tool (see Analysing Optical Data) must
+be used to generate the ROOT file with the appropriate optical data. Finally, the two files can be
+compared with the following command::
+
+  >>> pybdsim.Compare.PTCVsBDSIM('ptc_optics.root', 'bdsim_optics.root')
 
 Comparing to Transport
 ----------------------
