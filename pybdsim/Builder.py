@@ -649,7 +649,7 @@ class ExternalGeometry(object):
                          outerDiameter=outerDiameter,
                          geometryFile=geometryFile, **kwargs)
 
-class Sampler:
+class Sampler(object):
     """
     A sampler is unique in that it does not have a length unlike every
     :class:`Element` hence it needs its own class to produce its
@@ -664,7 +664,7 @@ class Sampler:
         else:
             return 'sample, range='+self.name+';\n'
 
-class Machine:
+class Machine(object):
     """
     A class represents an accelerator lattice as a sequence of
     components. Member functions allow various lattice components
