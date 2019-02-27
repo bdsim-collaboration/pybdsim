@@ -28,6 +28,8 @@ Bug Fixes
   would result in an error as this argument was wrongly supplied to the number
   of bins argument.
 * Fix for hidden scientific notation when using machine diagram.
+* Fix TH1 TH2 TH3 histogram x,y,z highedge variables in histogram loading. These
+  were the lowedge duplicated, which was wrong.
 
 
 v1.9 - 2018 / 08 / 24

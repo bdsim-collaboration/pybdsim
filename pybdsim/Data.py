@@ -643,7 +643,7 @@ class TH1(ROOTHist):
             xaxis = hist.GetXaxis()
             self.xwidths[i]   = xaxis.GetBinWidth(i)
             self.xlowedge[i]  = xaxis.GetBinLowEdge(i+1)
-            self.xhighedge[i] = xaxis.GetBinLowEdge(i+1)
+            self.xhighedge[i] = self.xlowedge[i] + self.xwidths[i]
             self.xcentres[i]  = xaxis.GetBinCenter(i+1)
 
         if extractData:
@@ -676,7 +676,7 @@ class TH2(TH1):
             yaxis = hist.GetYaxis()
             self.ywidths[i]   = yaxis.GetBinWidth(i+1)
             self.ylowedge[i]  = yaxis.GetBinLowEdge(i+1)
-            self.yhighedge[i] = yaxis.GetBinLowEdge(i+2)
+            self.yhighedge[i] = self.ylowedge[i] + self.ywidths[i]
             self.ycentres[i]  = yaxis.GetBinCenter(i+1)
 
         if extractData:
@@ -711,7 +711,7 @@ class TH3(TH2):
             zaxis = hist.GetZaxis()
             self.zwidths[i]   = zaxis.GetBinWidth(i+1)
             self.zlowedge[i]  = zaxis.GetBinLowEdge(i+1)
-            self.zhighedge[i] = zaxis.GetBinLowEdge(i+2)
+            self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
             self.zcentres[i]  = zaxis.GetBinCenter(i+1)
 
         if extractData:
