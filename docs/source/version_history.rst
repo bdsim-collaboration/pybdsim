@@ -2,17 +2,17 @@
 Version History
 ===============
 
-v2.0 - 2019 / 01 / XX
+v2.0 - 2019 / 02 / 27
 =====================
 
 New Features
 ------------
 
-* Support for thin R matrix, parallel transporter and thick R matrix in builder.
 * Machine diagram plotting automatically from BDSIM output. Compatible with newer
   BDSIM output format.
-* Control over legend location in stanard energy deposition and loss plots.
+* Support for thin R matrix, parallel transporter and thick R matrix in builder.
 * Generate transfer matrix from tracking data from BDSIM for a single element.
+* Control over legend location in stanard energy deposition and loss plots.
 * Utility function to write sampler data from BDSIM output to a user input file.
 * Support for energy variation in the beam line in MAD8 conversion.
 
@@ -20,6 +20,7 @@ General
 -------
 
 * Remove dependency of root_numpy. pybdsim now uses only standard ROOT interfaces.
+* Update physics lists.
 
 Bug Fixes
 ---------
@@ -28,6 +29,9 @@ Bug Fixes
   would result in an error as this argument was wrongly supplied to the number
   of bins argument.
 * Fix for hidden scientific notation when using machine diagram.
+* Fix TH1 TH2 TH3 histogram x,y,z highedge variables in histogram loading. These
+  were the lowedge duplicated, which was wrong.
+* Add missing variables from sampler data given changes in BDSIM.
 
 
 v1.9 - 2018 / 08 / 24
