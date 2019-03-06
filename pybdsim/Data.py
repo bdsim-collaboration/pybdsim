@@ -973,7 +973,17 @@ class ModelData(object):
 
     def _getData(self, interface, rootobj):
         for name in interface:
-            setattr(self, name, _np.array(getattr(rootobj, name)))
+            try:
+                setattr(self, name, _np.array(getattr(rootobj, name)))
+            except TypeError:
+                # could be a map or a vector of our classes which wouldn't work
+                try:
+                    # try converting map to a dictionary - TBC
+                    setattr(self, name, dict(getattr(rootobj, name)))
+                except:
+                    pass # just ignore it
+            except ValueError:
+                pass # just ignore it
 
 
 class OptionsData(object):
