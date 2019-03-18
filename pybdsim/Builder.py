@@ -1087,25 +1087,31 @@ class Machine(object):
             for name in names:
                 self.AddSampler(name)
 
-    def AddRmat(self, name='rmat', length=0.1, r11=1.0, r12=0, r13=0,
-                r14=0, r21=0, r22=1.0, r23=0, r24=0, r31=0, r32=0, r33=1.0,
-                r34=0, r41=0, r42=0, r43=0, r44=1.0, **kwargs):
-        self.Append(Element(name, 'rmatrix',l=length,
-                            rmat11=r11, rmat12=r12, rmat13=r13,
-                            rmat14=r14, rmat21=r21, rmat22=r22,
-                            rmat23=r23, rmat24=r24, rmat31=r31,
-                            rmat32=r32, rmat33=r33, rmat34=r34,
-                            rmat41=r41, rmat42=r42, rmat43=r43,
-                            rmat44=r44, **kwargs))
+    def AddRmat(self, name='rmat', length=0.1,
+                r11=1.0, r12=0, r13=0, r14=0,
+                r21=0, r22=1.0, r23=0, r24=0,
+                r31=0, r32=0, r33=1.0, r34=0,
+                r41=0, r42=0, r43=0, r44=1.0,
+                **kwargs):
+        self.Append(Element(name, 'rmatrix', l=length,
+                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
+                            **kwargs))
 
-    def AddThinRmat(self, name='rmatthin', r11=1.0, r12=0, r13=0,
-                    r14=0, r21=0, r22=1.0, r23=0, r24=0, r31=0, r32=0, r33=1.0,
-                    r34=0, r41=0, r42=0, r43=0, r44=1.0, **kwargs):
-        self.Append(Element(name, 'rmatrixthin', rmat11=r11,
-                    rmat12=r12, rmat13=r13, rmat14=r14, rmat21=r21,
-                    rmat22=r22, rmat23=r23, rmat24=r24, rmat31=r31,
-                    rmat32=r32, rmat33=r33, rmat34=r34, rmat41=r41,
-                    rmat42=r42, rmat43=r43, rmat44=r44, **kwargs))
+    def AddThinRmat(self, name='rmatthin',
+                    r11=1.0, r12=0, r13=0, r14=0,
+                    r21=0, r22=1.0, r23=0, r24=0,
+                    r31=0, r32=0, r33=1.0, r34=0,
+                    r41=0, r42=0, r43=0, r44=1.0,
+                    **kwargs):
+        self.Append(Element(name, 'rmatrixthin',
+                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
+                            **kwargs))
 
 # General scripts below this point
 
