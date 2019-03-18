@@ -62,6 +62,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  beamParmsDict         = {},
                  linear                = False,
                  overwrite             = True,
+                 write                 = True,
                  allNamesUnique        = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
@@ -289,7 +290,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
         print itemsomitted
         print 'number of omitted items: ', len(itemsomitted)
 
-    machine.Write(outputfilename, overwrite=overwrite)
+    if write:
+        machine.Write(outputfilename, overwrite=overwrite)
     # We return machine twice to not break old interface of returning
     # two machines.
     return machine, itemsomitted
