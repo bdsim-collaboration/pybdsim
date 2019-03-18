@@ -62,6 +62,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  beamParmsDict         = {},
                  linear                = False,
                  overwrite             = True,
+                 write                 = True,
                  allNamesUnique        = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
@@ -292,7 +293,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     machine.Write(outputfilename, overwrite=overwrite)
     # We return machine twice to not break old interface of returning
     # two machines.
-    return machine, machine, itemsomitted
+    return machine, itemsomitted
 
 
 def _Tfs2GmadElementFactory(item, allelementdict, verbose,
