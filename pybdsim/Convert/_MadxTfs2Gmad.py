@@ -292,7 +292,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     machine.Write(outputfilename, overwrite=overwrite)
     # We return machine twice to not break old interface of returning
     # two machines.
-    return machine, machine, itemsomitted
+    return machine, itemsomitted
 
 
 def _Tfs2GmadElementFactory(item, allelementdict, verbose,
