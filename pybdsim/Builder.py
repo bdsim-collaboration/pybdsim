@@ -46,6 +46,7 @@ bdsimcategories = [
     'rfcavity',
     'rcol',
     'ecol',
+    "jcol",
     'muspoiler',
     'solenoid',
     'hkicker',
@@ -598,6 +599,10 @@ class ECol(_Col):
         _Col.__init__(self, name, "ecol", l,
                       xsize, ysize, **kwargs)
 
+class JCol(_Col):
+    def __init__(self, name, l, xsize, ysize, **kwargs):
+        _Col.__init__(self, name, "jcol", l,
+                      xsize, ysize, **kwargs)
 
 class Degrader(Element):
     def __init__(self, name, l, nWedges,
