@@ -282,6 +282,12 @@ class Element(ElementBase):
         etc, which is left to derived classes where appropriate. """
         return self._split_length(points)
 
+    @classmethod
+    def from_element(cls, element):
+        parameters = _copy.copy(dict(element))
+        del parameters["category"] # don't set category explicitly..
+        return cls(**parameters)
+
 
 class ElementModifier(ElementBase):
     """
