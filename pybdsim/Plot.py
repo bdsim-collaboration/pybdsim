@@ -99,7 +99,8 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
             d.ConcatenateMachine(machine)
     return d
 
-def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
+def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
+                                        tightLayout=True, sOffset=0.):
     """
     Add a machine diagram to the top of the plot in a current figure
 
@@ -114,7 +115,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     axmachine = _PrepareMachineAxes(figure)
     axmachine.margins(x=0.02)
 
-    _DrawMachineLattice(axmachine,sf)
+    _DrawMachineLattice(axmachine, sf, sOffset=sOffset)
 
     #put callbacks for linked scrolling
     def MachineXlim(ax):
@@ -124,7 +125,8 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     def Click(a) :
         if a.button == 3:
             try:
-                print 'Closest element: ',sf.NameFromNearestS(a.xdata)
+                print 'Closest element: ',sf.NameFromNearestS(a.xdata
+                                                              - sOffset)
             except ValueError:
                 pass # don't complain if the S is out of bounds
 
@@ -132,7 +134,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
 
-def _DrawMachineLattice(axesinstance,bdsasciidataobject):
+def _DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     ax  = axesinstance #handy shortcut
     bds = bdsasciidataobject
 
@@ -161,14 +163,15 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
         ax.plot([start,start],[-0.2,0.2],'-',color=color,alpha=alpha)
 
     # plot beam line
-    smax = bds.SEnd()[-1]
-    ax.plot([0,smax],[0,0],'k-',lw=1)
+    smax = bds.SEnd()[-1] + sOffset
+    ax.plot([sOffset, smax],[0,0],'k-',lw=1)
     ax.set_ylim(-0.2,0.2)
 
     # loop over elements and Draw on beamline
     types   = bds.Type()
     lengths = bds.ArcLength()
     starts  = bds.SStart()
+    starts += sOffset
     k1      = bds.k1()
 
     for i in range(len(bds)):
