@@ -115,7 +115,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     axmachine = _PrepareMachineAxes(figure)
     axmachine.margins(x=0.02)
 
-    _DrawMachineLattice(axmachine, sf, sOffset=sOffset)
+    DrawMachineLattice(axmachine, sf, sOffset=sOffset)
 
     #put callbacks for linked scrolling
     def MachineXlim(ax):
@@ -134,7 +134,8 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
 
-def _DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
+
+def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     ax  = axesinstance #handy shortcut
     bds = bdsasciidataobject
 
