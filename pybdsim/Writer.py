@@ -10,7 +10,7 @@ File - A class that represents each section of the written output - contains boo
 Writer - A class that writes the data to disk.
 
 """
-import pybdsim
+from pybdsim import __version__ as _pybdsimVersion
 import _General
 import Beam as _Beam
 import Options as _Options
@@ -565,7 +565,7 @@ class Writer():
         f.write(self._timestring)
         f.write(
             '! pybdsim.Builder Lattice, using pybdsim version {} \n'.format(
-            pybdsim.__version__))
+                _pybdsimVersion))
         for extraline in extralines:
             f.write("{}\n".format(extraline))
         if extralines:
