@@ -369,6 +369,43 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
         ax.set_title(title)
     return f
 
+def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
+    """
+    Plot multiple 1D histograms on the same plot.
+
+    histograms and labels should be lists of the same length with pybdsim.Data.TH1 objects and strings.
+    """
+
+    f = _plt.figure(figsize=(10,5))
+    ax = f.add_subplot(111)
+
+    for h,l in zip(histograms, labels):
+        ht = _Data.PadHistogram1D(h)
+        ax.errorbar(ht.xcentres, ht.contents, yerr=ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
+
+    if xlabel is None:
+        ax.set_xlabel(h.xlabel)
+    else:
+        ax.set_xlabel(xlabel)
+    if ylabel is None:
+        ax.set_ylabel(h.ylabel)
+    else:
+        ax.set_ylabel(ylabel)
+    if title == "":
+        ax.set_title(h.title) # default to one in histogram
+    elif title is None:
+        pass
+    else:
+        ax.set_title(title)
+    if log:
+        _plt.yscale('log', nonposy='clip')
+
+    _plt.legend()
+    _plt.tight_layout()
+    
+    return f
+
+
 def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="auto", **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
