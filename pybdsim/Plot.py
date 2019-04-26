@@ -57,6 +57,7 @@ def ProvideWrappedS(sArray, index):
     return snew
 
 def _SetMachineAxesStyle(ax):
+    ax.set_facecolor('none') # make background transparent to allow scientific notation
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -67,7 +68,6 @@ def _SetMachineAxesStyle(ax):
 def _PrepareMachineAxes(figure):
     # create new machine axis with proportions 6 : 1
     axmachine = figure.add_subplot(911, projection="_My_Axes")
-    axmachine.set_facecolor('none') # make background transparent to allow scientific notation
     _SetMachineAxesStyle(axmachine)
     return axmachine
 
