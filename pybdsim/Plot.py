@@ -213,6 +213,97 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
                 #relatively short element - just draw a line
                 DrawLine(starts[i],'#cccccc',alpha=0.1)
 
+def SubplotsWithDrawnMachineLattice(survey, nrows=2,
+                                    machine_plot_gap=0.01,
+                                    gridspec_kw=None,
+                                    subplots_kw=None, **fig_kw):
+    """Create a figure with a single column of axes, sharing the
+    x-axis by default, with the machine drawn from the provided survey
+    on the top row axes.  nrows gives the number of axes, the first is
+    always the machine lattice.  by default 2 are drawn, the first for
+    the machine, and the second for any data to be plotted to
+    afterwards.
+
+    Parameters
+    ----------
+
+    survey : BSDIM survey which is used to draw the machine lattice on
+             the top axes.
+
+    machine_plot_gap : vertical space between the top of the first
+             axes and the bottom of the machine axes.  by default this
+             is small.
+
+    Returns
+    -------
+    (figure, machine_axes, (axes1, axes2, ...))
+
+    figure : Figure instance.
+
+    machine_axes : Axes instance with the machine drawn on it.  Can be used to
+             further edit
+
+    axes : iterable of axes, in order from the first below the
+           machine, downwards.
+    """
+
+    if isinstance(survey, basestring):
+        survey = _Data.Load(survey)
+
+    # Make all main plots 6 times bigger than the machine plot along
+    # the top, and set the height (vertical) space between them to be
+    # small by default.  this is a bit arbitrary, can overide in gridspec_kw.
+    height_ratios = [1]
+    height_ratios.extend((nrows - 1) * [6])
+
+    # Set all the kwargs to be supplied to plt.subplots
+    the_gridspec_kw = {"height_ratios": height_ratios,
+                       "hspace": 0.1}
+    if gridspec_kw is not None:
+        the_gridspec_kw.update(gridspec_kw)
+    the_subplots_kw = {"sharex": True,
+                       "gridspec_kw": the_gridspec_kw}
+    if subplots_kw is not None:
+        the_subplots_kw.update(subplots_kw)
+    the_subplots_kw.update(fig_kw)
+
+    fig, axes = _plt.subplots(nrows, **the_subplots_kw)
+
+    try:
+        machine_axes = axes[0]
+    except TypeError:
+        raise ValueError("nrows = {}.  Must be >= 2.")
+
+    _SetMachineAxesStyle(machine_axes)
+    DrawMachineLattice(machine_axes, survey)
+
+    # #put callbacks for linked scrolling
+    def MachineXlim(ax):
+        machine_axes.set_autoscale_on(False)
+        for axis in axes[1:]:
+            axis.set_xlim(machine_axes.get_xlim())
+
+    def Click(a) :
+        if a.button == 3:
+            try:
+                msg = "Closest element: {}".format(
+                    survey.NameFromNearestS(a.xdata))
+                print msg
+            except ValueError:
+                pass # don't complain if the S is out of bounds
+
+    MachineXlim(machine_axes)
+    machine_axes.callbacks.connect('xlim_changed', MachineXlim)
+    fig.canvas.mpl_connect('button_press_event', Click)
+
+    # Decrease the hgap bewteen the machine axes and the first plot axes.
+    machine_bbox = machine_axes.get_position()
+    first_plot_bbox_y1 = axes[1].get_position().y1
+    machine_bbox.y0 = first_plot_bbox_y1 + machine_plot_gap
+    machine_axes.set_position(machine_bbox)
+    return fig, machine_axes, axes[1:]
+
+
 
 # Predefined lists of tuples for making the standard plots,
 # format = (optical_var_name, optical_var_error_name, legend_name)
@@ -297,12 +388,12 @@ def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
     tightLayout = True
     if 'tightLayout' in kwargs:
         tightLayout = kwargs['tightLayout']
-    
+
     plot = _plt.figure("Npart", figsize=(9,5), **kwargs)
     # Loop over the variables in plot_info_tuples and draw the plots.
     _plt.plot(bds.GetColumn('S'),bds.GetColumn('Npart'), 'k-', label='N Particles', **kwargs)
     _plt.plot(bds.GetColumn('S'),bds.GetColumn('Npart'), 'k.')
-    
+
     # Set axis labels and draw legend
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'N Particles')
@@ -334,7 +425,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     if survey is None:
         if hasattr(bdsdata, "model"):
             survey = bdsdata.model
-    
+
     PlotBeta(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
     PlotAlpha(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
     PlotDisp(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
@@ -807,7 +898,7 @@ def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
             else:
                 ax0.plot(t['x'],t['z'],'b-.', lw=0.35)
             ax1.plot(t['y'],t['z'],'b-.', lw=0.35)
-        elif t['partID'] == 22 : 
+        elif t['partID'] == 22 :
             if not labelledG:
                 ax0.plot(t['x'],t['z'],'g--',lw=0.35, label='photon')
                 labelledG = True
