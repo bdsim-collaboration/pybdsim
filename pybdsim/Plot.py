@@ -2,7 +2,7 @@
 Useful plots for bdsim output
 
 """
-import Data as _Data
+from .import Data as _Data
 import pymadx as _pymadx
 
 import matplotlib as _matplotlib
