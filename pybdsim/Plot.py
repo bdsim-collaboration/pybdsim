@@ -266,7 +266,7 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2,
     try:
         machine_axes = axes[0]
     except TypeError:
-        raise ValueError("nrows = {}.  Must be >= 2.")
+        raise ValueError("nrows = {}.  Must be >= 2.".format(nrows))
 
     _SetMachineAxesStyle(machine_axes)
     DrawMachineLattice(machine_axes, survey)
