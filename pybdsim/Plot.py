@@ -27,17 +27,11 @@ class _My_Axes(_matplotlib.axes.Axes):
 #register the new class of axes
 _matplotlib.projections.register_projection(_My_Axes)
 
-def MadxTfsBetaSimple(tfsfile, title='', outputfilename=None):
-    """
-    A forward to the pymadx.Plot.PlotTfsBetaSimple function.
-    """
-    _pymadx.Plot.PlotTfsBetaSimple(tfsfile,title,outputfilename)
-
 def MadxTfsBeta(tfsfile, title='', outputfilename=None):
     """
     A forward to the pymadx.Plot.PlotTfsBeta function.
     """
-    _pymadx.Plot.PlotTfsBeta(tfsfile,title,outputfilename)
+    _pymadx.Plot.Beta(tfsfile,title,outputfilename)
 
 def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True):
     """
@@ -53,7 +47,7 @@ def ProvideWrappedS(sArray, index):
     snewa = snewa - sind
     snewb = s[:index]
     snewb = snewb + (smax - sind)
-    snew  = _np.concatentate((snewa,snewb))
+    snew  = _np.concatenate((snewa,snewb))
     return snew
 
 def _SetMachineAxesStyle(ax):
@@ -94,7 +88,7 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
     Similar to AddMachineLatticeFromSurveyToFigure() but accepts multiple machines.
     """
     d = _CheckItsBDSAsciiData(machines[0])
-    if len(args) > 1:
+    if len(machines) > 1:
         for machine in machines[1:]:
             d.ConcatenateMachine(machine)
     return d
@@ -620,7 +614,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         elif isinstance(warmaperinfo, str):
             warmapers=_np.genfromtxt(warmaperinfo)
         else:
-            raise SystemExit("Unrecognised warmaperinfo option: {}".format(aperinfo))
+            raise SystemExit("Unrecognised warmaperinfo option: {}".format(warmaperinfo))
 
     coll_binmask = []
     warm_binmask = []
@@ -906,7 +900,8 @@ def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
                 ax0.plot(t['x'],t['z'],'g--',lw=0.35)
             ax1.plot(t['y'],t['z'],'g--',lw=0.35)
 
-    if bottomLeft != None and topRight != None :
+    if bottomLeft is not None and topRight is not None :
+        # This will crash but I'm not sure what it's supposed to do!
         xlim(bottomLeft[0],topRight[0])
         xlim(bottomLeft[1],topRight[1])
 
