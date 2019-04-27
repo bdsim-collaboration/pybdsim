@@ -244,15 +244,15 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2,
     if isinstance(survey, basestring):
         survey = _Data.Load(survey)
 
-    # Make all main plots 6 times bigger than the machine plot along
+    # Make all main plots 3 times bigger than the machine plot along
     # the top, and set the height (vertical) space between them to be
     # small by default.  this is a bit arbitrary, can overide in gridspec_kw.
     height_ratios = [1]
-    height_ratios.extend((nrows - 1) * [6])
+    height_ratios.extend((nrows - 1) * [3])
 
     # Set all the kwargs to be supplied to plt.subplots
     the_gridspec_kw = {"height_ratios": height_ratios,
-                       "hspace": 0.1}
+                       "hspace": 0.05}
     if gridspec_kw is not None:
         the_gridspec_kw.update(gridspec_kw)
     the_subplots_kw = {"sharex": True,
