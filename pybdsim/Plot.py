@@ -614,7 +614,8 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         elif isinstance(warmaperinfo, str):
             warmapers=_np.genfromtxt(warmaperinfo)
         else:
-            raise SystemExit("Unrecognised warmaperinfo option: {}".format(warmaperinfo))
+            raise ValueError(
+                "Unrecognised warmaperinfo option: {}".format(warmaperinfo))
 
     coll_binmask = []
     warm_binmask = []
