@@ -941,7 +941,6 @@ class EventInfoData(object):
         # Set lists to append to
         for name in interface:
             setattr(self, name, [])
-
         for i in range(tree.GetEntries()):
             tree.GetEntry(i)
             for name in interface:
@@ -956,6 +955,19 @@ class EventInfoData(object):
     def FromROOTFile(cls, path):
         data = Load(path)
         return cls(data)
+
+
+class EventSummaryData(EventInfoData):
+    """Extract data from the Summary branch of the Event tree."""
+    # this simply inherits EventInfoData as the branch is the same,
+    # just renamed to Summary from Info.
+    def __init__(self, data):
+        event = data.GetEvent()
+        eventTree = data.GetEventTree()
+        info = event.Summary
+        interface = _filterROOTObject(info)
+        self._getData(interface, info, eventTree)
+
 
 class ModelData(object):
     def __init__(self, data):
