@@ -734,6 +734,9 @@ class _SamplerData(object):
 
     """
     def __init__(self, data, params, samplerIndexOrName=0):
+        if not isinstance(data,_ROOT.DataLoader):
+            raise IOError("Data is not a ROOT.DataLoader object. Supply data "
+                          "loaded with pybdsim.Data.Load")
         self._et           = data.GetEventTree()
         self._ev           = data.GetEvent()
         self._samplerNames = list(data.GetSamplerNames())
