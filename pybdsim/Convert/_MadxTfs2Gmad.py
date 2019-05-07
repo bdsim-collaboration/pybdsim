@@ -62,13 +62,14 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  beamParmsDict         = {},
                  linear                = False,
                  overwrite             = True,
+                 write                 = True,
                  allNamesUnique        = False):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
     Example:
 
-    >>> a,b,c = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
+    >>> a,b = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
 
     returns Machine, [omittedItems]
 
@@ -170,6 +171,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | This makes it easier to edit individual components as they are    |
     |                               | guaranteed to appear only once in the entire resulting GMAD       |
     |                               | lattice.                                                          |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **write**                     | Whether to write the converted machine to file or not.            |
     +-------------------------------+-------------------------------------------------------------------+
 
     """
@@ -289,10 +292,11 @@ def MadxTfs2Gmad(tfs, outputfilename,
         print itemsomitted
         print 'number of omitted items: ', len(itemsomitted)
 
-    machine.Write(outputfilename, overwrite=overwrite)
+    if write:
+        machine.Write(outputfilename, overwrite=overwrite)
     # We return machine twice to not break old interface of returning
     # two machines.
-    return machine, machine, itemsomitted
+    return machine, itemsomitted
 
 
 def _Tfs2GmadElementFactory(item, allelementdict, verbose,

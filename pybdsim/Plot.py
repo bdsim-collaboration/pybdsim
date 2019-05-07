@@ -2,7 +2,7 @@
 Useful plots for bdsim output
 
 """
-import Data as _Data
+from .import Data as _Data
 import pymadx as _pymadx
 
 import matplotlib as _matplotlib
@@ -27,17 +27,11 @@ class _My_Axes(_matplotlib.axes.Axes):
 #register the new class of axes
 _matplotlib.projections.register_projection(_My_Axes)
 
-def MadxTfsBetaSimple(tfsfile, title='', outputfilename=None):
-    """
-    A forward to the pymadx.Plot.PlotTfsBetaSimple function.
-    """
-    _pymadx.Plot.PlotTfsBetaSimple(tfsfile,title,outputfilename)
-
 def MadxTfsBeta(tfsfile, title='', outputfilename=None):
     """
     A forward to the pymadx.Plot.PlotTfsBeta function.
     """
-    _pymadx.Plot.PlotTfsBeta(tfsfile,title,outputfilename)
+    _pymadx.Plot.Beta(tfsfile,title,outputfilename)
 
 def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True):
     """
@@ -53,10 +47,11 @@ def ProvideWrappedS(sArray, index):
     snewa = snewa - sind
     snewb = s[:index]
     snewb = snewb + (smax - sind)
-    snew  = _np.concatentate((snewa,snewb))
+    snew  = _np.concatenate((snewa,snewb))
     return snew
 
 def _SetMachineAxesStyle(ax):
+    ax.set_facecolor('none') # make background transparent to allow scientific notation
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -67,7 +62,6 @@ def _SetMachineAxesStyle(ax):
 def _PrepareMachineAxes(figure):
     # create new machine axis with proportions 6 : 1
     axmachine = figure.add_subplot(911, projection="_My_Axes")
-    axmachine.set_facecolor('none') # make background transparent to allow scientific notation
     _SetMachineAxesStyle(axmachine)
     return axmachine
 
@@ -94,12 +88,13 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
     Similar to AddMachineLatticeFromSurveyToFigure() but accepts multiple machines.
     """
     d = _CheckItsBDSAsciiData(machines[0])
-    if len(args) > 1:
+    if len(machines) > 1:
         for machine in machines[1:]:
             d.ConcatenateMachine(machine)
     return d
 
-def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
+def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
+                                        tightLayout=True, sOffset=0.):
     """
     Add a machine diagram to the top of the plot in a current figure
 
@@ -114,7 +109,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     axmachine = _PrepareMachineAxes(figure)
     axmachine.margins(x=0.02)
 
-    _DrawMachineLattice(axmachine,sf)
+    DrawMachineLattice(axmachine, sf, sOffset=sOffset)
 
     #put callbacks for linked scrolling
     def MachineXlim(ax):
@@ -124,7 +119,8 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     def Click(a) :
         if a.button == 3:
             try:
-                print 'Closest element: ',sf.NameFromNearestS(a.xdata)
+                print 'Closest element: ',sf.NameFromNearestS(a.xdata
+                                                              - sOffset)
             except ValueError:
                 pass # don't complain if the S is out of bounds
 
@@ -132,7 +128,8 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True):
     axmachine.callbacks.connect('xlim_changed', MachineXlim)
     figure.canvas.mpl_connect('button_press_event', Click)
 
-def _DrawMachineLattice(axesinstance,bdsasciidataobject):
+
+def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     ax  = axesinstance #handy shortcut
     bds = bdsasciidataobject
 
@@ -161,14 +158,15 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
         ax.plot([start,start],[-0.2,0.2],'-',color=color,alpha=alpha)
 
     # plot beam line
-    smax = bds.SEnd()[-1]
-    ax.plot([0,smax],[0,0],'k-',lw=1)
+    smax = bds.SEnd()[-1] + sOffset
+    ax.plot([sOffset, smax],[0,0],'k-',lw=1)
     ax.set_ylim(-0.2,0.2)
 
     # loop over elements and Draw on beamline
     types   = bds.Type()
     lengths = bds.ArcLength()
     starts  = bds.SStart()
+    starts += sOffset
     k1      = bds.k1()
 
     for i in range(len(bds)):
@@ -208,6 +206,97 @@ def _DrawMachineLattice(axesinstance,bdsasciidataobject):
             else:
                 #relatively short element - just draw a line
                 DrawLine(starts[i],'#cccccc',alpha=0.1)
+
+def SubplotsWithDrawnMachineLattice(survey, nrows=2,
+                                    machine_plot_gap=0.01,
+                                    gridspec_kw=None,
+                                    subplots_kw=None, **fig_kw):
+    """Create a figure with a single column of axes, sharing the
+    x-axis by default, with the machine drawn from the provided survey
+    on the top row axes.  nrows gives the number of axes, the first is
+    always the machine lattice.  by default 2 are drawn, the first for
+    the machine, and the second for any data to be plotted to
+    afterwards.
+
+    Parameters
+    ----------
+
+    survey : BSDIM survey which is used to draw the machine lattice on
+             the top axes.
+
+    machine_plot_gap : vertical space between the top of the first
+             axes and the bottom of the machine axes.  by default this
+             is small.
+
+    Returns
+    -------
+    (figure, machine_axes, (axes1, axes2, ...))
+
+    figure : Figure instance.
+
+    machine_axes : Axes instance with the machine drawn on it.  Can be used to
+             further edit
+
+    axes : iterable of axes, in order from the first below the
+           machine, downwards.
+    """
+
+    if isinstance(survey, basestring):
+        survey = _Data.Load(survey)
+
+    # Make all main plots 3 times bigger than the machine plot along
+    # the top, and set the height (vertical) space between them to be
+    # small by default.  this is a bit arbitrary, can overide in gridspec_kw.
+    height_ratios = [1]
+    height_ratios.extend((nrows - 1) * [3])
+
+    # Set all the kwargs to be supplied to plt.subplots
+    the_gridspec_kw = {"height_ratios": height_ratios,
+                       "hspace": 0.05}
+    if gridspec_kw is not None:
+        the_gridspec_kw.update(gridspec_kw)
+    the_subplots_kw = {"sharex": True,
+                       "gridspec_kw": the_gridspec_kw}
+    if subplots_kw is not None:
+        the_subplots_kw.update(subplots_kw)
+    the_subplots_kw.update(fig_kw)
+
+    fig, axes = _plt.subplots(nrows, **the_subplots_kw)
+
+    try:
+        machine_axes = axes[0]
+    except TypeError:
+        raise ValueError("nrows = {}.  Must be >= 2.".format(nrows))
+
+    _SetMachineAxesStyle(machine_axes)
+    DrawMachineLattice(machine_axes, survey)
+
+    # #put callbacks for linked scrolling
+    def MachineXlim(ax):
+        machine_axes.set_autoscale_on(False)
+        for axis in axes[1:]:
+            axis.set_xlim(machine_axes.get_xlim())
+
+    def Click(a) :
+        if a.button == 3:
+            try:
+                msg = "Closest element: {}".format(
+                    survey.NameFromNearestS(a.xdata))
+                print msg
+            except ValueError:
+                pass # don't complain if the S is out of bounds
+
+    MachineXlim(machine_axes)
+    machine_axes.callbacks.connect('xlim_changed', MachineXlim)
+    fig.canvas.mpl_connect('button_press_event', Click)
+
+    # Decrease the hgap bewteen the machine axes and the first plot axes.
+    machine_bbox = machine_axes.get_position()
+    first_plot_bbox_y1 = axes[1].get_position().y1
+    machine_bbox.y0 = first_plot_bbox_y1 + machine_plot_gap
+    machine_axes.set_position(machine_bbox)
+    return fig, machine_axes, axes[1:]
+
 
 
 # Predefined lists of tuples for making the standard plots,
@@ -293,12 +382,12 @@ def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
     tightLayout = True
     if 'tightLayout' in kwargs:
         tightLayout = kwargs['tightLayout']
-    
+
     plot = _plt.figure("Npart", figsize=(9,5), **kwargs)
     # Loop over the variables in plot_info_tuples and draw the plots.
     _plt.plot(bds.GetColumn('S'),bds.GetColumn('Npart'), 'k-', label='N Particles', **kwargs)
     _plt.plot(bds.GetColumn('S'),bds.GetColumn('Npart'), 'k.')
-    
+
     # Set axis labels and draw legend
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'N Particles')
@@ -330,7 +419,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     if survey is None:
         if hasattr(bdsdata, "model"):
             survey = bdsdata.model
-    
+
     PlotBeta(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
     PlotAlpha(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
     PlotDisp(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
@@ -365,6 +454,43 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
     else:
         ax.set_title(title)
     return f
+
+def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
+    """
+    Plot multiple 1D histograms on the same plot.
+
+    histograms and labels should be lists of the same length with pybdsim.Data.TH1 objects and strings.
+    """
+
+    f = _plt.figure(figsize=(10,5))
+    ax = f.add_subplot(111)
+
+    for h,l in zip(histograms, labels):
+        ht = _Data.PadHistogram1D(h)
+        ax.errorbar(ht.xcentres, ht.contents, yerr=ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
+
+    if xlabel is None:
+        ax.set_xlabel(h.xlabel)
+    else:
+        ax.set_xlabel(xlabel)
+    if ylabel is None:
+        ax.set_ylabel(h.ylabel)
+    else:
+        ax.set_ylabel(ylabel)
+    if title == "":
+        ax.set_title(h.title) # default to one in histogram
+    elif title is None:
+        pass
+    else:
+        ax.set_title(title)
+    if log:
+        _plt.yscale('log', nonposy='clip')
+
+    _plt.legend()
+    _plt.tight_layout()
+    
+    return f
+
 
 def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="auto", **imshowKwargs):
     """
@@ -525,7 +651,8 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         elif isinstance(warmaperinfo, str):
             warmapers=_np.genfromtxt(warmaperinfo)
         else:
-            raise SystemExit("Unrecognised warmaperinfo option: {}".format(aperinfo))
+            raise ValueError(
+                "Unrecognised warmaperinfo option: {}".format(warmaperinfo))
 
     coll_binmask = []
     warm_binmask = []
@@ -803,7 +930,7 @@ def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
             else:
                 ax0.plot(t['x'],t['z'],'b-.', lw=0.35)
             ax1.plot(t['y'],t['z'],'b-.', lw=0.35)
-        elif t['partID'] == 22 : 
+        elif t['partID'] == 22 :
             if not labelledG:
                 ax0.plot(t['x'],t['z'],'g--',lw=0.35, label='photon')
                 labelledG = True
@@ -811,7 +938,8 @@ def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
                 ax0.plot(t['x'],t['z'],'g--',lw=0.35)
             ax1.plot(t['y'],t['z'],'g--',lw=0.35)
 
-    if bottomLeft != None and topRight != None :
+    if bottomLeft is not None and topRight is not None :
+        # This will crash but I'm not sure what it's supposed to do!
         xlim(bottomLeft[0],topRight[0])
         xlim(bottomLeft[1],topRight[1])
 

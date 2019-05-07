@@ -643,7 +643,7 @@ class TH1(ROOTHist):
             xaxis = hist.GetXaxis()
             self.xwidths[i]   = xaxis.GetBinWidth(i)
             self.xlowedge[i]  = xaxis.GetBinLowEdge(i+1)
-            self.xhighedge[i] = xaxis.GetBinLowEdge(i+1)
+            self.xhighedge[i] = self.xlowedge[i] + self.xwidths[i]
             self.xcentres[i]  = xaxis.GetBinCenter(i+1)
 
         if extractData:
@@ -676,7 +676,7 @@ class TH2(TH1):
             yaxis = hist.GetYaxis()
             self.ywidths[i]   = yaxis.GetBinWidth(i+1)
             self.ylowedge[i]  = yaxis.GetBinLowEdge(i+1)
-            self.yhighedge[i] = yaxis.GetBinLowEdge(i+2)
+            self.yhighedge[i] = self.ylowedge[i] + self.ywidths[i]
             self.ycentres[i]  = yaxis.GetBinCenter(i+1)
 
         if extractData:
@@ -711,7 +711,7 @@ class TH3(TH2):
             zaxis = hist.GetZaxis()
             self.zwidths[i]   = zaxis.GetBinWidth(i+1)
             self.zlowedge[i]  = zaxis.GetBinLowEdge(i+1)
-            self.zhighedge[i] = zaxis.GetBinLowEdge(i+2)
+            self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
             self.zcentres[i]  = zaxis.GetBinCenter(i+1)
 
         if extractData:
@@ -832,7 +832,8 @@ class SamplerData(_SamplerData):
     def __init__(self, data, samplerIndexOrName=0):
         params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
                   'weight','partID','parentID','trackID','modelID','turnNumber','S',
-                  'charge', 'mass', 'rigidity','isIon','ionA','ionZ']
+                  'r', 'rp', 'phi', 'phip', 'charge', 'kineticEnergy',
+                  'mass', 'rigidity','isIon','ionA','ionZ']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
 
 class TrajectoryData(object):
@@ -943,7 +944,6 @@ class EventInfoData(object):
         # Set lists to append to
         for name in interface:
             setattr(self, name, [])
-
         for i in range(tree.GetEntries()):
             tree.GetEntry(i)
             for name in interface:
@@ -958,6 +958,19 @@ class EventInfoData(object):
     def FromROOTFile(cls, path):
         data = Load(path)
         return cls(data)
+
+
+class EventSummaryData(EventInfoData):
+    """Extract data from the Summary branch of the Event tree."""
+    # this simply inherits EventInfoData as the branch is the same,
+    # just renamed to Summary from Info.
+    def __init__(self, data):
+        event = data.GetEvent()
+        eventTree = data.GetEventTree()
+        info = event.Summary
+        interface = _filterROOTObject(info)
+        self._getData(interface, info, eventTree)
+
 
 class ModelData(object):
     def __init__(self, data):
@@ -975,7 +988,17 @@ class ModelData(object):
 
     def _getData(self, interface, rootobj):
         for name in interface:
-            setattr(self, name, _np.array(getattr(rootobj, name)))
+            try:
+                setattr(self, name, _np.array(getattr(rootobj, name)))
+            except TypeError:
+                # could be a map or a vector of our classes which wouldn't work
+                try:
+                    # try converting map to a dictionary - TBC
+                    setattr(self, name, dict(getattr(rootobj, name)))
+                except:
+                    pass # just ignore it
+            except ValueError:
+                pass # just ignore it
 
 
 class OptionsData(object):

@@ -91,14 +91,14 @@ One difference is that both a TWISS and ENVELOPE file are required.::
   >>> pybdsim.Compare.Mad8VsBDSIM('../mad8/TWISS_T4D', '../mad8/ENVEL_T4D', 'xfel_optics.root')
 
 Comparing to BDSIM
------------------
+------------------
 
 Two BDSIM optics files can also be compared with the following command::
 
   >>> pybdsim.Compare.BDSIMVsBDSIM('optics1.root', 'optics2.root')
 
 Comparing to PTC
------------------
+----------------
 
 BDSIM output can be compared to the PTC output from the PTC_TRACK routine available in MADX.
 The PTC output is written to a file typically named `trackone`, however it is necessary to convert
