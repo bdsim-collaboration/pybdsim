@@ -2,6 +2,27 @@
 Version History
 ===============
 
+v2.1 - 2019 / 04 / 20
+=====================
+
+New Featuers
+------------
+
+* Optional flag of whether to write out the converted model with `pybdsim.Convert.MadxTfs2Gmad`.
+* Machine builder now supports new bdsim jcol element.
+* Machine diagram drawing can now start from any arbitrary S location.
+
+General
+-------
+
+* Return arguments of `pybdsim.Convert.MadxTfs2Gmad` is now just 2 items - machine and ommitted items. Previously 3.
+
+Bug Fixes
+---------
+
+* Fix loading of Model tree from ROOT output given some recent collimation variables may have
+  a different structure or type from the existing ones.
+
 v2.0 - 2019 / 02 / 27
 =====================
 

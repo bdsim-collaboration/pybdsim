@@ -69,7 +69,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     Example:
 
-    >>> a,b,c = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
+    >>> a,b = pybdsim.Convert.MadxTfs2Gmad('twiss.tfs', 'mymachine')
 
     returns Machine, [omittedItems]
 
@@ -171,6 +171,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | This makes it easier to edit individual components as they are    |
     |                               | guaranteed to appear only once in the entire resulting GMAD       |
     |                               | lattice.                                                          |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **write**                     | Whether to write the converted machine to file or not.            |
     +-------------------------------+-------------------------------------------------------------------+
 
     """
