@@ -9,7 +9,8 @@ from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
 
 def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
-                postfunctions=None, figsize=(10, 5), saveAll=True, outputFileName=None):
+                postfunctions=None, figsize=(10, 5), xlim=(0,0),
+                saveAll=True, outputFileName=None):
     """
     Compares Mad8 and BDSIM optics variables.
 
@@ -26,6 +27,8 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     |                 | be a function or a list of functions.                   |
     +-----------------+---------------------------------------------------------+
     | figsize         | Figure size for all figures - default is (12,5)         |
+    +-----------------+---------------------------------------------------------+
+    | xlim            | Set xlimit for all figures                              |
     +-----------------+---------------------------------------------------------+
     """
 
@@ -49,34 +52,34 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     
     figures = [PlotBetas(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize),
+                         figsize=figsize, xlim=xlim),
                PlotAlphas(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
-                          figsize=figsize),
+                          figsize=figsize, xlim=xlim),
                PlotDs(mad8opt,bdsopt,functions=functions,
                       postfunctions=postfunctions,
-                      figsize=figsize),
+                      figsize=figsize, xlim=xlim),
                PlotDps(mad8opt,bdsopt,functions=functions,
                        postfunctions=postfunctions,
-                       figsize=figsize),
+                       figsize=figsize, xlim=xlim),
                PlotSigmas(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
-                          figsize=figsize),
+                          figsize=figsize, xlim=xlim),
                PlotSigmasP(mad8opt,bdsopt,functions=functions,
                            postfunctions=postfunctions,
-                           figsize=figsize),
+                           figsize=figsize, xlim=xlim),
                PlotEnergy(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
-                          figsize=figsize),
+                          figsize=figsize, xlim=xlim),
                PlotMeans(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize),
+                         figsize=figsize, xlim=xlim),
                PlotEmittance(mad8opt,bdsopt,functions=functions,
                              postfunctions=postfunctions,
-                             figsize=figsize),
+                             figsize=figsize, xlim=xlim),
                PlotNParticles(mad8opt,bdsopt,functions=functions,
                               postfunctions=postfunctions,
-                              figsize=figsize)]    
+                              figsize=figsize, xlim=xlim)]
     if saveAll:
         tfsname = repr(twiss)
         bdsname = repr(bdsinst)
@@ -123,7 +126,7 @@ def _GetBDSIMOptics(optics):
         optvars[variable] = datum
     return optvars
 
-def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     betaPlot = _plt.figure('Beta',figsize)
     
@@ -157,12 +160,15 @@ def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     _CallUserFigureFunctions(functions)
     _AddSurvey(betaPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     betaPlot.sca(betaPlot.axes[0])
 
     _plt.show(block=False)
     return betaPlot
 
-def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     alphaPlot = _plt.figure('Alpha',figsize)
     
@@ -196,12 +202,15 @@ def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     _CallUserFigureFunctions(functions)
     _AddSurvey(alphaPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     alphaPlot.sca(alphaPlot.axes[0])
 
     _plt.show(block=False)
     return alphaPlot
 
-def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPlot = _plt.figure('Dispersion',figsize)
 
@@ -235,12 +244,15 @@ def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     _CallUserFigureFunctions(functions)
     _AddSurvey(dispPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     dispPlot.sca(dispPlot.axes[0])
 
     _plt.show(block=False)
     return dispPlot
 
-def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPPlot = _plt.figure('Momentum_Dispersion',figsize)
     
@@ -274,12 +286,15 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
     _CallUserFigureFunctions(functions)
     _AddSurvey(dispPPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     dispPPlot.sca(dispPPlot.axes[0])
 
     _plt.show(block=False)
     return dispPPlot
 
-def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma',figsize)
 
@@ -331,12 +346,15 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     sigmaPlot.sca(sigmaPlot.axes[0])
 
     _plt.show(block=False)
     return sigmaPlot
 
-def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPPlot = _plt.figure('SigmaP',figsize)
 
@@ -387,12 +405,15 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
     _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     sigmaPPlot.sca(sigmaPPlot.axes[0])
 
     _plt.show(block=False)
     return sigmaPPlot
 
-def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)) :
+def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     energyPlot = _plt.figure('Energy',figsize)
 
@@ -415,12 +436,15 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     _CallUserFigureFunctions(functions)
     _AddSurvey(energyPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     energyPlot.sca(energyPlot.axes[0])
     
     _plt.show(block=False)
     return energyPlot
 
-def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0,0)):
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
     meanPlot = _plt.figure('Mean', figsize)
 
@@ -453,12 +477,15 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     _CallUserFigureFunctions(functions)
     _AddSurvey(meanPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     meanPlot.sca(meanPlot.axes[0])
 
     _plt.show(block=False)
     return meanPlot
 
-def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)) :
+def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
     emittancePlot = _plt.figure('Emittance', figsize)
 
@@ -503,12 +530,15 @@ def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=No
     _CallUserFigureFunctions(functions)
     _AddSurvey(emittancePlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     emittancePlot.sca(emittancePlot.axes[0])
 
     _plt.show(block=False)
     return emittancePlot
 
-def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0,0)):
     npartPlot = _plt.figure('NParticles', figsize)
 
     _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k-', label='BDSIM N Particles')
@@ -521,6 +551,9 @@ def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=N
     _CallUserFigureFunctions(functions)
     _AddSurvey(npartPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    if xlim != (0,0):
+        _plt.xlim(xlim)
+
     npartPlot.sca(npartPlot.axes[0])
 
     _plt.show(block=False)
