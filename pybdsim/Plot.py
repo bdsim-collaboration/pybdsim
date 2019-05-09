@@ -429,7 +429,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
     PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
     """
@@ -438,7 +438,8 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
     h = histogram
     f = _plt.figure(figsize=(10,5))
     ax = f.add_subplot(111)
-    ax.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, **errorbarKwargs)
+    sf = scalingFactor #shortcut
+    ax.errorbar(h.xcentres, sf*h.contents, yerr=sf*h.errors,xerr=h.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
