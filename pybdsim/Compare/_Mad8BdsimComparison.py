@@ -157,7 +157,8 @@ def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     _CallUserFigureFunctions(functions)
     _AddSurvey(betaPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
-    
+    betaPlot.sca(betaPlot.axes[0])
+
     _plt.show(block=False)
     return betaPlot
 
@@ -195,6 +196,7 @@ def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     _CallUserFigureFunctions(functions)
     _AddSurvey(alphaPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    alphaPlot.sca(alphaPlot.axes[0])
 
     _plt.show(block=False)
     return alphaPlot
@@ -233,6 +235,7 @@ def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     _CallUserFigureFunctions(functions)
     _AddSurvey(dispPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    dispPlot.sca(dispPlot.axes[0])
 
     _plt.show(block=False)
     return dispPlot
@@ -271,6 +274,7 @@ def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, fi
     _CallUserFigureFunctions(functions)
     _AddSurvey(dispPPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    dispPPlot.sca(dispPPlot.axes[0])
 
     _plt.show(block=False)
     return dispPPlot
@@ -327,6 +331,7 @@ def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    sigmaPlot.sca(sigmaPlot.axes[0])
 
     _plt.show(block=False)
     return sigmaPlot
@@ -382,6 +387,7 @@ def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None
     _CallUserFigureFunctions(functions)
     _AddSurvey(sigmaPPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    sigmaPPlot.sca(sigmaPPlot.axes[0])
 
     _plt.show(block=False)
     return sigmaPPlot
@@ -409,6 +415,7 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     _CallUserFigureFunctions(functions)
     _AddSurvey(energyPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    energyPlot.sca(energyPlot.axes[0])
     
     _plt.show(block=False)
     return energyPlot
@@ -446,6 +453,7 @@ def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, 
     _CallUserFigureFunctions(functions)
     _AddSurvey(meanPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    meanPlot.sca(meanPlot.axes[0])
 
     _plt.show(block=False)
     return meanPlot
@@ -495,6 +503,7 @@ def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=No
     _CallUserFigureFunctions(functions)
     _AddSurvey(emittancePlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    emittancePlot.sca(emittancePlot.axes[0])
 
     _plt.show(block=False)
     return emittancePlot
@@ -512,6 +521,7 @@ def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=N
     _CallUserFigureFunctions(functions)
     _AddSurvey(npartPlot, mad8opt)
     _CallUserFigureFunctions(postfunctions)
+    npartPlot.sca(npartPlot.axes[0])
 
     _plt.show(block=False)
     return npartPlot
