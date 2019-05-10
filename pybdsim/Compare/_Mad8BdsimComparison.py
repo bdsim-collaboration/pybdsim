@@ -8,6 +8,231 @@ from os.path import isfile as _isfile
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
 
+
+# Predefined dicts for making the standard plots,
+# format = (mad8_optical_var_name, bdsim_optical_var_name, bdsim_optical_var_error_name, legend_name)
+
+_BETA =    {"bdsimdata"  : ("Beta_x", "Beta_y"),
+            "bdsimerror" : ("Sigma_Beta_x","Sigma_Beta_y"),
+            "mad8"       : ("betx", "bety"),
+            "legend"     : (r'$\beta_{x}$', r'$\beta_{y}$'),
+            "xlabel"     : "S / m",
+            "ylabel"     : r"$\beta_{x,y}$ / m",
+            "title"      : "Beta"
+            }
+
+_ALPHA =   {"bdsimdata"  : ("Alpha_x", "Alpha_y"),
+            "bdsimerror" : ("Sigma_Alpha_x","Sigma_Alpha_y"),
+            "mad8"       : ("alfx", "alfy"),
+            "legend"     : (r'$\alpha_{x}$', r'$\alpha_{y}$'),
+            "xlabel"     : "S / m",
+            "ylabel"     : r"$\alpha_{x,y}$ / m",
+            "title"      : "Alpha"
+           }
+
+_DISP  =   {"bdsimdata"  : ("Disp_x", "Disp_y"),
+            "bdsimerror" : ("Sigma_Disp_x","Sigma_Disp_y"),
+            "mad8"       : ("dx", "dy"),
+            "legend"     : (r"$\eta_{x}$", r"$\eta_{y}$"),
+            "xlabel"     : "S / m",
+            "ylabel"     : r"$\eta_{x,y} / m$",
+            "title"      : "Dispersion"
+            }
+
+_DISP_P=   {"bdsimdata"  : ("Disp_xp", "Disp_yp"),
+            "bdsimerror" : ("Sigma_Disp_xp","Sigma_Disp_yp"),
+            "mad8"       : ("dpx", "dpy"),
+            "legend"     : (r"$\eta_{p_x}$", r"$\eta_{p_x}$"),
+            "xlabel"     : "S / m",
+            "ylabel"     : r"$\eta_{p_{x},p_{y}}$ / m",
+            "title"      : "Momentum_Dispersion"
+            }
+
+_SIGMA =   {"bdsimdata"  : ("Sigma_x", "Sigma_y"),
+            "bdsimerror" : ("Sigma_Sigma_x","Sigma_Sigma_y"),
+            "mad8"       : ("", ""),
+            "legend"     : (r"$\sigma_{x}$",r"$\sigma_{y}$"),
+            "xlabel"     : "S / m",
+            "ylabel"     : r"$\sigma_{x,y}$ / m",
+            "title"      : "Sigma"
+            }
+
+_SIGMA_P = {"bdsimdata"  : ("Sigma_xp", "Sigma_yp"),
+            "bdsimerror" : ("Sigma_Sigma_xp","Sigma_Sigma_yp"),
+            "mad8"       : ("", ""),
+            "legend"     : (r"$\sigma_{xp}$",r"$\sigma_{yp}$"),
+            "xlabel"     : "S / m",
+            "ylabel"     : r"$\sigma_{xp,yp}$ / rad",
+            "title"      : "SigmaP"
+            }
+
+_MEAN    = {"bdsimdata"  : ("Mean_x", "Mean_y"),
+            "bdsimerror" : ("Sigma_Mean_x","Sigma_Mean_y"),
+            "mad8"       : ("x", "y"),
+            "legend"     : (r"$\overline{x}$", r"$\overline{y}$"),
+            "xlabel"     : "S / m",
+            "ylabel"     : r"$\bar{x,y}$ / m",
+            "title"      : "Mean"
+            }
+
+_EMITT   = {"bdsimdata"  : ("Emitt_x", "Emitt_y"),
+            "bdsimerror" : ("Sigma_Emitt_x","Sigma_Emitt_y"),
+            "mad8"       : ("", ""),
+            "legend"     : (r"$\epsilon_x$", r"$\epsilon_y$"),
+            "xlabel"     : "S / m",
+            "ylabel"     : r"$\epsilon_{x,y}$ / m",
+            "title"      : "Emittance"
+            }
+
+# use closure to avoid tonnes of boilerplate code as happened with
+# MadxBdsimComparison.py
+def _make_plotter(plot_info_dict):
+    def f_out(mad8opt, bdsopt, functions=None, postfunctions=None, survey=None, figsize=(9,5), xlim=(0,0), **kwargs):
+
+        # Get the initial N for the bdsim
+        N = str(int(bdsopt['Npart'][0]))  # number of primaries.
+
+        # labels for plot legends
+        mad8legendx = r'MAD8 ' + plot_info_dict['legend'][0]
+        mad8legendy = r'MAD8 ' + plot_info_dict['legend'][1]
+        bdslegendx  = r'BDSIM ' + plot_info_dict['legend'][0] + ' ; N = ' + N
+        bdslegendy  = r'BDSIM ' + plot_info_dict['legend'][1] + ' ; N = ' + N
+
+        # mad8 data from correct source
+        if plot_info_dict["title"] == "Sigma":
+            sigmaX,sigmaY,sigmaXP,sigmaYP = _CalculateSigmas(mad8opt)
+            mad8Xdata = sigmaX
+            mad8Ydata = sigmaY
+            mad8s     = mad8opt['envel'].getColumn('suml')
+            mad8legendx += '(calculated)'
+            mad8legendy += '(calculated)'
+        elif plot_info_dict["title"] == "SigmaP":
+            sigmaX,sigmaY,sigmaXP,sigmaYP = _CalculateSigmas(mad8opt)
+            mad8Xdata = sigmaXP
+            mad8Ydata = sigmaYP
+            mad8s     = mad8opt['envel'].getColumn('suml')
+            mad8legendx += '(calculated)'
+            mad8legendy += '(calculated)'
+        elif plot_info_dict["title"] == "Emittance":
+            emitX, emitY = _CalculateEmittance(mad8opt)
+            mad8Xdata = emitX
+            mad8Ydata = emitY
+            mad8s     = mad8opt['twiss'].getColumn('suml')
+        else:
+            mad8Xdata = mad8opt['twiss'].getColumn(plot_info_dict['mad8'][0])
+            mad8Ydata = mad8opt['twiss'].getColumn(plot_info_dict['mad8'][1])
+            mad8s     = mad8opt['twiss'].getColumn('suml')
+
+        # the figure
+        plot = _plt.figure(plot_info_dict["title"], figsize=figsize, **kwargs)
+
+        # mad8 plot
+        _plt.plot(mad8s, mad8Xdata, 'b--', label=mad8legendx)
+        _plt.plot(mad8s, mad8Ydata, 'g--', label=mad8legendy)
+
+        # bds plot
+        _plt.errorbar(bdsopt['S'],
+                      bdsopt[plot_info_dict['bdsimdata'][0]],
+                      yerr=bdsopt[plot_info_dict['bdsimerror'][0]],
+                      label=bdslegendx,
+                      capsize=3, ls='', marker='x', color='b', **kwargs)
+
+        _plt.errorbar(bdsopt['S'],
+                      bdsopt[plot_info_dict['bdsimdata'][1]],
+                      yerr=bdsopt[plot_info_dict['bdsimerror'][1]],
+                      label=bdslegendy,
+                      capsize=3, ls='', marker='x', color='g', **kwargs)
+
+        # Set axis labels and draw legend
+        axes = _plt.gcf().gca()
+        axes.set_ylabel(plot_info_dict['ylabel'])
+        axes.set_xlabel(plot_info_dict['xlabel'])
+        axes.legend(loc='best')
+        axes.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+
+        _CallUserFigureFunctions(functions)
+        _AddSurvey(plot, mad8opt)
+        _CallUserFigureFunctions(postfunctions)
+        if xlim != (0, 0):
+            _plt.xlim(xlim)
+
+        plot.sca(plot.axes[0])
+        _plt.show(block=False)
+
+        if survey is not None:
+            _pymad8.Plot.AddMachineLatticeToFigure(plot, survey)
+
+        _plt.show(block=False)
+        return plot
+    return f_out
+
+
+PlotBeta   = _make_plotter(_BETA)
+PlotAlpha  = _make_plotter(_ALPHA)
+PlotDisp   = _make_plotter(_DISP)
+PlotDispP  = _make_plotter(_DISP_P)
+PlotSigma  = _make_plotter(_SIGMA)
+PlotSigmaP = _make_plotter(_SIGMA_P)
+PlotMean   = _make_plotter(_MEAN)
+PlotEmitt  = _make_plotter(_EMITT)
+
+
+def _CalculateSigmas(mad8opt):
+    rgamma, rbeta, emitXN0, emitYN0 = _CalculateNEmittance(mad8opt)
+    sige = 1e-4
+
+    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
+    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')**2*sige**2)
+
+    sigmaXP = _np.sqrt(emitXN0 / (rbeta * rgamma) * (mad8opt['twiss'].getColumn('alfx') ** (2) + 1) / mad8opt['twiss'].getColumn(
+            'betx') + (mad8opt['twiss'].getColumn('dpx') ** (2)) * (sige ** (2)))
+    sigmaYP = _np.sqrt(emitYN0 / (rbeta * rgamma) * (mad8opt['twiss'].getColumn('alfy') ** (2) + 1) / mad8opt['twiss'].getColumn(
+            'bety') + (mad8opt['twiss'].getColumn('dpy') ** (2)) * (sige ** (2)))
+    return sigmaX, sigmaY, sigmaXP, sigmaYP
+
+def _CalculateNEmittance(mad8opt):
+    # Own calculation of beam sizes
+    emitX0 = 1e-8
+    emitY0 = 1e-8
+
+    e = mad8opt['comm'].getColumn('E')
+    rgamma = e / (0.5109989461 / 1e3)
+    rbeta = _np.sqrt(1 - 1.0 / rgamma ** 2)
+
+    emitXN0 = emitX0 * rgamma[0] * rbeta[0]
+    emitYN0 = emitY0 * rgamma[0] * rbeta[0]
+    return rgamma, rbeta, emitXN0, emitYN0
+
+def _CalculateEmittance(mad8opt):
+    rgamma, rbeta, emitXN0, emitYN0 = _CalculateNEmittance(mad8opt)
+    emitX = emitXN0 / (rbeta * rgamma)
+    emitY = emitYN0 / (rbeta * rgamma)
+    return emitX, emitY
+
+def _CheckFilesExist(twiss, envel, bdsim):
+    '''
+    Otherwise such errors are too cryptic.
+    '''
+    if not _isfile(twiss):
+        raise IOError("File not found: ", twiss)
+    if not _isfile(envel):
+        raise IOError("File not found: ", envel);
+    if isinstance(bdsim, basestring) and not _isfile(bdsim):
+        raise IOError("File not found: ", bdsim)
+
+def _GetBDSIMOptics(optics):
+    '''
+    Takes a BDSAscii instance.
+    Return a dictionary of lists matching the variable with the list of values.
+    '''
+
+    optvars = {}
+    for variable in optics.names:
+        datum = getattr(optics, variable)()
+        optvars[variable] = datum
+    return optvars
+
+
 def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
                 postfunctions=None, figsize=(10, 5), xlim=(0,0),
                 saveAll=True, outputFileName=None):
@@ -49,32 +274,33 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
 
     # make plots 
     mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL}
-    
-    figures = [PlotBetas(mad8opt,bdsopt,functions=functions,
+
+    # energy and npart plotted with individual methods
+    figures = [PlotBeta(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
                          figsize=figsize, xlim=xlim),
-               PlotAlphas(mad8opt,bdsopt,functions=functions,
+               PlotAlpha(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
                           figsize=figsize, xlim=xlim),
-               PlotDs(mad8opt,bdsopt,functions=functions,
+               PlotDisp(mad8opt,bdsopt,functions=functions,
                       postfunctions=postfunctions,
                       figsize=figsize, xlim=xlim),
-               PlotDps(mad8opt,bdsopt,functions=functions,
+               PlotDispP(mad8opt,bdsopt,functions=functions,
                        postfunctions=postfunctions,
                        figsize=figsize, xlim=xlim),
-               PlotSigmas(mad8opt,bdsopt,functions=functions,
+               PlotSigma(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
                           figsize=figsize, xlim=xlim),
-               PlotSigmasP(mad8opt,bdsopt,functions=functions,
+               PlotSigmaP(mad8opt,bdsopt,functions=functions,
                            postfunctions=postfunctions,
                            figsize=figsize, xlim=xlim),
                PlotEnergy(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
                           figsize=figsize, xlim=xlim),
-               PlotMeans(mad8opt,bdsopt,functions=functions,
+               PlotMean(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
                          figsize=figsize, xlim=xlim),
-               PlotEmittance(mad8opt,bdsopt,functions=functions,
+               PlotEmitt(mad8opt,bdsopt,functions=functions,
                              postfunctions=postfunctions,
                              figsize=figsize, xlim=xlim),
                PlotNParticles(mad8opt,bdsopt,functions=functions,
@@ -102,316 +328,6 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
         print "Written ", output_filename
     
     return mad8opt
-
-def _CheckFilesExist(twiss, envel, bdsim):
-    '''
-    Otherwise such errors are too cryptic.
-    '''
-    if not _isfile(twiss):
-        raise IOError("File not found: ", twiss)
-    if not _isfile(envel):
-        raise IOError("File not found: ", envel);
-    if isinstance(bdsim, basestring) and not _isfile(bdsim):
-        raise IOError("File not found: ", bdsim)
-
-def _GetBDSIMOptics(optics):
-    '''
-    Takes a BDSAscii instance.
-    Return a dictionary of lists matching the variable with the list of values.
-    '''
-    
-    optvars = {}
-    for variable in optics.names:
-        datum = getattr(optics, variable)()
-        optvars[variable] = datum
-    return optvars
-
-def PlotBetas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
-    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    betaPlot = _plt.figure('Beta',figsize)
-    
-    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
-              mad8opt['twiss'].getColumn('betx'),
-              'b--', label=r'MAD8 $\beta_{x}$')
-    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
-              mad8opt['twiss'].getColumn('bety'),
-              'g--', label=r'MAD8 $\beta_{y}$')
-    
-    # bds plot
-    _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'],
-                  yerr=bdsopt['Sigma_Beta_x'],
-                  label=r'BDSIM $\beta_{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
-    
-    _plt.errorbar(bdsopt['S'], bdsopt['Beta_y'],
-                  yerr=bdsopt['Sigma_Beta_y'],
-                  label=r'BDSIM $\beta_{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\beta_{x,y}$ / m')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(betaPlot, mad8opt)
-    _CallUserFigureFunctions(postfunctions)
-    if xlim != (0,0):
-        _plt.xlim(xlim)
-
-    betaPlot.sca(betaPlot.axes[0])
-
-    _plt.show(block=False)
-    return betaPlot
-
-def PlotAlphas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
-    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    alphaPlot = _plt.figure('Alpha',figsize)
-    
-    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
-              mad8opt['twiss'].getColumn('alfx'),
-              'b--', label=r'MAD8 $\beta_{x}$')
-    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
-              mad8opt['twiss'].getColumn('alfy'),
-              'g--', label=r'MAD8 $\beta_{y}$')
-    
-    # bds plot
-    _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
-                  yerr=bdsopt['Sigma_Alpha_x'],
-                  label=r'BDSIM $\alpha_{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
-    
-    _plt.errorbar(bdsopt['S'], bdsopt['Alpha_y'],
-                  yerr=bdsopt['Sigma_Alpha_y'],
-                  label=r'BDSIM $\alpha_{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\alpha_{x,y}$')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(alphaPlot, mad8opt)
-    _CallUserFigureFunctions(postfunctions)
-    if xlim != (0,0):
-        _plt.xlim(xlim)
-
-    alphaPlot.sca(alphaPlot.axes[0])
-
-    _plt.show(block=False)
-    return alphaPlot
-
-def PlotDs(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
-    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    dispPlot = _plt.figure('Dispersion',figsize)
-
-    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
-              mad8opt['twiss'].getColumn('dx'),
-              'b--', label=r'MAD8 $\eta_{x}$')
-    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
-              mad8opt['twiss'].getColumn('dy'),
-              'g--', label=r'MAD8 $\eta_{y}$')
-     
-    # bds plot
-    _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
-                  yerr=bdsopt['Sigma_Disp_x'],
-                  label=r'BDSIM $\eta_{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
-    
-    _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'],
-                  yerr=bdsopt['Sigma_Disp_y'],
-                  label=r'BDSIM $\eta_{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\eta_{x,y} / m$')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(dispPlot, mad8opt)
-    _CallUserFigureFunctions(postfunctions)
-    if xlim != (0,0):
-        _plt.xlim(xlim)
-
-    dispPlot.sca(dispPlot.axes[0])
-
-    _plt.show(block=False)
-    return dispPlot
-
-def PlotDps(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
-    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    dispPPlot = _plt.figure('Momentum_Dispersion',figsize)
-    
-    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
-              mad8opt['twiss'].getColumn('dpx'),
-              'b--', label=r'MAD8 $\eta_{p_x}$')
-    _plt.plot(mad8opt['twiss'].getColumn('suml'), 
-              mad8opt['twiss'].getColumn('dpy'),
-              'g--', label=r'MAD8 $D_{p_y}$')
-    
-    # bds plot
-    _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
-                  yerr=bdsopt['Sigma_Disp_xp'],
-                  label=r'BDSIM $\eta_{p_x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
-        
-    _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
-                  yerr=bdsopt['Sigma_Disp_yp'],
-                  label=r'BDSIM $\eta_{p_y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\eta_{p_{x},p_{y}}$ / rad')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(dispPPlot, mad8opt)
-    _CallUserFigureFunctions(postfunctions)
-    if xlim != (0,0):
-        _plt.xlim(xlim)
-
-    dispPPlot.sca(dispPPlot.axes[0])
-
-    _plt.show(block=False)
-    return dispPPlot
-
-def PlotSigmas(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
-    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    sigmaPlot = _plt.figure('Sigma',figsize)
-
-#    _plt.plot(mad8opt['envel'].getColumn('suml'),
-#              _np.sqrt(mad8opt['envel'].getColumn('s11')),
-#              'b--', label=r'MAD8 $\sigma_{x}$')
-#    _plt.plot(mad8opt['envel'].getColumn('suml'),
-#              _np.sqrt(mad8opt['envel'].getColumn('s33')),
-#              'g--', label=r'MAD8 $\sigma_{y}$')
-    
-    # Own calculation of beam sizes.
-    emitX0 = 1e-8
-    emitY0 = 1e-8
-    sige = 1e-4
-
-    e      = mad8opt['comm'].getColumn('E')
-    rgamma = e/(0.5109989461/1e3)
-    rbeta  = _np.sqrt(1-1.0/rgamma**2)
-
-    emitXN0 = emitX0*rgamma[0]*rbeta[0]
-    emitYN0 = emitY0*rgamma[0]*rbeta[0]
-
-    sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
-    sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')**2*sige**2)
-
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaX,'b--',label=r'MAD8 $\sigma_{x}$(calculated)')
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaY,'g--',label=r'MAD8 $\sigma_{y}$(calculated)')
-
-    # bds plot
-    _plt.errorbar(bdsopt['S'], bdsopt['Sigma_x'],
-                  yerr=bdsopt['Sigma_Sigma_x'],
-                  label=r'BDSIM $\sigma_{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
-    
-    _plt.errorbar(bdsopt['S'], bdsopt['Sigma_y'],
-                  yerr=bdsopt['Sigma_Sigma_y'],
-                  label=r'BDSIM $\sigma_{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\sigma_{x,y}$ / m')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(sigmaPlot, mad8opt)
-    _CallUserFigureFunctions(postfunctions)
-    if xlim != (0,0):
-        _plt.xlim(xlim)
-
-    sigmaPlot.sca(sigmaPlot.axes[0])
-
-    _plt.show(block=False)
-    return sigmaPlot
-
-def PlotSigmasP(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
-    N = str(int(bdsopt['Npart'][0]))  #number of primaries.
-    sigmaPPlot = _plt.figure('SigmaP',figsize)
-
-#    _plt.plot(mad8opt['envel'].getColumn('suml'), 
-#              _np.sqrt(mad8opt['envel'].getColumn('s22')),
-#              'b', label=r'MAD8 $\sigma_{xp}$')
-#    _plt.plot(mad8opt['envel'].getColumn('suml'), 
-#              _np.sqrt(mad8opt['envel'].getColumn('s44')),
-#              'g', label=r'MAD8 $\sigma_{yp}$')
-    
-    emitX0 = 1e-8
-    emitY0 = 1e-8
-    sigE   = 0.0001
-
-    e      = mad8opt['comm'].getColumn('E')
-    rgamma = e/(0.5109989461/1e3)
-    rbeta  = _np.sqrt(1-1.0/rgamma**2)
-
-    emitXN0 = emitX0*rgamma[0]*rbeta[0]
-    emitYN0 = emitY0*rgamma[0]*rbeta[0]
-    #calcualte alpha, use sigma_xp = sqrt(alpha_x * emittance_x + dispersion_xp^2 * sigE^2)
-    sigmaXP = _np.sqrt(emitXN0/(rbeta*rgamma)*(mad8opt['twiss'].getColumn('alfx')**(2)+1)/mad8opt['twiss'].getColumn('betx') + (mad8opt['twiss'].getColumn('dpx')**(2))*(sigE**(2)))
-    sigmaYP = _np.sqrt(emitYN0/(rbeta*rgamma)*(mad8opt['twiss'].getColumn('alfy')**(2)+1)/mad8opt['twiss'].getColumn('bety') + (mad8opt['twiss'].getColumn('dpy')**(2))*(sigE**(2)))
-
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaXP,'b--')
-    _plt.plot(mad8opt['envel'].getColumn('suml'),sigmaYP,'g--')
-    
-    # bds plot
-    _plt.errorbar(bdsopt['S'], bdsopt['Sigma_xp'],
-                  yerr=bdsopt['Sigma_Disp_xp'],
-                  label=r'BDSIM $\sigma_{p_x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
-        
-    _plt.errorbar(bdsopt['S'], bdsopt['Sigma_yp'],
-                  yerr=bdsopt['Sigma_Sigma_yp'],
-                  label=r'BDSIM $\sigma_{p_y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\sigma_{xp,yp}$ / rad')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(sigmaPPlot, mad8opt)
-    _CallUserFigureFunctions(postfunctions)
-    if xlim != (0,0):
-        _plt.xlim(xlim)
-
-    sigmaPPlot.sca(sigmaPPlot.axes[0])
-
-    _plt.show(block=False)
-    return sigmaPPlot
 
 def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), xlim=(0,0)) :
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
@@ -443,100 +359,6 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     
     _plt.show(block=False)
     return energyPlot
-
-def PlotMeans(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0,0)):
-    N = str(int(bdsopt['Npart'][0]))  # number of primaries.
-    meanPlot = _plt.figure('Mean', figsize)
-
-    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
-              mad8opt['twiss'].getColumn('x'),
-              'b--', label=r'MAD8 $\overline{x}$')
-
-    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
-              mad8opt['twiss'].getColumn('y'),
-              'g--', label=r'MAD8 $\overline{y}$')
-    
-    _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
-                  yerr=bdsopt['Sigma_Mean_x'],
-                  label=r'BDSIM $\overline{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls='',
-                  color='b')
-    _plt.errorbar(bdsopt['S'], bdsopt['Mean_y'],
-                  yerr=bdsopt['Sigma_Mean_y'],
-                  label=r'BDSIM $\overline{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls='',
-                  color='g')
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(meanPlot, mad8opt)
-    _CallUserFigureFunctions(postfunctions)
-    if xlim != (0,0):
-        _plt.xlim(xlim)
-
-    meanPlot.sca(meanPlot.axes[0])
-
-    _plt.show(block=False)
-    return meanPlot
-
-def PlotEmittance(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0,0)) :
-    N = str(int(bdsopt['Npart'][0]))  # number of primaries.
-    emittancePlot = _plt.figure('Emittance', figsize)
-
-    # Own calculation of beam sizes
-    emitX0 = 1e-8
-    emitY0 = 1e-8
-
-    
-    e      = mad8opt['comm'].getColumn('E')
-    rgamma = e/(0.5109989461/1e3)
-    rbeta  = _np.sqrt(1-1.0/rgamma**2)
-
-    emitXN0 = emitX0*rgamma[0]*rbeta[0]
-    emitYN0 = emitY0*rgamma[0]*rbeta[0]
-
-    emitX = emitXN0/(rbeta*rgamma)
-    emitY = emitYN0/(rbeta*rgamma)
-
-    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
-              emitX,
-              'b--', label=r'MAD8 $\epsilon_x$')
-
-    _plt.plot(mad8opt['twiss'].getColumn('suml'),  # one missing energy due to initial
-              emitY,
-              'g--', label=r'MAD8 $\epsilon_y$')
-
-    _plt.plot(bdsopt['S'], bdsopt['Emitt_x'],
-              label=r'BDSIM $N$' + ' ; N = '+N,
-              marker='x',
-              ls='',
-              color='b')
-
-    _plt.plot(bdsopt['S'], bdsopt['Emitt_y'],
-              label=r'BDSIM $N$' + ' ; N = '+N,
-              marker='x',
-              ls='',
-              color='g')
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\epsilon_{x,y}$ / m')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(emittancePlot, mad8opt)
-    _CallUserFigureFunctions(postfunctions)
-    if xlim != (0,0):
-        _plt.xlim(xlim)
-
-    emittancePlot.sca(emittancePlot.axes[0])
-
-    _plt.show(block=False)
-    return emittancePlot
 
 def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0,0)):
     npartPlot = _plt.figure('NParticles', figsize)
