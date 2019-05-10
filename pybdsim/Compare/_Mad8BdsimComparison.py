@@ -395,6 +395,14 @@ def _CallUserFigureFunctions(functions):
     elif callable(functions):
         functions()
 
+def ChangeYlim(plotname,limits):
+    """
+    Change ylimit on data subfigure after survey has been added to the plot.
+    Limits must be supplied as a tuple (ymin,ymax).
+    """
+    f = _plt.figure(plotname)
+    ax = f.axes[0]
+    ax.set_ylim(limits)
 
 # ============================================================================
 # Below is old
