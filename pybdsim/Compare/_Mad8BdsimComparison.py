@@ -150,8 +150,10 @@ def _make_plotter(plot_info_dict):
         axes.legend(loc='best')
         axes.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
 
+        if survey is None:
+            survey = mad8opt
         _CallUserFigureFunctions(functions)
-        _AddSurvey(plot, mad8opt)
+        _AddSurvey(plot, survey)
         _CallUserFigureFunctions(postfunctions)
         if xlim != (0, 0):
             _plt.xlim(xlim)
@@ -278,34 +280,34 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     # energy and npart plotted with individual methods
     figures = [PlotBeta(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize, xlim=xlim),
+                         figsize=figsize, xlim=xlim, survey=survey),
                PlotAlpha(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
-                          figsize=figsize, xlim=xlim),
+                          figsize=figsize, xlim=xlim, survey=survey),
                PlotDisp(mad8opt,bdsopt,functions=functions,
                       postfunctions=postfunctions,
-                      figsize=figsize, xlim=xlim),
+                      figsize=figsize, xlim=xlim, survey=survey),
                PlotDispP(mad8opt,bdsopt,functions=functions,
                        postfunctions=postfunctions,
-                       figsize=figsize, xlim=xlim),
+                       figsize=figsize, xlim=xlim, survey=survey),
                PlotSigma(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
-                          figsize=figsize, xlim=xlim),
+                          figsize=figsize, xlim=xlim, survey=survey),
                PlotSigmaP(mad8opt,bdsopt,functions=functions,
                            postfunctions=postfunctions,
-                           figsize=figsize, xlim=xlim),
+                           figsize=figsize, xlim=xlim, survey=survey),
                PlotEnergy(mad8opt,bdsopt,functions=functions,
                           postfunctions=postfunctions,
-                          figsize=figsize, xlim=xlim),
+                          figsize=figsize, xlim=xlim, survey=survey),
                PlotMean(mad8opt,bdsopt,functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize, xlim=xlim),
+                         figsize=figsize, xlim=xlim, survey=survey),
                PlotEmitt(mad8opt,bdsopt,functions=functions,
                              postfunctions=postfunctions,
-                             figsize=figsize, xlim=xlim),
+                             figsize=figsize, xlim=xlim, survey=survey),
                PlotNParticles(mad8opt,bdsopt,functions=functions,
                               postfunctions=postfunctions,
-                              figsize=figsize, xlim=xlim)]
+                              figsize=figsize, xlim=xlim, survey=survey)]
     if saveAll:
         tfsname = repr(twiss)
         bdsname = repr(bdsinst)
@@ -349,8 +351,10 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
+    if survey is None:
+        survey = mad8opt
     _CallUserFigureFunctions(functions)
-    _AddSurvey(energyPlot, mad8opt)
+    _AddSurvey(energyPlot, survey)
     _CallUserFigureFunctions(postfunctions)
     if xlim != (0,0):
         _plt.xlim(xlim)
@@ -370,8 +374,10 @@ def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=N
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
+    if survey is None:
+        survey = mad8opt
     _CallUserFigureFunctions(functions)
-    _AddSurvey(npartPlot, mad8opt)
+    _AddSurvey(npartPlot, survey)
     _CallUserFigureFunctions(postfunctions)
     if xlim != (0,0):
         _plt.xlim(xlim)
