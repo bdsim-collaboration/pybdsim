@@ -51,6 +51,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  aperlocalpositions    = {},
                  collimatordict        = {},
                  userdict              = {},
+                 partnamedict          = {},
                  verbose               = False,
                  beam                  = True,
                  flipmagnets           = None,
@@ -129,6 +130,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | have keys matching the exact element name in the Tfs file and     |
     |                               | contain a dictionary itself with key, value pairs of parameters   |
     |                               | and values to be added to that particular element.                |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **partnamedict**              | A python dictionary of dictionaries. The key is a substring of    |
+    |                               | that should be matched. ie add the parameter 'vhRatio' : 1 to all |
+    |                               | elements with 'MBVA' in their name.                               |
     +-------------------------------+-------------------------------------------------------------------+
     | **verbose**                   | Print out lots of information when building the model.            |
     +-------------------------------+-------------------------------------------------------------------+
@@ -239,7 +244,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
             continue  # skip this item.
 
         gmadElement = _Tfs2GmadElementFactory(item, allelementdict, verbose,
-                                              userdict, collimatordict,
+                                              userdict, collimatordict, partnamedict,
                                               flipmagnets, linear,
                                               zerolength, ignorezerolengthitems,
                                               allNamesUnique)
@@ -300,12 +305,14 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
 
 def _Tfs2GmadElementFactory(item, allelementdict, verbose,
-                            userdict, collimatordict, flipmagnets,
+                            userdict, collimatordict, partnamedict, flipmagnets,
                             linear, zerolength,
                             ignorezerolengthitems,
                             allNamesUnique):
-    """Function which makes the correct GMAD element given a TFS
-    element to gmad."""
+    """
+    Function which makes the correct GMAD element given a TFS
+    element to gmad.
+    """
     factor = 1
     if flipmagnets is not None:
         factor = -1 if flipmagnets else 1  # flipping magnets
@@ -341,6 +348,10 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         kws.update(userdict[name])
     elif rname in userdict:  # rname appears in the gmad
         kws.update(userdict[rname])
+
+    for partname in partnamedict:
+        if partname in name:
+            kws.update(partnamedict[partname])
 
     if verbose:
         print 'Full set of key word arguments:'
