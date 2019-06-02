@@ -1130,11 +1130,21 @@ class Machine(object):
 def PrepareApertureModel(rowDictionary, default='circular'):
     rd = rowDictionary # shortcut
     a1 = rd['APER_1']
-    a2 = rd['APER_2']
-    a3 = rd['APER_3']
-    a4 = rd['APER_4']
+    a2 = 0.0
+    a3 = 0.0
+    a4 = 0.0
+    if 'APER_2' in rd:
+        a2 = rd['APER_2']
+    if 'APER_3' in rd:
+        a3 = rd['APER_3']
+    if 'APER_4' in rd:
+        a4 = rd['APER_4']
+    
     if 'APERTYPE' in rd.keys():
         aType = str.lower(rd['APERTYPE'])
+        # possible to be 'none' which isn't valid - replace with default
+        if aType == 'none':
+            aType = default
     else:
         # no type given - let's guess :(
         if a1 == a2 == a3 == a4:
