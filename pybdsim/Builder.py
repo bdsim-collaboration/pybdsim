@@ -66,6 +66,10 @@ bdsimcategories = [
     'thinrmatrix',
     'paralleltransporter',
     'rmatrix',
+    'undulator',
+    'wirescanner',
+    'crystalcol',
+    'dump'
     ]
 
 class ElementBase(collections.MutableMapping):
@@ -655,6 +659,36 @@ class Laser(Element):
                          waveLength=waveLength,
                          **kwargs)
 
+
+class WireScanner(Element):
+    def __init__(self, name, l, wireDiameter, wireLength, material, **kwargs):
+        Element.__init__(self, name,'wirescanner',l=l,
+                         wireDiameter=wireDiameter,
+                         wireLength=wireLength,
+                         material=material,
+                         **kwargs)
+
+
+class CrystalCol(Element):
+    def __init__(self, name, l, xsize, material, **kwargs):
+        Element.__init__(self, name,'crystalcol',l=l,
+                         xsize=xsize,
+                         material=material,
+                         **kwargs)
+
+
+class Undulator(Element):
+    def __init__(self, name, l, b, undulatorPeriod, **kwargs):
+        Element.__init__(self, name,'undulator',l=l,B=b,
+                         undulatorPeriod=undulatorPeriod,
+                         **kwargs)
+
+
+class Dump(Element):
+    def __init__(self, name, l, **kwargs):
+        Element.__init__(self, name,'dump',l=l,**kwargs)
+
+
 class ExternalGeometry(object):
     def __init__(self, name, l, outerDiameter, geometryFile, **kws):
         Element.__init__(self, name, 'element', l=l,
@@ -967,6 +1001,13 @@ class Machine(object):
                 d[k] = v
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
 
+    def AddJCol(self, name='jc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
+        d = {}
+        for k,v in kwargs.iteritems():
+            if 'aper' not in str(k).lower():
+                d[k] = v
+        self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
+
     def AddDegrader(self, length=0.1, name='deg', nWedges=1, wedgeLength=0.1, degHeight=0.1, materialThickness=None, degraderOffset=None, **kwargs):
         if (materialThickness==None) and (degraderOffset==None):
             raise TypeError('materialThickness or degraderOffset must be specified for a degrader')
@@ -988,6 +1029,18 @@ class Machine(object):
 
     def AddLaser(self, length=0.1, name='lsr', x=1, y=0, z=0, waveLength=532e-9, **kwargs):
         self.Append(Element(name,'laser',l=length,x=x,y=y,z=z,waveLength=waveLength,**kwargs))
+
+    def AddDump(self, name='du', length=0.1, **kwargs):
+        self.Append(Element(name,'dump',l=length,**kwargs))
+
+    def AddWireScanner(self, name='ws', length=0.1, wireDiameter=1e-3, wireLength=0.1, **kwargs):
+        self.Append(Element(name,'dump',l=length,wireLength=wireLength,wireDiameter=wireDiameter,**kwargs))
+
+    def AddCrystalCol(self, name='cc', length=0.01, xsize=1e-3, **kwargs):
+        self.Append(Element(name,'crystalcol',l=length,xsize=xsize,**kwargs))
+
+    def AddUndulator(self, name='un', length=1.0, b=0, undulatorPeriod=0.1, **kwargs):
+        self.Append(Element(name,'undulator',l=length,B=b,undulatorPeriod=undulatorPeriod,**kwargs))
 
     def AddTransform3D(self, name='t3d',**kwargs):
         if len(kwargs.keys()) == 0:
