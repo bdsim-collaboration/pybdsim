@@ -18,6 +18,7 @@ Machine - a list of elements
 """
 import pybdsim.XSecBias
 import Beam as _Beam
+import Data as _Data
 import Options as _Options
 import Writer as _Writer
 import _General
@@ -535,7 +536,7 @@ class Decapole(Element):
 
 class _Dipole(Element):
     def __init__(self, name, category, l, angle=None, B=None, **kwargs):
-        if angle is None and b is None:
+        if angle is None and B is None:
             raise TypeError('angle XOR B must be specified for an SBend')
         elif angle is not None:
             Element.__init__(self, name, category, l=l,
@@ -696,7 +697,7 @@ class Dump(Element):
 
 
 class ExternalGeometry(object):
-    def __init__(self, name, l, outerDiameter, geometryFile, **kws):
+    def __init__(self, name, l, outerDiameter, geometryFile, **kwargs):
         Element.__init__(self, name, 'element', l=l,
                          outerDiameter=outerDiameter,
                          geometryFile=geometryFile, **kwargs)
@@ -1226,7 +1227,7 @@ class Machine(object):
                 self.samplers.append(Sampler(self.elements[-1].name))
             else:
                 if names not in self.sequence:
-                    msg = "{} not found to attach sampler to.".format(name)
+                    msg = "{} not found to attach sampler to.".format(names)
                     raise ValueError(msg)
                 self.samplers.append(Sampler(names))
         else: # assume some flat iterable of sampler names.
@@ -1576,7 +1577,7 @@ def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=Tr
     excludesamplers - bool - exclude any existing samplers
 
     """
-    a = Data.Load(surveyfile)
+    a = _Data.Load(surveyfile)
     samplers = []
     for name in a.Name():
         if ('ampler' in name) and excludesamplers:
