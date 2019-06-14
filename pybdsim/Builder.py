@@ -716,6 +716,72 @@ class Sampler(object):
         else:
             return 'sample, range='+self.name+';\n'
 
+class Crystal(collections.MutableMapping):
+    """
+    A crystal is unique in that it does not have a length unlike every
+    :class:`Element` hence it needs its own class to produce its
+    representation.
+    """
+    def __init__(self,name,**kwargs):
+        self._store = dict()
+        self.name         = name
+        self._keysextra   = set()
+        for k, v in kwargs.iteritems():
+            self[k] = v
+
+    def __getitem__(self, key):
+        return self._store[key]
+
+    def __setitem__(self, key, value):
+
+        if (key == "name" or key == "category") and value:
+            self._store[key] = value
+        elif value == "":
+            return
+        elif isinstance(value, tuple):
+            self._store[key] = (float(value[0]), value[1])
+        elif isinstance(value, basestring):
+            if value.startswith('"') and value.endswith('"'):
+                # Prevent the buildup of quotes for multiple setitem calls
+                value = value.strip('"')
+            self._store[key] = '"{}"'.format(value)
+        else:
+            self._store[key] = value
+
+        if key not in {"name", "category"}: # keys which are not # 'extra'.
+            self._keysextra.add(key)
+
+    def __len__(self):
+        return len(self._store)
+
+    def __iter__(self):
+        return iter(self._store)
+
+    def keysextra(self):
+        #so behaviour is similar to dict.keys()
+        return self._keysextra
+
+    def __delitem__(self, key):
+        del self._store[key]
+        try: # it may be in _store, but not necessarily in _keyextra
+            self._keysextra.remove(key)
+        except:
+            pass
+
+    def __repr__(self):
+        s = "{s.name}: ".format(s=self) + "crystal, "
+        for i,key in enumerate(self._keysextra):
+            if i > 0: # Separate with commas
+                s += ", "
+            # Write tuple (i.e. number + units) syntax
+            if type(self[key]) == tuple:
+                s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            # everything else (most things!)
+            else:
+                s += key + '=' + str(self[key])
+        s += ';\n'
+        return s
+
 class Machine(object):
     """
     A class represents an accelerator lattice as a sequence of
@@ -760,7 +826,8 @@ class Machine(object):
         self.lenint    = []
         self.sr        = sr
         self.energy.append(energy0)
-        self.charge = charge
+        self.charge    = charge
+        self.objects   = []  # list of non-sequence objects e.g crystals, lasers, placements etc.
 
     def __repr__(self):
         s = ''
@@ -1043,6 +1110,14 @@ class Machine(object):
         self.Append(Element(name,'dump',l=length,wireLength=wireLength,wireDiameter=wireDiameter,**kwargs))
 
     def AddCrystalCol(self, name='cc', length=0.01, xsize=1e-3, **kwargs):
+        objNames = [obj.name for obj in self.objects]
+        for k,v in kwargs.iteritems():
+            if (k == "crystalBoth") and (v not in objNames):
+                print("Warning: crystalBoth object " + v + " not known.")
+            if (k == "crystalLeft") and (v not in objNames):
+                print("Warning: crystalLeft object " + v + " not known.")
+            if (k == "crystalRight") and (v not in objNames):
+                print("Warning: crystalRight object " + v + " not known.")
         self.Append(Element(name,'crystalcol',l=length,xsize=xsize,**kwargs))
 
     def AddUndulator(self, name='un', length=1.0, b=0, undulatorPeriod=0.1, **kwargs):
@@ -1157,6 +1232,9 @@ class Machine(object):
         else: # assume some flat iterable of sampler names.
             for name in names:
                 self.AddSampler(name)
+
+    def AddCrystal(self, name, **kwargs):
+        self.objects.append(Crystal(name, **kwargs))
 
     def AddRmat(self, name='rmat', length=0.1,
                 r11=1.0, r12=0, r13=0, r14=0,
@@ -1385,6 +1463,7 @@ def WriteMachine(machine, filename, verbose=False):
     fn_beam       = basefilename + '_beam.gmad'
     fn_options    = basefilename + '_options.gmad'
     fn_bias       = basefilename + '_bias.gmad'
+    fn_objects    = basefilename + '_objects.gmad'
     timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
 
     #write bias if it exists
@@ -1443,6 +1522,17 @@ def WriteMachine(machine, filename, verbose=False):
     f.write('! BEAM DEFINITION \n\n')
     f.write(machine.beam.ReturnBeamString())
     f.close()
+
+    # write objects
+    if len(machine.objects) > 0:
+        f = open(fn_objects,'w')
+        files.append(fn_objects)
+        f.write(timestring)
+        f.write('! pybdsim.Builder \n')
+        f.write('! OBJECTS DEFINITION \n\n')
+        for obj in machine.objects:
+            f.write(str(obj))
+        f.close()
 
     # write options - only if specified
     if machine.options != None:
