@@ -551,6 +551,8 @@ class _Dipole(Element):
         for bend in split_bends:
             bend.pop('fint', None)
             bend.pop('fintx', None)
+            bend.pop('fintK2', None)
+            bend.pop('fintxK2', None)
             bend.pop('e1', None)
             bend.pop('e2', None)
             bend.pop('h1', None)
@@ -566,6 +568,10 @@ class _Dipole(Element):
             split_bends[0]['fint'] = self['fint']
         if 'fintx' in self: # assign fintx to last ele only
             split_bends[-1]['fintx'] = self['fintx']
+        if 'fintK2' in self: # assign fintK2 to first ele only
+            split_bends[0]['fintK2'] = self['fint']
+        if 'fintxK2' in self: # assign fintxK2 to last ele only
+            split_bends[-1]['fintxK2'] = self['fintx']
         if 'h1' in self: # assign h1 to first ele only
             split_bends[0]['h1'] = self['h1']
         if 'h2' in self: # assign h2 to last ele only
@@ -1171,7 +1177,7 @@ class Machine(object):
                     r31=0, r32=0, r33=1.0, r34=0,
                     r41=0, r42=0, r43=0, r44=1.0,
                     **kwargs):
-        self.Append(Element(name, 'rmatrixthin',
+        self.Append(Element(name, 'thinrmatrix',
                             rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
                             rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
                             rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
