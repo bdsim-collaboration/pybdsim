@@ -412,7 +412,7 @@ class ApertureModel(dict):
         if atL in madxTypes.keys():
             self['apertureType'] = madxTypes[atL]
             if self['apertureType'] == None:
-                print 'Unsupported type: :',self.apertureType,'" - replacing with elliptical'
+                print 'Unsupported type: :',self['apertureType'],'" - replacing with elliptical'
                 self['apertureType'] = 'elliptical'
         else:
             self['apertureType'] = apertureType
@@ -1134,7 +1134,7 @@ class Machine(object):
         if length > 1e-12:
             self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, **kwargs))
         else:
-            self.AddThinMultipole(name, knl, ksl, kwargs)
+            self.AddThinMultipole(name, knl, ksl, **kwargs)
 
     def AddThinMultipole(self, name='mp', knl=(0,0), ksl=(0,0), **kwargs):
         self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, **kwargs))
