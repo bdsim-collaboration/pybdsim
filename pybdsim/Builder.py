@@ -1220,9 +1220,9 @@ class Machine(object):
             if names == "all":
                 self.samplers.append(Sampler("all"))
             elif names == "first":
-                self.samplers.append(Sampler(self.elements[0].name))
+                self.samplers.append(Sampler(self.sequence[0]))
             elif names == "last":
-                self.samplers.append(Sampler(self.elements[-1].name))
+                self.samplers.append(Sampler(self.sequence[-1]))
             else:
                 if names not in self.sequence:
                     msg = "{} not found to attach sampler to.".format(names)
