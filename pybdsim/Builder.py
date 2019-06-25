@@ -32,6 +32,7 @@ import numpy as _np
 import copy as _copy
 import textwrap as _textwrap
 import numbers
+import string as _string
 
 bdsimcategories = [
     'marker',
@@ -925,6 +926,81 @@ class Machine(object):
             self.energy.append(energy-14.1e-6*ang**2/item.length*energy**4)
         else :
             self.energy.append(self.energy[-1])
+
+    def GetNamesOfType(self, category):
+        """
+        Returns a list of names of elements that are of the specified category.
+        """
+        return [element for element in self.elements if element.category == category]
+
+    def ReplaceWithElement(self, name, newelement):
+        """
+        Replace an element in the machine with a new element object (one of the individual
+        element pybdsim.Builder classes that inherit the Element class).
+        """
+        if name not in self.sequence:
+            msg = "{} not found in machine sequence.".format(name)
+            raise ValueError(msg)
+        if not isinstance(newelement, Element):
+            msg = "newelement is not a pybdsim.Builder.Element instance."
+            raise TypeError(msg)
+        if self.elements[name].length != newelement.length:
+            msg = "Length of newelement is not the same length as existing element {}".format(name)
+            raise ValueError(msg)
+        self.elements[name] = newelement
+
+    def ReplaceElementCategory(self, category, newcategory):
+        """
+        Change category of all elements of a given category. All parameters of the element
+        being changed will be preserved, please update with the UpdateCategoryParameter function.
+        """
+        names = self.GetNamesOfType(category)
+        for name in names:
+            self.elements[name].category = newcategory
+
+    def UpdateElement(self, name, parameter, value):
+        """
+        Update a parameter for a specified element name. Element length cannot be modified.
+        If a value for that parameter already exists, the value will be overwritten.
+        """
+        if parameter is 'length':
+            msg = 'Element length cannot be modified'
+            raise ValueError(msg)
+        elif name in self.elements.keys():
+            self.elements[name][parameter] = value
+        else:
+            msg = 'Unknown element {}'.format(name)
+            raise ValueError(msg)
+
+    def UpdateElements(self, names, parameter, value, namelocation='all'):
+        """
+        Update multiple elements. Supplied names can be a sequence type object containing a list of element
+        names or a string where all elements with names containing that string will be updated. namelocation
+        specifies if names string can be at the 'beginning', 'end', or anywhere ('all') in an elements name.
+        """
+        # TODO: better method for name matching. Keep basic for now.
+        if isinstance(names, basestring):
+            if _string.lower(namelocation) == 'all':
+                elements = [name for name in self.elements.keys() if names in name]
+            elif _string.lower(namelocation) == 'start':
+                elements = [name for name in self.elements.keys() if names in name[:len(names)]]
+            elif _string.lower(namelocation) == 'end':
+                elements = [name for name in self.elements.keys() if names in name[-len(names):]]
+            else:
+                msg = 'Unknown string location {}'.format(namelocation)
+                raise ValueError(msg)
+            for name in elements:
+                self.UpdateElement(name, parameter, value)
+        else:
+            for name in names:
+                self.UpdateElement(name, parameter, value)
+
+    def UpdateCategoryParameter(self, category, parameter, value):
+        """
+        Update parameter for all elements of a given category.
+        """
+        names = self.GetNamesOfType(category)
+        self.UpdateElements(names, parameter, value)
 
     def SynchrotronRadiationRescale(self):
         """
