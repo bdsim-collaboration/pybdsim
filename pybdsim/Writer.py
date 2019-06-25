@@ -314,13 +314,13 @@ class Writer():
         self._machineCheck(machine)
         fn_components = self._getName(filename,'components')
         if self.Components._writeInMain:                #if _writeInMain, append strings to _mainFileLines list.
-            for element in machine.elements:
+            for element in machine.elements.values():
                 self._mainFileLines.append(str(element))
             self._mainFileLines.append('\r\n')
         elif self.Components._isWrittenSeparately:      #if _isWrittenSeparately, write directly to file here.
             with open(fn_components, 'w') as f:
                 self._writeFileheader(f, ['! COMPONENT DEFINITION'])
-                for element in machine.elements:
+                for element in machine.elements.values():
                     f.write(str(element))
             self._sectionsToBeWritten.append('Components')
             self.Components._filePath = fn_components   #update FileSection path

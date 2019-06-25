@@ -814,8 +814,7 @@ class Machine(object):
     def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
         self.sequence  = []
-        self.elements  = []
-        self.elementsd = {}
+        self.elements  = collections.OrderedDict()
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0
@@ -845,16 +844,16 @@ class Machine(object):
         if self._iterindex == len(self.sequence)-1:
             raise StopIteration
         self._iterindex += 1
-        return self.elementsd[self.sequence[self._iterindex]]
+        return self.elements[self.sequence[self._iterindex]]
 
     def __getitem__(self,name):
         if _IsFloat(name):
-            return self.elementsd[self.sequence[name]]
+            return self.elements[self.sequence[name]]
         else:
-            return self.elementsd[name]
+            return self.elements[name]
 
     def __len__(self):
-        print 'Number of unique elements:      ',len(self.elementsd.keys())
+        print 'Number of unique elements:      ',len(self.elements.keys())
         print 'Number of elements in sequence: ',len(self.sequence),' <- returning this'
         return len(self.sequence)
 
@@ -876,14 +875,13 @@ class Machine(object):
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
-        elif item.name not in self.elementsd.keys():
+        elif item.name not in self.elements.keys():
             #hasn't been used before - define it
             if type(item) is Line:
                 for element in item:
                     self.Append(item)
             else:
-                self.elements.append(item)
-                self.elementsd[item.name] = item
+                self.elements[item.name] = item
         else:
             if self.verbose:
                 print "Element of name: ",item.name," already defined, simply adding to sequence"
@@ -1481,7 +1479,7 @@ def WriteMachine(machine, filename, verbose=False):
     f.write(timestring)
     f.write('! pybdsim.Builder Lattice \n')
     f.write('! COMPONENT DEFINITION\n\n')
-    for element in machine.elements:
+    for element in machine.elements.values():
         f.write(str(element))
     f.close()
 
