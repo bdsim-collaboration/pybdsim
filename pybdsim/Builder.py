@@ -945,8 +945,12 @@ class Machine(object):
             msg = "newelement is not a pybdsim.Builder.Element instance."
             raise TypeError(msg)
         if self.elements[name].length != newelement.length:
-            msg = "Length of newelement is not the same length as existing element {}".format(name)
-            raise ValueError(msg)
+            msg = "Warning: Length of newelement is not the same length as existing element {}".format(name)
+            print(msg)
+            currlength = self.elements[name].length
+            self.length -= currlength
+            self.length += newelement.length
+            # todo: update self.lenint list with new length. Doesn't appear to be used so should be safe for now.
         self.elements[name] = newelement
 
     def ReplaceElementCategory(self, category, newcategory):
