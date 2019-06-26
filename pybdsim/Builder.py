@@ -960,12 +960,19 @@ class Machine(object):
 
     def UpdateElement(self, name, parameter, value):
         """
-        Update a parameter for a specified element name. Element length cannot be modified.
+        Update a parameter for a specified element name. Modifying element length will produce a warning.
         If a value for that parameter already exists, the value will be overwritten.
         """
         if parameter is 'length':
-            msg = 'Element length cannot be modified'
-            raise ValueError(msg)
+            msg = 'Caution: modifying an element length will change the machine length.'
+            print(msg)
+            # update total machine length
+            currlength = self.elements[name][parameter]
+            self.length -= currlength
+            self.elements[name][parameter] = value
+            self.length += value
+            # todo: update self.lenint list with new lengths. Doesn't appear to be used so should be safe for now.
+
         elif name in self.elements.keys():
             self.elements[name][parameter] = value
         else:
