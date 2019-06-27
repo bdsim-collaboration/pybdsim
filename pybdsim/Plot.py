@@ -543,7 +543,7 @@ def Histogram3D(th3):
     """
     Plot a pybdsim.Data.TH1 instance - TBC
     """
-    print 'Not written yet - TBC'
+    print 'Not written yet - best take a slice or projection and plot a 2D histogram'
 
 def PrimaryPhaseSpace(filename, outputfilename=None):
     """
