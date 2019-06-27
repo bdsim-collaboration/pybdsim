@@ -24,7 +24,8 @@ sections = ['components',
             'samplers',
             'beam',
             'options',
-            'bias']
+            'bias',
+            'objects']
 
 class FileSection():
     """
@@ -165,6 +166,7 @@ class Writer():
         self.Samplers   = FileSection('samplers')
         self.Beam       = FileSection('beam')
         self.Options    = FileSection('options')
+        self.Objects    = FileSection('options')
         self.Bias       = FileSection('bias')
 
         self._mainFileLines   = []        #lines that will be written to the main file.
@@ -229,6 +231,8 @@ class Writer():
             self.Options.WriteInMain()
             self.Samplers.WriteInMain()
             self.Bias.WriteInMain()
+            if len(machine.objects) > 0:
+                self.Objects.WriteInMain()
 
         #write the individual files.
         self.WriteComponents(machine)
@@ -237,6 +241,8 @@ class Writer():
         self.WriteBeam(machine)
         self.WriteOptions(machine)
         self.WriteBias(machine)
+        if len(machine.objects) > 0:
+            self.WriteObjects(machine)
 
         #Write main
         self.WriteMain(machine)
@@ -308,13 +314,13 @@ class Writer():
         self._machineCheck(machine)
         fn_components = self._getName(filename,'components')
         if self.Components._writeInMain:                #if _writeInMain, append strings to _mainFileLines list.
-            for element in machine.elements:
+            for element in machine.elements.values():
                 self._mainFileLines.append(str(element))
             self._mainFileLines.append('\r\n')
         elif self.Components._isWrittenSeparately:      #if _isWrittenSeparately, write directly to file here.
             with open(fn_components, 'w') as f:
                 self._writeFileheader(f, ['! COMPONENT DEFINITION'])
-                for element in machine.elements:
+                for element in machine.elements.values():
                     f.write(str(element))
             self._sectionsToBeWritten.append('Components')
             self.Components._filePath = fn_components   #update FileSection path
@@ -402,6 +408,27 @@ class Writer():
         elif self.Samplers._isUserDefined:
             self._sectionsToBeWritten.append('Samplers')
         self.Samplers._hasBeenWritten = True
+
+    def WriteObjects(self,machine,filename=''):
+        """
+        Write the machines objects (e.g. crystals) to disk:
+        filename.gmad
+        """
+        self._machineCheck(machine)
+        fn_objects = self._getName(filename,'objects')
+
+        if self.Objects._writeInMain:
+            for obj in machine.objects:
+                self._mainFileLines.append(str(obj))
+            self._mainFileLines.append('\r\n')
+        else:
+            with open(fn_objects, 'w') as f:
+                self._writeFileheader(f, ["! OBJECTS DEFINITION"])
+                for obj in machine.objects:
+                    f.write(str(obj))
+            self.Objects._filePath = fn_objects
+            self._sectionsToBeWritten.append('Objects')
+        self.Objects._hasBeenWritten = True
 
     def WriteOptions(self,machine,filename=''):
         """
@@ -533,6 +560,7 @@ class Writer():
         self._defaultSectionFilenames['beam']       = basefilename + '_beam.gmad'
         self._defaultSectionFilenames['options']    = basefilename + '_options.gmad'
         self._defaultSectionFilenames['bias']       = basefilename + '_bias.gmad'
+        self._defaultSectionFilenames['objects']    = basefilename + '_objects.gmad'
         self._mainFilename = basefilename + '.gmad'
         self._basefilename = basefilename
         self._timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'

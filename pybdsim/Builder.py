@@ -18,6 +18,7 @@ Machine - a list of elements
 """
 import pybdsim.XSecBias
 import Beam as _Beam
+import Data as _Data
 import Options as _Options
 import Writer as _Writer
 import _General
@@ -31,6 +32,7 @@ import numpy as _np
 import copy as _copy
 import textwrap as _textwrap
 import numbers
+import string as _string
 
 bdsimcategories = [
     'marker',
@@ -66,6 +68,10 @@ bdsimcategories = [
     'thinrmatrix',
     'paralleltransporter',
     'rmatrix',
+    'undulator',
+    'wirescanner',
+    'crystalcol',
+    'dump'
     ]
 
 class ElementBase(collections.MutableMapping):
@@ -406,7 +412,7 @@ class ApertureModel(dict):
         if atL in madxTypes.keys():
             self['apertureType'] = madxTypes[atL]
             if self['apertureType'] == None:
-                print 'Unsupported type: :',self.apertureType,'" - replacing with elliptical'
+                print 'Unsupported type: :',self['apertureType'],'" - replacing with elliptical'
                 self['apertureType'] = 'elliptical'
         else:
             self['apertureType'] = apertureType
@@ -531,7 +537,7 @@ class Decapole(Element):
 
 class _Dipole(Element):
     def __init__(self, name, category, l, angle=None, B=None, **kwargs):
-        if angle is None and b is None:
+        if angle is None and B is None:
             raise TypeError('angle XOR B must be specified for an SBend')
         elif angle is not None:
             Element.__init__(self, name, category, l=l,
@@ -547,6 +553,8 @@ class _Dipole(Element):
         for bend in split_bends:
             bend.pop('fint', None)
             bend.pop('fintx', None)
+            bend.pop('fintK2', None)
+            bend.pop('fintxK2', None)
             bend.pop('e1', None)
             bend.pop('e2', None)
             bend.pop('h1', None)
@@ -562,6 +570,10 @@ class _Dipole(Element):
             split_bends[0]['fint'] = self['fint']
         if 'fintx' in self: # assign fintx to last ele only
             split_bends[-1]['fintx'] = self['fintx']
+        if 'fintK2' in self: # assign fintK2 to first ele only
+            split_bends[0]['fintK2'] = self['fint']
+        if 'fintxK2' in self: # assign fintxK2 to last ele only
+            split_bends[-1]['fintxK2'] = self['fintx']
         if 'h1' in self: # assign h1 to first ele only
             split_bends[0]['h1'] = self['h1']
         if 'h2' in self: # assign h2 to last ele only
@@ -655,8 +667,38 @@ class Laser(Element):
                          waveLength=waveLength,
                          **kwargs)
 
+
+class WireScanner(Element):
+    def __init__(self, name, l, wireDiameter, wireLength, material, **kwargs):
+        Element.__init__(self, name,'wirescanner',l=l,
+                         wireDiameter=wireDiameter,
+                         wireLength=wireLength,
+                         material=material,
+                         **kwargs)
+
+
+class CrystalCol(Element):
+    def __init__(self, name, l, xsize, material, **kwargs):
+        Element.__init__(self, name,'crystalcol',l=l,
+                         xsize=xsize,
+                         material=material,
+                         **kwargs)
+
+
+class Undulator(Element):
+    def __init__(self, name, l, b, undulatorPeriod, **kwargs):
+        Element.__init__(self, name,'undulator',l=l,B=b,
+                         undulatorPeriod=undulatorPeriod,
+                         **kwargs)
+
+
+class Dump(Element):
+    def __init__(self, name, l, **kwargs):
+        Element.__init__(self, name,'dump',l=l,**kwargs)
+
+
 class ExternalGeometry(object):
-    def __init__(self, name, l, outerDiameter, geometryFile, **kws):
+    def __init__(self, name, l, outerDiameter, geometryFile, **kwargs):
         Element.__init__(self, name, 'element', l=l,
                          outerDiameter=outerDiameter,
                          geometryFile=geometryFile, **kwargs)
@@ -675,6 +717,72 @@ class Sampler(object):
             return 'sample, all;\n'
         else:
             return 'sample, range='+self.name+';\n'
+
+class Crystal(collections.MutableMapping):
+    """
+    A crystal is unique in that it does not have a length unlike every
+    :class:`Element` hence it needs its own class to produce its
+    representation.
+    """
+    def __init__(self,name,**kwargs):
+        self._store = dict()
+        self.name         = name
+        self._keysextra   = set()
+        for k, v in kwargs.iteritems():
+            self[k] = v
+
+    def __getitem__(self, key):
+        return self._store[key]
+
+    def __setitem__(self, key, value):
+
+        if (key == "name" or key == "category") and value:
+            self._store[key] = value
+        elif value == "":
+            return
+        elif isinstance(value, tuple):
+            self._store[key] = (float(value[0]), value[1])
+        elif isinstance(value, basestring):
+            if value.startswith('"') and value.endswith('"'):
+                # Prevent the buildup of quotes for multiple setitem calls
+                value = value.strip('"')
+            self._store[key] = '"{}"'.format(value)
+        else:
+            self._store[key] = value
+
+        if key not in {"name", "category"}: # keys which are not # 'extra'.
+            self._keysextra.add(key)
+
+    def __len__(self):
+        return len(self._store)
+
+    def __iter__(self):
+        return iter(self._store)
+
+    def keysextra(self):
+        #so behaviour is similar to dict.keys()
+        return self._keysextra
+
+    def __delitem__(self, key):
+        del self._store[key]
+        try: # it may be in _store, but not necessarily in _keyextra
+            self._keysextra.remove(key)
+        except:
+            pass
+
+    def __repr__(self):
+        s = "{s.name}: ".format(s=self) + "crystal, "
+        for i,key in enumerate(self._keysextra):
+            if i > 0: # Separate with commas
+                s += ", "
+            # Write tuple (i.e. number + units) syntax
+            if type(self[key]) == tuple:
+                s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            # everything else (most things!)
+            else:
+                s += key + '=' + str(self[key])
+        s += ';\n'
+        return s
 
 class Machine(object):
     """
@@ -707,8 +815,7 @@ class Machine(object):
     def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
         self.sequence  = []
-        self.elements  = []
-        self.elementsd = {}
+        self.elements  = collections.OrderedDict()
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0
@@ -720,7 +827,8 @@ class Machine(object):
         self.lenint    = []
         self.sr        = sr
         self.energy.append(energy0)
-        self.charge = charge
+        self.charge    = charge
+        self.objects   = []  # list of non-sequence objects e.g crystals, lasers, placements etc.
 
     def __repr__(self):
         s = ''
@@ -737,16 +845,16 @@ class Machine(object):
         if self._iterindex == len(self.sequence)-1:
             raise StopIteration
         self._iterindex += 1
-        return self.elementsd[self.sequence[self._iterindex]]
+        return self.elements[self.sequence[self._iterindex]]
 
     def __getitem__(self,name):
         if _IsFloat(name):
-            return self.elementsd[self.sequence[name]]
+            return self.elements[self.sequence[name]]
         else:
-            return self.elementsd[name]
+            return self.elements[name]
 
     def __len__(self):
-        print 'Number of unique elements:      ',len(self.elementsd.keys())
+        print 'Number of unique elements:      ',len(self.elements.keys())
         print 'Number of elements in sequence: ',len(self.sequence),' <- returning this'
         return len(self.sequence)
 
@@ -768,14 +876,13 @@ class Machine(object):
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
-        elif item.name not in self.elementsd.keys():
+        elif item.name not in self.elements.keys():
             #hasn't been used before - define it
             if type(item) is Line:
                 for element in item:
                     self.Append(item)
             else:
-                self.elements.append(item)
-                self.elementsd[item.name] = item
+                self.elements[item.name] = item
         else:
             if self.verbose:
                 print "Element of name: ",item.name," already defined, simply adding to sequence"
@@ -819,6 +926,92 @@ class Machine(object):
             self.energy.append(energy-14.1e-6*ang**2/item.length*energy**4)
         else :
             self.energy.append(self.energy[-1])
+
+    def GetNamesOfType(self, category):
+        """
+        Returns a list of names of elements that are of the specified category.
+        """
+        return [element for element in self.elements if element.category == category]
+
+    def ReplaceWithElement(self, name, newelement):
+        """
+        Replace an element in the machine with a new element object (one of the individual
+        element pybdsim.Builder classes that inherit the Element class).
+        """
+        if name not in self.sequence:
+            msg = "{} not found in machine sequence.".format(name)
+            raise ValueError(msg)
+        if not isinstance(newelement, Element):
+            msg = "newelement is not a pybdsim.Builder.Element instance."
+            raise TypeError(msg)
+        if self.elements[name].length != newelement.length:
+            msg = "Warning: Length of newelement is not the same length as existing element {}".format(name)
+            print(msg)
+            currlength = self.elements[name].length
+            self.length -= currlength
+            self.length += newelement.length
+            # todo: update self.lenint list with new length. Doesn't appear to be used so should be safe for now.
+        self.elements[name] = newelement
+
+    def ReplaceElementCategory(self, category, newcategory):
+        """
+        Change category of all elements of a given category. All parameters of the element
+        being changed will be preserved, please update with the UpdateCategoryParameter function.
+        """
+        names = self.GetNamesOfType(category)
+        for name in names:
+            self.elements[name].category = newcategory
+
+    def UpdateElement(self, name, parameter, value):
+        """
+        Update a parameter for a specified element name. Modifying element length will produce a warning.
+        If a value for that parameter already exists, the value will be overwritten.
+        """
+        if parameter is 'length':
+            msg = 'Caution: modifying an element length will change the machine length.'
+            print(msg)
+            # update total machine length
+            currlength = self.elements[name][parameter]
+            self.length -= currlength
+            self.elements[name][parameter] = value
+            self.length += value
+            # todo: update self.lenint list with new lengths. Doesn't appear to be used so should be safe for now.
+
+        elif name in self.elements.keys():
+            self.elements[name][parameter] = value
+        else:
+            msg = 'Unknown element {}'.format(name)
+            raise ValueError(msg)
+
+    def UpdateElements(self, names, parameter, value, namelocation='all'):
+        """
+        Update multiple elements. Supplied names can be a sequence type object containing a list of element
+        names or a string where all elements with names containing that string will be updated. namelocation
+        specifies if names string can be at the 'beginning', 'end', or anywhere ('all') in an elements name.
+        """
+        # TODO: better method for name matching. Keep basic for now.
+        if isinstance(names, basestring):
+            if _string.lower(namelocation) == 'all':
+                elements = [name for name in self.elements.keys() if names in name]
+            elif _string.lower(namelocation) == 'start':
+                elements = [name for name in self.elements.keys() if names in name[:len(names)]]
+            elif _string.lower(namelocation) == 'end':
+                elements = [name for name in self.elements.keys() if names in name[-len(names):]]
+            else:
+                msg = 'Unknown string location {}'.format(namelocation)
+                raise ValueError(msg)
+            for name in elements:
+                self.UpdateElement(name, parameter, value)
+        else:
+            for name in names:
+                self.UpdateElement(name, parameter, value)
+
+    def UpdateCategoryParameter(self, category, parameter, value):
+        """
+        Update parameter for all elements of a given category.
+        """
+        names = self.GetNamesOfType(category)
+        self.UpdateElements(names, parameter, value)
 
     def SynchrotronRadiationRescale(self):
         """
@@ -952,7 +1145,7 @@ class Machine(object):
         if length > 1e-12:
             self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, **kwargs))
         else:
-            self.AddThinMultipole(name, knl, ksl, kwargs)
+            self.AddThinMultipole(name, knl, ksl, **kwargs)
 
     def AddThinMultipole(self, name='mp', knl=(0,0), ksl=(0,0), **kwargs):
         self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, **kwargs))
@@ -961,6 +1154,13 @@ class Machine(object):
         self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
 
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
+        d = {}
+        for k,v in kwargs.iteritems():
+            if 'aper' not in str(k).lower():
+                d[k] = v
+        self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
+
+    def AddJCol(self, name='jc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
         for k,v in kwargs.iteritems():
             if 'aper' not in str(k).lower():
@@ -988,6 +1188,26 @@ class Machine(object):
 
     def AddLaser(self, length=0.1, name='lsr', x=1, y=0, z=0, waveLength=532e-9, **kwargs):
         self.Append(Element(name,'laser',l=length,x=x,y=y,z=z,waveLength=waveLength,**kwargs))
+
+    def AddDump(self, name='du', length=0.1, **kwargs):
+        self.Append(Element(name,'dump',l=length,**kwargs))
+
+    def AddWireScanner(self, name='ws', length=0.1, wireDiameter=1e-3, wireLength=0.1, **kwargs):
+        self.Append(Element(name,'dump',l=length,wireLength=wireLength,wireDiameter=wireDiameter,**kwargs))
+
+    def AddCrystalCol(self, name='cc', length=0.01, xsize=1e-3, **kwargs):
+        objNames = [obj.name for obj in self.objects]
+        for k,v in kwargs.iteritems():
+            if (k == "crystalBoth") and (v not in objNames):
+                print("Warning: crystalBoth object " + v + " not known.")
+            if (k == "crystalLeft") and (v not in objNames):
+                print("Warning: crystalLeft object " + v + " not known.")
+            if (k == "crystalRight") and (v not in objNames):
+                print("Warning: crystalRight object " + v + " not known.")
+        self.Append(Element(name,'crystalcol',l=length,xsize=xsize,**kwargs))
+
+    def AddUndulator(self, name='un', length=1.0, b=0, undulatorPeriod=0.1, **kwargs):
+        self.Append(Element(name,'undulator',l=length,B=b,undulatorPeriod=undulatorPeriod,**kwargs))
 
     def AddTransform3D(self, name='t3d',**kwargs):
         if len(kwargs.keys()) == 0:
@@ -1087,17 +1307,20 @@ class Machine(object):
             if names == "all":
                 self.samplers.append(Sampler("all"))
             elif names == "first":
-                self.samplers.append(Sampler(self.elements[0].name))
+                self.samplers.append(Sampler(self.sequence[0]))
             elif names == "last":
-                self.samplers.append(Sampler(self.elements[-1].name))
+                self.samplers.append(Sampler(self.sequence[-1]))
             else:
                 if names not in self.sequence:
-                    msg = "{} not found to attach sampler to.".format(name)
+                    msg = "{} not found to attach sampler to.".format(names)
                     raise ValueError(msg)
                 self.samplers.append(Sampler(names))
         else: # assume some flat iterable of sampler names.
             for name in names:
                 self.AddSampler(name)
+
+    def AddCrystal(self, name, **kwargs):
+        self.objects.append(Crystal(name, **kwargs))
 
     def AddRmat(self, name='rmat', length=0.1,
                 r11=1.0, r12=0, r13=0, r14=0,
@@ -1118,7 +1341,7 @@ class Machine(object):
                     r31=0, r32=0, r33=1.0, r34=0,
                     r41=0, r42=0, r43=0, r44=1.0,
                     **kwargs):
-        self.Append(Element(name, 'rmatrixthin',
+        self.Append(Element(name, 'thinrmatrix',
                             rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
                             rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
                             rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
@@ -1326,6 +1549,7 @@ def WriteMachine(machine, filename, verbose=False):
     fn_beam       = basefilename + '_beam.gmad'
     fn_options    = basefilename + '_options.gmad'
     fn_bias       = basefilename + '_bias.gmad'
+    fn_objects    = basefilename + '_objects.gmad'
     timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
 
     #write bias if it exists
@@ -1342,7 +1566,7 @@ def WriteMachine(machine, filename, verbose=False):
     f.write(timestring)
     f.write('! pybdsim.Builder Lattice \n')
     f.write('! COMPONENT DEFINITION\n\n')
-    for element in machine.elements:
+    for element in machine.elements.values():
         f.write(str(element))
     f.close()
 
@@ -1384,6 +1608,17 @@ def WriteMachine(machine, filename, verbose=False):
     f.write('! BEAM DEFINITION \n\n')
     f.write(machine.beam.ReturnBeamString())
     f.close()
+
+    # write objects
+    if len(machine.objects) > 0:
+        f = open(fn_objects,'w')
+        files.append(fn_objects)
+        f.write(timestring)
+        f.write('! pybdsim.Builder \n')
+        f.write('! OBJECTS DEFINITION \n\n')
+        for obj in machine.objects:
+            f.write(str(obj))
+        f.close()
 
     # write options - only if specified
     if machine.options != None:
@@ -1427,7 +1662,7 @@ def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=Tr
     excludesamplers - bool - exclude any existing samplers
 
     """
-    a = Data.Load(surveyfile)
+    a = _Data.Load(surveyfile)
     samplers = []
     for name in a.Name():
         if ('ampler' in name) and excludesamplers:
