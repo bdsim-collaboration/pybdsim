@@ -820,7 +820,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     ploss = d.histogramspy['Event/MergedHistograms/' + plossHisto]
     eloss = d.histogramspy['Event/MergedHistograms/' + elossHisto]
 
-    fig = _plt.figure(figsize=(10,5))
+    fig = _plt.figure(figsize=(14,5))
     ax1 = fig.add_subplot(111)
     ax1.set_yscale('log')
     ax1.set_ylabel('Fractional Beam Loss')
@@ -831,9 +831,14 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
                  fmt='r.',elinewidth=0.8, label='Primary Loss', markersize=6)
 
     ax2 = ax1.twinx()
-    ax2.errorbar(eloss.xcentres, eloss.contents, xerr=eloss.xwidths*0.5,yerr=eloss.errors,
-                 fmt='k,',elinewidth=0.8, label='Energy Deposition')
-    ax2.set_yscale('log')
+    ax2.errorbar(eloss.xcentres, eloss.contents, xerr=eloss.xwidths*0.5,yerr=eloss.errors,c='k',
+                 elinewidth=0.8, label='Energy Deposition', drawstyle='steps-mid', alpha=0.5)
+    ax2.set_yscale('log',nonposy='clip')
+
+    if phitsylim is not None:
+        ax1.set_ylim(*phitsylim)
+    if elossylim is not None:
+        ax2.set_ylim(*elossylim)
 
     xwidth = eloss.xwidths[0]
     ylabel = 'Energy Deposition / Event (GeV / '+str(round(xwidth, 2))+" m)"
