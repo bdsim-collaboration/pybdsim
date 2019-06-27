@@ -429,17 +429,24 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
     PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1, **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
+
+    xlabel         - x axis label
+    ylabel         - y axis label
+    title          - plot title
+    scalingFactor  - multiplier for values
+    xScalingFactor - multiplier for x axis coordinates
     """
     if 'drawstyle' not in errorbarKwargs:
         errorbarKwargs['drawstyle'] = 'steps-mid'
     h = histogram
     f = _plt.figure(figsize=(10,5))
     ax = f.add_subplot(111)
-    sf = scalingFactor #shortcut
-    ax.errorbar(h.xcentres, sf*h.contents, yerr=sf*h.errors,xerr=h.xwidths*0.5, **errorbarKwargs)
+    sf  = scalingFactor #shortcut
+    xsf = xScalingFactor
+    ax.errorbar(xsf*h.xcentres, sf*h.contents, yerr=sf*h.errors,xerr=xsf*h.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
@@ -456,7 +463,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         ax.set_title(title)
     return f
 
-def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
+def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactor=1.0, **errorbarKwargs):
     """
     Plot multiple 1D histograms on the same plot.
 
@@ -466,9 +473,12 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     f = _plt.figure(figsize=(10,5))
     ax = f.add_subplot(111)
 
-    for h,l in zip(histograms, labels):
+    xsf = xScalingFactor # shortcut
+    if scalingFactors is None:
+        scalingFactors = _np.ones_like(histograms)
+    for h,l,sf in zip(histograms, labels, scalingFactors):
         ht = _Data.PadHistogram1D(h)
-        ax.errorbar(ht.xcentres, ht.contents, yerr=ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
+        ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
@@ -493,24 +503,30 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     return f
 
 
-def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="auto", **imshowKwargs):
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
-    logNorm   - logarithmic colour scale
-    xlogscale - x axis logarithmic scale
-    ylogscale - y axis logarithmic scale
-    zlabel    - label for color bar scale
-    aspect    - "auto", "equal", "none" - see imshow?
+    logNorm        - logarithmic colour scale
+    xlogscale      - x axis logarithmic scale
+    ylogscale      - y axis logarithmic scale
+    zlabel         - label for color bar scale
+    aspect         - "auto", "equal", "none" - see imshow?
+    scalingFactor  - multiplier for values
+    xScalingFactor - multiplier for x coordinates
+    yScalingFactor - multiplier for y coordinates
     """
     h = histogram
     f = _plt.figure()
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
-    ext = [_np.min(h.xcentres),_np.max(h.xcentres),_np.min(h.ycentres),_np.max(h.ycentres)]
+    sf  = scalingFactor #shortcut
+    xsf = xScalingFactor
+    ysf = yScalingFactor
+    ext = [_np.min(xsf*h.xcentres),_np.max(xsf*h.xcentres),_np.min(ysf*h.ycentres),_np.max(ysf*h.ycentres)]
     if logNorm:
-        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(), **imshowKwargs)
+        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(), **imshowKwargs)
         _plt.colorbar(label=zlabel)
     else:
-        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, **imshowKwargs)
+        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, **imshowKwargs)
         _plt.colorbar(format='%.0e', label=zlabel)
 
     if xlogscale:
