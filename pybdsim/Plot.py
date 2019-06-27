@@ -534,9 +534,24 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, xlab
     if ylocscale:
         _plt.yscale('log')
 
-    _plt.xlabel(h.xlabel)
-    _plt.ylabel(h.ylabel)
-    _plt.title(h.title)
+    if xlabel == "":
+        _plt.xlabel(h.xlabel)
+    elif xlabel is None:
+        pass
+    else:
+        _plt.xlabel(xlabel)
+    if ylabel == "":
+        _plt.ylabel(h.ylabel)
+    elif ylabel is None:
+        pass
+    else:
+        _plt.ylabel(ylabel)
+    if title == "":
+        _plt.title(h.title) # default to one in histogram
+    elif title is None:
+        pass
+    else:
+        _plt.title(title)
     return f
 
 def Histogram3D(th3):
