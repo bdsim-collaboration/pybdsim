@@ -248,7 +248,7 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2,
     # the top, and set the height (vertical) space between them to be
     # small by default.  this is a bit arbitrary, can overide in gridspec_kw.
     height_ratios = [1]
-    height_ratios.extend((nrows - 1) * [3])
+    height_ratios.extend((nrows - 1) * [4])
 
     # Set all the kwargs to be supplied to plt.subplots
     the_gridspec_kw = {"height_ratios": height_ratios,
