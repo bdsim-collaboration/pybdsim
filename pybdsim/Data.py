@@ -53,7 +53,7 @@ def Load(filepath):
 
     """
     if not _os.path.exists(filepath):
-        raise IOError("File does not exist.")
+        raise IOError("File: {} does not exist.".format(filepath))
 
     extension = filepath.split('.')[-1]
     if extension == 'txt':

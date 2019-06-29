@@ -25,6 +25,10 @@ def Load(filename, debug=False):
     
     for line in f:
         if intoData:
+            ls = line.strip()
+            # avoid empty lines
+            if ls.isspace() or len(ls) == 0:
+                continue
             data.append(line.strip().split())
 
         elif '>' in line:
@@ -41,7 +45,7 @@ def Load(filename, debug=False):
             intoData = True
 
     f.close()
-
+    
     data = _np.array(data, dtype=float)
 
     nDim = len(columns) - 3
