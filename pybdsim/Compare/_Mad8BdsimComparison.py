@@ -161,8 +161,8 @@ def _make_plotter(plot_info_dict):
         plot.sca(plot.axes[0])
         _plt.show(block=False)
 
-        if survey is not None:
-            _pymad8.Plot.AddMachineLatticeToFigure(plot, survey)
+        #if survey is not None:
+        #    _pymad8.Plot.AddMachineLatticeToFigure(plot, survey)
 
         _plt.show(block=False)
         return plot

@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 import pymad8
 
-from .. import Builder 
+from .. import Builder
 from .. import Beam
 import pybdsim.Options as Options
 import pybdsim.XSecBias as XSecBias
@@ -19,26 +19,27 @@ import pybdsim.XSecBias as XSecBias
 # Check input options
 # Check SR scaling
 
-def Mad8Twiss2Gmad(inputFileName, outputFileName, 
+def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    istart                       = 0,
                    iend                         = -1,
                    beam                         = ["nominal"],
-#                   gemit                        = (1e-10,1e-10), 
-                   gemit                        = (1e-8,1e-8), 
-                   mad8FileName                 = "",                  
+#                   gemit                        = (1e-10,1e-10),
+                   gemit                        = (1e-8,1e-8),
+                   mad8FileName                 = "",
                    collimator                   = "collimator.dat",
                    apertures                    = "apertures.dat",
                    samplers                     = 'all',
                    options                      = True,
-                   flip                         = 1, 
-                   enableSextupoles             = True, 
+                   flip                         = 1,
+                   enableSextupoles             = True,
                    openApertures                = True,
                    openCollimators              = True,
                    enableSr                     = False,
                    enableSrScaling              = False,
                    enableMuon                   = False,
                    enableMuonBias               = True,
-                   rmat                         = ""):
+                   rmat                         = "",
+                   enableCavityFringes          = False):
     """
     Convert MAD8 twiss output to a BDSIM model in GMAD syntax.
     inputfilename        = mad8 TWISS output
@@ -54,21 +55,21 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     o = pymad8.Output.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
 
-    # check type of start 
+    # check type of start
     # if string find element number
-    if type(istart) == str : 
-        print "Mad8Twiss2Gmad> finding start : ",istart 
+    if type(istart) == str :
+        print "Mad8Twiss2Gmad> finding start : ",istart
         istart = c.findByName(istart)[0]
         print "Mad8Twiss2Gmad> using index   : ",istart
-        
+
     # load Collimator db or use instance
-    if type(collimator) == str : 
-        collimator = Mad8CollimatorDatabase(collimator) 
+    if type(collimator) == str :
+        collimator = Mad8CollimatorDatabase(collimator)
         if openCollimators :
             collimator.openCollimators()
     # load Aperture db or use instance
-    if type(apertures) == str : 
-        apertures = Mad8ApertureDatabase(apertures) 
+    if type(apertures) == str :
+        apertures = Mad8ApertureDatabase(apertures)
         if openApertures :
             apertures.openApertures()
     #load r matrices
@@ -78,9 +79,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     print 'Collimator database'
     print collimator
     print 'Aperture database'
-    print apertures 
+    print apertures
 
-    #val0=value at 0th element of INPUT mad8 file. val_cut=value at start-point for cut beamlines - i.e. 0th element of OUTPUT bdsim file. 
+    #val0=value at 0th element of INPUT mad8 file. val_cut=value at start-point for cut beamlines - i.e. 0th element of OUTPUT bdsim file.
     # Need nominal energy for acceleration and SR calculations
     s           = t.getColumn('suml')
     try:
@@ -90,20 +91,20 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     s_cut       = s[istart] - elelength
     print s_cut
     energy      = c.getColumn('E')
-    energy0     = energy[0] 
+    energy0     = energy[0]
     energy_cut  = energy[istart]
     scale       = energy/energy_cut
     print 'Initial element              ', istart
     print 'Initial S                    ', s_cut
     if s_cut!= 0 :
         options = True
-    
+
     # create machine instance
     # TODO : Need to extract nominal energy from file
     a = Builder.Machine(sr=enableSrScaling, energy0=energy_cut)
 
     # load mad8
-    if mad8FileName != "" : 
+    if mad8FileName != "" :
         particle = 'e+'
         m8 = pymad8.Output.Mad8(mad8FileName)
         if m8.particle == 'ELECTRON':
@@ -117,20 +118,20 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             charge   =  1.
             mass     =  0.511
             flip     =  1
-            
+
         elif m8.particle == 'PROTON':
             particle = 'proton'
             charge   =  1.
             mass     =  938.
             flip     =  1
-    else : 
+    else :
         particle = 'e-'
         charge   = -1.
         mass     = 0.511
         flip     = -1
 
     # momentum and rigitity
-    momentum0 = _np.sqrt(energy0**2+mass**2)
+    momentum0 = _np.sqrt(energy0**2+(mass/1000)**2)
     brho0      = momentum0/charge
     print 'particle  ',particle
     print 'charge    ',charge
@@ -142,7 +143,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # create beam (emit and energy spread)
 
 
-    if type(gemit) == str : 
+    if type(gemit) == str :
         echoVals = pymad8.Output.EchoValue(gemit)
         echoVals.loadMarkedValues()
         gemit = _np.zeros(2)
@@ -153,11 +154,11 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     else:
         esprd = 0.0001
         bleng = 0
-            
+
     if istart !=0:
         #relativistic factors at 0
         rGamma0    = (energy0*1000)/(mass)
-        rBeta0     = _np.sqrt(1-1/(rGamma0**2))       
+        rBeta0     = _np.sqrt(1-1/(rGamma0**2))
         #momentum & relativistic factors at cut
         energy_cut=energy[istart]
         momentum_cut =_np.sqrt(energy_cut**2+mass**2)
@@ -170,7 +171,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         emity  = Nemity/(rBeta_cut*rGamma_cut)
         gemit=[emitx,emity]
 
-    
+
     xdisp=t.getColumn('dx')
     ydisp=t.getColumn('dy')
     xpdisp=t.getColumn('dpx')
@@ -180,7 +181,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     if beamname == "reference" :
         b = Beam.Beam(particle, energy_cut, "reference")
         a.AddBeam(b)
-        
+
     elif beamname == "nominal" :
         if istart >= 1:
             b = Mad8Twiss2Beam(t,istart-1,particle,energy_cut)
@@ -199,7 +200,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         b._SetSigmaE(esprd)
         b._SetSigmaT(bleng)
         b._SetOffsetSampleMean(True)
-    
+
         a.AddBeam(b)
     elif beamname == "halo" :
         if istart >= 1:
@@ -239,8 +240,8 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
         a.AddBeam(b)
 
-    # create options 
-    if options : 
+    # create options
+    if options :
         o = Options.ElectronColliderOptions()
         o.SetBuildTunnel(False)
         o.SetBuildTunnelFloor(False)
@@ -283,55 +284,55 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         # print element
         # print i,c.name[i],c.type[i]
 
-        # check name dictionary 
-        try : 
+        # check name dictionary
+        try :
             eCount = nameDict[c.name[i]]
-        except KeyError : 
+        except KeyError :
             nameDict[c.name[i]] = 0
             eCount = nameDict[c.name[i]]
 
-        # check if name starts with a number 
+        # check if name starts with a number
         prepend = ''
         if c.name[i][0].isdigit() :
             prepend = 'M_'
 
 #        print c.name[i]+'_'+str(eCount)
 
-        if c.type[i] == '' : 
+        if c.type[i] == '' :
             a.AddMarker(name  = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
-        elif c.type[i] == 'DRIF' : 
+        elif c.type[i] == 'DRIF' :
             a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
-                       length = float(c.data[i][c.keys['drif']['l']]), 
+                       length = float(c.data[i][c.keys['drif']['l']]),
                        aper1  = float(apertures.aper[i]))
 #       ###################################################################
-        elif c.type[i] == 'MARK' : 
-            a.AddMarker(name     = prepend+c.name[i]+'_'+str(eCount)) 
+        elif c.type[i] == 'MARK' :
+            a.AddMarker(name     = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
-        elif c.type[i] == 'SOLE' : 
+        elif c.type[i] == 'SOLE' :
             a.AddSolenoid(name   = prepend+c.name[i]+'_'+str(eCount),
                           length = float(c.data[i][c.keys['sole']['l']]),
                           ks     = float(c.data[i][c.keys['sole']['ks']]))
 #       ###################################################################
-        elif c.type[i] == 'INST' : 
-            a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount)) 
+        elif c.type[i] == 'INST' :
+            a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
-        elif c.type[i] == 'MONI' : 
+        elif c.type[i] == 'MONI' :
             a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
         elif c.type[i] == 'IMON' :
             a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
-        elif c.type[i] == 'BLMO' : 
+        elif c.type[i] == 'BLMO' :
             a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
         elif c.type[i] == 'WIRE' :
             a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
-        elif c.type[i] == 'QUAD' : 
-            if c.data[i][c.keys['quad']['l']] < 1e-7 : 
+        elif c.type[i] == 'QUAD' :
+            if c.data[i][c.keys['quad']['l']] < 1e-7 :
                 a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
-            else : 
+            else :
                 a.AddQuadrupole(name    = prepend+c.name[i]+'_'+str(eCount),
                                 k1      = float(c.data[i][c.keys['quad']['k1']])*flip,
                                 length  = float(c.data[i][c.keys['quad']['l']]),
@@ -339,54 +340,54 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                                 aper1   = float(apertures.aper[i]),
                                 scaling = scale[i])
 #       ###################################################################
-        elif c.type[i] == 'SEXT' : 
+        elif c.type[i] == 'SEXT' :
             l = float(c.data[i][c.keys['sext']['l']])
             if l < 1e-7 :
                 a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                            length = l,
                            aper1  = apertures.aper[i])
-            else : 
-                if enableSextupoles : 
+            else :
+                if enableSextupoles :
                     k2in=float(c.data[i][c.keys['sext']['k2']])*flip
-                else : 
-                    k2in=0.0                    
+                else :
+                    k2in=0.0
                 a.AddSextupole(name    = prepend+c.name[i]+'_'+str(eCount),
                                length  = l,
                                k2      = k2in,
                                aper1   = apertures.aper[i],
                                scaling = scale[i])
 #       ###################################################################
-        elif c.type[i] == 'OCTU' : 
-            if c.data[i][c.keys['octu']['l']] > 1e-7 : 
+        elif c.type[i] == 'OCTU' :
+            if c.data[i][c.keys['octu']['l']] > 1e-7 :
                 a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                            length = float(c.data[i][c.keys['octu']['l']]),
                            aper1  = apertures.aper[i])
-            else : 
+            else :
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
-        elif c.type[i] == 'DECU' : 
+        elif c.type[i] == 'DECU' :
             pass
 #       ###################################################################
-        elif c.type[i] == 'MULT' : 
+        elif c.type[i] == 'MULT' :
                 a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
-        elif c.type[i] == 'HKIC' : 
+        elif c.type[i] == 'HKIC' :
             a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                        length = float(c.data[i][c.keys['hkic']['l']]),
                        aper1  = float(apertures.aper[i]))
 #       ###################################################################
-        elif c.type[i] == 'VKIC' : 
+        elif c.type[i] == 'VKIC' :
             a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                        length = float(c.data[i][c.keys['vkic']['l']]),
                        aper1  = float(apertures.aper[i]))
 #       ###################################################################
-        elif c.type[i] == 'KICK' : 
+        elif c.type[i] == 'KICK' :
             a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                        length = float(c.data[i][c.keys['kick']['l']]),
                        aper1   = float(apertures.aper[i]))
 #       ###################################################################
-        elif c.type[i] == 'SBEN' : 
-            if c.data[i][c.keys['sben']['l']] < 1e-7 : 
+        elif c.type[i] == 'SBEN' :
+            if c.data[i][c.keys['sben']['l']] < 1e-7 :
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
             else :
                 length = float(c.data[i][c.keys['sben']['l']])
@@ -429,33 +430,42 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                         tilt     = tilt,
                         scaling  = scale[i])
 #       ###################################################################
-        elif c.type[i] == 'LCAV' : 
+        elif c.type[i] == 'LCAV' :
             length   = float(c.data[i][c.keys['lcav']['l']])
-            deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV 
-            gradient = deltaE/length
+            deltaE   = (float(c.data[i][c.keys['lcav']['E']])-float(c.data[i-1][c.keys['lcav']['E']]))*1000 # MeV #Gives undesirable results if phase=/=0 as is Actual energy change, not wave amplitude.
+            volt   = float(c.data[i][c.keys['lcav']['volt']]) #value labelled 'volt' in pymad8 is amplitude of cavity field.
+            freq     = float(c.data[i][c.keys['lcav']['freq']])
+            lag      = float(c.data[i][c.keys['lcav']['lag']])
+            gradient = volt/length
+            focusin= -(deltaE/length)/(2*energy[i-1]*1e3)
+            focusout= (deltaE/length)/(2*energy[i]*1e3)
+            if(enableCavityFringes):
+                a.AddThinRmat(name=prepend+c.name[i]+'_'+str(eCount)+'_fringe_in',r21=focusin,r43=focusin)
             a.AddRFCavity(name      = prepend+c.name[i]+'_'+str(eCount),
-                          length    = length, 
+                          length    = length,
                           gradient  = gradient,
-                          phase     = 0.0,
-                          frequency = 0e-9,
+                          phase     = lag * 2 * _np.pi,
+                          frequency = freq,# * 2 * _np.pi,
                           aper1     = apertures.aper[i])
+            if(enableCavityFringes):
+                a.AddThinRmat(name=prepend+c.name[i]+'_'+str(eCount)+'_fringe_out',r21=focusout,r43=focusout)
 #       ###################################################################
         elif c.type[i] == 'ECOL' :
 
-            if collimator == None : 
+            if collimator == None :
                 # make collimator from mad8 file
 #                print "ECOL> ",c.name[i], "mad8 file"
                 print c.data[i][c.keys['ecol']['xsize']],c.data[i][c.keys['ecol']['ysize']]
-                if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
-                    a.AddECol(name     = prepend+c.name[i]+'_'+str(eCount), 
-                              length   = float(c.data[i][c.keys['ecol']['l']]), 
-                              xsize    = float(c.data[i][c.keys['ecol']['xsize']]), 
+                if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 :
+                    a.AddECol(name     = prepend+c.name[i]+'_'+str(eCount),
+                              length   = float(c.data[i][c.keys['ecol']['l']]),
+                              xsize    = float(c.data[i][c.keys['ecol']['xsize']]),
                               ysize    = float(c.data[i][c.keys['ecol']['ysize']]),
                               material = 'Copper')
-                else : 
+                else :
                     a.AddDrift(name    = c.name[i]+'_'+str(eCount),
                                length  = c.data[i][c.keys['ecol']['l']])
-            else : 
+            else :
                 # make collimator from file
 #                print "ECOL> ",c.name[i], "coll file"
                 length=float(c.data[i][c.keys['rcol']['l']])
@@ -468,29 +478,29 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                     xsize = 0.2
 
                 if (xsize != 0 and ysize != 0):
-                    a.AddECol(name     = prepend+c.name[i]+'_'+str(eCount), 
+                    a.AddECol(name     = prepend+c.name[i]+'_'+str(eCount),
                               length   = length,
                               xsize    = xsize,
                               ysize    = ysize,
                               material = mater)
 #                              bias     = biasList)
-                else : 
+                else :
                     a.AddDrift(prepend+c.name[i]+'_'+str(eCount),float(c.data[i][c.keys['ecol']['l']]))
 #       ###################################################################
         elif c.type[i] == 'RCOL' :
-            if collimator == None : 
+            if collimator == None :
 #               print "RCOL> ",c.name[i], "mad8 file"
                 print c.data[i][c.keys['rcol']['xsize']],c.data[i][c.keys['rcol']['ysize']]
-                if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 : 
-                    a.AddRCol(name     = prepend+c.name[i]+'_'+str(eCount), 
-                              length   = float(c.data[i][c.keys['rcol']['l']]), 
-                              xsize    = float(c.data[i][c.keys['rcol']['xsize']]), 
+                if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 :
+                    a.AddRCol(name     = prepend+c.name[i]+'_'+str(eCount),
+                              length   = float(c.data[i][c.keys['rcol']['l']]),
+                              xsize    = float(c.data[i][c.keys['rcol']['xsize']]),
                               ysize    = float(c.data[i][c.keys['rcol']['ysize']]),
-                              material = 'Copper')            
-                else : 
+                              material = 'Copper')
+                else :
                     a.AddDrift(name   = prepend+c.name[i]+'_'+str(eCount),
                                length = c.data[i][c.keys['rcol']['l']])
-            else : 
+            else :
                 # make collimator from file
 #               print "RCOL> ",c.name[i], "coll file"
                 length= float(c.data[i][c.keys['rcol']['l']])
@@ -509,7 +519,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                               ysize    = ysize,
                               material = mater)
 #                              bias     = biasList)
-                else : 
+                else :
                     a.AddDrift(name    = prepend+c.name[i]+'_'+str(eCount),
                                length  = float(c.data[i][c.keys['rcol']['l']]))
 
@@ -524,7 +534,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             PRIORMATRIX = _np.matrix(str(RMATPRIOR[0]) + " " + str(RMATPRIOR[1]) + " " + str(RMATPRIOR[2]) + " " + str(RMATPRIOR[3]) + "; " + str(RMATPRIOR[6]) + " " + str(RMATPRIOR[7]) + " " + str(RMATPRIOR[8]) + " " + str(RMATPRIOR[9]) + "; " + str(RMATPRIOR[12]) + " " + str(RMATPRIOR[13]) + " " + str(RMATPRIOR[14]) + " " + str(RMATPRIOR[15]) + "; " + str(RMATPRIOR[18]) + " " + str(RMATPRIOR[19]) + " " + str(RMATPRIOR[20]) + " " + str(RMATPRIOR[21]))
             POSTMATRIX = _np.matrix(str(RMATRIX[0]) + " " + str(RMATRIX[1]) + " " + str(RMATRIX[2]) + " " + str(RMATRIX[3]) + "; " + str(RMATRIX[6]) + " " + str(RMATRIX[7]) + " " + str(RMATRIX[8]) + " " + str(RMATRIX[9]) + "; " + str(RMATRIX[12]) + " " + str(RMATRIX[13]) + " " + str(RMATRIX[14]) + " " + str(RMATRIX[15]) + "; " + str(RMATRIX[18]) + " " + str(RMATRIX[19]) + " " + str(RMATRIX[20]) + " " + str(RMATRIX[21]))
             EFFECTMATRIX=(POSTMATRIX*PRIORMATRIX.I)
-            a.AddRmat(name      = prepend+c.name[i]+'_'+str(eCount), 
+            a.AddRmat(name      = prepend+c.name[i]+'_'+str(eCount),
                       length    = float(c.data[i][c.keys['matr']['l']]),
                       r11       = EFFECTMATRIX[0,0],
                       r12       = EFFECTMATRIX[0,1],
@@ -541,21 +551,21 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                       r41       = EFFECTMATRIX[3,0],
                       r42       = EFFECTMATRIX[3,1],
                       r43       = EFFECTMATRIX[3,2],
-                      r44       = EFFECTMATRIX[3,3])                
+                      r44       = EFFECTMATRIX[3,3])
 
 #       ###################################################################
         else :
             print "UNKN> ",c.type[i]
 #       ###################################################################
-        nameDict[c.name[i]] += 1 
+        nameDict[c.name[i]] += 1
 
     a.AddSampler(samplers)
     a.Write(outputFileName)
 
     return a
 
-def Mad8Twiss2Beam(t, istart, particle, energy) :            
-    
+def Mad8Twiss2Beam(t, istart, particle, energy) :
+
     betx = t.data[istart][t.keys['betx']]
     bety = t.data[istart][t.keys['bety']]
     alfx = t.data[istart][t.keys['alfx']]
@@ -574,7 +584,7 @@ def Mad8MakeOptions(inputTwissFile, inputEchoFile) :
     # open mad output
     o = pymad8.Output.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
-    
+
     # get initial beam pipe size
     a = c.getApertures(raw=False)
 #    a = c.getApertures(raw=True)
@@ -583,7 +593,7 @@ def Mad8MakeOptions(inputTwissFile, inputEchoFile) :
     echoVals = pymad8.Output.EchoValue(inputEchoFile)
     echoVals.loadValues()
 
-def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.dat") : 
+def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.dat") :
     # open mad output
     o = pymad8.Output.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
@@ -591,90 +601,90 @@ def Mad8MakeApertureTemplate(inputFileName, outputFileName="apertures_template.d
 #    a = c.getApertures(raw=True)
 
     # write apertures to file
-    f = open(outputFileName,"w")     
+    f = open(outputFileName,"w")
 
-    for i in range(0,len(c.name),1) : 
+    for i in range(0,len(c.name),1) :
         f.write(c.name[i]+' '+str(a[i])+'\n');
     f.close()
 
-def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator_template.dat") : 
+def Mad8MakeCollimatorTemplate(inputFileName,outputFileName="collimator_template.dat") :
     '''
-    Read Twiss file and generate template of collimator file 
+    Read Twiss file and generate template of collimator file
     inputFileName  = "twiss.tape"
     outputFileName = "collimator.dat"
-    collimator.dat must be edited to provide types and materials, apertures will be defined from lattice   
+    collimator.dat must be edited to provide types and materials, apertures will be defined from lattice
     '''
     # open mad output
     o = pymad8.Output.OutputReader()
     c, t = o.readFile(inputFileName,'twiss')
 
     # open collimator output file
-    f = open(outputFileName,"w") 
+    f = open(outputFileName,"w")
 
-    for i in range(0,len(c.name),1) : 
+    for i in range(0,len(c.name),1) :
         if c.type[i] == 'RCOL' :
             f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['rcol']['l']])+"\t"+str(c.data[i][c.keys['rcol']['xsize']])+
                     "\t"+str(c.data[i][c.keys['rcol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\t"+"SIGMA"+"\n")
-        if c.type[i] == 'ECOL' : 
+        if c.type[i] == 'ECOL' :
             f.write(c.name[i]+"\t"+"TYPE"+"\t"+str(c.data[i][c.keys['ecol']['l']])+"\t"+str(c.data[i][c.keys['ecol']['xsize']])+
                     "\t"+str(c.data[i][c.keys['ecol']['ysize']])+"\t"+"Copper"+"\t"+"GEOM"+"\t"+"SIGMA"+"\n")
     f.close()
-        
-class Mad8ApertureDatabase: 
-    def __init__(self,apertureFileName) : 
+
+class Mad8ApertureDatabase:
+    def __init__(self,apertureFileName) :
         self.apertureFileName = apertureFileName
-        self.loadApertures(self.apertureFileName) 
+        self.loadApertures(self.apertureFileName)
 
     def loadApertures(self,fileName) :
         f = open(fileName)
-        self.name = [] 
-        self.aper = [] 
-        for l in f : 
-            t = l.split() 
+        self.name = []
+        self.aper = []
+        for l in f :
+            t = l.split()
             self.name.append(t[0])
             self.aper.append(float(t[1]))
 
-    def openApertures(self,size = 0.1) : 
+    def openApertures(self,size = 0.1) :
         for i in range(0,len(self.aper)):
             self.aper[i] = size
-        
-class Mad8CollimatorDatabase: 
+
+class Mad8CollimatorDatabase:
     '''
     Load collimator file into memory and functions to open and manipulate collimator system
     c = Mad8CollimatorDataBase(fileName)
     fileName = "collimator.dat"
     file format
     <name> <type> <length> <x_size/2> <ysize/2> <material> <geom>
-    <length> includes the tapers, so entire length along machine 
+    <length> includes the tapers, so entire length along machine
     '''
 
     def __init__(self,collimatorFileName) :
         self.collimatorFileName = collimatorFileName
-        self.loadCollimatorDb(self.collimatorFileName) 
-        
-    def loadCollimatorDb(self,collimatorFileName) : 
-        f = open(collimatorFileName) 
+        self.loadCollimatorDb(self.collimatorFileName)
 
-        inx = 0 
+    def loadCollimatorDb(self,collimatorFileName) :
+        f = open(collimatorFileName)
+
+        inx = 0
 
         self._coll = OrderedDict()
         self._collNames = []
-        for l in f : 
+        for l in f :
             t = l.split()
-            name     = t[0]            
+            name     = t[0]
             type     = t[1]
             length   = float(t[2])
             xsize    = float(t[3])
-            ysize    = float(t[4]) 
+            ysize    = float(t[4])
             material = t[5]
             geom     = t[6]
             setting = t[7]
-            inx = inx + 1 
+            inx = inx + 1
 
             d = {'index':inx, 'type':type, 'l':length, 'xsize':xsize,
                  'ysize':ysize, 'bdsim_material':material, 'bdsim_geom':geom, 'setting':setting}
 
-            self._coll[name] = d     
+            self._coll[name] = d
             self._collNames.append(name)
 
     def openCollimators(self,openHalfSizeX=0.2, openHalfSizeY=0.2) :
@@ -682,65 +692,65 @@ class Mad8CollimatorDatabase:
             self._coll[c]['xsize'] = openHalfSizeX
             self._coll[c]['ysize'] = openHalfSizeY
 
-    def setCollimator(self,collimator,halfSizeX,halfSizeY) : 
+    def setCollimator(self,collimator,halfSizeX,halfSizeY) :
         self._coll[collimator]['xsize'] = halfSizeX
         self._coll[collimator]['ysize'] = halfSizeY
-    
-    def getCollimators(self) : 
+
+    def getCollimators(self) :
 #        return self._coll.keys()
         return self._collNames
 
-    def getCollimator(self, name) : 
+    def getCollimator(self, name) :
         return self._coll[name]
 
-    def getDict(self) : 
+    def getDict(self) :
         return self._coll
 
-    def __str__(self) : 
+    def __str__(self) :
         s = ''
-        for k in self.getCollimators() : 
+        for k in self.getCollimators() :
             s += (k+"\t"+self._coll[k]['type']+"\t\t"+str(self._coll[k]['l'])+"\t"+str(self._coll[k]['xsize'])+"\t"+
                   str(self._coll[k]['ysize'])+"\t"+self._coll[k]['bdsim_material']+"\t"+self._coll[k]['bdsim_geom']+
                   "\t"+self._coll[k]['setting']+"\n")
         return s
 
-    def write(self,fileName) : 
+    def write(self,fileName) :
         f = open(fileName,"w")
-        
-        for k in self.getCollimators() : 
+
+        for k in self.getCollimators() :
             f.write(k+"\t"+self._coll[k]['type']+"\t"+str(self._coll[k]['l'])+"\t"+str(self._coll[k]['xsize'])+"\t"+
                     str(self._coll[k]['ysize'])+"\t"+self._coll[k]['bdsim_material']+"\t"+self._coll[k]['bdsim_geom']+
                     "\t"+self._coll[k]['setting']+"\n")
-        
 
-def main() : 
-    usage = "usage : %prog [inputFileName]" 
+
+def main() :
+    usage = "usage : %prog [inputFileName]"
     parser = _op.OptionParser(usage)
     parser.add_option("-i","--input",  action="store",   type="string",     dest="inputFileName",                           help="Input file name")
     parser.add_option("-o","--ouput",  action="store",   type="string",     dest="outputFileName",default="output",         help="output base file name")
     parser.add_option("-s","--start",  action="store",   type="string",     dest="start",         default="0",              help="starting element (named or index)")
-    parser.add_option("-b","--beam",   action="store_true",                 dest="beam",          default=True,             help="generate beam") 
+    parser.add_option("-b","--beam",   action="store_true",                 dest="beam",          default=True,             help="generate beam")
     parser.add_option("-x","--emitx",  action="store",   type="float",      dest="gemitx",        default=1e-10,            help="geometric emittance in x")
     parser.add_option("-y","--emity",  action="store",   type="float",      dest="gemity",        default=1e-10,            help="geometric emittance in x")
     parser.add_option("-c","--coll",   action="store",   type="string",     dest="coll",          default="collimator.dat", help="collimator defn file")
-    parser.add_option("-a","--sampler",action="store",   type="string",     dest="samplers",      default="all",            help="samplers (all|)") 
+    parser.add_option("-a","--sampler",action="store",   type="string",     dest="samplers",      default="all",            help="samplers (all|)")
 
     (options, args) = parser.parse_args()
 
-    if options.inputFileName == None : 
+    if options.inputFileName == None :
         print "_Mad8Twiss2Gmad> Require input file name"
         parser.print_usage()
-        return 
+        return
     print '_Mad8Twiss2Gmad> inputFileName,outputFileName,start,samplers,beam,gemitx,gemity'
     print '_Mad8Twiss2Gmad>', options.inputFileName,options.outputFileName,options.start,options.samplers,options.beam,options.gemitx,options.gemity
-    
+
     # try to decode the start point either value or name
     try :
-        options.start = int(options.start) 
-    except ValueError : 
-        pass 
-    
+        options.start = int(options.start)
+    except ValueError :
+        pass
+
     Mad8Twiss2Gmad(options.inputFileName, options.outputFileName, options.start, options.beam, (options.gemitx,options.gemity),options.coll,options.samplers)
-    
+
 if __name__ == "__main__":
     main()
