@@ -93,15 +93,6 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     energy      = c.getColumn('E')
     energy0     = energy[0]
     energy_cut  = energy[istart]
-    scale       = energy/energy_cut
-
-    momentum     = _np.sqrt(energy**2-(mass/1000.)**2)
-    momentum_cut = momentum[istart]
-    scale        = momentum/momentum_cut
-    #
-    scaleToWrite = _np.stack([scale,scale_mom],axis=-1)
-    _np.savetxt("scale.txt",scaleToWrite)
-    #
 
     print 'Initial element              ', istart
     print 'Initial S                    ', s_cut
@@ -148,6 +139,16 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     print 'energy0   ',energy0
     print 'momentum0 ',momentum0
     print 'brho0     ',brho0
+
+    # momentum scale
+    momentum     = _np.sqrt(energy**2-(mass/1000.)**2)
+    momentum_cut = momentum[istart]
+    scale        = momentum/momentum_cut
+
+    #scaleToWrite = _np.stack([scale,scale_mom],axis=-1)
+    #_np.savetxt("scale.txt",scaleToWrite)
+
+
 
     # create beam (emit and energy spread)
     if type(gemit) == str :
