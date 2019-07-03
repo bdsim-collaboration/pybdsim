@@ -181,7 +181,7 @@ PlotEmitt  = _make_plotter(_EMITT)
 
 def _CalculateSigmas(mad8opt):
     rgamma, rbeta, emitXN0, emitYN0 = _CalculateNEmittance(mad8opt)
-    sige = 1e-4
+    sige = mad8opt['esprd']
 
     sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
     sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')**2*sige**2)
@@ -237,7 +237,7 @@ def _GetBDSIMOptics(optics):
 
 def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
                 postfunctions=None, figsize=(10, 5), xlim=(0,0),
-                saveAll=True, outputFileName=None):
+                saveAll=True, outputFileName=None, energySpread=1e-4):
     """
     Compares Mad8 and BDSIM optics variables.
 
@@ -257,6 +257,9 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     +-----------------+---------------------------------------------------------+
     | xlim            | Set xlimit for all figures                              |
     +-----------------+---------------------------------------------------------+
+    | energySpread    | Energy spread used in beam size calculation - default   |
+    |                 | is 1e-4.                                                |
+    +-----------------+---------------------------------------------------------+
     """
 
     _CheckFilesExist(twiss, envel, bdsim)
@@ -275,7 +278,7 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     bdsopt  = _GetBDSIMOptics(bdsinst)
 
     # make plots 
-    mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL}
+    mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL,'esprd': energySpread}
 
     # energy and npart plotted with individual methods
     figures = [PlotBeta(mad8opt,bdsopt,functions=functions,
