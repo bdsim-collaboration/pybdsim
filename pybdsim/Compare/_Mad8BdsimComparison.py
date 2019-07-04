@@ -185,11 +185,13 @@ def _CalculateSigmas(mad8opt):
     rgamma, rbeta, emitXN0, emitYN0 = _CalculateNEmittance(mad8opt)
 
     print mad8opt['comm'].getColumn('E')
-    E = mad8ope['comm'].getColumn('E')
-    E0 = e[0]
+    E = mad8opt['comm'].getColumn('E')
+    E0 = E[0]
     sigE = mad8opt['esprd']
 
-    sige = sige*E0/E # absolute energy spread is constant, fractional decreases (TODO need the energy spread from MAD8)
+    print sigE, E0
+    
+    sige = sigE*E0/E # absolute energy spread is constant, fractional decreases (TODO need the energy spread from MAD8)
 
 
     sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
