@@ -103,6 +103,8 @@ def _make_plotter(plot_info_dict):
             sigmaX,sigmaY,sigmaXP,sigmaYP = _CalculateSigmas(mad8opt)
             mad8Xdata = sigmaX
             mad8Ydata = sigmaY
+            # mad8Xdata = _np.sqrt(mad8opt['envel'].getColumn('s11'))
+            # mad8Ydata = _np.sqrt(mad8opt['envel'].getColumn('s44'))
             mad8s     = mad8opt['envel'].getColumn('suml')
             mad8legendx += '(calculated)'
             mad8legendy += '(calculated)'
@@ -181,7 +183,16 @@ PlotEmitt  = _make_plotter(_EMITT)
 
 def _CalculateSigmas(mad8opt):
     rgamma, rbeta, emitXN0, emitYN0 = _CalculateNEmittance(mad8opt)
-    sige = mad8opt['esprd']
+
+    print mad8opt['comm'].getColumn('E')
+    E = mad8opt['comm'].getColumn('E')
+    E0 = E[0]
+    sigE = mad8opt['esprd']
+
+    print sigE, E0
+    
+    sige = sigE*E0/E # absolute energy spread is constant, fractional decreases (TODO need the energy spread from MAD8)
+
 
     sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
     sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')**2*sige**2)
