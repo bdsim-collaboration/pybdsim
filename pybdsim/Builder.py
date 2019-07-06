@@ -1013,6 +1013,13 @@ class Machine(object):
         names = self.GetNamesOfType(category)
         self.UpdateElements(names, parameter, value)
 
+    def UpdateGlobalParameter(self, parameter, value):
+        """
+        Update parameter for all elements of a given category.
+        """
+        names = self.elements.keys()
+        self.UpdateElements(names, parameter, value)
+
     def SynchrotronRadiationRescale(self):
         """
         Rescale all component strengths for SR

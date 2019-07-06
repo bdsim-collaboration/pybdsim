@@ -187,7 +187,7 @@ def _CalculateSigmas(mad8opt):
     print mad8opt['comm'].getColumn('E')
     E = mad8opt['comm'].getColumn('E')
     E0 = E[0]
-    sigE = mad8opt['esprd']
+    sigE = mad8opt['beam']['esprd']
 
     sige = sigE*E0/E # absolute energy spread is constant, fractional decreases (TODO need the energy spread from MAD8)
 
@@ -202,11 +202,18 @@ def _CalculateSigmas(mad8opt):
 
 def _CalculateNEmittance(mad8opt):
     # Own calculation of beam sizes
-    emitX0 = 1e-8
-    emitY0 = 1e-8
+    emitX0 = mad8opt['beam']['ex']
+    emitY0 = mad8opt['beam']['ey']
+    particle =  mad8opt['beam']['particle']
+    if particle == 'electron' or particle == 'positron':
+        mass = 0.5109989461
+    elif particle == 'proton':
+        mass = 938.2720813
+    else:  # default is mad8 default particle mass.
+        mass = 0.5109989461
 
     e = mad8opt['comm'].getColumn('E')
-    rgamma = e / (0.5109989461 / 1e3)
+    rgamma = e / (mass / 1e3) 
     rbeta = _np.sqrt(1 - 1.0 / rgamma ** 2)
 
     emitXN0 = emitX0 * rgamma[0] * rbeta[0]
@@ -245,7 +252,8 @@ def _GetBDSIMOptics(optics):
 
 def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
                 postfunctions=None, figsize=(10, 5), xlim=(0,0),
-                saveAll=True, outputFileName=None, energySpread=1e-4):
+                saveAll=True, outputFileName=None,
+                particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
     """
     Compares Mad8 and BDSIM optics variables.
 
@@ -265,8 +273,14 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     +-----------------+---------------------------------------------------------+
     | xlim            | Set xlimit for all figures                              |
     +-----------------+---------------------------------------------------------+
+    | particle        | Beam particle type to determine particle mass, required |
+    |                 | for beam size calculation - default is electron.        |
+    +-----------------+---------------------------------------------------------+
     | energySpread    | Energy spread used in beam size calculation - default   |
     |                 | is 1e-4.                                                |
+    +-----------------+---------------------------------------------------------+
+    | ex / ey         | Horizontal / vertical emittance used in beam size       |
+    |                 | calculation - default is 1e-8.                          |
     +-----------------+---------------------------------------------------------+
     """
 
@@ -285,8 +299,11 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
     bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
     bdsopt  = _GetBDSIMOptics(bdsinst)
 
+    # parameters required for calculating beam sizes, not written in mad8 output so have to supply manually.
+    beamParams = {'esprd': energySpread, 'particle': particle, 'ex': ex, 'ey':ey}
+
     # make plots 
-    mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL,'esprd': energySpread}
+    mad8opt = {'comm':com, 'twiss':twissL, 'envel':envelL, 'beam': beamParams}
 
     # energy and npart plotted with individual methods
     figures = [PlotBeta(mad8opt,bdsopt,functions=functions,
