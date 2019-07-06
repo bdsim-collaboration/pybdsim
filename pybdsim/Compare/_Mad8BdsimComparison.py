@@ -189,10 +189,7 @@ def _CalculateSigmas(mad8opt):
     E0 = E[0]
     sigE = mad8opt['esprd']
 
-    print sigE, E0
-    
     sige = sigE*E0/E # absolute energy spread is constant, fractional decreases (TODO need the energy spread from MAD8)
-
 
     sigmaX = _np.sqrt(emitXN0*mad8opt['twiss'].getColumn('betx')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dx')**2*sige**2)
     sigmaY = _np.sqrt(emitYN0*mad8opt['twiss'].getColumn('bety')/(rbeta*rgamma)+mad8opt['twiss'].getColumn('dy')**2*sige**2)
