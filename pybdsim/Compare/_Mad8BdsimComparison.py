@@ -184,7 +184,6 @@ PlotEmitt  = _make_plotter(_EMITT)
 def _CalculateSigmas(mad8opt):
     rgamma, rbeta, emitXN0, emitYN0 = _CalculateNEmittance(mad8opt)
 
-    print mad8opt['comm'].getColumn('E')
     E = mad8opt['comm'].getColumn('E')
     E0 = E[0]
     sigE = mad8opt['beam']['esprd']
