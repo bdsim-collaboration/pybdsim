@@ -248,7 +248,7 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2,
     # the top, and set the height (vertical) space between them to be
     # small by default.  this is a bit arbitrary, can overide in gridspec_kw.
     height_ratios = [1]
-    height_ratios.extend((nrows - 1) * [3])
+    height_ratios.extend((nrows - 1) * [4])
 
     # Set all the kwargs to be supplied to plt.subplots
     the_gridspec_kw = {"height_ratios": height_ratios,
@@ -429,16 +429,24 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
     PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
     PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
+
+    xlabel         - x axis label
+    ylabel         - y axis label
+    title          - plot title
+    scalingFactor  - multiplier for values
+    xScalingFactor - multiplier for x axis coordinates
     """
     if 'drawstyle' not in errorbarKwargs:
         errorbarKwargs['drawstyle'] = 'steps-mid'
     h = histogram
     f = _plt.figure(figsize=(10,5))
     ax = f.add_subplot(111)
-    ax.errorbar(h.xcentres, h.contents, yerr=h.errors,xerr=h.xwidths*0.5, **errorbarKwargs)
+    sf  = scalingFactor #shortcut
+    xsf = xScalingFactor
+    ax.errorbar(xsf*h.xcentres, sf*h.contents, yerr=sf*h.errors,xerr=xsf*h.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
@@ -455,7 +463,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, **errorbarKwarg
         ax.set_title(title)
     return f
 
-def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, **errorbarKwargs):
+def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactor=1.0, **errorbarKwargs):
     """
     Plot multiple 1D histograms on the same plot.
 
@@ -465,9 +473,12 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     f = _plt.figure(figsize=(10,5))
     ax = f.add_subplot(111)
 
-    for h,l in zip(histograms, labels):
+    xsf = xScalingFactor # shortcut
+    if scalingFactors is None:
+        scalingFactors = _np.ones_like(histograms)
+    for h,l,sf in zip(histograms, labels, scalingFactors):
         ht = _Data.PadHistogram1D(h)
-        ax.errorbar(ht.xcentres, ht.contents, yerr=ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
+        ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
@@ -492,24 +503,30 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     return f
 
 
-def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlabel="", aspect="auto", **imshowKwargs):
+def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
-    logNorm   - logarithmic colour scale
-    xlogscale - x axis logarithmic scale
-    ylogscale - y axis logarithmic scale
-    zlabel    - label for color bar scale
-    aspect    - "auto", "equal", "none" - see imshow?
+    logNorm        - logarithmic colour scale
+    xlogscale      - x axis logarithmic scale
+    ylogscale      - y axis logarithmic scale
+    zlabel         - label for color bar scale
+    aspect         - "auto", "equal", "none" - see imshow?
+    scalingFactor  - multiplier for values
+    xScalingFactor - multiplier for x coordinates
+    yScalingFactor - multiplier for y coordinates
     """
     h = histogram
     f = _plt.figure()
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
-    ext = [_np.min(h.xcentres),_np.max(h.xcentres),_np.min(h.ycentres),_np.max(h.ycentres)]
+    sf  = scalingFactor #shortcut
+    xsf = xScalingFactor
+    ysf = yScalingFactor
+    ext = [_np.min(xsf*h.xcentres),_np.max(xsf*h.xcentres),_np.min(ysf*h.ycentres),_np.max(ysf*h.ycentres)]
     if logNorm:
-        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(), **imshowKwargs)
+        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(), **imshowKwargs)
         _plt.colorbar(label=zlabel)
     else:
-        _plt.imshow(h.contents.T, extent=ext, origin='lower', aspect=aspect, **imshowKwargs)
+        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, **imshowKwargs)
         _plt.colorbar(format='%.0e', label=zlabel)
 
     if xlogscale:
@@ -517,16 +534,31 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, zlab
     if ylocscale:
         _plt.yscale('log')
 
-    _plt.xlabel(h.xlabel)
-    _plt.ylabel(h.ylabel)
-    _plt.title(h.title)
+    if xlabel == "":
+        _plt.xlabel(h.xlabel)
+    elif xlabel is None:
+        pass
+    else:
+        _plt.xlabel(xlabel)
+    if ylabel == "":
+        _plt.ylabel(h.ylabel)
+    elif ylabel is None:
+        pass
+    else:
+        _plt.ylabel(ylabel)
+    if title == "":
+        _plt.title(h.title) # default to one in histogram
+    elif title is None:
+        pass
+    else:
+        _plt.title(title)
     return f
 
 def Histogram3D(th3):
     """
     Plot a pybdsim.Data.TH1 instance - TBC
     """
-    print 'Not written yet - TBC'
+    print 'Not written yet - best take a slice or projection and plot a 2D histogram'
 
 def PrimaryPhaseSpace(filename, outputfilename=None):
     """
@@ -737,7 +769,35 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     if outputfilename is not None:
         _plt.savefig(outputfilename)
 
-def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, hitslegendloc='upper left', elosslegendloc='upper right', perelement=False):
+def PrimarySurvival(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
+
+    import Data as _Data
+    d = _Data.Load(filename)
+    if type(d) is not _Data.RebdsimFile:
+        raise IOError("Not a rebdsim file")
+
+    ploss = d.histogramspy['Event/MergedHistograms/PlossHisto']
+
+    fig = _plt.figure(figsize=(10,5))
+    ax1 = fig.add_subplot(111)
+    ax1.set_yscale('log')
+    ax1.set_ylabel('Fraction of Beam Surviving')
+
+    survival = 1.0 - _np.cumsum(ploss.contents)
+    ax1.plot(ploss.xcentres, survival)
+    ax1.set_xlabel('S (m)')
+
+    if tfssurvey:
+        AddMachineLatticeToFigure(fig, tfssurvey)
+    elif bdsimsurvey:
+        AddMachineLatticeFromSurveyToFigure(fig, bdsimsurvey)
+    elif hasattr(d, "model"):
+        AddMachineLatticeFromSurveyToFigure(fig, d.model)
+
+    if outputfilename is not None:
+        _plt.savefig(outputfilename)
+
+def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, hitslegendloc='upper left', elosslegendloc='upper right', perelement=False, elossylim=None, phitsylim=None):
     """
     Load a REBDSIM output file and plot the merged histograms automatically generated by BDSIM.
 
@@ -760,7 +820,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     ploss = d.histogramspy['Event/MergedHistograms/' + plossHisto]
     eloss = d.histogramspy['Event/MergedHistograms/' + elossHisto]
 
-    fig = _plt.figure(figsize=(10,5))
+    fig = _plt.figure(figsize=(14,5))
     ax1 = fig.add_subplot(111)
     ax1.set_yscale('log')
     ax1.set_ylabel('Fractional Beam Loss')
@@ -771,9 +831,14 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
                  fmt='r.',elinewidth=0.8, label='Primary Loss', markersize=6)
 
     ax2 = ax1.twinx()
-    ax2.errorbar(eloss.xcentres, eloss.contents, xerr=eloss.xwidths*0.5,yerr=eloss.errors,
-                 fmt='k,',elinewidth=0.8, label='Energy Deposition')
-    ax2.set_yscale('log')
+    ax2.errorbar(eloss.xcentres, eloss.contents, xerr=eloss.xwidths*0.5,yerr=eloss.errors,c='k',
+                 elinewidth=0.8, label='Energy Deposition', drawstyle='steps-mid', alpha=0.5)
+    ax2.set_yscale('log',nonposy='clip')
+
+    if phitsylim is not None:
+        ax1.set_ylim(*phitsylim)
+    if elossylim is not None:
+        ax2.set_ylim(*elossylim)
 
     xwidth = eloss.xwidths[0]
     ylabel = 'Energy Deposition / Event (GeV / '+str(round(xwidth, 2))+" m)"

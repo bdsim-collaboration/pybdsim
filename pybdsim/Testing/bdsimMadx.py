@@ -1,27 +1,18 @@
-import pymadx.Ptc
-import pymadx.Beam
-import pymadx.Builder
-import pymadx.Data
-import pybdsim.Beam
-import pybdsim.Builder
-import pybdsim.Data
-import pybdsim.Convert
-import pybdsim.Testing
-import pybdsim.Plot
+from .. import Data as _Data
+from .. import Convert as _Convert
+from .. import Plot as _Plot
 import pymadx as _pymadx
 import os as _os
 import matplotlib.pyplot as _plt
-#import robdsim
-import ROOT as _ROOT
+import matplotlib.backends.backend_pdf as _pdf
+import matplotlib.patches as _mpatches
 import numpy as _np
-import matplotlib.backends.backend_pdf
-import matplotlib.patches as mpatches
-import subprocess
-import time
 import string as _string
-import threading
+import subprocess as _sub
+import threading as _thread
+import time as _time
 
-from scipy.stats import binned_statistic
+from scipy.stats import binned_statistic as _bin
 import scipy.constants as _scpconsts
 
 class LatticeTest:
@@ -218,7 +209,7 @@ class LatticeTest:
 
         _os.chdir(self.folderpath)
         _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=rootevent --outfile="+self.filename+"> bdsim.log")
-        pybdsim.Convert.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
+        _Convert.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
@@ -248,12 +239,12 @@ class LatticeTest:
         if integratorSet is not None:
             optionsDict['integratorSet'] = '"'+integratorSet+'"'
         #pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose)
-        pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict=optionsDict, beamParmsDict=beamParmsDict)
+        _Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict=optionsDict, beamParmsDict=beamParmsDict)
         
-        _pymadx.Convert.TfsToPtc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False)
+        _pymadx.Convert.TfsToPtc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False, ptctrackaperture=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
         # run process through subprocess module. Safer than running BDSIM through os.system which can cause problems.
-        process = subprocess.Popen([bdsim,
+        process = _sub.Popen([bdsim,
                         "--file=" + self.filename + ".gmad",
                         "--outfile="+self.filename,
                         "--ngenerate="+str(self.nparticles),
@@ -263,13 +254,13 @@ class LatticeTest:
                         stderr=open('bdsim.log', 'a'))
 
         # Method of communicating with BDSIM process. Start and apply the timeout via joining
-        processThread = threading.Thread(target=process.communicate)
+        processThread = _thread.Thread(target=process.communicate)
         processThread.start()
         processThread.join()
 
         #_os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --seed=1993 --output=rootevent --outfile="+self.filename+"> bdsim.log")
 
-        pybdsim.Convert.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
+        _Convert.BdsimPrimaries2Ptc(''+self.filename+'.root', self.ptcinrays)
 
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
@@ -296,18 +287,18 @@ class LatticeTest:
 
         #Calculates optical functions and produces .root and .dat files for analysis
         #_os.system(rebdsim+" "+self.filename+"_analConfig.txt")
-        process = subprocess.Popen([rebdsim, self.filename+"_analConfig.txt"])
+        process = _sub.Popen([rebdsim, self.filename+"_analConfig.txt"])
 
         # Method of communicating with BDSIM process. Start and apply the timeout via joining
-        processThread = threading.Thread(target=process.communicate)
+        processThread = _thread.Thread(target=process.communicate)
         processThread.start()
         processThread.join()
 
         #Load data
-        f = pybdsim.Data.Load(self.filename+".root")
+        f = _Data.Load(self.filename+".root")
         last_name = f.GetSamplerNames()[-1]
-        sampler = pybdsim.Data.SamplerData(f, last_name)
-        primary = pybdsim.Data.SamplerData(f)
+        sampler = _Data.SamplerData(f, last_name)
+        primary = _Data.SamplerData(f)
 
         # Get the sampler particle coordinates.
         Bx      = sampler.data['x']
@@ -348,7 +339,7 @@ class LatticeTest:
 
         self.bdsimoutput = {'x':Bx,'y':By,'xp':Bxp,'yp':Byp, 'pt':BPT, 't':Bt}
 
-        madxout = pymadx.Data.Tfs("trackone")
+        madxout = _pymadx.Data.Tfs("trackone")
         madxend = madxout.GetSegment(madxout.nsegments) #(1) #get the last 'segment' / sampler
         Mx = madxend.GetColumn('X')
         My = madxend.GetColumn('Y')
@@ -406,7 +397,7 @@ class LatticeTest:
 
             # write standard deviations to file
             with open(''+self.filename+'_stdev.txt', 'w') as stdout:
-                timestamp = time.strftime("%Y/%m/%d-%H:%M:%S")
+                timestamp = _time.strftime("%Y/%m/%d-%H:%M:%S")
                 t = timestamp+' '+self.filename+' Standard Deviations (particles = '+str(self.nparticles)+'): \n'
                 h = 'BDSIM_X \t MX-PTC_X \t BDSIM_Y \t MX-PTC_Y \t BDSIM_XP'
                 h+= ' \t MX-PTC_XP \t BDSIM_YP \t MX-PTC_YP \t FRCERR_X \t FRCERR_Y \t FRCERR_XP \t FRCERR_YP \n'
@@ -427,7 +418,7 @@ class LatticeTest:
                 stdout.writelines(s)            
         
         #Loading output and processing optical functions
-        madx = pymadx.Data.Tfs(''+self.tfsfilename+'.tfs')
+        madx = _pymadx.Data.Tfs(''+self.tfsfilename+'.tfs')
 
         #Writes the text file for Rebdsim
         with open(''+self.filename+'_analConfig.txt', 'w') as outfile:
@@ -440,17 +431,17 @@ class LatticeTest:
 
         #Calculates optical functions and produces .root and .dat files for analysis 
         #_os.system(rebdsim+" "+self.filename+"_analConfig.txt")
-        process = subprocess.Popen([rebdsim, self.filename+"_analConfig.txt"])
+        process = _sub.Popen([rebdsim, self.filename+"_analConfig.txt"])
 
         # Method of communicating with BDSIM process. Start and apply the timeout via joining
-        processThread = threading.Thread(target=process.communicate)
+        processThread = _thread.Thread(target=process.communicate)
         processThread.start()
         processThread.join()
 
         if noPlots:
             return
 
-        bdata  = pybdsim.Data.Load(self.filename+'_optics.root').optics
+        bdata  = _Data.Load(self.filename+'_optics.root').optics
 
         #ptcfile  = 'ptc_'+self.filename+'_opticalfns.dat'
         #print "ptcCalculateOpticalFunctions> processing... " , ptcfile 
@@ -652,7 +643,7 @@ class LatticeTest:
             _plt.ylabel(r'$'+fn_name+fn_units+r'$')
             _plt.legend(numpoints=1,loc=10,fancybox=True, framealpha=1.0,prop={'size':15})
             _plt.grid(True)
-            pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(),madx)
+            _Plot.AddMachineLatticeToFigure(_plt.gcf(),madx)
             #_plt.subplots_adjust(left=0.1,right=0.9,top=0.96, bottom=0.15, wspace=0.15, hspace=0.2)
 
         if showResiduals:
@@ -949,11 +940,11 @@ class LatticeTest:
 
             ax1 = f.add_subplot(221)
 
-            binned    = binned_statistic(Mx,fresx, 'mean', bins=15 )
+            binned    = _bin(Mx,fresx, 'mean', bins=15 )
             bin_means = binned[0]
             bin_edges = binned[1]
-            bin_std   = binned_statistic(Mx, fresx, _np.std, bins=15)[0] 
-            bin_count = binned_statistic(Mx, fresx, 'count', bins=15)[0]
+            bin_std   = _bin(Mx, fresx, _np.std, bins=15)[0]
+            bin_count = _bin(Mx, fresx, 'count', bins=15)[0]
             bin_err   = _np.nan_to_num(bin_std/_np.sqrt(bin_count))
             
             ax1.bar(bin_edges[:-1], bin_means, 0.85*(bin_edges[1]-bin_edges[0]), yerr=bin_err, color='b',ec='b',alpha=0.5)
@@ -972,11 +963,11 @@ class LatticeTest:
 
             ax2 = f.add_subplot(222)
 
-            binned    = binned_statistic(My,fresy, 'mean', bins=15 )
+            binned    = _bin(My,fresy, 'mean', bins=15 )
             bin_means = binned[0]
             bin_edges = binned[1]
-            bin_std   = binned_statistic(My, fresy, _np.std, bins=15)[0] 
-            bin_count = binned_statistic(My, fresy, 'count', bins=15)[0]
+            bin_std   = _bin(My, fresy, _np.std, bins=15)[0]
+            bin_count = _bin(My, fresy, 'count', bins=15)[0]
             bin_err   = _np.nan_to_num(bin_std/_np.sqrt(bin_count))
             
             ax2.bar(bin_edges[:-1], bin_means, 0.85*(bin_edges[1]-bin_edges[0]), yerr=bin_err, color='r',ec='r',alpha=0.5)
@@ -995,11 +986,11 @@ class LatticeTest:
             
             ax3 = f.add_subplot(223)
 
-            binned    = binned_statistic(Mxp,fresxp, 'mean', bins=15 )
+            binned    = _bin(Mxp,fresxp, 'mean', bins=15 )
             bin_means = binned[0]
             bin_edges = binned[1]
-            bin_std   = binned_statistic(Mxp, fresxp, _np.std, bins=15)[0] 
-            bin_count = binned_statistic(Mxp, fresxp, 'count', bins=15)[0]
+            bin_std   = _bin(Mxp, fresxp, _np.std, bins=15)[0]
+            bin_count = _bin(Mxp, fresxp, 'count', bins=15)[0]
             bin_err   = _np.nan_to_num(bin_std/_np.sqrt(bin_count))
             
             ax3.bar(bin_edges[:-1], bin_means, 0.85*(bin_edges[1]-bin_edges[0]), yerr=bin_err, color='g',ec='g',alpha=0.5)
@@ -1018,11 +1009,11 @@ class LatticeTest:
 
             ax4 = f.add_subplot(224)
 
-            binned    = binned_statistic(Myp,fresyp, 'mean', bins=15 )
+            binned    = _bin(Myp,fresyp, 'mean', bins=15 )
             bin_means = binned[0]
             bin_edges = binned[1]
-            bin_std   = binned_statistic(Myp, fresyp, _np.std, bins=15)[0] 
-            bin_count = binned_statistic(Myp, fresyp, 'count', bins=15)[0]
+            bin_std   = _bin(Myp, fresyp, _np.std, bins=15)[0]
+            bin_count = _bin(Myp, fresyp, 'count', bins=15)[0]
             bin_err   = _np.nan_to_num(bin_std/_np.sqrt(bin_count))
             #print "total entries=",sum(bin_count),"bin counts= ", bin_count,"bin means= ", bin_means, "bin std= ", bin_err
             
@@ -1046,7 +1037,7 @@ class LatticeTest:
                 _plt.show()
 
         #Open pdf output file and save all plots to it
-        pdf = matplotlib.backends.backend_pdf.PdfPages(self.filename+"_plots.pdf")
+        pdf = _pdf.PdfPages(self.filename+"_plots.pdf")
         for i in _plt.get_fignums():
             pdf.savefig(i)
         pdf.close()

@@ -53,7 +53,7 @@ def Load(filepath):
 
     """
     if not _os.path.exists(filepath):
-        raise IOError("File does not exist.")
+        raise IOError("File: {} does not exist.".format(filepath))
 
     extension = filepath.split('.')[-1]
     if extension == 'txt':
@@ -734,6 +734,9 @@ class _SamplerData(object):
 
     """
     def __init__(self, data, params, samplerIndexOrName=0):
+        if not isinstance(data,_ROOT.DataLoader):
+            raise IOError("Data is not a ROOT.DataLoader object. Supply data "
+                          "loaded with pybdsim.Data.Load")
         self._et           = data.GetEventTree()
         self._ev           = data.GetEvent()
         self._samplerNames = list(data.GetSamplerNames())
