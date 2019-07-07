@@ -1583,7 +1583,6 @@ def WriteMachine(machine, filename, verbose=False):
     f.write(timestring)
     f.write('! pybdsim.Builder Lattice \n')
     f.write('! LATTICE SEQUENCE DEFINITION\n\n')
-    sequencechunks = _General.Chunks(machine.sequence,elementsperline)
     linelist = []
     ti = 0
     for line in _General.Chunks(machine.sequence,elementsperline):
