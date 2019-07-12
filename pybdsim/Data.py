@@ -877,7 +877,6 @@ class TrajectoryData(object):
         return self.trajectories[self._iterindex]
 
     def _GetTrajectory(self, eventNumber):
-
         if eventNumber >= self._eventTree.GetEntries():
             raise IndexError
 
@@ -932,7 +931,9 @@ class TrajectoryData(object):
 
 
 class EventInfoData(object):
-    """Extract data from the Info branch of the Event tree."""
+    """
+    Extract data from the Info branch of the Event tree.
+    """
     def __init__(self, data):
         event = data.GetEvent()
         eventTree = data.GetEventTree()
@@ -961,13 +962,15 @@ class EventInfoData(object):
 
 
 class EventSummaryData(EventInfoData):
-    """Extract data from the Summary branch of the Event tree."""
+    """
+    Extract data from the Summary branch of the Event tree.
+    """
     # this simply inherits EventInfoData as the branch is the same,
     # just renamed to Summary from Info.
     def __init__(self, data):
-        event = data.GetEvent()
+        event     = data.GetEvent()
         eventTree = data.GetEventTree()
-        info = event.Summary
+        info      = event.Summary
         interface = _filterROOTObject(info)
         self._getData(interface, info, eventTree)
 
