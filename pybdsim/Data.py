@@ -24,6 +24,17 @@ except ImportError:
     _useRoot = False
     pass
 
+_bdsimApertureTypes = {"circular",
+                       "elliptical",
+                       "lhc",
+                       "lhcdetailed",
+                       "rectangular",
+                       "rectellipse",
+                       "racetrack",
+                       "octagonal",
+                       "circularvacuum",
+                       "clicpcl"}
+
 def LoadROOTLibraries():
     """
     Load root libraries. Only works once to prevent errors.
@@ -877,7 +888,6 @@ class TrajectoryData(object):
         return self.trajectories[self._iterindex]
 
     def _GetTrajectory(self, eventNumber):
-
         if eventNumber >= self._eventTree.GetEntries():
             raise IndexError
 
@@ -954,7 +964,9 @@ class TrajectoryData(object):
 
 
 class EventInfoData(object):
-    """Extract data from the Info branch of the Event tree."""
+    """
+    Extract data from the Info branch of the Event tree.
+    """
     def __init__(self, data):
         event = data.GetEvent()
         eventTree = data.GetEventTree()
@@ -983,16 +995,60 @@ class EventInfoData(object):
 
 
 class EventSummaryData(EventInfoData):
-    """Extract data from the Summary branch of the Event tree."""
+    """
+    Extract data from the Summary branch of the Event tree.
+    """
     # this simply inherits EventInfoData as the branch is the same,
     # just renamed to Summary from Info.
     def __init__(self, data):
-        event = data.GetEvent()
+        event     = data.GetEvent()
         eventTree = data.GetEventTree()
-        info = event.Summary
+        info      = event.Summary
         interface = _filterROOTObject(info)
         self._getData(interface, info, eventTree)
 
+def GetApertureExtent(apertureType, aper1=0, aper2=0, aper3=0, aper4=0):
+    apertureType = aperturetype.lower()
+
+    if apertureType == "":
+        return 0,0
+
+    if apertureType not in _bdsimApertureTypes:
+        raise ValueError("Unknown aperture type: " + apertureType)
+
+    # default behaviour
+    x = aper1
+    y = aper2
+
+    if apertureType in {"circular", "circularvacuum"}:
+        y = aper1
+    elif apertureType in {"lhc", "lhcdetailed"}:
+        x = min(aper1, aper3)
+        y = min(aper2, aper3)
+    elif apertureType in {"rectellipse"}:
+        x = min(aper1, aper3)
+        y = min(aper2, aper4)
+    elif apertureType in {"racetrack"}:
+        x = aper1 + aper3
+        y = aper2 + aper3
+    elif apertureType in {"clicpcl"}:
+        y = aper2 + aper3 + aper4
+        
+    return x,y
+        
+class ApertureInfo(object):
+    """
+    Simple class to hold aperture parameters and extents.
+    """
+    def __init__(self, apertureType, aper1, aper2=0, aper3=0, aper4=0, offsetX=0, offsetY=0):
+        self.apertureType = apertureType
+        self.aper1    = aper1
+        self.aper2    = aper2
+        self.aper3    = aper3
+        self.aper4    = aper4
+        self.offsetX  = offsetX
+        self.offsetY  = offsetY
+        self.x,self.y = GetApertureExtent(apertureType, aper1, aper2, aper3, aper4)
 
 class ModelData(object):
     def __init__(self, data):
@@ -1021,6 +1077,32 @@ class ModelData(object):
                     pass # just ignore it
             except ValueError:
                 pass # just ignore it
+
+    def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
+        """
+        return a list of aperture instances (ApertureInfo class), x extent, y extend
+        """
+        result = []
+        l,s,x,y = [],[],[]
+
+        for ll,ss,at,a1,a2,a3,a4 in zip(self.length,
+                                        self.endS,
+                                        self.beamPipeType,
+                                        self.beamPipeAper1,
+                                        self.beamPipeAper2,
+                                        self.beamPipeAper3,
+                                        self.beamPipeAper4):
+            if removeZeroLength and l < lengthTolerance:
+                continue # skip this entry
+            elif removeZeroApertures and (a1 == 0 and a2 == 0 and a3 == 0 and a4 == 0):
+                continue
+            else:
+                l.append(ll)
+                s.append(ss)
+                result.append(ApertureInfo(at,a1,a2,a3,a4))
+                x.append(result[-1].x)
+                x.append(result[-1].y)
+        return _np.array(l),_np.array(s),_np.array(x),_np.array(y),result
 
 
 class OptionsData(object):

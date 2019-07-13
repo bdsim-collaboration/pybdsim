@@ -27,6 +27,8 @@ class _My_Axes(_matplotlib.axes.Axes):
 #register the new class of axes
 _matplotlib.projections.register_projection(_My_Axes)
 
+_defaultFigureSize=(12,6)
+
 def MadxTfsBeta(tfsfile, title='', outputfilename=None):
     """
     A forward to the pymadx.Plot.PlotTfsBeta function.
@@ -1073,3 +1075,36 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
 
     if hasattr(rootData, "model"):
         AddMachineLatticeFromSurveyToFigure(fig, rootData.model)
+
+
+def PlotBDSIMApertureFromFile(filename, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
+    d = _Data.Load(filename)
+    PlotBDSIMAperture(d, machineDiagram, plot, plotApertureType, removeZeroLength, removeZeroApertures)
+
+def PlotBDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
+    if type(data) is not _ROOT.DataLoader:
+        raise IOError("Invalid data type - should be BDSIM's DataLoader type.")
+
+    md = _Data.ModelData(data)
+    l,s,x,y,apers = md.GetApertureData(removeZeroLength, removeZeroAperture)
+
+    if plotApertureType:
+        t = [ap.aperturetype]
+    fig = _plt.figure("Aperture", figsize=_defaultFigureSize)
+
+    
+    
+    
+    _plt.plot(s, aper1, label="aper1")
+    _plt.plot(s, aper2, "x", label="aper2")
+    _plt.plot(s, aper3, "o", label="aper3")
+    _plt.plot(s, aper4, "+", label="aper4")
+    _plt.legend()
+
+    if surveyFileName != None : 
+        surveyFile = _CheckItsBDSAsc§iiData(surveyFileName)
+        AddMachineLatticeFromSurveyToFigure(plot, surveyFile, tightLayout=True)
+
+    _plt.show()
+
+
