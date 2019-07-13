@@ -253,11 +253,11 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         o = Options.ElectronColliderOptions()
         o.SetBuildTunnel(False)
         o.SetBuildTunnelFloor(False)
-        o.SetStopSecondaries(True)
+        o.SetStopSecondaries(False)
         o.SetPrintModuloFraction(1e-2)
         o.SetMagnetGeometryType('"none"')
         o.SetBeamlineS(s_cut,'m')
-        process = 'em'
+        process = ''
         if enableSr :
             process += ' synchrad'
         if enableMuon :
