@@ -1012,6 +1012,37 @@ def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
 
     ax0.legend(fontsize='small')
 
+def Aperture(rootFileName, surveyFileName = None):
+
+    d =  _Data.Load(rootFileName)
+    md = _Data.ModelData(d)
+
+    length = md.length
+
+    # Filter out thin elements:
+    s = md.staS[length>0]
+
+    aper1 = md.beamPipeAper1[length>0]
+    aper2 = md.beamPipeAper2[length>0]
+    aper3 = md.beamPipeAper3[length>0]
+    aper4 = md.beamPipeAper4[length>0]
+
+    plot = _plt.figure("Npart", figsize=(9,5))
+    
+    _plt.plot(s, aper1, label="aper1")
+    _plt.plot(s, aper2, "x", label="aper2")
+    _plt.plot(s, aper3, "o", label="aper3")
+    _plt.plot(s, aper4, "+", label="aper4")
+    _plt.legend()
+
+    if surveyFileName != None : 
+        surveyFile = _CheckItsBDSAsc§iiData(surveyFileName)
+        AddMachineLatticeFromSurveyToFigure(plot, surveyFile, tightLayout=True)
+
+    _plt.show()
+
+    # return md
+
 
 def PlotBDSIMApertureFromFile(filename, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
     d = _Data.Load(filename)

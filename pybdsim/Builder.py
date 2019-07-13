@@ -1013,6 +1013,13 @@ class Machine(object):
         names = self.GetNamesOfType(category)
         self.UpdateElements(names, parameter, value)
 
+    def UpdateGlobalParameter(self, parameter, value):
+        """
+        Update parameter for all elements of a given category.
+        """
+        names = self.elements.keys()
+        self.UpdateElements(names, parameter, value)
+
     def SynchrotronRadiationRescale(self):
         """
         Rescale all component strengths for SR
@@ -1576,7 +1583,6 @@ def WriteMachine(machine, filename, verbose=False):
     f.write(timestring)
     f.write('! pybdsim.Builder Lattice \n')
     f.write('! LATTICE SEQUENCE DEFINITION\n\n')
-    sequencechunks = _General.Chunks(machine.sequence,elementsperline)
     linelist = []
     ti = 0
     for line in _General.Chunks(machine.sequence,elementsperline):

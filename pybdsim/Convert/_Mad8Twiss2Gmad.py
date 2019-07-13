@@ -205,7 +205,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             b._SetDispYP(ypdisp[istart])
         b._SetEmittanceX(gemit[0],'m')
         b._SetEmittanceY(gemit[1],'m')
-        b._SetSigmaE(esprd)
+        b._SetSigmaE(esprd*energy[0]/energy_cut)
         b._SetSigmaT(bleng)
         b._SetOffsetSampleMean(True)
 
