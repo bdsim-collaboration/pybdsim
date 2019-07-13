@@ -886,14 +886,18 @@ class TrajectoryData(object):
         for i in range(0, self._trajectory.n):
 
             pyTrajectory = {}
-            pyTrajectory['trackID']  = float(self._trajectory.trackID[i])
+            pyTrajectory['trackID']  = int(self._trajectory.trackID[i])
             pyTrajectory['partID']   = int(self._trajectory.partID[i])
             pyTrajectory['parentID'] = int(self._trajectory.parentID[i])
 
-            t = self._trajectory.trajectories[i]
+            t = self._trajectory.trajectories[i]        
             p = self._trajectory.momenta[i]
             e = self._trajectory.energies[i]
-
+            prePT  = self._trajectory.preProcessTypes[i]
+            prePST = self._trajectory.preProcessSubTypes[i]
+            postPT  = self._trajectory.postProcessTypes[i]
+            postPST = self._trajectory.postProcessSubTypes[i]
+ 
             x = _np.zeros(len(t))
             y = _np.zeros(len(t))
             z = _np.zeros(len(t))
@@ -903,6 +907,11 @@ class TrajectoryData(object):
             pz = _np.zeros(len(t))
 
             E = _np.zeros(len(t))
+            
+            preProcessTypes     = _np.zeros(len(t))
+            preProcessSubTypes  = _np.zeros(len(t))
+            postProcessTypes    = _np.zeros(len(t))
+            postProcessSubTypes = _np.zeros(len(t))
 
             for j in range(0, len(t)):
                 # position
@@ -918,6 +927,13 @@ class TrajectoryData(object):
                 # energy
                 E[j] = e[j]
 
+                # professes 
+                preProcessTypes[j]    = prePT[j]
+                preProcessSubTypes[j] = prePST[j]
+
+                postProcessTypes[j]    = postPT[j]
+                postProcessSubTypes[j] = postPST[j]
+                            
             pyTrajectory['x'] = x
             pyTrajectory['y'] = y
             pyTrajectory['z'] = z
@@ -927,6 +943,12 @@ class TrajectoryData(object):
             pyTrajectory['pz'] = pz
 
             pyTrajectory['E'] = E
+            
+            pyTrajectory['prePT'] = preProcessTypes
+            pyTrajectory['prePST'] = preProcessSubTypes
+
+            pyTrajectory['postPT'] = postProcessTypes
+            pyTrajectory['postPST'] = postProcessSubTypes
 
             self.trajectories.append(pyTrajectory)
 
