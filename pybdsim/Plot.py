@@ -1010,7 +1010,7 @@ def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
 
     ax0.legend(fontsize='small')
 
-def Aperture(rootFileName, surveyFileName = None):
+def Aperture(rootFileName, filterThin = False, surveyFileName = None):
 
     d =  _Data.Load(rootFileName)
     md = _Data.ModelData(d)
@@ -1033,10 +1033,43 @@ def Aperture(rootFileName, surveyFileName = None):
     _plt.plot(s, aper4, "+", label="aper4")
     _plt.legend()
 
-    if surveyFileName != None : 
-        surveyFile = _CheckItsBDSAsc§iiData(surveyFileName)
+    if surveyFileName != None :
+        surveyFile = _CheckItsBDSAsciiData(surveyFileName)
         AddMachineLatticeFromSurveyToFigure(plot, surveyFile, tightLayout=True)
 
     _plt.show()
 
-    # return md
+def PrimaryTrajectoryAndProcess(rootData, eventNumber) : 
+
+    trajData = _Data.TrajectoryData(rootData, eventNumber)    
+    
+    fig = _plt.figure("Npart", figsize=(9,5))
+
+    _plt.subplot(4,1,1)
+
+    z = trajData[0]['z']
+    _plt.plot(z,trajData[0]['x'],label="x")
+    _plt.plot(z,trajData[0]['y'],label="y")
+    _plt.legend()
+
+    _plt.subplot(4,1,2)
+    _plt.plot(z,trajData[0]['E'],label="energy loss")
+    _plt.legend()
+
+    _plt.subplot(4,1,3)
+    _plt.plot(z,trajData[0]['px'],label="px")
+    _plt.plot(z,trajData[0]['py'],label="py")
+    _plt.legend()
+
+    #_plt.subplot(4,1,4)
+    #_plt.plot(z,trajData[0]['prePT'],label="pre process type")
+    #_plt.plot(z,trajData[0]['prePST'],label="pre process sub type")
+    #_plt.legend()
+
+    _plt.subplot(4,1,4)
+    _plt.plot(z,trajData[0]['postPT'],label="post process type")
+    _plt.plot(z,trajData[0]['postPST'],label="post process sub type")
+    _plt.legend()
+
+    if hasattr(rootData, "model"):
+        AddMachineLatticeFromSurveyToFigure(fig, rootData.model)
