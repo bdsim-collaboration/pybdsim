@@ -501,7 +501,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
 
     _plt.legend()
     _plt.tight_layout()
-
+    
     return f
 
 
@@ -1028,7 +1028,7 @@ def Aperture(rootFileName, filterThin = False, surveyFileName = None):
     aper4 = md.beamPipeAper4[length>0]
 
     plot = _plt.figure("Npart", figsize=(9,5))
-
+    
     _plt.plot(s, aper1, label="aper1")
     _plt.plot(s, aper2, "x", label="aper2")
     _plt.plot(s, aper3, "o", label="aper3")
@@ -1041,10 +1041,10 @@ def Aperture(rootFileName, filterThin = False, surveyFileName = None):
 
     _plt.show()
 
-def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
+def PrimaryTrajectoryAndProcess(rootData, eventNumber) : 
 
-    trajData = _Data.TrajectoryData(rootData, eventNumber)
-
+    trajData = _Data.TrajectoryData(rootData, eventNumber)    
+    
     fig = _plt.figure("Npart", figsize=(9,5))
 
     _plt.subplot(4,1,1)
@@ -1092,9 +1092,9 @@ def PlotBDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=Tru
         t = [ap.aperturetype]
     fig = _plt.figure("Aperture", figsize=_defaultFigureSize)
 
-
-
-
+    
+    
+    
     _plt.plot(s, aper1, label="aper1")
     _plt.plot(s, aper2, "x", label="aper2")
     _plt.plot(s, aper3, "o", label="aper3")
@@ -1106,3 +1106,5 @@ def PlotBDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=Tru
         AddMachineLatticeFromSurveyToFigure(plot, surveyFile, tightLayout=True)
 
     _plt.show()
+
+
