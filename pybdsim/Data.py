@@ -900,17 +900,20 @@ class TrajectoryData(object):
             pyTrajectory['partID']   = int(self._trajectory.partID[i])
             pyTrajectory['parentID'] = int(self._trajectory.parentID[i])
 
-            t = self._trajectory.trajectories[i]        
+            t  = self._trajectory.trajectories[i]        
+            tS = self._trajectory.trajectoriesS[i]   
+
             p = self._trajectory.momenta[i]
             e = self._trajectory.energies[i]
             prePT  = self._trajectory.preProcessTypes[i]
             prePST = self._trajectory.preProcessSubTypes[i]
             postPT  = self._trajectory.postProcessTypes[i]
             postPST = self._trajectory.postProcessSubTypes[i]
- 
+
             x = _np.zeros(len(t))
             y = _np.zeros(len(t))
             z = _np.zeros(len(t))
+            S = _np.zeros(len(t))
 
             px = _np.zeros(len(t))
             py = _np.zeros(len(t))
@@ -928,6 +931,7 @@ class TrajectoryData(object):
                 x[j] = t[j].X()
                 y[j] = t[j].Y()
                 z[j] = t[j].Z()
+                S[j] = tS[j]
 
                 # momenta
                 px[j] = p[j].X()
@@ -947,6 +951,7 @@ class TrajectoryData(object):
             pyTrajectory['x'] = x
             pyTrajectory['y'] = y
             pyTrajectory['z'] = z
+            pyTrajectory['S'] = S
 
             pyTrajectory['px'] = px
             pyTrajectory['py'] = py

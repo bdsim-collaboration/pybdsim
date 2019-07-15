@@ -106,7 +106,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     # we don't need to check this has the required columns because we control a
     # BDSIM survey contents.
 
-    axoptics  = figure.get_axes()[0]
+    axoptics  = figure.get_axes()
     _AdjustExistingAxes(figure, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
     axmachine.margins(x=0.02)
@@ -116,7 +116,8 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     #put callbacks for linked scrolling
     def MachineXlim(ax):
         axmachine.set_autoscale_on(False)
-        axoptics.set_xlim(axmachine.get_xlim())
+        for ax in axoptics : 
+            ax.set_xlim(axmachine.get_xlim())
 
     def Click(a) :
         if a.button == 3:
@@ -1046,36 +1047,47 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     trajData = _Data.TrajectoryData(rootData, eventNumber)    
     
     fig = _plt.figure("Npart", figsize=(9,5))
+    fig.subplots_adjust(hspace=0.0)
 
-    _plt.subplot(4,1,1)
+    ax1 = _plt.subplot(9,1,2)
+    
+    S = trajData[0]['S']
+    S = trajData[0]['z']+1434.837026
+    # S = trajData[0]['z']
+    _plt.plot(S,trajData[0]['x'],"-",label="x") 
+    _plt.plot(S,trajData[0]['y'],"-",label="y")
+    # _plt.legend()
+    ax1.set_xticklabels([])
 
-    z = trajData[0]['z']
-    _plt.plot(z,trajData[0]['x'],label="x")
-    _plt.plot(z,trajData[0]['y'],label="y")
-    _plt.legend()
+    ax2 = _plt.subplot(9,1,3)
+    _plt.plot(S,_np.log10(trajData[0]['E']),"o",label="energy loss")
+    # _plt.legend()
+    ax2.set_xticklabels([])
 
-    _plt.subplot(4,1,2)
-    _plt.plot(z,trajData[0]['E'],label="energy loss")
-    _plt.legend()
+    ax3 = _plt.subplot(9,1,4)
+    _plt.plot(S,trajData[0]['px'],"-",label="px")
+    _plt.plot(S,trajData[0]['py'],"-",label="py")
+    # _plt.legend()
+    ax3.set_xticklabels([])
 
-    _plt.subplot(4,1,3)
-    _plt.plot(z,trajData[0]['px'],label="px")
-    _plt.plot(z,trajData[0]['py'],label="py")
-    _plt.legend()
+    ax4 = _plt.subplot(9,1,5)
+    _plt.plot(S,trajData[0]['prePT'],"o",label="pre process type")
 
-    #_plt.subplot(4,1,4)
-    #_plt.plot(z,trajData[0]['prePT'],label="pre process type")
-    #_plt.plot(z,trajData[0]['prePST'],label="pre process sub type")
+    ax5 = _plt.subplot(9,1,6)
+    _plt.plot(S,trajData[0]['prePST'],"o",label="pre process sub type")
     #_plt.legend()
 
-    _plt.subplot(4,1,4)
-    _plt.plot(z,trajData[0]['postPT'],label="post process type")
-    _plt.plot(z,trajData[0]['postPST'],label="post process sub type")
-    _plt.legend()
+    ax6 = _plt.subplot(9,1,7)
+    _plt.plot(S,trajData[0]['postPT'],"o",label="post process type")
+
+    ax7 = _plt.subplot(9,1,8)
+    _plt.plot(S,trajData[0]['postPST'],"o",label="post process sub type")
+    #_plt.legend()
 
     if hasattr(rootData, "model"):
-        AddMachineLatticeFromSurveyToFigure(fig, rootData.model)
-
+        AddMachineLatticeFromSurveyToFigure(fig, rootData.model,tightLayout=False)
+    
+        fig.subplots_adjust(hspace=0.05)
 
 def PlotBDSIMApertureFromFile(filename, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
     d = _Data.Load(filename)
@@ -1091,10 +1103,7 @@ def PlotBDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=Tru
     if plotApertureType:
         t = [ap.aperturetype]
     fig = _plt.figure("Aperture", figsize=_defaultFigureSize)
-
-    
-    
-    
+         
     _plt.plot(s, aper1, label="aper1")
     _plt.plot(s, aper2, "x", label="aper2")
     _plt.plot(s, aper3, "o", label="aper3")
@@ -1102,7 +1111,7 @@ def PlotBDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=Tru
     _plt.legend()
 
     if surveyFileName != None : 
-        surveyFile = _CheckItsBDSAsc§iiData(surveyFileName)
+        surveyFile = _CheckItsBDSAsciiData(surveyFileName)
         AddMachineLatticeFromSurveyToFigure(plot, surveyFile, tightLayout=True)
 
     _plt.show()
