@@ -1027,7 +1027,7 @@ def Aperture(rootFileName, filterThin = False, surveyFileName = None):
     aper3 = md.beamPipeAper3[length>0]
     aper4 = md.beamPipeAper4[length>0]
 
-    plot = _plt.figure("Npart", figsize=(9,5))
+    plot = _plt.figure("Aperture", figsize=(9,5))
     
     _plt.plot(s, aper1, label="aper1")
     _plt.plot(s, aper2, "x", label="aper2")
