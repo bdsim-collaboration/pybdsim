@@ -1077,34 +1077,95 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
         AddMachineLatticeFromSurveyToFigure(fig, rootData.model)
 
 
-def PlotBDSIMApertureFromFile(filename, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
+def BDSIMApertureFromFile(filename, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
+    """
+    Plot the aperture from a BDSIM output file. By default it's colour coded and excludes any 0s.
+    """
     d = _Data.Load(filename)
-    PlotBDSIMAperture(d, machineDiagram, plot, plotApertureType, removeZeroLength, removeZeroApertures)
+    BDSIMAperture(d, machineDiagram, plot, plotApertureType, removeZeroLength, removeZeroApertures)
 
-def PlotBDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
-    if type(data) is not _ROOT.DataLoader:
+def BDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
+    """
+    Plot the aperture from a BDSIM DataLoader instance. By default it's colour coded and excludes
+    any 0 aperture elements. Zero length elements are included.
+    """
+    # compare by string to avoid importing ROOT here
+    # print "'",type(data).__name__,"'"
+    if type(data).__name__ != "DataLoader":
         raise IOError("Invalid data type - should be BDSIM's DataLoader type.")
 
     md = _Data.ModelData(data)
-    l,s,x,y,apers = md.GetApertureData(removeZeroLength, removeZeroAperture)
+    l,s,x,y,apers = md.GetApertureData(removeZeroLength, removeZeroApertures)
+    
+    if plotApertureType:
+        t = [ap.apertureType for ap in apers]
+        c = map(_ApertureTypeToColour, t)
+        
+    fig = _plt.figure(figsize=_defaultFigureSize)
+        
+    if "x" in plot.lower():
+        line1, = _plt.plot(s, x, 'b-', label='X', alpha=0.6)
+        if plotApertureType:
+            _plt.scatter(s, x, c=c, s=6)
+
+    if "y" in plot.lower():
+        line2, = _plt.plot(s, y, 'g-', label='Y', alpha=0.6)
+        if plotApertureType:
+            _plt.scatter(s, y, c=c, s=6)
+
+    _plt.xlabel('S (m)')
+    _plt.ylabel('Aperture (m)')
 
     if plotApertureType:
-        t = [ap.aperturetype]
-    fig = _plt.figure("Aperture", figsize=_defaultFigureSize)
+        _AddColourLegend(c)
 
-    
-    
-    
-    _plt.plot(s, aper1, label="aper1")
-    _plt.plot(s, aper2, "x", label="aper2")
-    _plt.plot(s, aper3, "o", label="aper3")
-    _plt.plot(s, aper4, "+", label="aper4")
-    _plt.legend()
+    _plt.legend(loc='best', numpoints=1, scatterpoints=1, fontsize='small')
 
-    if surveyFileName != None :
-        surveyFile = _CheckItsBDSAsciiData(surveyFileName)
-        AddMachineLatticeFromSurveyToFigure(plot, surveyFile, tightLayout=True)
+    maxxy = max(_np.max(x), _np.max(y))
+    _plt.ylim(0,1.1*maxxy)
+
+    if machineDiagram:
+        if hasattr(data, "model"):
+            AddMachineLatticeFromSurveyToFigure(fig, data.model)
+        else:
+            print('Machine diagram requested but no model available in data')
 
     _plt.show()
 
+def _ApertureTypeColourMap():
+    # these are taken from pymadx.Plot and are reordered to be the same as the madx
+    # colour coding for the appropriate bdsim ones. The order is from pybdsim.Data._bdsimApertureTypes
+    _colourCodes = ['#C03028', # circular    = CRICLE
+                    '#6890F0', # elliptical  = ELLIPSE
+                    '#6890F0', # lhc         = LHCSCREEN
+                    '#6890F0', # lhcdetailed = LHCSCREEN
+                    '#F8D030', # rectangular = RECTANGLE
+                    '#7038F8', # rectellipse = RECTELLIPSE
+                    '#78C850', # racetrack   = RACETRACK
+                    '#A8A878', # octagonal   = OCTAGON
+                    '#C03028', # circularvacuum = CIRCULAR
+                    '#F08030'] # clicpcl     = MARGUERITE - not true but need different colour
+    
+    typeToCol = dict(zip(_Data._bdsimApertureTypes, _colourCodes))
+    return typeToCol
 
+def _AddColourLegend(colours, cmap=_ApertureTypeColourMap()):
+    """
+    Make a legend with the set of colours used.
+    """
+    foundCols = set(colours)
+    typemap = dict((v,k) for k,v in cmap.iteritems()) #invert to get apertype from color
+    for col in foundCols:
+        _plt.scatter(None,None,color=col, label=typemap[col].lower())
+
+def _ApertureTypeToColour(apertureType, cmap=_ApertureTypeColourMap()):
+    """
+    Try to map an aperture type name to a colour. Return grey if unknown.
+    """
+    colour = (0,0,0)
+    try:
+        colour = cmap[apertureType.lower()]
+    except:
+        colour =(0.8,0.8,0.8) # greyish
+        
+    return colour
