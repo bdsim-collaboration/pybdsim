@@ -1013,7 +1013,7 @@ class EventSummaryData(EventInfoData):
         self._getData(interface, info, eventTree)
 
 def GetApertureExtent(apertureType, aper1=0, aper2=0, aper3=0, aper4=0):
-    apertureType = aperturetype.lower()
+    apertureType = apertureType.lower()
 
     if apertureType == "":
         return 0,0
@@ -1085,10 +1085,16 @@ class ModelData(object):
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
-        return a list of aperture instances (ApertureInfo class), x extent, y extend
+        return a list of aperture instances along with coordinates:
+        l,s,x,y,apertures
+        l - length of element
+        s - curvilinear S coordinate at the *end* of the element
+        x - horizontal extent
+        y - vertical extent
+        apertures = [ApertureInfo]
         """
         result = []
-        l,s,x,y = [],[],[]
+        l,s,x,y = [],[],[],[]
 
         for ll,ss,at,a1,a2,a3,a4 in zip(self.length,
                                         self.endS,
@@ -1106,7 +1112,7 @@ class ModelData(object):
                 s.append(ss)
                 result.append(ApertureInfo(at,a1,a2,a3,a4))
                 x.append(result[-1].x)
-                x.append(result[-1].y)
+                y.append(result[-1].y)
         return _np.array(l),_np.array(s),_np.array(x),_np.array(y),result
 
 
