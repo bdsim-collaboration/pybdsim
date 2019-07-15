@@ -1080,7 +1080,13 @@ class ModelData(object):
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
-        return a list of aperture instances (ApertureInfo class), x extent, y extend
+        return a list of aperture instances along with coordinates:
+        l,s,x,y,apertures
+        l - length of element
+        s - curvilinear S coordinate at the *end* of the element
+        x - horizontal extent
+        y - vertical extent
+        apertures = [ApertureInfo]
         """
         result = []
         l,s,x,y = [],[],[],[]
