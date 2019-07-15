@@ -75,8 +75,12 @@ def _parse_bdsim_input(bdsim_in, name):
 # use closure to avoid tonnes of boilerplate code as happened with
 # MadxBdsimComparison.py
 def _make_plotter(plot_info_tuples, x_label, y_label, title):
-    def f_out(first, second, first_name=None, second_name=None,
-              survey=None, **kwargs):
+   def f_out(first, second, first_name=None, second_name=None,
+             survey=None, **kwargs):
+      
+        # _ is a problem for latex rendering 
+        first_name = first_name.replace("_","\_")
+        second_name = second_name.replace("_","\_")
 
         # Get the initial N for the two sources
         first_nparticles = first.Npart()[0]
@@ -111,7 +115,7 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
                 pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
         _plt.show(block=False)
         return plot
-    return f_out
+   return f_out
 
 PlotBeta   = _make_plotter(_BETA,    "S / m", r"$\beta_{x,y}$ / m",      "Beta")
 PlotAlpha  = _make_plotter(_ALPHA,   "S / m", r"$\alpha_{x,y}$ / m",     "Alpha")
