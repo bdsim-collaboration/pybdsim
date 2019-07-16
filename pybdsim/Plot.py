@@ -468,9 +468,18 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
 
 def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactor=1.0, **errorbarKwargs):
     """
-    Plot multiple 1D histograms on the same plot.
+    Plot multiple 1D histograms on the same plot. Histograms and labels should 
+    be lists of the same length with pybdsim.Data.TH1 objects and strings.
 
-    histograms and labels should be lists of the same length with pybdsim.Data.TH1 objects and strings.
+    Example ::
+
+    Histogram1DMultiple([h1,h2,h3], 
+                        ['Photons', 'Electrons', 'Positrons'], 
+                        xlabel=r'$\mu$m', 
+                        ylabel='Fraction',
+                        scalingFactors=[1,100,100],
+                        xScalingFactor=1e6,
+                        log=True)
     """
 
     f = _plt.figure(figsize=(10,5))
