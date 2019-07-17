@@ -1052,7 +1052,7 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     ax1 = _plt.subplot(9,1,2)
     
     S = trajData[0]['S']
-    S = trajData[0]['z']+1434.837026
+    # S = trajData[0]['z']+1434.837026
     # S = trajData[0]['z']
     _plt.plot(S,trajData[0]['x'],"-",label="x") 
     _plt.plot(S,trajData[0]['y'],"-",label="y")
