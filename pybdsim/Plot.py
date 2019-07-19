@@ -1054,45 +1054,73 @@ def Aperture(rootFileName, filterThin = False, surveyFileName = None):
 def PrimaryTrajectoryAndProcess(rootData, eventNumber) : 
 
     trajData = _Data.TrajectoryData(rootData, eventNumber)    
+    event    = rootData.GetEvent()
+    eventTree= rootData.GetEventTree()
+    eventTree.GetEntry(eventNumber)
+    firstHitS = event.GetPrimaryFirstHit().S[0]
+    lastHitS  = event.GetPrimaryLastHit().S[0]
     
-    fig = _plt.figure("Npart", figsize=(9,5))
+    print firstHitS, lastHitS
+    
+    fig = _plt.figure("Npart", figsize=(9,9))
     fig.subplots_adjust(hspace=0.0)
 
     ax1 = _plt.subplot(9,1,2)
     
     S = trajData[0]['S']
-    # S = trajData[0]['z']+1434.837026
-    # S = trajData[0]['z']
-    _plt.plot(S,trajData[0]['x'],"-",label="x") 
-    _plt.plot(S,trajData[0]['y'],"-",label="y")
-    # _plt.legend()
+    _plt.plot(S[0:-2],trajData[0]['x'][0:-2],label="x") 
+    _plt.plot(S[0:-2],trajData[0]['y'][0:-2],label="y")
+    _plt.axvline(firstHitS,ls="--",c='b')
+    _plt.axvline(lastHitS,ls="--",c='r')
     ax1.set_xticklabels([])
+    _plt.ylabel("$x,y$ / m")
 
     ax2 = _plt.subplot(9,1,3)
-    _plt.plot(S,_np.log10(trajData[0]['E']),"o",label="energy loss")
-    # _plt.legend()
+    _plt.plot(S[0:-2],_np.log10(trajData[0]['E'][0:-2]),".",label="energy loss")
+    _plt.axvline(firstHitS,ls="--",c='b')
+    _plt.axvline(lastHitS,ls="--",c='r')
+    ax2.yaxis.tick_right()
+    _plt.ylabel("$\log \Delta E$")
+    ax2.yaxis.set_label_position("right")
     ax2.set_xticklabels([])
 
     ax3 = _plt.subplot(9,1,4)
-    _plt.plot(S,trajData[0]['px'],"-",label="px")
-    _plt.plot(S,trajData[0]['py'],"-",label="py")
-    # _plt.legend()
+    _plt.plot(S[0:-2],trajData[0]['px'][0:-2],"-",label="px")
+    _plt.plot(S[0:-2],trajData[0]['py'][0:-2],"-",label="py")
+    _plt.axvline(firstHitS,ls="--",c='b')
+    _plt.axvline(lastHitS,ls="--",c='r')
     ax3.set_xticklabels([])
+    _plt.ylabel("$p_x,p_y$")
 
     ax4 = _plt.subplot(9,1,5)
-    _plt.plot(S,trajData[0]['prePT'],"o",label="pre process type")
+    _plt.plot(S[0:-2],trajData[0]['prePT'][0:-2],".",label="pre process type")
+    _plt.axvline(firstHitS,ls="--",c='b')
+    _plt.axvline(lastHitS,ls="--",c='r')
+    ax4.yaxis.tick_right()
+    _plt.ylabel("prePT")
+    ax4.yaxis.set_label_position("right")
 
     ax5 = _plt.subplot(9,1,6)
-    _plt.plot(S,trajData[0]['prePST'],"o",label="pre process sub type")
-    #_plt.legend()
+    _plt.plot(S[0:-2],trajData[0]['prePST'][0:-2],".",label="pre process sub type")
+    _plt.axvline(firstHitS,ls="--",c='b')
+    _plt.axvline(lastHitS,ls="--",c='r')
+    _plt.ylabel("prePST")
 
     ax6 = _plt.subplot(9,1,7)
-    _plt.plot(S,trajData[0]['postPT'],"o",label="post process type")
+    _plt.plot(S[0:-2],trajData[0]['postPT'][0:-2],".",label="post process type")
+    _plt.axvline(firstHitS,ls="--",c='b')
+    _plt.axvline(lastHitS,ls="--",c='r')
+    ax6.yaxis.tick_right()
+    _plt.ylabel("postPT")
+    ax6.yaxis.set_label_position("right")
 
     ax7 = _plt.subplot(9,1,8)
-    _plt.plot(S,trajData[0]['postPST'],"o",label="post process sub type")
-    #_plt.legend()
+    _plt.plot(S[0:-2],trajData[0]['postPST'][0:-2],".",label="post process sub type")
+    _plt.axvline(firstHitS,ls="--",c='b')
+    _plt.axvline(lastHitS,ls="--",c='r')
+    _plt.ylabel("postPST")
 
+    _plt.xlabel("$S$/m")
     if hasattr(rootData, "model"):
         AddMachineLatticeFromSurveyToFigure(fig, rootData.model,tightLayout=False)
     
