@@ -1059,8 +1059,8 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     eventTree.GetEntry(eventNumber)
     firstHitS = event.GetPrimaryFirstHit().S[0]
     lastHitS  = event.GetPrimaryLastHit().S[0]
-    
-    print firstHitS, lastHitS
+
+    _plt.clf()
     
     fig = _plt.figure("Npart", figsize=(9,9))
     fig.subplots_adjust(hspace=0.0)
@@ -1070,6 +1070,7 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     S = trajData[0]['S']
     _plt.plot(S[0:-2],trajData[0]['x'][0:-2],label="x") 
     _plt.plot(S[0:-2],trajData[0]['y'][0:-2],label="y")
+
     _plt.axvline(firstHitS,ls="--",c='b')
     _plt.axvline(lastHitS,ls="--",c='r')
     ax1.set_xticklabels([])
@@ -1077,6 +1078,7 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
 
     ax2 = _plt.subplot(9,1,3)
     _plt.plot(S[0:-2],_np.log10(trajData[0]['E'][0:-2]),".",label="energy loss")
+    _plt.axhline(-9,ls="--",c="b")
     _plt.axvline(firstHitS,ls="--",c='b')
     _plt.axvline(lastHitS,ls="--",c='r')
     ax2.yaxis.tick_right()
@@ -1119,10 +1121,10 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     _plt.axvline(firstHitS,ls="--",c='b')
     _plt.axvline(lastHitS,ls="--",c='r')
     _plt.ylabel("postPST")
-
     _plt.xlabel("$S$/m")
+
     if hasattr(rootData, "model"):
-        AddMachineLatticeFromSurveyToFigure(fig, rootData.model,tightLayout=False)
+        AddMachineLatticeFromSurveyToFigure(fig, rootData.model,tightLayout=True)
     
         fig.subplots_adjust(hspace=0.05)
 
