@@ -111,6 +111,9 @@ class Beam(dict) :
         elif distrtype == 'ptc' : 
             setattr(self, 'SetSigmaE',     self._SetSigmaE)            
             setattr(self, 'SetDistribFileName',self._SetDistribFileName)
+        elif distrtype == "userfile":
+            setattr(self, 'SetDistrFile',     self._SetDistrFile)
+            setattr(self, 'SetDistrFileFormat',self._SetDistrFileFormat)
 
     def WriteToFile(self, filename):
         f = open(filename, 'w')
@@ -295,3 +298,9 @@ class Beam(dict) :
             self["offsetSampleMean"] = 1
         else:
             self["OffsetSampleMean"] = 0
+
+    def _SetDistrFile(self, filename):
+        self["distrFile"] = '"{}"'.format(filename)
+
+    def _SetDistrFileFormat(self, format_string):
+        self["distrFileFormat"] = '"{}"'.format(filename)
