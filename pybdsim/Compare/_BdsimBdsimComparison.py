@@ -88,19 +88,26 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
 
         plot = _plt.figure(title, figsize=(9,5), **kwargs)
         # Loop over the variables in plot_info_tuples and draw the plots.
-        for var, error, legend_name in plot_info_tuples:
+        for index,(var, error, legend_name) in enumerate(plot_info_tuples):
+            if index == 0:  # x
+                firstfmt='b.-'
+                secondfmt='b.--'
+            else:  # y
+                firstfmt='g.-'
+                secondfmt='g.--'
+
             _plt.errorbar(first.GetColumn('S'),
                           first.GetColumn(var),
                           yerr=first.GetColumn(error),
                           label="{}; {}; N = {:.1E}".format(
                               first_name, legend_name, first_nparticles),
-                          capsize=3, **kwargs)
+                          capsize=3, fmt=firstfmt, **kwargs)
             _plt.errorbar(second.GetColumn('S'),
                           second.GetColumn(var),
                           yerr=second.GetColumn(error),
                           label="{}; {}; N = {:.1E}".format(
                               second_name, legend_name, second_nparticles),
-                          capsize=3, **kwargs)
+                          capsize=3, fmt=secondfmt, **kwargs)
 
         # Set axis labels and draw legend
         axes = _plt.gcf().gca()
