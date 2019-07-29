@@ -303,4 +303,4 @@ class Beam(dict) :
         self["distrFile"] = '"{}"'.format(filename)
 
     def _SetDistrFileFormat(self, format_string):
-        self["distrFileFormat"] = '"{}"'.format(filename)
+        self["distrFileFormat"] = '"{}"'.format(format_string)
