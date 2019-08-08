@@ -38,8 +38,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                    enableSrScaling              = False,
                    enableMuon                   = False,
                    enableMuonBias               = True,
-                   rmat                         = "",
-                   enableCavityFringes          = False):
+                   rmat                         = ""):
     """
     Convert MAD8 twiss output to a BDSIM model in GMAD syntax.
     inputfilename        = mad8 TWISS output
@@ -445,18 +444,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             freq     = float(c.data[i][c.keys['lcav']['freq']])
             lag      = float(c.data[i][c.keys['lcav']['lag']])
             gradient = volt/length
-            focusin= -(deltaE/length)/(2*energy[i-1]*1e3)
-            focusout= (deltaE/length)/(2*energy[i]*1e3)
-            if(enableCavityFringes):
-                a.AddThinRmat(name=prepend+c.name[i]+'_'+str(eCount)+'_fringe_in',r21=focusin,r43=focusin)
+
             a.AddRFCavity(name      = prepend+c.name[i]+'_'+str(eCount),
                           length    = length,
                           gradient  = gradient,
                           phase     = lag * 2 * _np.pi,
                           frequency = freq,# * 2 * _np.pi,
                           aper1     = apertures.aper[i])
-            if(enableCavityFringes):
-                a.AddThinRmat(name=prepend+c.name[i]+'_'+str(eCount)+'_fringe_out',r21=focusout,r43=focusout)
 #       ###################################################################
         elif c.type[i] == 'ECOL' :
 
