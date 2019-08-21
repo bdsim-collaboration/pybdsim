@@ -448,7 +448,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
     elif t == 'QUADRUPOLE':
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             k1 = item['K1L'] * factor
-            return _Builder.ThinMultipole(rname, knl=(k1), **kws)
+            return _Builder.ThinMultipole(rname, knl=(k1,), **kws)
         k1 = item['K1L'] / l * factor
         return _Builder.Quadrupole(rname, l, k1, **kws)
     elif t == 'RBEND':
