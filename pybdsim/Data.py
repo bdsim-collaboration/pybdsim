@@ -853,7 +853,7 @@ class TrajectoryData(object):
 
     Loads all trajectory data in a event event
 
-    >>> f = pybdsim.Data.Laod("file.root")
+    >>> f = pybdsim.Data.Load("file.root")
     >>> trajectories = pbdsim.Data.TrajectoryData(f,0)
     """
 
@@ -905,6 +905,12 @@ class TrajectoryData(object):
 
             p = self._trajectory.momenta[i]
             e = self._trajectory.energies[i]
+
+            try:
+                time = self._trajectory.preT[i]
+            except IndexError:
+                time = _np.zeros(len(t))
+
             prePT  = self._trajectory.preProcessTypes[i]
             prePST = self._trajectory.preProcessSubTypes[i]
             postPT  = self._trajectory.postProcessTypes[i]
@@ -920,7 +926,9 @@ class TrajectoryData(object):
             pz = _np.zeros(len(t))
 
             E = _np.zeros(len(t))
-            
+
+            preT = _np.zeros(len(t))
+
             preProcessTypes     = _np.zeros(len(t))
             preProcessSubTypes  = _np.zeros(len(t))
             postProcessTypes    = _np.zeros(len(t))
@@ -941,6 +949,9 @@ class TrajectoryData(object):
                 # energy
                 E[j] = e[j]
 
+                #preSteptime
+                preT[j] = time[j]
+
                 # professes 
                 preProcessTypes[j]    = prePT[j]
                 preProcessSubTypes[j] = prePST[j]
@@ -958,6 +969,8 @@ class TrajectoryData(object):
             pyTrajectory['pz'] = pz
 
             pyTrajectory['E'] = E
+
+            pyTrajectory['preT'] = preT
             
             pyTrajectory['prePT'] = preProcessTypes
             pyTrajectory['prePST'] = preProcessSubTypes
