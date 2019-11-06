@@ -707,20 +707,25 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     # so in this submodule when we do from .. import Beam it's actually the
     # already imported class that's being imported
     beam = _Beam.Beam(particle, energy, 'gausstwiss')
-    beam.SetBetaX(data['BETX'])
-    beam.SetBetaY(data['BETY'])
-    beam.SetAlphaX(data['ALFX'])
-    beam.SetAlphaY(data['ALFY'])
-    beam.SetDispX(data['DXBETA'])
-    beam.SetDispY(data['DYBETA'])
-    beam.SetDispXP(data['DPXBETA'])
-    beam.SetDispYP(data['DPYBETA'])
     beam.SetEmittanceX(ex, 'm')
     beam.SetEmittanceY(ey, 'm')
     beam.SetSigmaE(sigmae)
-    beam.SetXP0(data['PX'])
-    beam.SetYP0(data['PY'])
-    beam.SetX0(data['X'])
-    beam.SetY0(data['Y'])
+
+    beamparams = {"SetBetaX":'BETX',
+                  "SetBetaY":'BETY',
+                  "SetAlphaX":'ALFX',
+                  "SetAlphaY":'ALFY',
+                  "SetDispX":'DXBETA',
+                  "SetDispY":'DYBETA',
+                  "SetDispXP":'DPXBETA',
+                  "SetDispYP":'DPYBETA',
+                  "SetXP0": 'PX',
+                  "SetYP0": 'PY',
+                  "SetX0": 'X',
+                  "SetY0": 'Y'
+                  }
+    for func,parameter in beamparams.iteritems():
+        if parameter in data.keys():
+            getattr(beam, func)(data[parameter])
 
     return beam
