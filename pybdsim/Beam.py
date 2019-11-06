@@ -153,7 +153,7 @@ class Beam(dict) :
         self['S0'] = str(s0) + '*' + unitsstring
 
     def SetE0(self, e0=1, unitsstring='GeV'):
-        self['E0'] = str(E0) + '*' + unitsstring
+        self['E0'] = str(e0) + '*' + unitsstring
 
     def SetT0(self,t0=0.0,unitsstring='s'):
         self['T0'] = str(t0) + '*' + unitsstring
