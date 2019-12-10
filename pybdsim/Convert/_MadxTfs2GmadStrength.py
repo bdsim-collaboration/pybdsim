@@ -10,7 +10,8 @@ def MadxTfs2GmadStrength(input, outputfilename,
                          existingmachine = None,
                          verbose         = False,
                          flipmagnets     = False,
-                         linear          = False):
+                         linear          = False,
+                         allNamesUnique  = False):
     """
     Use a MADX Tfs file containing full twiss information to generate a 
     strength (only) BDSIM GMAD file to be used with an existing lattice.
@@ -49,8 +50,12 @@ def MadxTfs2GmadStrength(input, outputfilename,
     newStrengths = []
     
     for item in madx:
-        name  = item['NAME']
-        rname = _General.PrepareReducedName(name) # the same as any normal conversion
+        # the same as any normal conversion
+        name = item['NAME']
+        # remove special characters like $, % etc 'reduced' name - rname:
+        rname = _General.PrepareReducedName(name
+                                            if not allNamesUnique
+                                            else item["UNIQUENAME"])
         
         # generate elementmodifier with approprate name to match one
         # already used in existing machine
