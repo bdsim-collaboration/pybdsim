@@ -33,7 +33,7 @@ def MadxTfs2GmadStrength(input, outputfilename,
     _ZeroMissingRequiredColumns(madx)
 
     if existingmachine == None:
-        existingnames = madx.GetColumn('NAME')
+        existingnames = []
     elif type(existingmachine) == list:
         existingnames = existingmachine
     elif type(existingmachine) == dict:
@@ -61,10 +61,9 @@ def MadxTfs2GmadStrength(input, outputfilename,
         # already used in existing machine
         if name in existingnames:
             a = _GenerateElementModifier(item, name, verbose, flipmagnets, linear)
-        elif rname in existingnames:
-            a = _GenerateElementModifier(item, rname, verbose, flipmagnets, linear)
         else:
-            a = None
+            a = _GenerateElementModifier(item, rname, verbose, flipmagnets, linear)
+        
         if verbose:
             print a
         if a != None:
