@@ -3,6 +3,8 @@ import pybdsim._General as _General
 import _MadxTfs2Gmad
 import pymadx as _pymadx
 from pybdsim.Convert import _ZeroMissingRequiredColumns
+from pybdsim.Convert._MadxTfs2Gmad import _ignoreableThinElements
+from pybdsim.Convert._MadxTfs2Gmad import _WillIgnoreItem
 
 _ElementModifier = _Builder.ElementModifier
 
@@ -11,7 +13,8 @@ def MadxTfs2GmadStrength(input, outputfilename,
                          verbose         = False,
                          flipmagnets     = False,
                          linear          = False,
-                         allNamesUnique  = False):
+                         allNamesUnique  = False,
+                         ignoreZeroLengthItems = True):
     """
     Use a MADX Tfs file containing full twiss information to generate a 
     strength (only) BDSIM GMAD file to be used with an existing lattice.
@@ -50,6 +53,9 @@ def MadxTfs2GmadStrength(input, outputfilename,
     newStrengths = []
     
     for item in madx:
+        if _WillIgnoreItem(item, madx, ignoreZeroLengthItems, _ignoreableThinElements):
+            continue
+        
         # the same as any normal conversion
         name = item['NAME']
         # remove special characters like $, % etc 'reduced' name - rname:
