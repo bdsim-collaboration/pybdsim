@@ -14,6 +14,10 @@ _requiredKeys = frozenset([
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
     'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX', 'HGAP'])
 
+_ignoreableThinElements = {"MONITOR", "PLACEHOLDER", "MARKER",
+                           "RCOLLIMATOR", "ECOLLIMATOR",
+                           "COLLIMATOR", "INSTRUMENT"}
+
 # Constants
 # anything below this length is treated as a thin element
 _THIN_ELEMENT_THRESHOLD = 1e-6
@@ -40,6 +44,11 @@ def ZeroMissingRequiredColumns(tfsinstance):
            " to zero.").format(missingColsString)
     print msg
 
+def _WillIgnoreItem(item, tfsinstance, ignoreZeroLength, ignoreableThinElements):
+    tresult    = item['KEYWORD'] in ignoreableThinElements    
+    zerolength = item['L'] < 1e-9
+    result     = not tfsinstance.ElementPerturbs(item) and zerolength and ignoreZeroLength and tresult
+    return result
 
 def MadxTfs2Gmad(tfs, outputfilename,
                  startname             = None,
@@ -222,9 +231,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     # keep list of omitted zero length items
     itemsomitted = []
-    ignoreableThinElements = {"MONITOR", "PLACEHOLDER", "MARKER",
-                              "RCOLLIMATOR", "ECOLLIMATOR",
-                              "COLLIMATOR", "INSTRUMENT"}
 
     # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
@@ -234,10 +240,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         i = item['INDEX']
 
         zerolength = True if item['L'] < 1e-9 else False
-        if (not madx.ElementPerturbs(item)
-                and zerolength
-                and ignorezerolengthitems
-                and t in ignoreableThinElements):
+        if (_WillIgnoreItem(item, madx, ignorezerolengthitems, _ignoreableThinElements)):
             if verbose:
                 print 'skipping zero-length item: {}'.format(name)
             itemsomitted.append(name)
