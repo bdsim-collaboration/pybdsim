@@ -854,8 +854,9 @@ class TrajectoryData(object):
     Loads all trajectory data in a event event
 
     >>> f = pybdsim.Data.Load("file.root")
-    >>> trajectories = pbdsim.Data.TrajectoryData(f,0)
+    >>> trajectories = pybdsim.Data.TrajectoryData(f,0)
     """
+
 
     def __init__(self, dataLoader, eventNumber=0):
         params = ['n','trajID','partID','x','y','z']
@@ -864,6 +865,10 @@ class TrajectoryData(object):
         self._event       = dataLoader.GetEvent()
         self._trajectory  = self._event.GetTrajectory()
         self.trajectories = []
+        _header = dataLoader.GetHeader()
+        _headerTree =  dataLoader.GetHeaderTree()
+        _headerTree.GetEntry(0)
+        self._dataVersion = _header.header.dataVersion
         self._GetTrajectory(eventNumber)
 
     def __len__(self):
@@ -891,43 +896,98 @@ class TrajectoryData(object):
         if eventNumber >= self._eventTree.GetEntries():
             raise IndexError
 
+
         # loop over all trajectories
         self._eventTree.GetEntry(eventNumber)
         for i in range(0, self._trajectory.n):
-
             pyTrajectory = {}
             pyTrajectory['trackID']  = int(self._trajectory.trackID[i])
             pyTrajectory['partID']   = int(self._trajectory.partID[i])
             pyTrajectory['parentID'] = int(self._trajectory.parentID[i])
 
-            t  = self._trajectory.trajectories[i]        
-            tS = self._trajectory.trajectoriesS[i]   
-
-            p = self._trajectory.momenta[i]
-            e = self._trajectory.energies[i]
-
-            try:
-                time = self._trajectory.preT[i]
-            except IndexError:
-                time = _np.zeros(len(t))
-
-            prePT  = self._trajectory.preProcessTypes[i]
+            prePT = self._trajectory.preProcessTypes[i]
             prePST = self._trajectory.preProcessSubTypes[i]
-            postPT  = self._trajectory.postProcessTypes[i]
+            postPT = self._trajectory.postProcessTypes[i]
             postPST = self._trajectory.postProcessSubTypes[i]
+
+            # Adding new parameters and updating trajectory names
+            if self._dataVersion >= 5:
+                t = self._trajectory.XYZ[i]
+                ts = self._trajectory.S[i]
+                p = self._trajectory.PXPYPZ[i]
+                e = self._trajectory.energyDeposit[i]
+                time = self._trajectory.T[i]
+
+                try:
+                    xyz = self._trajectory.xyz[i]
+                    pypxpy = self._trajectory.pxpypz[i]
+                except IndexError:
+                    xyz = _np.zeros(len(t))
+                    pxpypz = _np.zeros(len(t))
+
+                try:
+                    q = self._trajectory.charge[i]
+                    ke = self._trajectory.kineticEnergy[i]
+                    tT = self._trajectory.turnsTaken[i]
+                    m = self._trajectory.mass[i]
+                    rho = self._trajectory.rigidity[i]
+                except IndexError:
+                    q = _np.zeros(len(t))
+                    ke = _np.zeros(len(t))
+                    tT = _np.zeros(len(t))
+                    m = _np.zeros(len(t))
+                    rho = _np.zeros(len(t))
+
+                try:
+                    ion = self._trajectory.isIon[i]
+                    a = self._trajectory.ionA[i]
+                    z = self._trajectory.ionZ[i]
+                    el = self._trajectory.nElectrons[i]
+                except IndexError:
+                    ion = _np.full((len(t), 0), False)
+                    a = _np.zeros(len(t))
+                    z = _np.zeros(len(t))
+                    el = _np.zeros(len(t))
+
+            else:
+                #from IPython import embed; embed()
+                t  = self._trajectory.trajectories[i]
+                #tS = self._trajectory.trajectoriesS[i]
+
+
+                p = self._trajectory.momenta[i]
+                e = self._trajectory.energies[i]
+
+            X = _np.zeros(len(t))
+            Y = _np.zeros(len(t))
+            Z = _np.zeros(len(t))
+            S = _np.zeros(len(t))
+
+            T = _np.zeros(len(t))
+            EDeposit = _np.zeros(len(t))
+
+            PX = _np.zeros(len(t))
+            PY = _np.zeros(len(t))
+            PZ = _np.zeros(len(t))
 
             x = _np.zeros(len(t))
             y = _np.zeros(len(t))
             z = _np.zeros(len(t))
-            S = _np.zeros(len(t))
 
             px = _np.zeros(len(t))
             py = _np.zeros(len(t))
             pz = _np.zeros(len(t))
 
-            E = _np.zeros(len(t))
+            charge = _np.zeros(len(t))
+            kineticEnergy = _np.zeros(len(t))
+            turnsTaken = _np.zeros(len(t))
+            mass = _np.zeros(len(t))
+            rigidity = _np.zeros(len(t))
 
-            preT = _np.zeros(len(t))
+            isIon = _np.full((len(t), 0), False)
+            ionA = _np.zeros(len(t))
+            ionZ = _np.zeros(len(t))
+            nElectrons = _np.zeros(len(t))
 
             preProcessTypes     = _np.zeros(len(t))
             preProcessSubTypes  = _np.zeros(len(t))
@@ -936,42 +996,80 @@ class TrajectoryData(object):
 
             for j in range(0, len(t)):
                 # position
-                x[j] = t[j].X()
-                y[j] = t[j].Y()
-                z[j] = t[j].Z()
-                S[j] = tS[j]
+                X[j] = t[j].X()
+                Y[j] = t[j].Y()
+                Z[j] = t[j].Z()
+                S[j] = S[j]
 
                 # momenta
-                px[j] = p[j].X()
-                py[j] = p[j].Y()
-                pz[j] = p[j].Z()
+                PX[j] = p[j].X()
+                PY[j] = p[j].Y()
+                PZ[j] = p[j].Z()
 
-                # energy
-                E[j] = e[j]
+                EDeposit[j] = e[j]
 
-                #preSteptime
-                preT[j] = time[j]
+                if self._dataVersion >= 5:
+                    T[j] = time[j]
+                    try:
+                        x[j] = xyz[j].X()
+                        y[j] = xyz[j].Y()
+                        z[j] = xyz[j].Z()
+                        px[j] = pxpypz[j].X()
+                        py[j] = pxpypz[j].Y()
+                        pz[j] = pxpypz[j].Z()
+                    except AttributeError:
+                        x[j] = 0
+                        y[j] = 0
+                        z[j] = 0
+                        px[j] = 0
+                        py[j] = 0
+                        pz[j] = 0
 
-                # professes 
+                    charge[j] = q[j]
+                    kineticEnergy[j] = ke[j]
+                    turnsTaken[j] = tT[j]
+                    mass[j] = m[j]
+                    rigidity[j] = rho[j]
+                    isIon[j] = ion[j]
+                    ionA[j] = a[j]
+                    ionZ[j] = z[j]
+                    nElectrons[j] = el[j]
+
                 preProcessTypes[j]    = prePT[j]
                 preProcessSubTypes[j] = prePST[j]
 
                 postProcessTypes[j]    = postPT[j]
                 postProcessSubTypes[j] = postPST[j]
                             
-            pyTrajectory['x'] = x
-            pyTrajectory['y'] = y
-            pyTrajectory['z'] = z
+            pyTrajectory['X'] = X
+            pyTrajectory['Y'] = Y
+            pyTrajectory['Z'] = Z
             pyTrajectory['S'] = S
 
-            pyTrajectory['px'] = px
-            pyTrajectory['py'] = py
-            pyTrajectory['pz'] = pz
+            pyTrajectory['PX'] = PX
+            pyTrajectory['PY'] = PY
+            pyTrajectory['PZ'] = PZ
 
-            pyTrajectory['E'] = E
+            pyTrajectory['EnergyDeposit'] = EDeposit
 
-            pyTrajectory['preT'] = preT
-            
+            if self._dataVersion >= 5:
+                pyTrajectory['T'] = T
+                pyTrajectory['x'] = x
+                pyTrajectory['y'] = y
+                pyTrajectory['z'] = z
+                pyTrajectory['px'] = px
+                pyTrajectory['py'] = py
+                pyTrajectory['pz'] = pz
+                pyTrajectory['charge'] = charge
+                pyTrajectory['kineticEnergy'] = kineticEnergy
+                pyTrajectory['turnsTaken'] = turnsTaken
+                pyTrajectory['mass'] = mass
+                pyTrajectory['rigidity'] = rigidity
+                pyTrajectory['isIon'] = isIon
+                pyTrajectory['ionA'] = ionA
+                pyTrajectory['ionZ'] = ionZ
+                pyTrajectory['nElectrons'] = nElectrons
+
             pyTrajectory['prePT'] = preProcessTypes
             pyTrajectory['prePST'] = preProcessSubTypes
 
