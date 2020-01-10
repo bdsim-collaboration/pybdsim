@@ -242,8 +242,10 @@ class Element(ElementBase):
         return s
 
     def _split_length(self, points):
-        """points = points along the start of the element.  So n
-        points will return n+1 elements.  """
+        """
+        points = points along the start of the element.  So n
+        points will return n+1 elements.
+        """
         try:
             total_length = self['l']
         except:
@@ -282,9 +284,11 @@ class Element(ElementBase):
         return split_elements
 
     def split(self, points):
-        """Split this element into len(points)+1 elements, with the
+        """
+        Split this element into len(points)+1 elements, with the
         correct lengths.  This does not affect magnetic strengths,
-        etc, which is left to derived classes where appropriate. """
+        etc, which is left to derived classes where appropriate.
+        """
         return self._split_length(points)
 
     @classmethod
@@ -296,7 +300,7 @@ class Element(ElementBase):
 
 class ElementModifier(ElementBase):
     """
-    A class  to MODIFY an already defined element in a gmad file by appending an
+    A class to MODIFY an already defined element in a gmad file by appending an
     updated definition. Using this alone in BDSIM will result in an
     undefined type error. This class is particularly useful for creating
     a strength file.
@@ -1056,7 +1060,6 @@ class Machine(object):
         kwargs:
         overwrite : Do not append an integer to the basefilename if
         already exists, instead overwrite existing files.
-
         """
         if self.sr :
             self.SynchrotronRadiationRescale()
@@ -1066,8 +1069,10 @@ class Machine(object):
         writer.WriteMachine(self,filename,verboseresult)
 
     def AddBias(self, biases):
-        """Add a XSecBias.XSecBias instance or iterable of instances
-        to this machine."""
+        """
+        Add a XSecBias.XSecBias instance or iterable of instances
+        to this machine.
+        """
         # If a single bias object
         if isinstance(biases, pybdsim.XSecBias.XSecBias):
             self.bias.append(biases)

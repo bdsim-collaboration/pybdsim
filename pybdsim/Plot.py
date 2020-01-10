@@ -5,6 +5,7 @@ Useful plots for bdsim output
 from .import Data as _Data
 import pymadx as _pymadx
 
+import copy as _copy
 import matplotlib as _matplotlib
 from matplotlib.colors import LogNorm as _LogNorm
 import matplotlib.pyplot as _plt
@@ -514,8 +515,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     
     return f
 
-
-def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, **imshowKwargs):
+def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -533,7 +533,7 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, xlab
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
     ysf = yScalingFactor
-    ext = [_np.min(xsf*h.xcentres),_np.max(xsf*h.xcentres),_np.min(ysf*h.ycentres),_np.max(ysf*h.ycentres)]
+    ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
     if logNorm:
         _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(), **imshowKwargs)
         _plt.colorbar(label=zlabel)
@@ -541,9 +541,9 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, xlab
         _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, **imshowKwargs)
         _plt.colorbar(format='%.0e', label=zlabel)
 
-    if xlogscale:
+    if xLogScale:
         _plt.xscale('log')
-    if ylocscale:
+    if yLogScale:
         _plt.yscale('log')
 
     if xlabel == "":
@@ -565,6 +565,12 @@ def Histogram2D(histogram, logNorm=False, xlogscale=False, ylocscale=False, xlab
     else:
         _plt.title(title)
     return f
+
+def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, **imshowKwargs):
+    h2 = _copy.deepcopy(histogram)
+    h2.contents = h2.errors # set contents as errors and just use regular plot
+    return Histogram2D(h2, logNorm, xLogScale, yLogScale, xlabel, ylabel, zlabel, title, aspect, scalingFactor,
+                       xScalingFactor, yScalingFactor, **imshowKwargs)
 
 def Histogram3D(th3):
     """

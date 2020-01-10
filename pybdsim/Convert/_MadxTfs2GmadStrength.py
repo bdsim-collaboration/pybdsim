@@ -3,6 +3,8 @@ import pybdsim._General as _General
 import _MadxTfs2Gmad
 import pymadx as _pymadx
 from pybdsim.Convert import _ZeroMissingRequiredColumns
+from pybdsim.Convert._MadxTfs2Gmad import _ignoreableThinElements
+from pybdsim.Convert._MadxTfs2Gmad import _WillIgnoreItem
 
 _ElementModifier = _Builder.ElementModifier
 
@@ -10,7 +12,9 @@ def MadxTfs2GmadStrength(input, outputfilename,
                          existingmachine = None,
                          verbose         = False,
                          flipmagnets     = False,
-                         linear          = False):
+                         linear          = False,
+                         allNamesUnique  = False,
+                         ignoreZeroLengthItems = True):
     """
     Use a MADX Tfs file containing full twiss information to generate a 
     strength (only) BDSIM GMAD file to be used with an existing lattice.
@@ -32,7 +36,7 @@ def MadxTfs2GmadStrength(input, outputfilename,
     _ZeroMissingRequiredColumns(madx)
 
     if existingmachine == None:
-        existingnames = madx.GetColumn('NAME')
+        existingnames = []
     elif type(existingmachine) == list:
         existingnames = existingmachine
     elif type(existingmachine) == dict:
@@ -49,17 +53,23 @@ def MadxTfs2GmadStrength(input, outputfilename,
     newStrengths = []
     
     for item in madx:
-        name  = item['NAME']
-        rname = _General.PrepareReducedName(name) # the same as any normal conversion
+        if _WillIgnoreItem(item, madx, ignoreZeroLengthItems, _ignoreableThinElements):
+            continue
+        
+        # the same as any normal conversion
+        name = item['NAME']
+        # remove special characters like $, % etc 'reduced' name - rname:
+        rname = _General.PrepareReducedName(name
+                                            if not allNamesUnique
+                                            else item["UNIQUENAME"])
         
         # generate elementmodifier with approprate name to match one
         # already used in existing machine
         if name in existingnames:
             a = _GenerateElementModifier(item, name, verbose, flipmagnets, linear)
-        elif rname in existingnames:
-            a = _GenerateElementModifier(item, rname, verbose, flipmagnets, linear)
         else:
-            a = None
+            a = _GenerateElementModifier(item, rname, verbose, flipmagnets, linear)
+        
         if verbose:
             print a
         if a != None:

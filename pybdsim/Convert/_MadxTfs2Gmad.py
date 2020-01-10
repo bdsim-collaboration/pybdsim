@@ -14,6 +14,10 @@ _requiredKeys = frozenset([
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
     'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX', 'HGAP'])
 
+_ignoreableThinElements = {"MONITOR", "PLACEHOLDER", "MARKER",
+                           "RCOLLIMATOR", "ECOLLIMATOR",
+                           "COLLIMATOR", "INSTRUMENT"}
+
 # Constants
 # anything below this length is treated as a thin element
 _THIN_ELEMENT_THRESHOLD = 1e-6
@@ -40,6 +44,11 @@ def ZeroMissingRequiredColumns(tfsinstance):
            " to zero.").format(missingColsString)
     print msg
 
+def _WillIgnoreItem(item, tfsinstance, ignoreZeroLength, ignoreableThinElements):
+    tresult    = item['KEYWORD'] in ignoreableThinElements    
+    zerolength = item['L'] < 1e-9
+    result     = not tfsinstance.ElementPerturbs(item) and zerolength and ignoreZeroLength and tresult
+    return result
 
 def MadxTfs2Gmad(tfs, outputfilename,
                  startname             = None,
@@ -222,9 +231,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     # keep list of omitted zero length items
     itemsomitted = []
-    ignoreableThinElements = {"MONITOR", "PLACEHOLDER", "MARKER",
-                              "RCOLLIMATOR", "ECOLLIMATOR",
-                              "COLLIMATOR", "INSTRUMENT"}
 
     # iterate through input file and construct machine
     for item in madx[startname:stopname:stepsize]:
@@ -234,10 +240,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         i = item['INDEX']
 
         zerolength = True if item['L'] < 1e-9 else False
-        if (not madx.ElementPerturbs(item)
-                and zerolength
-                and ignorezerolengthitems
-                and t in ignoreableThinElements):
+        if (_WillIgnoreItem(item, madx, ignorezerolengthitems, _ignoreableThinElements)):
             if verbose:
                 print 'skipping zero-length item: {}'.format(name)
             itemsomitted.append(name)
@@ -427,10 +430,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
             [k1, k2, k3, k4, k5, k6, k1s, k2s, k3s, k4s, k5s, k6s])
 
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
-            if finiteStrength:
-                return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
-            return None # don't write it if all strengths are zero
-        if finiteStrength:
+            return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
+        else:
             return _Builder.Multipole(rname, l, knl=knl, ksl=ksl, **kws)
         return _Builder.Drift(rname, l, **kws)
     elif t == 'OCTUPOLE':
@@ -707,20 +708,25 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     # so in this submodule when we do from .. import Beam it's actually the
     # already imported class that's being imported
     beam = _Beam.Beam(particle, energy, 'gausstwiss')
-    beam.SetBetaX(data['BETX'])
-    beam.SetBetaY(data['BETY'])
-    beam.SetAlphaX(data['ALFX'])
-    beam.SetAlphaY(data['ALFY'])
-    beam.SetDispX(data['DXBETA'])
-    beam.SetDispY(data['DYBETA'])
-    beam.SetDispXP(data['DPXBETA'])
-    beam.SetDispYP(data['DPYBETA'])
     beam.SetEmittanceX(ex, 'm')
     beam.SetEmittanceY(ey, 'm')
     beam.SetSigmaE(sigmae)
-    beam.SetXP0(data['PX'])
-    beam.SetYP0(data['PY'])
-    beam.SetX0(data['X'])
-    beam.SetY0(data['Y'])
+
+    beamparams = {"SetBetaX":'BETX',
+                  "SetBetaY":'BETY',
+                  "SetAlphaX":'ALFX',
+                  "SetAlphaY":'ALFY',
+                  "SetDispX":'DXBETA',
+                  "SetDispY":'DYBETA',
+                  "SetDispXP":'DPXBETA',
+                  "SetDispYP":'DPYBETA',
+                  "SetXP0": 'PX',
+                  "SetYP0": 'PY',
+                  "SetX0": 'X',
+                  "SetY0": 'Y'
+                  }
+    for func,parameter in beamparams.iteritems():
+        if parameter in data.keys():
+            getattr(beam, func)(data[parameter])
 
     return beam

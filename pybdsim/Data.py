@@ -627,6 +627,31 @@ class ROOTHist(object):
         self.title  = hist.GetTitle()
         self.xlabel = hist.GetXaxis().GetTitle()
         self.ylabel = hist.GetYaxis().GetTitle()
+        self.errorsAreErrorOnMean = True
+
+    def ErrorsToSTD(self):
+        """
+        Errors are by default the error on the mean. Call this function
+        to multiply by sqrt(N) to convert to the standard deviation.
+        Will automatically only apply itself once even if repeatedly called.
+        """
+        if self.errorsAreErrorOnMean:
+            self.errors *= _np.sqrt(self.entries)
+            self.errorsAreErrorOnMean = False
+        else:
+            pass # don't double apply calculation
+
+    def ErrorsToErrorOnMean(self):
+        """
+        Errors are by default eh error on the mean. However, if you used
+        ErrorsToSTD, you can convert back to error on the mean with this
+        function, which divides by sqrt(N).
+        """
+        if self.errorsAreErrorOnMean:
+            pass # don't double apply calculation
+        else:
+            self.errors /= _np.sqrt(self.entries)
+            self.errorsAreErrorOnMean = True
 
 class TH1(ROOTHist):
     """
