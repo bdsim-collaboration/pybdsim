@@ -25,6 +25,7 @@ Bug Fixes
 
 * Fix loading of Model tree from ROOT output given some recent collimation variables may have
   a different structure or type from the existing ones.
+* In `pybdsim.Plot.Histogram2D`, the y log scale argument was "ylocscale" and is fixed to "yLogScale".
 
 v2.0 - 2019 / 02 / 27
 =====================
