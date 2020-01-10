@@ -14,6 +14,7 @@ New Featuers
 * For loaded histograms (using `pybdsim.Data.TH1`, `TH2`, `TH3` classes, there are now
   functions `ErrorsToSTD()` and `ErrorsToErrorOnMean()` to easily convert between the
   different types of error - the default is error on the mean.
+* New plotting function `pybdsim.Plot.Histogram2DErrors` to visualise 2D histogram errors.
 
 General
 -------
