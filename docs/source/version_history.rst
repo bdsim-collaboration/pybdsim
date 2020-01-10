@@ -11,6 +11,9 @@ New Featuers
 * Optional flag of whether to write out the converted model with `pybdsim.Convert.MadxTfs2Gmad`.
 * Machine builder now supports new bdsim jcol element.
 * Machine diagram drawing can now start from any arbitrary S location.
+* For loaded histograms (using `pybdsim.Data.TH1`, `TH2`, `TH3` classes, there are now
+  functions `ErrorsToSTD()` and `ErrorsToErrorOnMean()` to easily convert between the
+  different types of error - the default is error on the mean.
 
 General
 -------
