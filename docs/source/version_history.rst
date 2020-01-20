@@ -11,6 +11,10 @@ New Featuers
 * Optional flag of whether to write out the converted model with `pybdsim.Convert.MadxTfs2Gmad`.
 * Machine builder now supports new bdsim jcol element.
 * Machine diagram drawing can now start from any arbitrary S location.
+* For loaded histograms (using `pybdsim.Data.TH1`, `TH2`, `TH3` classes, there are now
+  functions `ErrorsToSTD()` and `ErrorsToErrorOnMean()` to easily convert between the
+  different types of error - the default is error on the mean.
+* New plotting function `pybdsim.Plot.Histogram2DErrors` to visualise 2D histogram errors.
 
 General
 -------
@@ -22,6 +26,7 @@ Bug Fixes
 
 * Fix loading of Model tree from ROOT output given some recent collimation variables may have
   a different structure or type from the existing ones.
+* In `pybdsim.Plot.Histogram2D`, the y log scale argument was "ylocscale" and is fixed to "yLogScale".
 
 v2.0 - 2019 / 02 / 27
 =====================
