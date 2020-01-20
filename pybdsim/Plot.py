@@ -12,6 +12,8 @@ import matplotlib.patches as _patches
 import matplotlib.ticker as _ticker
 import numpy as _np
 import string as _string
+import datetime as _datetime
+from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 
 from _General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
 
@@ -408,12 +410,14 @@ def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
         if '.' in outputfilename:
             outputfilename = outputfilename.split('.')[0]
         _plt.savefig(outputfilename + '_Npart.pdf')
-        _plt.savefig(outputfilename + '_Npart.png')
+        #_plt.savefig(outputfilename + '_Npart.png')
     return plot
 
-def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs):
+def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=None, **kwargs):
     """
-    Display all the optical function plots for a rebdsim optics root file.
+    Display all the optical function plots for a rebdsim optics root file. By default, this saves all optical
+    functions into a single (outputfilename) pdf, to save the optical functions separately, supply an
+    outputfilename with saveall=false.
     """
     bdsdata = rebdsimOpticsOutput
     if type(bdsdata) is str:
@@ -423,14 +427,36 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, survey=None, **kwargs)
         if hasattr(bdsdata, "model"):
             survey = bdsdata.model
 
-    PlotBeta(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotAlpha(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDisp(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotDispP(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigma(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotSigmaP(optics, survey=survey, outputfilename=outputfilename, **kwargs)
-    PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs)
+    # overwrite with none to prevent plotting individual optical functions as well as combined pdf
+    plotfilename=outputfilename
+    if saveall:
+        outputfilename=None
+
+    figures = [
+    PlotBeta(optics,   survey=survey, outputfilename=outputfilename, **kwargs),
+    PlotAlpha(optics,  survey=survey, outputfilename=outputfilename, **kwargs),
+    PlotDisp(optics,   survey=survey, outputfilename=outputfilename, **kwargs),
+    PlotDispP(optics,  survey=survey, outputfilename=outputfilename, **kwargs),
+    PlotSigma(optics,  survey=survey, outputfilename=outputfilename, **kwargs),
+    PlotSigmaP(optics, survey=survey, outputfilename=outputfilename, **kwargs),
+    PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs),
     PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    ]
+
+    if saveall:
+        if plotfilename is not None:
+            output_filename = plotfilename
+        else:
+            output_filename = "optics-report.pdf"
+
+        with _PdfPages(output_filename) as pdf:
+            for figure in figures:
+                pdf.savefig(figure)
+            d = pdf.infodict()
+            d['Title'] = "Optical Comparison"
+            d['CreationDate'] = _datetime.datetime.today()
+        print "Written ", output_filename
+
 
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, **errorbarKwargs):
     """
@@ -1017,8 +1043,8 @@ def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
 
     if bottomLeft is not None and topRight is not None :
         # This will crash but I'm not sure what it's supposed to do!
-        xlim(bottomLeft[0],topRight[0])
-        xlim(bottomLeft[1],topRight[1])
+        _plt.xlim(bottomLeft[0],topRight[0])
+        _plt.xlim(bottomLeft[1],topRight[1])
 
     ax0.legend(fontsize='small')
 
