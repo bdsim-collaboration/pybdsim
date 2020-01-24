@@ -493,7 +493,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         ax.set_title(title)
     return f
 
-def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactor=1.0, **errorbarKwargs):
+def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, **errorbarKwargs):
     """
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
@@ -511,11 +511,12 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
 
     f = _plt.figure(figsize=(10,5))
     ax = f.add_subplot(111)
-
-    xsf = xScalingFactor # shortcut
+    
     if scalingFactors is None:
         scalingFactors = _np.ones_like(histograms)
-    for h,l,sf in zip(histograms, labels, scalingFactors):
+    if xScalingFactors is None:
+        xScalingFactors = _np.ones_like(histograms)
+    for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
         ht = _Data.PadHistogram1D(h)
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
