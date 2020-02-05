@@ -605,21 +605,30 @@ def Histogram3D(th3):
     """
     print 'Not written yet - best take a slice or projection and plot a 2D histogram'
 
-def PrimaryPhaseSpace(filename, outputfilename=None):
+def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):
     """
     Load a BDSIM output file and plot primary phase space. Only accepts raw BDSIM output.
-    """
-    PhaseSpaceFromFile(filename, 0, outputfilename=outputfilename)
 
-def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None):
+    'outputfilename' should be without an extension - any extension will be stripped off.
+    Plots are saves automatically as pdf, the file extension can be changed with
+    the 'extension' kwarg, e.g. extension='.png'.
+    """
+    PhaseSpaceFromFile(filename, 0, outputfilename=outputfilename, extension=extension)
+
+def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf'):
     """
     Load a BDSIM output file and plot the phase space of a sampler (default the primaries).
     Only accepts raw BDSIM output.
+
+    'outputfilename' should be without an extension - any extension will be stripped off.
+    Plots are saves automatically as pdf, the file extension can be changed with
+    the 'extension' kwarg, e.g. extension='.png'.
+
     """
     import Data as _Data
     d = _Data.Load(filename)
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
-    PhaseSpace(psd, outputfilename=outputfilename)
+    PhaseSpace(psd, outputfilename=outputfilename, extension=extension)
 
 def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
     """
@@ -906,13 +915,15 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     if outputfilename is not None:
         _plt.savefig(outputfilename)
 
-def PhaseSpace(data, nbins=None, outputfilename=None):
+def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
     """
     Make two figures for coordinates and correlations.
 
     Number of bins chosen depending on number of samples.
 
-    'outputfilename' is name without extension.
+    'outputfilename' should be without an extension - any extension will be stripped off.
+     Plots are saves automatically as pdf, the file extension can be changed with
+     the 'extension' kwarg, e.g. extension='.png'.
     """
     if nbins == None:
         entries = data._entries
@@ -997,8 +1008,8 @@ def PhaseSpace(data, nbins=None, outputfilename=None):
     if outputfilename != None:
         if '.' in outputfilename:
             outputfilename = outputfilename.split('.')[0]
-        _plt.savefig(outputfilename + '.pdf')
-        _plt.savefig(outputfilename + '.png')
+        f.savefig(outputfilename + '_coords'+extension)
+        f2.savefig(outputfilename + '_correlations'+extension)
 
 def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
     if float(x) == 1.0:
