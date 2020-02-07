@@ -178,6 +178,17 @@ def RunBdsim(gmadpath, outfile, ngenerate=10000, batch=True,
     else:
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
+def RunRebdsim(rootpath, inpath, outpath,silent=False):
+    """Run rebdsim with rootpath as analysisConfig file, inpath as bdsim 
+    file, and outpath as output analysis file."""
+    if not _General.IsROOTFile(inpath):
+        raise IOError("Not a ROOT file")
+    if silent:
+        return _subprocess.call(["rebdsim", rootpath , inpath , outpath],
+                               stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call(["rebdsim", rootpath, inpath, outpath])
+    
 def RunRebdsimOptics(rootpath, outpath, silent=False):
     """Run rebdsimOptics"""
     if not _General.IsROOTFile(rootpath):
