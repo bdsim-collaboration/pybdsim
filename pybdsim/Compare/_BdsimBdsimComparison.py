@@ -69,8 +69,8 @@ def _parse_bdsim_input(bdsim_in, name):
        return bdsim_in, name
    except AttributeError:
        raise TypeError(
-           "Expected Tfs input is neither a "
-           "file path nor a Tfs instance: {}".format(bdsim_in))
+           "Expected Bdsim input is neither a "
+           "file path nor a rebdsim BDSAsciiData instance: {}".format(bdsim_in))
 
 # use closure to avoid tonnes of boilerplate code as happened with
 # MadxBdsimComparison.py
