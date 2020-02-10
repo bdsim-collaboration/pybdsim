@@ -225,8 +225,14 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
         mass = _con.electron_mass * _con.c**2 / _con.e / 1e9
     elif (pid == 13) or (pid == -13):                   #mu- / mu+
         mass = 0.1056583745
+    elif (pid == 1000020040):                           # helium4 nuclei
+        mass = 4.676671525    # value calculated by Keenan Ngo 02/2020
+    elif (pid == 1000060120):                           # carbon12 nuclei
+        mass = 14.03001457    # value calculated by Keenan Ngo 02/2020
 
     #TODO: Add more particle masses and particle numbers as needed.
+    # Note PDGID scheme for ions is 10LZZZAAAI - L is no. strange quarks (0 realistically), Z is no. protons,
+    # A is no. neutrons+protons, and I is excited state, 0 being ground.
 
     if mass == 0:
         raise ValueError('Unknown particle species.')
