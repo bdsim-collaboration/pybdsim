@@ -945,7 +945,7 @@ class TrajectoryData(object):
 
                 try:
                     xyz = self._trajectory.xyz[i]
-                    pypxpy = self._trajectory.pxpypz[i]
+                    pxpypz = self._trajectory.pxpypz[i]
                 except IndexError:
                     xyz = _np.zeros(len(t))
                     pxpypz = _np.zeros(len(t))
