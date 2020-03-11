@@ -183,6 +183,8 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'sbend':
             DrawBend(starts[i],lengths[i], u'#0066cc') #blue
+        elif kw == 'dipolefringe':
+            DrawBend(starts[i],lengths[i], u'#0066cc') #blue
         elif kw == 'hkicker':
             DrawRect(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'vkicker':
@@ -198,6 +200,8 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
         elif kw == 'decapole':
             DrawHex(starts[i],lengths[i], u'#4c33b2') #purple
         elif kw == 'drift':
+            pass
+        elif kw == 'gap':
             pass
         elif kw == 'multipole':
             DrawHex(starts[i],lengths[i],'grey',alpha=0.5)
