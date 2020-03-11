@@ -601,9 +601,21 @@ def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False
 
 def Histogram3D(th3):
     """
-    Plot a pybdsim.Data.TH1 instance - TBC
+    Plot a pybdsim.Data.TH3 instance - TBC
     """
     print 'Not written yet - best take a slice or projection and plot a 2D histogram'
+    from mpl_toolkits.mplot3d import axes3d, Axes3D
+    f = _plt.figure()
+    ax = f.gca(projection='3d')
+
+    fill = th3.contents > 0
+    l = _LogNorm()
+    d = l(th3.contents)
+    d.data[d.mask] = 0
+    colours = _plt.cm.viridis(l(th3.contents))
+    colours[:,:,:,3] = d.data
+    ax.voxels(fill, facecolors=colours)
+    #return colours
 
 def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):
     """

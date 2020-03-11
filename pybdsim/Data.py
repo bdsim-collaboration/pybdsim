@@ -643,7 +643,7 @@ class ROOTHist(object):
 
     def ErrorsToErrorOnMean(self):
         """
-        Errors are by default eh error on the mean. However, if you used
+        Errors are by default the error on the mean. However, if you used
         ErrorsToSTD, you can convert back to error on the mean with this
         function, which divides by sqrt(N).
         """
