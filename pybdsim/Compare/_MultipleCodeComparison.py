@@ -789,22 +789,26 @@ def CompareOpticsResiduals(first=None, firstname=None,
                            saveIndivFigs=False,
                            **kwargs):
     """
-    Compares absolute residual optics of multiple files supplied. Can be any combination of single or multiple
-    BDSIM, Tfs, ptc_twiss output, or PTC output (PTC output converted to BDSIM compatible format).
-    Pymadx.Data.TFS or pybdsim.Data.BDSAsciiData instances can also be supplied instead of filenames.
+    Compares absolute residual optics of multiple files supplied. Can be any 
+    combination of single or multiple BDSIM, Tfs, ptc_twiss output, or PTC 
+    output (PTC output converted to BDSIM compatible format). pymadx.Data.TFS 
+    or pybdsim.Data.BDSAsciiData instances can also be supplied instead of filenames.
 
-    Names can be supplied along with the filenames that will appear in the legend. Multiple filenames
-    can be supplied in a list. If the number of names is not equal to the number of filenames, the supplied
-    names will be ignored.
+    Names can be supplied along with the filenames that will appear in the legend. 
+    Multiple filenames can be supplied in a list. If the number of names is not 
+    equal to the number of filenames, the supplied names will be ignored.
 
-    The "type" of data must also be supplied to help distinguish the data type and subsequent loading and processing.
-    Must be one of "bdsim", "tfs", "ptctwiss", or "ptc".
+    The "type" of data must also be supplied to help distinguish the data type 
+    and subsequent loading and processing. Must be one of "bdsim", "tfs", "ptctwiss", 
+    or "ptc".
 
-    The residuals will be the first data minus the second data. The residuals can also be relative to a third
-    data set supplied by the relativeTo argument. This can be a filename or instance of a BDSIM, Tfs, ptc_twiss,
-    or PTC output. Errors are not plotted by default. If errors are desired, the errors plotted are calculated
-    from the supplied data (and relative data) using standard error propagation to ensure they are statistically
-    correct. If nothing is supplied to the relativeTo arguments, the residuals are plotted as absolute.
+    The residuals will be the first data minus the second data. The residuals can 
+    also be relative to a third data set supplied by the relativeTo argument. 
+    This can be a filename or instance of a BDSIM, Tfs, ptc_twiss, or PTC output. 
+    Errors are not plotted by default. If errors are desired, the errors plotted 
+    are calculated from the supplied data (and relative data) using standard error 
+    propagation to ensure they are statistically correct. If nothing is supplied 
+    to the relativeTo arguments, the residuals are plotted as absolute.
 
     +--------------------+---------------------------------------------------------+
     | **Parameters**     | **Description**                                         |
