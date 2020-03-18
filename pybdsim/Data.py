@@ -408,7 +408,11 @@ class BDSAsciiData(list):
             if self.names.count(variablename) == 0:
                 raise KeyError(variablename+" is not a variable in this data")
             ind = self.names.index(variablename)
-            return _np.array([event[ind] for event in self])
+            try:
+                return _np.array([event[ind] for event in self])
+            except TypeError:
+                return _np.array([str(event[ind]) for event in self])
+                
         setattr(self,variablename,GetAttribute)
 
     def ConcatenateMachine(self, *args):
