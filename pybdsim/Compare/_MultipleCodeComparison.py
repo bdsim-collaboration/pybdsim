@@ -789,6 +789,15 @@ def CompareOpticsResiduals(first=None, firstname=None,
                            saveIndivFigs=False,
                            **kwargs):
     """
+    pybdsim.Compare.CompareOptics(bdsim="t1_optics.root",bdsimname="BDSIM", tfs="t1.tfs", tfsname="Madx Twiss",
+                                  ptctwiss="ptc_twiss.outx", ptctwissname="PTC Twiss",
+                                  ptc="ptc_optics.root", ptcname="PTC Track",
+                                  survey="bdsim_surv.dat', outputFilename="BDSIMVsTFSVsPTCTWISSVsPTCTRACK.pdf")
+    
+    pybdsim.Compare.CompareOptics(bdsim=["t1_optics.root","t2_optics.root"], bdsimname=["BDSIM 10 GeV","BDSIM 20 GeV"],
+                                  tfs=["t1.tfs","t2.tfs"], tfsname=["TFS 10 GeV","TFS 20 GeV"],
+                                  outputFilename="BDSIMVsTFS_10GeV20GeV.pdf")
+
     Compares absolute residual optics of multiple files supplied. Can be any 
     combination of single or multiple BDSIM, Tfs, ptc_twiss output, or PTC 
     output (PTC output converted to BDSIM compatible format). pymadx.Data.TFS 
@@ -862,16 +871,6 @@ def CompareOpticsResiduals(first=None, firstname=None,
     | saveIndivFigs      | Save each plot individually as PDF.                     |
     |                    | default = false                                         |
     +--------------------+---------------------------------------------------------+
-    examples:
-
-    pybdsim.Compare.CompareOptics(bdsim=["t1_optics.root","t2_optics.root"], bdsimname=["BDSIM 10 GeV","BDSIM 20 GeV"],
-                                  tfs=["t1.tfs","t2.tfs"], tfsname=["TFS 10 GeV","TFS 20 GeV"],
-                                  outputFilename="BDSIMVsTFS_10GeV20GeV.pdf")
-
-    pybdsim.Compare.CompareOptics(bdsim="t1_optics.root",bdsimname="BDSIM", tfs="t1.tfs", tfsname="Madx Twiss",
-                                  ptctwiss="ptc_twiss.outx", ptctwissname="PTC Twiss",
-                                  ptc="ptc_optics.root", ptcname="PTC Track",
-                                  survey="bdsim_surv.dat', outputFilename="BDSIMVsTFSVsPTCTWISSVsPTCTRACK.pdf")
 
     """
 
