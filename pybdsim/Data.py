@@ -565,10 +565,10 @@ class BDSAsciiData(list):
             try:
                 ind = self._columnsLower.index(columnstring.lower())
             except:
-                raise ValueError("Invalid column name")
+                raise ValueError("Invalid column name \"" + columnstring + "\"")
         else:
             if columnstring not in self.columns:
-                raise ValueError("Invalid column name")
+                raise ValueError("Invalid column name \"" + columnstring + "\"")
             else:
                 ind = self.names.index(columnstring)
         return _np.array([element[ind] for element in self])
