@@ -38,7 +38,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
         fname = "optics_report"
 
     tfsinst = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+    bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim, True)
 
     tfsheader = tfsinst.header
     tfsopt  = _GetTfsOptics(tfsinst)
@@ -109,7 +109,7 @@ def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None, postfunctions=None
 
     _CheckFilesExist(tfs, bdsim, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim, True)
 
     tfsorbit  = _GetTfsOrbit(tfsinst)
     bdsopt    = _GetBDSIMOptics(bdsinst)
