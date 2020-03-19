@@ -201,6 +201,7 @@ def _LoadVectorTree(tree):
     #tempData = []
     for value in tree:
         row = [getattr(value,l) for l in lvs]
+        row = [str(value) if not isinstance(value, float) else value for value in row]
         result.append(row)
 
     #result = map(tuple, *tempData)
