@@ -158,14 +158,14 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
 	tfsdata[n]  = tfsdata[n][_np.isin(rn,bdslist)] 
 	bdsdata[n]  = bdsdata[n][_np.isin(bdslist,rn)] 
         tfsdata[n] = _np.array(tfsdata[n])
-        bdsdata[n] = _np.array(bdsdata[n])
-    
+        bdsdata[n] = _np.array(bdsdata[n])   
 
     return tfsdata,bdsdata 
  
 
 def MadxVsBDSIMFromGMAD(tfs, gmad, outputfilename):
-    """Runs the BDSIM model provided by the gmad file given, gets the
+    """
+    Runs the BDSIM model provided by the gmad file given, gets the
     optics, and then compares them with TFS.
 
     tfs - path to TFS file or a pymadx.Data.Tfs instance
@@ -533,7 +533,7 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, f
 def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None, verbose=False, figsize=(12,5)):
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
+    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds)
     tfsd = PrepareResiduals(tfs, bds)
     tdata = tfsd[0]
     bdata = tfsd[1]
