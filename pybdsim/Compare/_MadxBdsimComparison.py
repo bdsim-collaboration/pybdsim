@@ -105,21 +105,6 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
 
         print "Written ", output_filename
 
-def MadxVsBDSIMOrbit(tfs, bdsim, survey=None, functions=None, postfunctions=None):
-
-    _CheckFilesExist(tfs, bdsim, survey)
-    tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bdsim, True)
-
-    tfsorbit  = _GetTfsOrbit(tfsinst)
-    bdsopt    = _GetBDSIMOptics(bdsinst)
-
-    if survey is None:
-        survey = tfsinst
-
-    PlotOrbit(tfsorbit, bdsopt, survey=survey, functions=functions)
-    #PlotOrbitResiduals(tfsorbit, bdsopt, survey=survey, functions=functions)
-
 def PrepareResiduals(tfs, bds, survey=None, verbose=False):
     """
     Filter the tfs and bds to provide data that will match the 
@@ -505,7 +490,7 @@ def PlotNParticles(bdsopt, survey=None, functions=None, postfunctions=None, figs
     _plt.show(block=False)
     return npartPlot
 
-def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
     orbitPlot = _plt.figure('Orbit', figsize=figsize)
 
     #tfs
@@ -530,7 +515,7 @@ def PlotOrbit(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, f
     _plt.show(block=False)
     return orbitPlot
 
-def PlotOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None, verbose=False, figsize=(12,5)):
+def MadxVsBDSIMOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None, verbose=False, figsize=(12,5)):
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds)
