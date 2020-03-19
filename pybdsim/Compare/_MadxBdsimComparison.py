@@ -491,17 +491,42 @@ def PlotNParticles(bdsopt, survey=None, functions=None, postfunctions=None, figs
     return npartPlot
 
 def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
-    orbitPlot = _plt.figure('Orbit', figsize=figsize)
+    """
+    Plot both the BDSIM orbit and MADX orbit (mean x,y).
 
+    tfs - either file name or pymadx.Data.Tfs instance
+    bds - filename or BDSAsciiData instance - rebdsimOrbit, rebdsimOptics output files
+    """
+    _CheckFilesExist(tfs, bds, survey)
+    tfsopt = _pymadx.Data.CheckItsTfs(tfs)
+    bdsopt = _pybdsim._General.CheckItsBDSAsciiData(bds)
+
+    orbitPlot = _plt.figure('Orbit', figsize=figsize)
+    
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['X'], 'b', label=r'MADX $\bar{x}$')
-    _plt.plot(tfsopt['S'], tfsopt['Y'], 'g', label=r'MADX $\bar{y}$')
+    tfs_s = tfsopt.GetColumn('S')
+    tfs_x = tfsopt.GetColumn('X')
+    tfs_y = tfsopt.GetColumn('Y')
+    _plt.plot(tfs_s, tfs_x, 'b', label=r'MADX $\bar{x}$')
+    _plt.plot(tfs_s, tfs_y, 'g', label=r'MADX $\bar{y}$')
 
     #bdsim
-    _plt.plot(bdsopt['s'], bdsopt['x'], 'b.', label='BDSIM x')
-    _plt.plot(bdsopt['s'], bdsopt['x'], 'b-', alpha=0.4)
-    _plt.plot(bdsopt['s'], bdsopt['y'], 'g.', label='BDSIM y')
-    _plt.plot(bdsopt['s'], bdsopt['y'], 'g-', alpha=0.4)
+    if type(bdsopt) == _pybdsim.Data.RebdsimFile:
+        if (hasattr(bdsopt, "orbit")):
+            bds_s = bdsopt.orbit.s()
+            bds_x = bdsopt.orbit.x()
+            bds_y = bdsopt.orbit.y()
+        else:
+            raise ValueError("No orbit in file")
+    elif type(bdsopt) == _pybdsim.Data.BDSAsciiData:
+        # ironically this will come if it's a rebdsim optics output
+        bds_s = bdsopt.GetColumn('S')
+        bds_x = bdsopt.GetColumn('Mean_x')
+        bds_y = bdsopt.GetColumn('Mean_y')
+    _plt.plot(bds_s, bds_x, 'b.', label='BDSIM x')
+    _plt.plot(bds_s, bds_x, 'b-', alpha=0.4)
+    _plt.plot(bds_s, bds_y, 'g.', label='BDSIM y')
+    _plt.plot(bds_s, bds_y, 'g-', alpha=0.4)
     
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
