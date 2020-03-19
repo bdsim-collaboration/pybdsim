@@ -656,16 +656,16 @@ def _CompareOptics(bdsim=None, bdsimname=None,
             d['CreationDate'] = _datetime.datetime.today()
         print "Written ", output_filename
 
-def CompareOptics(bdsim=None, bdsimname=None,
-                  tfs=None, tfsname=None,
-                  ptctwiss=None, ptctwissname=None,
-                  ptc=None, ptcname=None,
-                  survey=None, figsize=(9, 5),
-                  saveAll=True,
+def Optics(bdsim=None, bdsimname=None,
+           tfs=None, tfsname=None,
+           ptctwiss=None, ptctwissname=None,
+           ptc=None, ptcname=None,
+           survey=None, figsize=(9, 5),
+           saveAll=True,
                   outputFilename=None,
-                  plotAxesSeparately=False,
-                  saveIndivFigs=False,
-                  **kwargs):
+           plotAxesSeparately=False,
+           saveIndivFigs=False,
+           **kwargs):
     """
     Compares optics of multiple files supplied. Can be any combination of single or multiple
     BDSIM, Tfs, ptc_twiss output, or PTC output (PTC output converted to BDSIM compatible format).
@@ -776,18 +776,18 @@ def CompareOptics(bdsim=None, bdsimname=None,
     _CompareOptics(bdsim, bdsimname, tfs, tfsname, ptctwiss, ptctwissname, ptc, ptcname, plotterData=plotterData)
 
 
-def CompareOpticsResiduals(first=None, firstname=None,
-                           second=None, secondname=None,
-                           firsttype="",
-                           secondtype="",
-                           survey=None, figsize=(9, 5),
-                           relativeTo=None,
-                           saveAll=True,
-                           includeErrors=False,
-                           outputFilename=None,
-                           plotAxesSeparately=False,
-                           saveIndivFigs=False,
-                           **kwargs):
+def OpticsResiduals(first=None, firstname=None,
+                    second=None, secondname=None,
+                    firsttype="",
+                    secondtype="",
+                    survey=None, figsize=(9, 5),
+                    relativeTo=None,
+                    saveAll=True,
+                    includeErrors=False,
+                    outputFilename=None,
+                    plotAxesSeparately=False,
+                    saveIndivFigs=False,
+                    **kwargs):
     """
     pybdsim.Compare.CompareOptics(bdsim="t1_optics.root",bdsimname="BDSIM", tfs="t1.tfs", tfsname="Madx Twiss",
                                   ptctwiss="ptc_twiss.outx", ptctwissname="PTC Twiss",
