@@ -512,6 +512,8 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
                         xScalingFactor=1e6,
                         log=True)
     """
+    if "xScalingFactor" in errorbarKwargs:
+        raise ValueError("'xScalingFactor' - did you mean 'xScalingFactors'?")
 
     f = _plt.figure(figsize=figsize)
     ax = f.add_subplot(111)
@@ -520,6 +522,8 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
         scalingFactors = _np.ones_like(histograms)
     if xScalingFactors is None:
         xScalingFactors = _np.ones_like(histograms)
+    elif type(xScalingFactors) == float or type(xScalingFactors) == int:
+        xScalingFactors = xScalingFactors * _np.ones_like(histograms)
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
         ht = _Data.PadHistogram1D(h)
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
