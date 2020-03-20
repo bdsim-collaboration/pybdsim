@@ -463,7 +463,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
         print "Written ", output_filename
 
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(10,5), **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
 
@@ -476,7 +476,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     if 'drawstyle' not in errorbarKwargs:
         errorbarKwargs['drawstyle'] = 'steps-mid'
     h = histogram
-    f = _plt.figure(figsize=(10,5))
+    f = _plt.figure(figsize=figsize)
     ax = f.add_subplot(111)
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
@@ -497,7 +497,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         ax.set_title(title)
     return f
 
-def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, **errorbarKwargs):
+def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),**errorbarKwargs):
     """
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
@@ -513,7 +513,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
                         log=True)
     """
 
-    f = _plt.figure(figsize=(10,5))
+    f = _plt.figure(figsize=figsize)
     ax = f.add_subplot(111)
     
     if scalingFactors is None:
@@ -546,7 +546,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     
     return f
 
-def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, **imshowKwargs):
+def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -559,7 +559,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     yScalingFactor - multiplier for y coordinates
     """
     h = histogram
-    f = _plt.figure()
+    f = _plt.figure(figsize=figsize)
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
@@ -597,11 +597,11 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         _plt.title(title)
     return f
 
-def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, **imshowKwargs):
+def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), **imshowKwargs):
     h2 = _copy.deepcopy(histogram)
     h2.contents = h2.errors # set contents as errors and just use regular plot
     return Histogram2D(h2, logNorm, xLogScale, yLogScale, xlabel, ylabel, zlabel, title, aspect, scalingFactor,
-                       xScalingFactor, yScalingFactor, **imshowKwargs)
+                       xScalingFactor, yScalingFactor, figsize, **imshowKwargs)
 
 def Histogram3D(th3):
     """
