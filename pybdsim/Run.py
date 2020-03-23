@@ -71,8 +71,6 @@ class GmadModifier(object):
     
     def ReplaceTokens(self,tokenDict) :
         pass
-        
-
 
 class Study(object):
     """
@@ -153,15 +151,18 @@ class Study(object):
             self.outputsizes.append(0)
 
 
-def RunBdsim(gmadpath, outfile, ngenerate=10000, batch=True,
-             silent=False, options=None):
-    """Runs bdsim with gmadpath as inputfile and outfile as outfile.
+def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
+          silent=False, options=None, bdsimExectuable=None):
+    """
+    Runs bdsim with gmadpath as inputfile and outfile as outfile.
     Runs in batch mode by default, with 10,000 particles.  Any extra
     options should be provided as a string or iterable of strings of
     the form "--vis_debug" or "--vis_mac=vis.mac", etc.
 
     """
-    args = ["bdsim",
+    if not bdsimExectuable:
+        bdsimExectuable = "bdsim"
+    args = [bdsimExectuable,
             "--file={}".format(gmadpath),
             "--outfile={}".format(outfile),
             "--ngenerate={}".format(ngenerate)]
@@ -178,18 +179,22 @@ def RunBdsim(gmadpath, outfile, ngenerate=10000, batch=True,
     else:
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
-def RunRebdsim(rootpath, inpath, outpath,silent=False):
-    """Run rebdsim with rootpath as analysisConfig file, inpath as bdsim 
-    file, and outpath as output analysis file."""
+def Rebdsim(rootpath, inpath, outpath,silent=False, rebdsimExecutable=None):
+    """
+    Run rebdsim with rootpath as analysisConfig file, inpath as bdsim 
+    file, and outpath as output analysis file.
+    """
+    if not rebdsimExectuable:
+        rebdsimExectuable = "bdsim"
     if not _General.IsROOTFile(inpath):
         raise IOError("Not a ROOT file")
     if silent:
-        return _subprocess.call(["rebdsim", rootpath , inpath , outpath],
+        return _subprocess.call([rebdsimExectuable, rootpath , inpath , outpath],
                                stdout=open(_os.devnull, 'wb'))
     else:
-        return _subprocess.call(["rebdsim", rootpath, inpath, outpath])
+        return _subprocess.call([rebdsimExectuable, rootpath, inpath, outpath])
     
-def RunRebdsimOptics(rootpath, outpath, silent=False):
+def RebdsimOptics(rootpath, outpath, silent=False):
     """Run rebdsimOptics"""
     if not _General.IsROOTFile(rootpath):
         raise IOError("Not a ROOT file")
@@ -199,8 +204,21 @@ def RunRebdsimOptics(rootpath, outpath, silent=False):
     else:
         return _subprocess.call(["rebdsimOptics", rootpath, outpath])
 
+def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExectuable=None):
+    """Run rebdsimHistoMerge"""
+    if not rebdsimHistoExectuable:
+        rebdsimHistoExectuable = "rebdsimHistoMerge"
+    if not _General.IsROOTFile(rootpath):
+        raise IOError("Not a ROOT file")
+    if silent:
+        return _subprocess.call([rebdsimHistoExectuable, rootpath, outpath],
+                               stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call([rebdsimHistoExectuable, rootpath, outpath])
+
 def GetOpticsFromGMAD(gmad, keep_optics=False):
-    """Get the optical functions as a BDSAsciiData instance from this
+    """
+    Get the optical functions as a BDSAsciiData instance from this
     GMAD file. If keep_optics is false then all intermediate files are
     discarded, otherwise the final optics ROOT file is written to ./
     """
@@ -208,15 +226,11 @@ def GetOpticsFromGMAD(gmad, keep_optics=False):
     gmadname = _os.path.splitext(_os.path.basename(gmad))[0]
     _os.mkdir(tmpdir)
 
-    RunBdsim(gmad,
-             "{}/{}".format(tmpdir, gmadname), silent=False,
-             ngenerate=10000)
+    Bdsim(gmad, "{}/{}".format(tmpdir, gmadname), silent=False, ngenerate=10000)
     bdsim_output_path = "{}/{}.root".format(tmpdir, gmadname)
     if keep_optics: # write output root file locally.
-        RunRebdsimOptics(bdsim_output_path,
-                         "./{}-optics.root".format(gmadname))
+        RebdsimOptics(bdsim_output_path, "./{}-optics.root".format(gmadname))
         return _Data.Load("./{}-optics.root".format(gmadname))
     else: # do it in /tmp/
-        RunRebdsimOptics(bdsim_output_path,
-                         "{}/{}-optics.root".format(tmpdir, gmadname))
+        RebdsimOptics(bdsim_output_path, "{}/{}-optics.root".format(tmpdir, gmadname))
         return _Data.Load("{}/{}-optics.root".format(tmpdir, gmadname))
