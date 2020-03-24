@@ -152,7 +152,7 @@ class Study(object):
 
 
 def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
-          silent=False, options=None, bdsimExectuable=None):
+          silent=False, errorSilent=False, options=None, bdsimExectuable=None):
     """
     Runs bdsim with gmadpath as inputfile and outfile as outfile.
     Runs in batch mode by default, with 10,000 particles.  Any extra
@@ -176,6 +176,8 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
 
     if not silent:
         return _subprocess.call(args)
+    elif silent and errorSilent:
+        return _subprocess.call(args, stdout=open(_os.devnull, 'wb'),stderr=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
