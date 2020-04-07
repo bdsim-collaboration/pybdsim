@@ -73,7 +73,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  linear                = False,
                  overwrite             = True,
                  write                 = True,
-                 allNamesUnique        = False):
+                 allNamesUnique        = False,
+                 namePrepend           = ""):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -188,6 +189,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
     | **write**                     | Whether to write the converted machine to file or not.            |
     +-------------------------------+-------------------------------------------------------------------+
+    | **namePrepend**               | Optional string prepended to the name of every component.         |
+    +-------------------------------+-------------------------------------------------------------------+
 
     """
 
@@ -250,7 +253,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                               userdict, collimatordict, partnamedict,
                                               flipmagnets, linear,
                                               zerolength, ignorezerolengthitems,
-                                              allNamesUnique)
+                                              allNamesUnique,
+                                              namePrepend)
         if gmadElement is None: # factory returned nothing, go to next item.
             continue
         # We generally convert unsupported elements in the factory to
@@ -274,9 +278,6 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                                           aperturedict,
                                                           defaultAperture)
             machine.Append(element_with_aper)
-
-    # add a single marker at the end of the line
-    machine.AddMarker('theendoftheline')
 
     if (samplers is not None):
         machine.AddSampler(samplers)
@@ -311,7 +312,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                             userdict, collimatordict, partnamedict, flipmagnets,
                             linear, zerolength,
                             ignorezerolengthitems,
-                            allNamesUnique):
+                            allNamesUnique,
+                            namePrepend=""):
     """
     Function which makes the correct GMAD element given a TFS
     element to gmad.
@@ -346,6 +348,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
     # append any user defined parameters for this element into the
     # kws dictionary
 
+    rname = namePrepend + rname
     # name appears in the madx.  try this first.
     if name in userdict:
         kws.update(userdict[name])
