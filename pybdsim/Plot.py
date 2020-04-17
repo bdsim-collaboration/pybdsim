@@ -15,6 +15,7 @@ import numpy as _np
 import string as _string
 import datetime as _datetime
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
+from scipy import constants as _con
 
 from _General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
 
@@ -650,6 +651,389 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None, exte
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
     PhaseSpace(psd, outputfilename=outputfilename, extension=extension)
 
+def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf',
+                           nbins=None, energy='total', offsetTime=True, includeSecondaries=False,
+                           coordsTitle=None, correlationTitle=None, scalefactors={}, labels={},
+                           log1daxes=False, log2daxes=False, includeColorbar=True):
+    """
+    Plot the coordinates and correlations of both the transverse and longitudinal phase space in separate plots
+    (four total) recorded in a sampler. Default sampler is the primary distribution.
+
+    'outputfilename' is name without extension, extension can be supplied as a string separately. Default = pdf.
+
+    The number of bins chosen depending on number of samples. Can be overridden with nbins.
+
+    Energy can be binned as either kinetic or total (default), supply either energy='total' or energy='kinetic'.
+
+    offSetTime centers the time distribution about the nominal time for the specified sampler rather than
+    the absolute time. Default = True.
+
+    Secondaries can be included in the distributions with includeSecondaries. Default = False.
+
+    Plot titles can be supplied as strings with coordsTitle and correlationTitle.
+
+    Parameter scale factors should be supplied in a dictionary in the format {parameter: scalefactor},
+    e.g scalefactors={'x': 1000, 'y':1000}. Acceptable parameters are 'x','y','xp','yp', 'T','kinetic',
+    and 'energy' for total energy.
+
+    Axis labels for parameters should be supplied as a dictionary in the format {parameter: label},
+    e.g labels={'x': "X (mm)", 'energy': "Energy (MeV)"}. Acceptable parameters are 'x','y','xp','yp',
+    'T','kinetic', and 'energy' for total energy.
+
+    log1daxes & log2daxes plots the 1D and 2D phase space on logarithmic scales respectively. Defaults = False.
+
+    includeColorbar adds a colorbar to the correlation plots. The colorbar is normalised for all plot subfigures.
+    Default = True.
+    """
+
+    defaultLabels = {'x': 'X (mm)',
+                     'y': 'Y (mm)',
+                     'xp': r'X$^{\prime}$  $(\times 10^{-3})$',
+                     'yp': r'Y$^{\prime}$  $(\times 10^{-3})$',
+                     'T': 'T (ns)',
+                     'energy': 'Energy (GeV)',
+                     'kinetic': 'Kinetic Energy (GeV)'
+                     }
+
+    defaultScales = {'x': 1000,  # m to mm
+                     'y': 1000,  # m to mm
+                     'xp': 1000,  # rad to mrad
+                     'yp': 1000,  # rad to mrad
+                     'T': 1,  # s
+                     'energy': 1,  # GeV
+                     'kinetic': 1  # GeV
+                     }
+
+    if (str.lower(energy) != 'kinetic') and (str.lower(energy) != 'total'):
+        raise ValueError("energy parameter can only be 'kinetic' or 'total'")
+
+    # load the data
+    filedata = _Data.Load(filename)
+    sd = _Data.SamplerData(filedata, samplerIndexOrName=samplerIndexOrName)
+    beam = _Data.BeamData(filedata)  # needed for offsetting T distributions in phasespace plots
+    data = sd.data  # shortcut
+
+    # primary and sampler masses
+    mass = 0.938272  # (default) for KE calculation
+    primarymass = mass  # (default) for nominal sampler T
+    if offsetTime or energy == 'kinetic':  # only get if necessary, otherwise cut out primary sampler data load time
+        if samplerIndexOrName == 0:
+            mass = data['mass'][0]  # primary mass stored in sampler
+            primarymass = mass
+        else:
+            psd = _Data.SamplerData(filedata, samplerIndexOrName=0)
+            primarymass = psd.data['mass'][0]
+
+            if not includeSecondaries:  # use mass from primary sampler
+                mass = primarymass
+            else:  # calculate different particle masses
+                mass = []
+                # TODO: Add masses as appropriate
+                for pidindex, pid in enumerate(data['partID']):
+                    if pid == 2212:
+                        mass.append(_con.proton_mass * _con.c*_con.c/ _con.electron_volt / 1e9)
+                    elif pid == 2112:
+                        mass.append(_con.neutron_mass * _con.c*_con.c/ _con.electron_volt / 1e9)
+                    elif (pid == 11) or (pid == -11):
+                        mass.append(_con.electron_mass * _con.c * _con.c / _con.electron_volt / 1e9)
+                    else:
+                        mass.append(0)  # photons etc
+
+    if nbins is None:
+        entries = sd._entries
+        nbins = int(_np.ceil(25*(entries/100.)**0.2))
+        print 'Automatic number of bins> ', nbins
+
+    # switch total energy to bdsim sampler parameter name
+    if energy == 'total':
+        energy = 'energy'
+
+    # empty containers for storing labels and data
+    l = {}
+    da = {}
+
+    for parameter in ('x', 'y', 'xp', 'yp', 'T', energy):
+        # get the parameter label
+        if parameter in labels.keys():
+            l[parameter] = labels[parameter]
+        else:
+            l[parameter] = defaultLabels[parameter]
+
+        if parameter == 'kinetic':
+            if data['kineticEnergy'].size != 0:  # check if KE stored in output to begin with
+                da[parameter] = data['kineticEnergy']
+            elif not includeSecondaries:
+                primKEs = _np.array([data['energy'][i] for i, j in enumerate(data['parentID']) if j == 0])
+                da[parameter] = primKEs - primarymass
+            else:
+                da[parameter] = data['energy'] - mass
+        else:
+            if not includeSecondaries:
+                da[parameter] = _np.array([data[parameter][i] for i, j in enumerate(data['parentID']) if j == 0])
+            else:
+                da[parameter] = data[parameter]
+
+        # multiply data by scale factor
+        if parameter in scalefactors.keys():
+            da[parameter] *= scalefactors[parameter]
+        else:
+            da[parameter] *= defaultScales[parameter]
+
+    # offset time profile to be centered around 0
+    # Use nominal T with beam E0 as low no. of particles can cause statistical fluctuation
+    if offsetTime:
+        S = max(data['S'])  # should all be the same for a sampler, take max to be safe
+        t = S / (_np.sqrt(1.0 - 1.0/((beam.E0/primarymass)**2)) * _con.c)
+        da['T'] -= (t * 1e9)
+
+    # create correlation and coords figures and empty subplots
+    # transverse
+    fcorrTrans, axscorrTrans = _plt.subplots(2, 2, figsize=(9, 6))
+    axXXP = axscorrTrans[0][0]
+    axYYP = axscorrTrans[0][1]
+    axXY = axscorrTrans[1][0]
+    axXPYP = axscorrTrans[1][1]
+
+    fcoordTrans, axscoordsTrans = _plt.subplots(2, 2, figsize=(8, 6))
+    axX = axscoordsTrans[0][0]
+    axY = axscoordsTrans[0][1]
+    axXp = axscoordsTrans[1][0]
+    axYp = axscoordsTrans[1][1]
+
+    # longitudinal
+    fcorrLong = _plt.figure(figsize=(9, 6))
+    axTE = fcorrLong.add_subplot(111)
+
+    fcoordLong = _plt.figure(figsize=(10, 6))
+    axE = fcoordLong.add_subplot(121)
+    axT = fcoordLong.add_subplot(122)
+
+    # optionally set 1D and 2D to log scales
+    if log2daxes:
+        norm2D = _LogNorm()
+    else:
+        norm2D = None
+    if log1daxes:
+        axX.set_yscale('log', nonposy='clip')
+        axY.set_yscale('log', nonposy='clip')
+        axXp.set_yscale('log', nonposy='clip')
+        axYp.set_yscale('log', nonposy='clip')
+        axE.set_yscale('log', nonposy='clip')
+        axT.set_yscale('log', nonposy='clip')
+
+    # plot the transverse coords histograms
+    axX.hist(da['x'], nbins)
+    axX.set_xlabel(l['x'])
+    axX.ticklabel_format(axis='x', style='sci', useMathText=True)
+
+    axY.hist(da['y'], nbins)
+    axY.set_xlabel(l['y'])
+    axY.ticklabel_format(axis='x', style='sci', useMathText=True)
+
+    axXp.hist(da['xp'], nbins)
+    axXp.set_xlabel(l['xp'])
+    axXp.ticklabel_format(axis='x', style='sci', useMathText=True, useOffset=False)
+
+    axYp.hist(da['yp'], nbins)
+    axYp.set_xlabel(l['yp'])
+    axYp.ticklabel_format(axis='x', style='sci', useMathText=True, useOffset=False)
+
+    # plot the transverse correlation histograms
+    images = []
+    limitScaling = 1.1
+
+    a = axXXP.hist2d(da['x'], da['xp'], bins=nbins, cmin=1, norm=norm2D)
+    axXXP.set_xlim(limitScaling*min(da['x']), limitScaling*max(da['x']))
+    axXXP.set_ylim(limitScaling*min(da['xp']), limitScaling*max(da['xp']))
+    axXXP.set_xlabel(l['x'])
+    axXXP.set_ylabel(l['xp'])
+    images.append(a[3])
+
+    b = axYYP.hist2d(da['y'], da['yp'], bins=nbins, cmin=1, norm=norm2D)
+    axYYP.set_xlim(limitScaling*min(da['y']), limitScaling*max(da['y']))
+    axYYP.set_ylim(limitScaling*min(da['yp']), limitScaling*max(da['yp']))
+    axYYP.set_xlabel(l['y'])
+    axYYP.set_ylabel(l['yp'])
+    images.append(b[3])
+
+    c = axXY.hist2d(da['x'], da['y'], bins=nbins, cmin=1, norm=norm2D)
+    axXY.set_xlim(limitScaling*min(da['x']), limitScaling*max(da['x']))
+    axXY.set_ylim(limitScaling*min(da['y']), limitScaling*max(da['y']))
+    axXY.set_xlabel(l['x'])
+    axXY.set_ylabel(l['y'])
+    images.append(c[3])
+
+    d = axXPYP.hist2d(da['xp'], da['yp'], bins=nbins, cmin=1, norm=norm2D)
+    axXPYP.set_xlim(limitScaling*min(da['xp']), limitScaling*max(da['xp']))
+    axXPYP.set_ylim(limitScaling*min(da['yp']), limitScaling*max(da['yp']))
+    axXPYP.set_xlabel(l['xp'])
+    axXPYP.set_ylabel(l['yp'])
+    images.append(d[3])
+
+    # plot the longitudinal coordinate histograms
+    axE.hist(da[energy], nbins)
+    axE.set_xlabel(l[energy])
+    axE.ticklabel_format(axis='x', style='sci', useMathText=True, useOffset=False)
+
+    axT.hist(da['T'], nbins)
+    axT.set_xlabel(l['T'])
+    axT.ticklabel_format(axis='x', style='sci', useMathText=True)
+
+    # plot the longitudinal correlation histograms
+    e = axTE.hist2d(da['T'], da[energy], bins=nbins, cmin=1, norm=norm2D)
+    axTE.set_xlim(min(da['T']), max(da['T']))
+    axTE.set_ylim(min(da[energy]), max(da[energy]))
+    axTE.set_xlabel(l['T'])
+    axTE.set_ylabel(l[energy])
+
+    # normalise data so same colorbar can be used for all 2d plots
+    if log2daxes:
+        vmintrans = min(image.get_array().min() for image in images)
+        vmaxtrans = max(image.get_array().max() for image in images)
+        normtrans = _LogNorm(vmin=vmintrans, vmax=vmaxtrans)
+        for im in images:
+            im.set_norm(normtrans)
+
+        # apply same to longitudinal - bit redundant as only one 2D histogram is generated,
+        # but it allows for expansion if energy vs. Z is desired.
+        vminlong = e[3].get_array().min()
+        vmaxlong = e[3].get_array().max()
+        normlong = _LogNorm(vmin=vminlong, vmax=vmaxlong)
+        e[3].set_norm(normlong)
+
+    # set titles, and adjust layout
+    if correlationTitle is None:
+        correlationTitle = 'Correlations at ' + sd.samplerName
+    if coordsTitle is None:
+        coordsTitle = 'Coordinates at '+ sd.samplerName
+
+    fcoordTrans.suptitle(coordsTitle, fontsize='xx-large')
+    fcoordTrans.tight_layout()
+    fcoordTrans.subplots_adjust(top=0.92)
+
+    fcorrTrans.suptitle(correlationTitle, fontsize='xx-large')
+    fcorrTrans.tight_layout()
+    fcorrTrans.subplots_adjust(top=0.92)
+
+    fcoordLong.suptitle(coordsTitle, fontsize='xx-large')
+    fcoordLong.tight_layout()
+    fcoordLong.subplots_adjust(top=0.92)
+
+    fcorrLong.suptitle(correlationTitle, fontsize='xx-large')
+    fcorrLong.tight_layout()
+    fcorrLong.subplots_adjust(top=0.92)
+
+    # add colorbar
+    if includeColorbar:
+        fcorrTrans.subplots_adjust(right=0.885)
+        cbar_ax = fcorrTrans.add_axes([0.92, 0.15, 0.03, 0.7])
+        fcorrTrans.colorbar(images[0], ax=axscorrTrans, cax=cbar_ax, fraction=.1)
+        cbarLong = fcorrLong.colorbar(e[3])
+
+    if outputfilename is not None:
+        if '.' in outputfilename:
+            outputfilename = outputfilename.split('.')[0]
+        fcoordTrans.savefig(outputfilename + '_coords' + extension)
+        fcorrTrans.savefig(outputfilename + '_correlations' + extension)
+        fcoordLong.savefig(outputfilename + '_long_coords' + extension)
+        fcorrLong.savefig(outputfilename + '_long_correlations' + extension)
+
+def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
+    """
+    Make two figures for coordinates and correlations.
+
+    Number of bins chosen depending on number of samples.
+
+    'outputfilename' should be without an extension - any extension will be stripped off.
+     Plots are saves automatically as pdf, the file extension can be changed with
+     the 'extension' kwarg, e.g. extension='.png'.
+    """
+    if nbins is None:
+        entries = data._entries
+        nbins = int(_np.ceil(25*(entries/100.)**0.2))
+        print 'Automatic number of bins> ',nbins
+
+    d = data.data #shortcut
+    f = _plt.figure(figsize=(12,6))
+
+    axX = f.add_subplot(241)
+    axX.hist(d['x'],nbins)
+    axX.set_xlabel('X (m)')
+
+    axY = f.add_subplot(242)
+    axY.hist(d['y'],nbins)
+    axY.set_xlabel('Y (m)')
+
+    axZ = f.add_subplot(243)
+    axZ.hist(d['z'],nbins)
+    axZ.set_xlabel('Z (m)')
+
+    axE = f.add_subplot(244)
+    axE.hist(d['energy'],nbins)
+    axE.set_xlabel('E (GeV)')
+
+    axXp = f.add_subplot(245)
+    axXp.hist(d['xp'],nbins)
+    axXp.set_xlabel('X$^{\prime}$')
+
+    axYp = f.add_subplot(246)
+    axYp.hist(d['yp'],nbins)
+    axYp.set_xlabel('Y$^{\prime}$')
+
+    axZp = f.add_subplot(247)
+    axZp.hist(d['zp'],nbins)
+    axZp.set_xlabel('Z$^{\prime}$')
+
+    axT = f.add_subplot(248)
+    axT.hist(d['T'],nbins)
+    axT.set_xlabel('T (ns)')
+
+    _plt.suptitle('Coordinates at '+data.samplerName,fontsize='xx-large')
+    _plt.tight_layout()
+    _plt.subplots_adjust(top=0.92)
+
+    f2 = _plt.figure(figsize=(10,6))
+
+    axXXP = f2.add_subplot(231)
+    axXXP.hist2d(d['x'],d['xp'],bins=nbins,cmin=1)
+    axXXP.set_xlabel('X (m)')
+    axXXP.set_ylabel('X$^{\prime}$')
+
+    axYYP = f2.add_subplot(232)
+    axYYP.hist2d(d['y'],d['yp'],bins=nbins,cmin=1)
+    axYYP.set_xlabel('Y (m)')
+    axYYP.set_ylabel('Y$^{\prime}$')
+
+    axYPYP = f2.add_subplot(233)
+    axYPYP.hist2d(d['xp'],d['yp'],bins=nbins,cmin=1)
+    axYPYP.set_xlabel('X$^{\prime}$')
+    axYPYP.set_ylabel('Y$^{\prime}$')
+
+    axXY = f2.add_subplot(234)
+    axXY.hist2d(d['x'],d['y'],bins=nbins,cmin=1)
+    axXY.set_xlabel('X (m)')
+    axXY.set_ylabel('Y (m)')
+
+    axXE = f2.add_subplot(235)
+    axXE.hist2d(d['energy'],d['x'],bins=nbins,cmin=1)
+    axXE.set_xlabel('Energy (GeV)')
+    axXE.set_ylabel('X (m)')
+
+    axYE = f2.add_subplot(236)
+    axYE.hist2d(d['energy'],d['y'],bins=nbins,cmin=1)
+    axYE.set_xlabel('Energy (GeV)')
+    axYE.set_ylabel('Y (m)')
+
+    _plt.suptitle('Correlations at '+data.samplerName,fontsize='xx-large')
+    _plt.tight_layout()
+    _plt.subplots_adjust(top=0.92)
+
+    if outputfilename is not None:
+        if '.' in outputfilename:
+            outputfilename = outputfilename.split('.')[0]
+        f.savefig(outputfilename + '_coords'+extension)
+        f2.savefig(outputfilename + '_correlations'+extension)
+
 def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
     """
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
@@ -934,102 +1318,6 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
-
-def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
-    """
-    Make two figures for coordinates and correlations.
-
-    Number of bins chosen depending on number of samples.
-
-    'outputfilename' should be without an extension - any extension will be stripped off.
-     Plots are saves automatically as pdf, the file extension can be changed with
-     the 'extension' kwarg, e.g. extension='.png'.
-    """
-    if nbins == None:
-        entries = data._entries
-        nbins = int(_np.ceil(25*(entries/100.)**0.2))
-        print 'Automatic number of bins> ',nbins
-
-    d = data.data #shortcut
-    f = _plt.figure(figsize=(12,6))
-
-    axX = f.add_subplot(241)
-    axX.hist(d['x'],nbins)
-    axX.set_xlabel('X (m)')
-
-    axY = f.add_subplot(242)
-    axY.hist(d['y'],nbins)
-    axY.set_xlabel('Y (m)')
-
-    axZ = f.add_subplot(243)
-    axZ.hist(d['z'],nbins)
-    axZ.set_xlabel('Z (m)')
-
-    axE = f.add_subplot(244)
-    axE.hist(d['energy'],nbins)
-    axE.set_xlabel('E (GeV)')
-
-    axXp = f.add_subplot(245)
-    axXp.hist(d['xp'],nbins)
-    axXp.set_xlabel('X$^{\prime}$')
-
-    axYp = f.add_subplot(246)
-    axYp.hist(d['yp'],nbins)
-    axYp.set_xlabel('Y$^{\prime}$')
-
-    axZp = f.add_subplot(247)
-    axZp.hist(d['zp'],nbins)
-    axZp.set_xlabel('Z$^{\prime}$')
-
-    axT = f.add_subplot(248)
-    axT.hist(d['T'],nbins)
-    axT.set_xlabel('T (ns)')
-
-    _plt.suptitle('Coordinates at '+data.samplerName,fontsize='xx-large')
-    _plt.tight_layout()
-    _plt.subplots_adjust(top=0.92)
-
-    f2 = _plt.figure(figsize=(10,6))
-
-    axXXP = f2.add_subplot(231)
-    axXXP.hist2d(d['x'],d['xp'],bins=nbins,cmin=1)
-    axXXP.set_xlabel('X (m)')
-    axXXP.set_ylabel('X$^{\prime}$')
-
-    axYYP = f2.add_subplot(232)
-    axYYP.hist2d(d['y'],d['yp'],bins=nbins,cmin=1)
-    axYYP.set_xlabel('Y (m)')
-    axYYP.set_ylabel('Y$^{\prime}$')
-
-    axYPYP = f2.add_subplot(233)
-    axYPYP.hist2d(d['xp'],d['yp'],bins=nbins,cmin=1)
-    axYPYP.set_xlabel('X$^{\prime}$')
-    axYPYP.set_ylabel('Y$^{\prime}$')
-
-    axXY = f2.add_subplot(234)
-    axXY.hist2d(d['x'],d['y'],bins=nbins,cmin=1)
-    axXY.set_xlabel('X (m)')
-    axXY.set_ylabel('Y (m)')
-
-    axXE = f2.add_subplot(235)
-    axXE.hist2d(d['energy'],d['x'],bins=nbins,cmin=1)
-    axXE.set_xlabel('Energy (GeV)')
-    axXE.set_ylabel('X (m)')
-
-    axYE = f2.add_subplot(236)
-    axYE.hist2d(d['energy'],d['y'],bins=nbins,cmin=1)
-    axYE.set_xlabel('Energy (GeV)')
-    axYE.set_ylabel('Y (m)')
-
-    _plt.suptitle('Correlations at '+data.samplerName,fontsize='xx-large')
-    _plt.tight_layout()
-    _plt.subplots_adjust(top=0.92)
-
-    if outputfilename != None:
-        if '.' in outputfilename:
-            outputfilename = outputfilename.split('.')[0]
-        f.savefig(outputfilename + '_coords'+extension)
-        f2.savefig(outputfilename + '_correlations'+extension)
 
 def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
     if float(x) == 1.0:
