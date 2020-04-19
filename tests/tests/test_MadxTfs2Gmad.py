@@ -1,12 +1,16 @@
 import os.path
-from itertools import islice, izip
+from itertools import islice
+try:
+    from itertools import izip as zip
+except ImportError:
+    pass
 
 import pytest
 
 import pybdsim
 import pymadx
 
-import pybdsim_test_utils as utils
+from . import pybdsim_test_utils as utils
 
 # TODO:
 # TEST with aperturedict of pymadx.Data.Aperture.
@@ -68,7 +72,7 @@ def gmad_comparator():
             old_gmad = "{}{}.gmad".format(second, suffix)
             # Skip the first 3 lines which are just the header
             with open(new_gmad, "r") as new, open(old_gmad, "r") as old:
-                for new_line, old_line in izip(islice(new, 3, None),
+                for new_line, old_line in zip(islice(new, 3, None),
                                                islice(old, 3, None)):
                     assert new_line == old_line
     return f

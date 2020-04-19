@@ -31,7 +31,7 @@ except ImportError:
     #del warnings
 
 try:
-    from _Transport2Gmad import Transport2Gmad
+    from ._Transport2Gmad import Transport2Gmad
 except ImportError:
     import warnings
     msg = "Missing pytransport dependency.  TRANSPORT conversion facilities excluded."
