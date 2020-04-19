@@ -13,11 +13,11 @@ def JoinRootHistograms(inputdir="./",outputfilename="output.root"):
     #get list of all root files in this dir
     files = glob.glob(inputdir+"*.root")
 
-    print "Found ",len(files)," root files"
+    print("Found ",len(files)," root files")
 
     hasextra = False #by default
     if len(files) == 0:
-        print 'No root files found'
+        print('No root files found')
         return
     
     #open a single file as a template
