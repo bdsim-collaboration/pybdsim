@@ -68,9 +68,9 @@ def Load(filename, debug=False):
         dims = [int(header[k]) for k in requiredKeys[::-1]]
         dims.append(len(columns))
         if debug:
-            print dims
-            print nDim
-            print _np.shape(data)
+            print(dims)
+            print(nDim)
+            print(_np.shape(data))
         data = data.reshape(*dims)
 
     return data

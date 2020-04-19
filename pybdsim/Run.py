@@ -3,10 +3,11 @@ import subprocess as _subprocess
 import uuid as _uuid
 import pybdsim.Data as _Data
 
-import _General
+from . import _General
+
 
 class ExecOptions(dict):
-    def __init__(self,*args,**kwargs):
+    def __init__(self, *args, **kwargs):
         """
         Executable options class for BDSIM. In addition, 'bdsimcommand' is an extra
         allowed keyword argument that allows the user to specify the bdsim executable
@@ -118,8 +119,8 @@ class Study(object):
         for k,v in eo.GetExecArgs().iteritems():
             command += ' --' + str(k) + '=' + str(v)
         if debug:
-            print 'Command is'
-            print command
+            print('Command is')
+            print(command)
 
         # send it to a log file
         outfilename = 'output'
@@ -129,11 +130,11 @@ class Study(object):
         
         # execute process
         if debug:
-            print 'BDSIM Run'
+            print('BDSIM Run')
         try:
             _subprocess.check_call(command, shell=True)
         except _subprocess.CalledProcessError:
-            print 'ERROR'
+            print('ERROR')
             return
         
         # get output file name - the latest file in the directory hopefully

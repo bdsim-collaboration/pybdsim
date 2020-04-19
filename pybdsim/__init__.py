@@ -75,7 +75,7 @@ from . import XSecBias
 
 #import Root - not imported since dependency on pyROOT
 
-import _General
+from . import _General
 
 #from Analysis import Analysis
 #from AnalysisRoot import AnalysisRoot

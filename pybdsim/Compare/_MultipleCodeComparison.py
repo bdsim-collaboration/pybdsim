@@ -654,7 +654,7 @@ def _CompareOptics(bdsim=None, bdsimname=None,
             d = pdf.infodict()
             d['Title'] = "Multi Code Optical Comparison"
             d['CreationDate'] = _datetime.datetime.today()
-        print "Written ", output_filename
+        print("Written ", output_filename)
 
 def Optics(bdsim=None, bdsimname=None,
            tfs=None, tfsname=None,

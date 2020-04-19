@@ -28,7 +28,7 @@ PDGind = {
 }
 
 PDGname = {}
-for k,v in PDGind.iteritems():
+for k,v in PDGind.items():
     PDGname[v[0]] = k
     PDGname[v[0].lower()] = k
 del k,v
@@ -45,5 +45,5 @@ def GetPDGName(particleid):
     try:
         return PDGind[particleid]
     except KeyError:
-        print 'Unknown particle id ',particleid
+        print('Unknown particle id ',particleid)
         return ('','')

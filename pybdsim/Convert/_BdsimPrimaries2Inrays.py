@@ -107,7 +107,7 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
         if not _path.isfile(inputfile):
             raise IOError("file \"{}\" not found!".format(inputfile))
         else:
-            print "Loading input file: ", inputfile
+            print("Loading input file: ", inputfile)
             data = _Data.Load(inputfile)
 
     x,xp,y,yp,tof,E,pid = _ExtractSamplerCoords(data, samplername)
@@ -208,7 +208,7 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
         if not _path.isfile(inputfile):
             raise IOError("file \"{}\" not found!".format(inputfile))
         else:
-            print "Loading input file: ", inputfile
+            print("Loading input file: ", inputfile)
             data = _Data.Load(inputfile)
 
     #Get sampler/primaries data
@@ -276,7 +276,7 @@ def _ExtractSamplerCoords(data, samplername):
         # check branch exists
         allSamplers = data.GetSamplerNames()
         if not samplername in allSamplers:
-            print "Sampler " + samplername + " not found in inputfile. Terminating..."
+            print("Sampler " + samplername + " not found in inputfile. Terminating...")
             sys.exit(1)
 
     sampler = _Data.SamplerData(data, samplername)

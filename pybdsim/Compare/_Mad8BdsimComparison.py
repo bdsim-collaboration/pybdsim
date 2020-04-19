@@ -354,7 +354,7 @@ def Mad8VsBDSIM(twiss, envel, bdsim, survey=None, functions=None,
             d['Title'] = "{} (MAD8) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
             d['CreationDate'] = _datetime.datetime.today()
 
-        print "Written ", output_filename
+        print("Written ", output_filename)
     
     return mad8opt
 

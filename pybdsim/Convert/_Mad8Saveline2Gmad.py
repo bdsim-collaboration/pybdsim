@@ -189,7 +189,7 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         elif (not ignore_zero_length_items) and zero_length:
             ilc.AddMarker(element)
             if verbose:
-                print element, ' -> marker instead of wire.'
+                print(element, ' -> marker instead of wire.')
         else:
             ilc.AddDrift(element, length, **kws)
 
@@ -199,7 +199,7 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         elif (not ignore_zero_length_items) and zero_length:
             ilc.AddMarker(element)
             if verbose:
-                print element, ' -> marker instead of instrument.'
+                print(element, ' -> marker instead of instrument.')
         else:
             ilc.AddDrift(element, length, **kws)
 
@@ -209,7 +209,7 @@ def construct_sequence(ilc, element, element_type, element_properties, length, i
         elif (not ignore_zero_length_items) and zero_length:
             ilc.AddMarker(element)
             if verbose:
-                print element, ' -> marker instead of monitor.'
+                print(element, ' -> marker instead of monitor.')
         else:
             ilc.AddDrift(element, length, **kws)
 

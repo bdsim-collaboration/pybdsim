@@ -42,7 +42,7 @@ def ZeroMissingRequiredColumns(tfsinstance):
                                    for col in missingColumns])
     msg = ("Columns missing from TFS: {}.  All have been set"
            " to zero.").format(missingColsString)
-    print msg
+    print(msg)
 
 def _WillIgnoreItem(item, tfsinstance, ignoreZeroLength, ignoreableThinElements):
     tresult    = item['KEYWORD'] in ignoreableThinElements    
@@ -211,7 +211,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         particleName = madx.header['PARTICLE']
         if particleName == "ELECTRON":
             flipmagnets = True
-            print 'Detected electron in TFS file - changing flipmagnets to True'
+            print('Detected electron in TFS file - changing flipmagnets to True')
 
     # If we have collimators but no collimator dict then inform that
     # they will be converted to drifts.  should really check
@@ -245,7 +245,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         zerolength = True if item['L'] < 1e-9 else False
         if (_WillIgnoreItem(item, madx, ignorezerolengthitems, _ignoreableThinElements)):
             if verbose:
-                print 'skipping zero-length item: {}'.format(name)
+                print('skipping zero-length item: {}'.format(name))
             itemsomitted.append(name)
             continue  # skip this item.
 
@@ -295,11 +295,11 @@ def MadxTfs2Gmad(tfs, outputfilename,
     machine.AddOptions(options)
 
     if verbose:
-        print 'Total length: ', machine.GetIntegratedLength()
-        print 'Total angle:  ', machine.GetIntegratedAngle()
-        print 'items omitted: '
-        print itemsomitted
-        print 'number of omitted items: ', len(itemsomitted)
+        print('Total length: ', machine.GetIntegratedLength())
+        print('Total angle:  ', machine.GetIntegratedAngle())
+        print('items omitted: ')
+        print(itemsomitted)
+        print('number of omitted items: ', len(itemsomitted))
 
     if write:
         machine.Write(outputfilename, overwrite=overwrite)
@@ -330,8 +330,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
     # deep copy as otherwise allelementdict gets irreperably changed!
     kws = _deepcopy(allelementdict)
     if verbose:
-        print 'starting key word arguments from all element dict'
-        print kws
+        print('Starting key word arguments from all element dict')
+        print(kws)
 
     name = item['NAME']
     # remove special characters like $, % etc 'reduced' name - rname:
@@ -360,14 +360,14 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
             kws.update(partnamedict[partname])
 
     if verbose:
-        print 'Full set of key word arguments:'
-        print kws
+        print('Full set of key word arguments:')
+        print(kws)
 
     if t == 'DRIFT':
         return _Builder.Drift(rname, l, **kws)
     elif t == 'HKICKER':
         if verbose:
-            print 'HICKER', rname
+            print('HICKER', rname)
         hkick = item['HKICK'] * factor
         if not zerolength:
             if l > _THIN_ELEMENT_THRESHOLD:
@@ -375,7 +375,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return _Builder.HKicker(rname, hkick=hkick, **kws)
     elif t == 'VKICKER':
         if verbose:
-            print 'VKICKER', rname
+            print('VKICKER', rname)
         vkick = item['VKICK'] * factor
         if not zerolength:
             if l > _THIN_ELEMENT_THRESHOLD:
@@ -383,7 +383,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return _Builder.VKicker(rname, vkick=vkick, **kws)
     elif t == 'KICKER':
         if verbose:
-            print 'KICKER', rname
+            print('KICKER', rname)
         hkick = item['HKICK'] * factor
         vkick = item['VKICK'] * factor
         if not zerolength:
@@ -392,7 +392,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return _Builder.Kicker(rname, hkick=hkick, vkick=vkick, **kws)
     elif t == 'TKICKER':
         if verbose:
-            print 'TKICKER', rname
+            print('TKICKER', rname)
         hkick = item['HKICK'] * factor
         vkick = item['VKICK'] * factor
         if not zerolength:
@@ -563,7 +563,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                     xsize = colld['XSIZE']
                     ysize = colld['YSIZE']
                 if verbose:
-                    print 'collimator x,y size ', xsize, ysize
+                    print('collimator x,y size ', xsize, ysize)
                 if 'outerDiameter' in colld:
                     kws['outerDiameter'] = colld['outerDiameter']
                 else:
@@ -601,11 +601,11 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         ks = item['KSI'] / l
         return _Builder.Solenoid(rname, l, ks=ks, **kws)
     else:
-        print 'unknown element type:', t, 'for element named: ', name
+        print('unknown element type:', t, 'for element named: ', name)
         if zerolength and not ignorezerolengthitems:
-            print 'putting marker in instead as its zero length'
+            print('putting marker in instead as its zero length')
             return _Builder.Marker(rname)
-        print 'putting drift in instead as it has a finite length'
+        print('putting drift in instead as it has a finite length')
         return _Builder.Drift(rname, l)
 
     raise ValueError("Unable to construct Element: {}, {}".format(t, name))
@@ -663,7 +663,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
 
 
     """
-    print 'Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!'
+    print('Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!')
 
     if startname is None:
         startindex = 0
@@ -686,10 +686,10 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     sigmae = float(tfs.header['SIGE'])
 
     if ex == 1:
-        print 'Horizontal emittance of 1 is too large - setting to 1e-9'
+        print('Horizontal emittance of 1 is too large - setting to 1e-9')
         ex = 1e-9
     if ey == 1:
-        print 'Horizontal emittance of 1 is too large - setting to 1e-9'
+        print('Horizontal emittance of 1 is too large - setting to 1e-9')
         ey = 1e-9
 
     data = tfs[startindex]
@@ -704,8 +704,8 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
         raise ValueError("Unsupported particle " + particle)
 
     if verbose:
-        print 'beta_x: ', data['BETX'], 'alpha_x: ', data['ALFX'], 'mu_x: ', data['MUX']
-        print 'beta_y: ', data['BETY'], 'alpha_y: ', data['ALFY'], 'mu_y: ', data['MUY']
+        print('beta_x: ', data['BETX'], 'alpha_x: ', data['ALFX'], 'mu_x: ', data['MUX'])
+        print('beta_y: ', data['BETY'], 'alpha_y: ', data['ALFY'], 'mu_y: ', data['MUY'])
 
     # note, in the main pybdsim.__init__.py Beam class is imported from Beam.py
     # so in this submodule when we do from .. import Beam it's actually the

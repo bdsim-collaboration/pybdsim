@@ -57,9 +57,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # check type of start
     # if string find element number
     if type(istart) == str :
-        print "Mad8Twiss2Gmad> finding start : ",istart
+        print("Mad8Twiss2Gmad> finding start : ", istart)
         istart = c.findByName(istart)[0]
-        print "Mad8Twiss2Gmad> using index   : ",istart
+        print("Mad8Twiss2Gmad> using index   : ", istart)
 
     # load Collimator db or use instance
     if type(collimator) == str :
@@ -75,10 +75,10 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     if rmat != "":
         c2, rmat = o.readFile(rmat,'rmat')
 
-    print 'Collimator database'
-    print collimator
-    print 'Aperture database'
-    print apertures
+    print('Collimator database')
+    print(collimator)
+    print('Aperture database')
+    print(apertures)
 
     #val0=value at 0th element of INPUT mad8 file. val_cut=value at start-point for cut beamlines - i.e. 0th element of OUTPUT bdsim file.
     # Need nominal energy for acceleration and SR calculations
@@ -88,13 +88,13 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     except:
         elelength = 0
     s_cut       = s[istart] - elelength
-    print s_cut
+    print(s_cut)
     energy      = c.getColumn('E')
     energy0     = energy[0]
     energy_cut  = energy[istart]
 
-    print 'Initial element              ', istart
-    print 'Initial S                    ', s_cut
+    print('Initial element              ', istart)
+    print('Initial S                    ', s_cut)
     if s_cut!= 0 :
         options = True
 
@@ -132,12 +132,12 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     # momentum and rigitity
     momentum0 = _np.sqrt(energy0**2-(mass/1000.)**2)
     brho0      = momentum0/charge
-    print 'particle  ',particle
-    print 'charge    ',charge
-    print 'mass      ',mass
-    print 'energy0   ',energy0
-    print 'momentum0 ',momentum0
-    print 'brho0     ',brho0
+    print('particle  ',particle)
+    print('charge    ',charge)
+    print('mass      ',mass)
+    print('energy0   ',energy0)
+    print('momentum0 ',momentum0)
+    print('brho0     ',brho0)
 
     # momentum scale
     momentum     = _np.sqrt(energy**2-(mass/1000.)**2)
@@ -457,7 +457,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             if collimator == None :
                 # make collimator from mad8 file
 #                print "ECOL> ",c.name[i], "mad8 file"
-                print c.data[i][c.keys['ecol']['xsize']],c.data[i][c.keys['ecol']['ysize']]
+                print(c.data[i][c.keys['ecol']['xsize']],c.data[i][c.keys['ecol']['ysize']])
                 if (c.data[i][c.keys['ecol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 :
                     a.AddECol(name     = prepend+c.name[i]+'_'+str(eCount),
                               length   = float(c.data[i][c.keys['ecol']['l']]),
@@ -492,7 +492,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         elif c.type[i] == 'RCOL' :
             if collimator == None :
 #               print "RCOL> ",c.name[i], "mad8 file"
-                print c.data[i][c.keys['rcol']['xsize']],c.data[i][c.keys['rcol']['ysize']]
+                print(c.data[i][c.keys['rcol']['xsize']],c.data[i][c.keys['rcol']['ysize']])
                 if (c.data[i][c.keys['rcol']['xsize']] != 0) and (c.data[i][c.keys['rcol']['ysize']]) != 0 :
                     a.AddRCol(name     = prepend+c.name[i]+'_'+str(eCount),
                               length   = float(c.data[i][c.keys['rcol']['l']]),
@@ -557,7 +557,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
 
 #       ###################################################################
         else :
-            print "UNKN> ",c.type[i]
+            print("UNKN> ",c.type[i])
 #       ###################################################################
         nameDict[c.name[i]] += 1
 
@@ -740,11 +740,11 @@ def main() :
     (options, args) = parser.parse_args()
 
     if options.inputFileName == None :
-        print "_Mad8Twiss2Gmad> Require input file name"
+        print("_Mad8Twiss2Gmad> Require input file name")
         parser.print_usage()
         return
-    print '_Mad8Twiss2Gmad> inputFileName,outputFileName,start,samplers,beam,gemitx,gemity'
-    print '_Mad8Twiss2Gmad>', options.inputFileName,options.outputFileName,options.start,options.samplers,options.beam,options.gemitx,options.gemity
+    print('_Mad8Twiss2Gmad> inputFileName,outputFileName,start,samplers,beam,gemitx,gemity')
+    print('_Mad8Twiss2Gmad>', options.inputFileName,options.outputFileName,options.start,options.samplers,options.beam,options.gemitx,options.gemity)
 
     # try to decode the start point either value or name
     try :

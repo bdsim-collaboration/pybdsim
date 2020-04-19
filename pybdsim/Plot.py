@@ -17,7 +17,7 @@ import datetime as _datetime
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 from scipy import constants as _con
 
-from _General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
+from ._General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
@@ -126,8 +126,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     def Click(a) :
         if a.button == 3:
             try:
-                print 'Closest element: ',sf.NameFromNearestS(a.xdata
-                                                              - sOffset)
+                print('Closest element: ',sf.NameFromNearestS(a.xdata - sOffset))
             except ValueError:
                 pass # don't complain if the S is out of bounds
 
@@ -293,7 +292,7 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2,
             try:
                 msg = "Closest element: {}".format(
                     survey.NameFromNearestS(a.xdata))
-                print msg
+                print(msg)
             except ValueError:
                 pass # don't complain if the S is out of bounds
 
@@ -461,7 +460,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
             d = pdf.infodict()
             d['Title'] = "Optical Comparison"
             d['CreationDate'] = _datetime.datetime.today()
-        print "Written ", output_filename
+        print("Written ", output_filename)
 
 
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(10,5), **errorbarKwargs):
@@ -612,7 +611,7 @@ def Histogram3D(th3):
     """
     Plot a pybdsim.Data.TH3 instance - TBC
     """
-    print 'Not written yet - best take a slice or projection and plot a 2D histogram'
+    print('Not written yet - best take a slice or projection and plot a 2D histogram')
     from mpl_toolkits.mplot3d import axes3d, Axes3D
     f = _plt.figure()
     ax = f.gca(projection='3d')
@@ -742,7 +741,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     if nbins is None:
         entries = sd._entries
         nbins = int(_np.ceil(25*(entries/100.)**0.2))
-        print 'Automatic number of bins> ', nbins
+        print('Automatic number of bins> ', nbins)
 
     # switch total energy to bdsim sampler parameter name
     if energy == 'total':
@@ -951,7 +950,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
     if nbins is None:
         entries = data._entries
         nbins = int(_np.ceil(25*(entries/100.)**0.2))
-        print 'Automatic number of bins> ',nbins
+        print('Automatic number of bins> ',nbins)
 
     d = data.data #shortcut
     f = _plt.figure(figsize=(12,6))
@@ -1122,7 +1121,8 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     if "skipMachineLattice" in kwargs:
         skipMachineLattice = kwargs["skipMachineLattice"]
 
-    print "Note that collimator/warm/cold loss classification is approximate for binned data and missclasification probability increases with bin sze."
+    print("Note that collimator/warm/cold loss classification is approximate for "
+          "binned data and missclasification probability increases with bin sze.")
 
     collimators=[]
     if bdsimsurvey:
@@ -1220,7 +1220,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         AddMachineLatticeToFigure(f, tfssurvey)
     elif bdsimsurvey and not skipMachineLattice:
         #AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey) #TODO: Fix this, currenly gives an error
-        print "not working like this"
+        print("not working like this")
     elif hasattr(d, "model"):
         AddMachineLatticeFromSurveyToFigure(f, d.model)
 

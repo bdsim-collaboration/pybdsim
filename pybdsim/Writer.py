@@ -11,10 +11,11 @@ Writer - A class that writes the data to disk.
 
 """
 from pybdsim import __version__ as _pybdsimVersion
-import _General
-import Beam as _Beam
-import Options as _Options
-import Builder as _Builder
+from . import _General
+from . import Beam as _Beam
+from . import Options as _Options
+from . import Builder as _Builder
+
 import time as _time
 import os as _os
 import numpy as _np
@@ -249,12 +250,12 @@ class Writer():
 
         if verbose:
             #user feedback
-            print 'Lattice written to:'
+            print('Lattice written to:')
             for section in self._sectionsToBeWritten:
                 sectObject = getattr(self,section) #a copy of the FileSection object.
                 fn = getattr(sectObject,'_filePath')
                 print(fn)
-            print 'All included in main file: \n',self._mainFilename
+            print('All included in main file: \n',self._mainFilename)
 
     def WriteMain(self,machine,filename=''):
         """
@@ -550,7 +551,7 @@ class Writer():
             originalFilename = filename
             filename = _General.GenUniqueFilename(filename)
             if filename != originalFilename:
-                print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
+                print('Warning, chosen filename already exists - using filename: ',filename.split('.')[0])
 
         basefilename = filename[:-5] #everything before '.gmad'
         #new default section names

@@ -7,8 +7,8 @@ Classes:
 Data - read various output files
 
 """
-import Constants as _Constants
-import _General
+from . import Constants as _Constants
+from . import _General
 
 import copy as _copy
 import glob as _glob
@@ -77,7 +77,7 @@ def Load(filepath):
             #raise error rather than return None, saves later scripting errors.
             raise IOError('Root loader not available.')
     elif extension == 'dat':
-        print '.dat file - trying general loader'
+        print('.dat file - trying general loader')
         try:
             return _LoadAscii(filepath)
         except IOError:
@@ -162,15 +162,15 @@ def _LoadRoot(filepath):
     fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
 
     if fileType == "BDSIM":
-        print 'BDSIM output file - using DataLoader'
+        print('BDSIM output file - using DataLoader')
         d = _ROOT.DataLoader(filepath)
         d.model = GetModelForPlotting(d) # attach BDSAsciiData instance for convenience
         return d
     elif fileType == "REBDSIM":
-        print 'REBDSIM analysis file - using RebdsimFile'
+        print('REBDSIM analysis file - using RebdsimFile')
         return RebdsimFile(filepath)
     elif fileType == "REBDSIMCOMBINE":
-        print 'REBDSIMCOMBINE analysis file - using RebdsimFile'
+        print('REBDSIMCOMBINE analysis file - using RebdsimFile')
         return RebdsimFile(filepath)
     else:
         raise IOError("This file type "+fileType+" isn't supported")
@@ -220,7 +220,7 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
     elif hasattr(rootFile, "GetModelTree"):
         mt = rootFile.GetModelTree() # must be data loader instance
     if not mt:
-        print "No 'Model.' tree in file"
+        print("No 'Model.' tree in file")
         return
 
     leaves = ['componentName', 'componentType', 'length',    'staS',   'endS', 'k1']
@@ -505,7 +505,7 @@ class BDSAsciiData(list):
             a.extend(filtereddata)
             return a
         else:
-            print "The parameter: ",parametername," does not exist in this instance"
+            print("The parameter: ",parametername," does not exist in this instance")
 
     def Filter(self,booleanarray):
         """

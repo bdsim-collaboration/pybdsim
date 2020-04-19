@@ -103,7 +103,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
             d['Title'] = "{} (TFS) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
             d['CreationDate'] = _datetime.datetime.today()
 
-        print "Written ", output_filename
+        print("Written ", output_filename)
 
 def PrepareResiduals(tfs, bds, survey=None, verbose=False):
     """
@@ -140,8 +140,8 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
     rn = _np.array(reducedName)
 
     for n in keys:
-	tfsdata[n]  = tfsdata[n][_np.isin(rn,bdslist)] 
-	bdsdata[n]  = bdsdata[n][_np.isin(bdslist,rn)] 
+        tfsdata[n] = tfsdata[n][_np.isin(rn,bdslist)]
+        bdsdata[n] = bdsdata[n][_np.isin(bdslist,rn)]
         tfsdata[n] = _np.array(tfsdata[n])
         bdsdata[n] = _np.array(bdsdata[n])   
 
@@ -253,7 +253,7 @@ def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, f
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
-    print "survey =", survey
+    print("survey =", survey)
 
     _CallUserFigureFunctions(functions)
     _AddSurvey(betaPlot, survey)

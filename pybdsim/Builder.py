@@ -17,12 +17,12 @@ Machine - a list of elements
 
 """
 import pybdsim.XSecBias
-import Beam as _Beam
-import Data as _Data
-import Options as _Options
-import Writer as _Writer
-import _General
-from   _General import IsFloat as _IsFloat
+from . import Beam as _Beam
+from . import Data as _Data
+from . import Options as _Options
+from . import Writer as _Writer
+from . import _General
+from ._General import IsFloat as _IsFloat
 
 import collections
 import math as _math
@@ -409,20 +409,20 @@ class ApertureModel(dict):
             }
         atL = str.lower(apertureType)
         if atL not in allowedTypes and atL not in madxTypes.keys():
-            print 'Allowed BDSIM aperture types are: ', allowedTypes
-            print 'Allowed MADX aperture types are: ',madxTypes.keys()
+            print('Allowed BDSIM aperture types are: ', allowedTypes)
+            print('Allowed MADX aperture types are: ',madxTypes.keys())
             raise ValueError("Invalid aperture type: "+str(apertureType))
 
         if atL in madxTypes.keys():
             self['apertureType'] = madxTypes[atL]
             if self['apertureType'] == None:
-                print 'Unsupported type: :',self['apertureType'],'" - replacing with elliptical'
+                print('Unsupported type: :',self['apertureType'],'" - replacing with elliptical')
                 self['apertureType'] = 'elliptical'
         else:
             self['apertureType'] = apertureType
 
         if self['apertureType'] in allowedTypes[1:] and aper2 == 0:
-            print 'For aperture type "',self['apertureType'],'" at least aper1 and aper2 must be specified'
+            print('For aperture type "',self['apertureType'],'" at least aper1 and aper2 must be specified')
             raise ValueError("Too few aperture parameters supplied")
 
         self['aper1'] = aper1
@@ -858,8 +858,8 @@ class Machine(object):
             return self.elements[name]
 
     def __len__(self):
-        print 'Number of unique elements:      ',len(self.elements.keys())
-        print 'Number of elements in sequence: ',len(self.sequence),' <- returning this'
+        print('Number of unique elements:      ',len(self.elements.keys()))
+        print('Number of elements in sequence: ',len(self.sequence),' <- returning this')
         return len(self.sequence)
 
     def GetIntegratedAngle(self):
@@ -889,7 +889,7 @@ class Machine(object):
                 self.elements[item.name] = item
         else:
             if self.verbose:
-                print "Element of name: ",item.name," already defined, simply adding to sequence"
+                print("Element of name: ",item.name," already defined, simply adding to sequence")
         #finally add it to the sequence
         self.sequence.append(item.name)
 
@@ -1109,7 +1109,7 @@ class Machine(object):
         Add a marker to the beam line.
         """
         if self.verbose:
-            print 'AddMarker> ',name
+            print('AddMarker> ',name)
         self.Append(Element(name,'marker'))
 
     def AddDrift(self, name='dr', length=0.1, **kwargs):
@@ -1117,7 +1117,7 @@ class Machine(object):
         Add a drift to the beam line
         """
         if self.verbose:
-            print 'AddDrift>  ',name,' ',length,' ',kwargs
+            print('AddDrift>  ',name,' ',length,' ',kwargs)
         if length < 1e-12:
             self.AddMarker(name)
         else:
@@ -1549,7 +1549,7 @@ def WriteMachine(machine, filename, verbose=False):
     ofilename = filename
     filename = _General.GenUniqueFilename(filename)
     if filename != ofilename:
-        print 'Warning, chosen filename already exists - using filename: ',filename.split('.')[0]
+        print('Warning, chosen filename already exists - using filename: ',filename.split('.')[0])
     basefilename = filename[:-5] #everything before '.gmad'
 
     #prepare names
@@ -1657,10 +1657,10 @@ def WriteMachine(machine, filename, verbose=False):
     f.close()
 
     #user feedback
-    print 'Lattice written to:'
+    print('Lattice written to:')
     for fn in files:
         print(fn)
-    print 'All included in main file: \n',fn_main
+    print('All included in main file: \n',fn_main)
 
 
 def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=True):

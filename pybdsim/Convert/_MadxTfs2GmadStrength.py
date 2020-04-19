@@ -1,6 +1,6 @@
 from .. import Builder as _Builder
 import pybdsim._General as _General
-import _MadxTfs2Gmad
+from . import _MadxTfs2Gmad
 import pymadx as _pymadx
 from pybdsim.Convert import _ZeroMissingRequiredColumns
 from pybdsim.Convert._MadxTfs2Gmad import _ignoreableThinElements
@@ -71,7 +71,7 @@ def MadxTfs2GmadStrength(input, outputfilename,
             a = _GenerateElementModifier(item, rname, verbose, flipmagnets, linear)
         
         if verbose:
-            print a
+            print(a)
         if a != None:
             newStrengths.append(a)
 
@@ -126,10 +126,10 @@ def _GenerateElementModifier(madxitem, nameToUse,
         a = _ElementModifier(nameToUse, angle=item['VKICK']*factor)
     elif category == 'TKICKER':
         if verbose:
-            print 'WARNING - TKICKER not implemented yet'
+            print('WARNING - TKICKER not implemented yet')
     elif category == 'RFCAVITY':
         if verbose:
-            print 'WARNING - RFCAVITY not implemented yet'
+            print('WARNING - RFCAVITY not implemented yet')
     elif category == 'MULTIPOLE':
         k1  = item['K1L']  * factor
         k2  = item['K2L']  * factor if not linear else 0
@@ -148,8 +148,8 @@ def _GenerateElementModifier(madxitem, nameToUse,
         pass # just keep a = None and return that
 
     if verbose:
-        print 'New Strength: ',a
-        if a == None:
-            print 'Unsupported type: ',item['KEYWORD']
+        print('New Strength: ', a)
+        if a is None:
+            print('Unsupported type: ', item['KEYWORD'])
     
     return a
