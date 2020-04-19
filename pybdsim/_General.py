@@ -94,7 +94,7 @@ def CheckItsBDSAsciiData(bfile, requireOptics=False):
     return data
 
 def CheckBdsimDataHasSurveyModel(bfile):
-    if isinstance(bfile,basestring):
+    if isinstance(bfile, str):
         data = pybdsim.Data.Load(bfile)
     elif type(bfile) == pybdsim.Data.BDSAsciiData:
         data = bfile

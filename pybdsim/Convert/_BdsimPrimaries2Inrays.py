@@ -103,7 +103,7 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
     if not (outfile[-4:] == ".dat"):
         outfile = outfile + ".dat"
 
-    if isinstance(inputfile, basestring):
+    if isinstance(inputfile, str):
         if not _path.isfile(inputfile):
             raise IOError("file \"{}\" not found!".format(inputfile))
         else:
@@ -204,7 +204,7 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
 
 def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimaries):
     """ Load BDSIM coordinates and convert to PTC format."""
-    if isinstance(inputfile, basestring):
+    if isinstance(inputfile, str):
         if not _path.isfile(inputfile):
             raise IOError("file \"{}\" not found!".format(inputfile))
         else:

@@ -128,16 +128,16 @@ def _LoadData(bdsim, bdsimname, madx, madxname, ptctwiss, ptctwissname, ptc, ptc
         return datas, names
 
     # convert single filenames to lists. Nothing for residual file - handle separately.
-    if isinstance(bdsim, basestring) or (bdsim is None):
+    if isinstance(bdsim, str) or (bdsim is None):
         bdsim = [bdsim]
         bdsimname = [bdsimname]
-    if isinstance(madx, basestring) or (madx is None):
+    if isinstance(madx, str) or (madx is None):
         madx = [madx]
         madxname = [madxname]
-    if isinstance(ptctwiss, basestring) or (ptctwiss is None):
+    if isinstance(ptctwiss, str) or (ptctwiss is None):
         ptctwiss = [ptctwiss]
         ptctwissname = [ptctwissname]
-    if isinstance(ptc, basestring) or (ptc is None):
+    if isinstance(ptc, str) or (ptc is None):
         ptc = [ptc]
         ptcname = [ptcname]
 
@@ -171,7 +171,7 @@ def _parse_bdsim_input(bdsim_in, name):
     name if None is provided, and return that as well."""
     if bdsim_in is None:
         return None, None
-    if isinstance(bdsim_in, basestring):
+    if isinstance(bdsim_in, str):
         if not _ospath.isfile(bdsim_in):
             raise IOError("file \"{}\" not found!".format(bdsim_in))
         name = (_ospath.splitext(_ospath.basename(bdsim_in))[0]
@@ -211,7 +211,7 @@ def _parse_tfs_input(tfs_in, name):
     name if None is provided, and return that as well."""
     if tfs_in is None:
         return None, None
-    if isinstance(tfs_in, basestring):
+    if isinstance(tfs_in, str):
         if not _ospath.isfile(tfs_in):
             raise IOError("file \"{}\" not found!".format(tfs_in))
         name = (_ospath.splitext(_ospath.basename(tfs_in))[0]
@@ -235,7 +235,7 @@ def _parse_relative_input(rel_in, name):
     name if None is provided, and return that as well."""
     if rel_in is None:
         return None, None
-    if isinstance(rel_in, basestring):
+    if isinstance(rel_in, str):
         if not _ospath.isfile(rel_in):
             raise IOError("file \"{}\" not found!".format(rel_in))
         name = (_ospath.splitext(_ospath.basename(rel_in))[0]
@@ -758,7 +758,7 @@ def Optics(bdsim=None, bdsimname=None,
 
     # load once here to save loading for every plot
     if survey is not None:
-        if isinstance(survey, basestring) and not _ospath.isfile(survey):
+        if isinstance(survey, str) and not _ospath.isfile(survey):
             raise IOError("Survey not found: ", survey)
         if CheckBdsimDataHasSurveyModel(survey):
             survey = _pybdsim.Data.Load(survey).model
@@ -886,7 +886,7 @@ def OpticsResiduals(first=None, firstname=None,
 
     # load once here to save loading for every plot
     if survey is not None:
-        if isinstance(survey, basestring) and not _ospath.isfile(survey):
+        if isinstance(survey, str) and not _ospath.isfile(survey):
             raise IOError("Survey not found: ", survey)
         if CheckBdsimDataHasSurveyModel(survey):
             survey = _pybdsim.Data.Load(survey).model

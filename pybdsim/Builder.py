@@ -746,7 +746,7 @@ class Crystal(collections.MutableMapping):
             return
         elif isinstance(value, tuple):
             self._store[key] = (float(value[0]), value[1])
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             if value.startswith('"') and value.endswith('"'):
                 # Prevent the buildup of quotes for multiple setitem calls
                 value = value.strip('"')
@@ -994,7 +994,7 @@ class Machine(object):
         specifies if names string can be at the 'beginning', 'end', or anywhere ('all') in an elements name.
         """
         # TODO: better method for name matching. Keep basic for now.
-        if isinstance(names, basestring):
+        if isinstance(names, str):
             if _string.lower(namelocation) == 'all':
                 elements = [name for name in self.elements.keys() if names in name]
             elif _string.lower(namelocation) == 'start':
@@ -1315,7 +1315,7 @@ class Machine(object):
             self.AddFodoCellSplitDrift(cellname,magnetlength,driftlength,kabs,nsplits=10,**kwargs)
 
     def AddSampler(self, names):
-        if isinstance(names, basestring):
+        if isinstance(names, str):
             if names == "all":
                 self.samplers.append(Sampler("all"))
             elif names == "first":

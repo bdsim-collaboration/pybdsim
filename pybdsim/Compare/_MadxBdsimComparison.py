@@ -577,7 +577,7 @@ def MadxVsBDSIMOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctio
 def _AddSurvey(figure, survey):
     if survey is None:
         return
-    if isinstance(survey, basestring): # If BDSIM ASCII survey file
+    if isinstance(survey, str): # If BDSIM ASCII survey file
         if survey.split(".")[-1] == 'dat':
             _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
     # If BDSIM ASCII survey instance
@@ -591,7 +591,7 @@ def _AddSurvey(figure, survey):
 
 def _ProcessInput(tfsOptics, bdsimOptics):
 
-    if not isinstance(tfsOptics, (_pymadx.Data.Tfs, basestring)):
+    if not isinstance(tfsOptics, (_pymadx.Data.Tfs, str)):
         raise TypeError("tfsOptics should be either a path to a tfs file or "
                         "a pymadx.Data.Tfs instance!")
     if not isinstance(bdsimOptics, _pybdsim.Data.BDSAsciiData):
@@ -599,9 +599,9 @@ def _ProcessInput(tfsOptics, bdsimOptics):
                         "BDSAsciiData file or a pybdsim.Data.BDSAsciiData "
                         "instance")
 
-    if isinstance(tfsOptics, basestring):
+    if isinstance(tfsOptics, str):
         tfsOptics = _pymadx.Data.Tfs(tfsOptics)
-    if isinstance(tfsOptics, basestring):
+    if isinstance(tfsOptics, str):
         bdsimOptics = _pybdsim.Data.Load(bdsimOptics)
 
     return tfsOptics, bdsimOptics
@@ -610,12 +610,12 @@ def _CheckFilesExist(tfs, bdsim, survey):
     '''
     Otherwise such errors are too cryptic.
     '''
-    if isinstance(tfs, basestring):
+    if isinstance(tfs, str):
         if not _isfile(tfs):
             raise IOError("File not found: ", tfs)
-    if isinstance(bdsim, basestring) and not _isfile(bdsim):
+    if isinstance(bdsim, str) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
-    if isinstance(survey, basestring) and not _isfile(survey):
+    if isinstance(survey, str) and not _isfile(survey):
         raise IOError("File not found: ", survey)
 
 

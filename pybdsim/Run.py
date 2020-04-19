@@ -169,7 +169,7 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
     if batch:
         args.append("--batch")
 
-    if isinstance(options, basestring):
+    if isinstance(options, str):
         args.append(options)
     elif options is not None:
         args.extend(options)

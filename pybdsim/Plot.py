@@ -252,7 +252,7 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2,
            machine, downwards.
     """
 
-    if isinstance(survey, basestring):
+    if isinstance(survey, str):
         survey = _Data.Load(survey)
 
     # Make all main plots 3 times bigger than the machine plot along

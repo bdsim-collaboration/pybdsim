@@ -44,7 +44,7 @@ def _parse_bdsim_input(bdsim_in, name):
    be a path to a BDSIM root output file, rebdsimOptics output file,
    or a BDSAsciiData instance, and in either case, generate a
    name if None is provided, and return that as well."""
-   if isinstance(bdsim_in, basestring):
+   if isinstance(bdsim_in, str):
        if not _path.isfile(bdsim_in):
            raise IOError("file \"{}\" not found!".format(bdsim_in))
        name = (_path.splitext(_path.basename(bdsim_in))[0]

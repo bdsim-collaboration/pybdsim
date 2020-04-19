@@ -56,20 +56,20 @@ Copyright Royal Holloway, University of London 2019.
 
 __version__ = "2.1.0"
 
-import Beam
-import Builder
-import Constants
-import Convert
-import Compare
-import Field
-import Data
-import Gmad
-import Options
-import Plot
-import Run
-import ModelProcessing
-import Visualisation
-import XSecBias
+from . import Beam
+from . import Builder
+from . import Constants
+from . import Convert
+from . import Compare
+from . import Field
+from . import Data
+from . import Gmad
+from . import Options
+from . import Plot
+from . import Run
+from . import ModelProcessing
+from . import Visualisation
+from . import XSecBias
 #import Rebdsim
 #import Testing
 

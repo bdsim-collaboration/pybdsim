@@ -75,7 +75,7 @@ class FileSection():
 
         #string for __repr__ output
         self._willContain=''
-        if isinstance(willContain, basestring) and willContain in sections:
+        if isinstance(willContain, str) and willContain in sections:
             self._willContain = willContain
 
     def __repr__(self):

@@ -233,7 +233,7 @@ def _CheckFilesExist(twiss, envel, bdsim):
         raise IOError("File not found: ", twiss)
     if not _isfile(envel):
         raise IOError("File not found: ", envel);
-    if isinstance(bdsim, basestring) and not _isfile(bdsim):
+    if isinstance(bdsim, str) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
 
 def _GetBDSIMOptics(optics):
