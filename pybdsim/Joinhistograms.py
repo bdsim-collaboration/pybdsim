@@ -1,6 +1,10 @@
-import ROOT
-from ROOT import TH1F
-from ROOT import TFile
+try:
+    import ROOT
+    from ROOT import TH1F
+    from ROOT import TFile
+except ImportError:
+    _useRoot = False
+    pass
 
 import glob
 import optparse
@@ -61,8 +65,8 @@ def JoinRootHistograms(inputdir="./",outputfilename="output.root"):
                 plosspe += plosspetmp
             f.Close()
 
-    print "Analysed all files"
-    print "Writing total histograms to ",outputfilename
+    print("Analysed all files")
+    print("Writing total histograms to ",outputfilename)
     
     #open an output file for root
     f = TFile(outputfilename,"RECREATE")
