@@ -63,10 +63,14 @@ def Load(filepath):
     REBDISM file - uses ROOT, returns RebdsimFile instance.
 
     """
-    if not _os.path.exists(filepath):
-        raise IOError("File: {} does not exist.".format(filepath))
+    if "*" not in filepath:
+        if not _os.path.exists(filepath):
+            raise IOError("File: {} does not exist.".format(filepath))
+        extension = filepath.split('.')[-1]
+    else:
+        print("* in name so assuming set of root files")
+        extension = "root"    
 
-    extension = filepath.split('.')[-1]
     if extension == 'txt':
         return _LoadAscii(filepath)
     elif extension == 'root':
