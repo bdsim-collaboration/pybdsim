@@ -386,12 +386,12 @@ class BDSAsciiData(list):
         self.units   = []
         self.names   = []
         self.columns = self.names
-        self._columnsLower = map(str.lower, self.columns)
+        self._columnsLower = list(map(str.lower, self.columns))
         self.filename = "" # file data was loaded from
 
     def __getitem__(self,index):
         if type(index) is str:
-            nameCol = map(str.lower, self.GetColumn('name', ignoreCase=True))
+            nameCol = list(map(str.lower, self.GetColumn('name', ignoreCase=True)))
             index = nameCol.index(index.lower())
         return dict(zip(self.names,list.__getitem__(self,index)))
 
