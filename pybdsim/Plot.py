@@ -783,7 +783,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     # Use nominal T with beam E0 as low no. of particles can cause statistical fluctuation
     if offsetTime:
         S = max(data['S'])  # should all be the same for a sampler, take max to be safe
-        t = S / (_np.sqrt(1.0 - 1.0/((beam.E0/primarymass)**2)) * _con.c)
+        t = S / (_np.sqrt(1.0 - 1.0/((beam.beamEnergy/primarymass)**2)) * _con.c)
         da['T'] -= (t * 1e9)
 
     # create correlation and coords figures and empty subplots
