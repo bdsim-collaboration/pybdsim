@@ -105,7 +105,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     Add a machine diagram to the top of the plot in a current figure
 
     """
-    import Data as _Data
+    from . import Data as _Data
     sf = _CheckItsBDSAsciiData(surveyfile)
     # we don't need to check this has the required columns because we control a
     # BDSIM survey contents.
@@ -645,7 +645,7 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None, exte
     the 'extension' kwarg, e.g. extension='.png'.
 
     """
-    import Data as _Data
+    from . import Data as _Data
     d = _Data.Load(filename)
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
     PhaseSpace(psd, outputfilename=outputfilename, extension=extension)
@@ -1040,7 +1040,7 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
     Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. If both are provided,
     the machine diagram is plotted from the MADX survey.
     """
-    import Data as _Data
+    from . import Data as _Data
     d = _Data.Load(filename)
     if type(d) is not _Data.RebdsimFile:
         raise IOError("Not a rebdsim file")
@@ -1229,7 +1229,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
 
 def PrimarySurvival(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
 
-    import Data as _Data
+    from . import Data as _Data
     d = _Data.Load(filename)
     if type(d) is not _Data.RebdsimFile:
         raise IOError("Not a rebdsim file")
@@ -1261,7 +1261,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
 
     Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot.
     """
-    import Data as _Data
+    from . import Data as _Data
     d = _Data.Load(filename)
     if type(d) is not _Data.RebdsimFile:
         raise IOError("Not a rebdsim file")

@@ -22,7 +22,7 @@ except ImportError:
 
 try:
     import pysad
-    from _SadFlat2Gmad import SadFlat2GMad
+    from ._SadFlat2Gmad import SadFlat2GMad
 except ImportError:
     pass
     #import warnings

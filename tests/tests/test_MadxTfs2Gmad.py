@@ -1,12 +1,8 @@
 import os.path
 from itertools import islice
-try:
-    from itertools import izip as zip
-except ImportError:
-    pass
+from itertools import izip
 
 import pytest
-
 import pybdsim
 import pymadx
 

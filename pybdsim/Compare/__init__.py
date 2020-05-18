@@ -22,6 +22,6 @@ import pymad8 as _pymad8
 
 try:
     import pysad as _pysad
-    from _SadComparison import SadComparison
+    from ._SadComparison import SadComparison
 except ImportError:
     pass

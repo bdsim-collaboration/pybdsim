@@ -1,1 +1,1 @@
-from bdsimMadx import *
+from .bdsimMadx import *

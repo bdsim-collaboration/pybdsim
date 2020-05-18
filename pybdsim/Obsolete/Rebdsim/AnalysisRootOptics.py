@@ -1,4 +1,4 @@
-import AnalysisRoot 
+from . import AnalysisRoot 
 
 class AnalysisRootOptics : 
     def __init__(self, filelist ) : 

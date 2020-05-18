@@ -7,7 +7,7 @@ the name of the input found in pybdsim/tests/test_input/.   """
 import pybdsim
 import pymadx
 
-import pybdsim_test_utils as utils
+from . import pybdsim_test_utils as utils
 
 def generate_atf2_gmad():
     input_file_name = "atf2-nominal-twiss-v5.2.tfs.tar.gz"

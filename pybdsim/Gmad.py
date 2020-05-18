@@ -11,7 +11,7 @@ import os as _os
 import numpy as _np
 import matplotlib.pyplot as _plt
 try:
-    from StringIO import StringIO as _StringIO
+    from io import StringIO as _StringIO
 except ImportError:
     from io import StringIO as _StringIO
 import re as _re
