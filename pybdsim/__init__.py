@@ -61,8 +61,8 @@ from . import Builder
 from . import Constants
 from . import Convert
 from . import Compare
-from . import Field
 from . import Data
+from . import Field
 from . import Gmad
 from . import Options
 from . import Plot
@@ -70,16 +70,7 @@ from . import Run
 from . import ModelProcessing
 from . import Visualisation
 from . import XSecBias
-#import Rebdsim
-#import Testing
-
-#import Root - not imported since dependency on pyROOT
-
 from . import _General
-
-#from Analysis import Analysis
-#from AnalysisRoot import AnalysisRoot
-#from AnalysisRootOptics import AnalysisRootOptics
 
 __all__ = ['Beam',
            'Builder',
