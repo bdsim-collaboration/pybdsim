@@ -5,6 +5,7 @@ import warnings as _warnings
 from .. import Builder as _Builder
 from ..Options import Options as _Options
 from .. import Beam as _Beam
+from .. import Data as _Data
 import pybdsim._General
 
 _requiredKeys = frozenset([
@@ -201,6 +202,14 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     # test whether filepath or tfs instance supplied
     madx = _pymadx.Data.CheckItsTfs(tfs)
+
+    # not very elegant but needs to be done
+    varnames = ['aperturedict', 'collimatordict','userdict','partnamedict','allelementdict','optionsdict','beamparamsdict']
+    vars     = [aperturedict,    collimatordict,  userdict,  partnamedict,  allelementdict,  optionsdict,  beamparamsdict]
+    for var,varname in zip(vars,varnames):
+        typevar = type(var)
+        if typevar not in (dict, _Data.BDSAsciiData):
+            raise TypeError("Argument '" + varname + "' is not a dictionary")
 
     if usemadxaperture:
         aperturedict = madx
