@@ -1502,7 +1502,7 @@ def BDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=True, r
     
     if plotApertureType:
         t = [ap.apertureType for ap in apers]
-        c = map(_ApertureTypeToColour, t)
+        c = list(map(_ApertureTypeToColour, t))
         
     fig = _plt.figure(figsize=_defaultFigureSize)
         

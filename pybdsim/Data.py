@@ -246,9 +246,9 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
     tempdata = []
     for leave,name,t in zip(leaves,names,types):
         result._AddProperty(name)
-        tempdata.append(map(t, getattr(bl, leave)))
+        tempdata.append(list(map(t, getattr(bl, leave))))
 
-    data = map(tuple, zip(*tempdata))
+    data = list(map(tuple, list(zip(*tempdata))))
     [result.append(d) for d in data]
     return result
 
