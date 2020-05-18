@@ -1,5 +1,5 @@
-! Mon, 16 Jul 2018 21:41:29 +0000
-! pybdsim.Builder Lattice, using pybdsim version 1.6 
+! Mon, 18 May 2020 11:09:07 +0000
+! pybdsim.Builder Lattice, using pybdsim version 2.1.0 
 ! BEAM DEFINITION
 
 beam,	X0=0.0*m,
