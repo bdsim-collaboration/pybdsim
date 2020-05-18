@@ -25,4 +25,5 @@ pipelines:
           - make develop
           - cd ../
           - make develop
+          - pip install pytest
           - python -m pytest
