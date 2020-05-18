@@ -438,7 +438,6 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
             return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
         else:
             return _Builder.Multipole(rname, l, knl=knl, ksl=ksl, **kws)
-        return _Builder.Drift(rname, l, **kws)
     elif t == 'OCTUPOLE':
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             k3 = item['K3L'] * factor if not linear else 0
