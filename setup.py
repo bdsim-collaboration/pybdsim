@@ -5,7 +5,8 @@ setup(
     version='2.1.0',
     packages=find_packages(exclude=["docs", "tests", "obsolete"]),
     # Not sure how strict these need to be...
-    install_requires=["matplotlib",
+    install_requires=["future",
+                      "matplotlib",
                       "numpy",
                       "scipy",
                       "fortranformat",
