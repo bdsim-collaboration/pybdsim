@@ -204,8 +204,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
     madx = _pymadx.Data.CheckItsTfs(tfs)
 
     # not very elegant but needs to be done
-    varnames = ['aperturedict', 'collimatordict','userdict','partnamedict','allelementdict','optionsdict','beamparamsdict']
-    vars     = [aperturedict,    collimatordict,  userdict,  partnamedict,  allelementdict,  optionsdict,  beamparamsdict]
+    varnames = ['collimatordict','userdict','partnamedict','allelementdict','optionsdict','beamparamsdict']
+    vars     = [collimatordict,   userdict,  partnamedict,  allelementdict,  optionsdict,  beamparamsdict]
     for var,varname in zip(vars,varnames):
         typevar = type(var)
         if typevar not in (dict, _Data.BDSAsciiData):
