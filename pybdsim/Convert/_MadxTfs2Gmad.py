@@ -5,6 +5,7 @@ import warnings as _warnings
 from .. import Builder as _Builder
 from ..Options import Options as _Options
 from .. import Beam as _Beam
+from .. import Data as _Data
 import pybdsim._General
 
 _requiredKeys = frozenset([
@@ -68,8 +69,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  defaultAperture       = 'circular',
                  biases                = None,
                  allelementdict        = {},
-                 optionsDict           = {},
-                 beamParmsDict         = {},
+                 optionsdict           = {},
+                 beamparamsdict        = {},
                  linear                = False,
                  overwrite             = True,
                  write                 = True,
@@ -174,8 +175,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
     | **allelementdict**            | Dictionary of parameter/value pairs to be written to all          |
     |                               | components.                                                       |
     +-------------------------------+-------------------------------------------------------------------+
-    | **optionsDict**               | Optional dictionary of general options to be written to the       |
+    | **optionsdict**               | Optional dictionary of general options to be written to the       |
     |                               | bdsim model options.                                              |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **beamparamsdict**            | Optional dictionary of parameters to be passed to the beam.       |
     +-------------------------------+-------------------------------------------------------------------+
     | **linear**                    | Only linear optical components                                    |
     +-------------------------------+-------------------------------------------------------------------+
@@ -200,6 +203,14 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # test whether filepath or tfs instance supplied
     madx = _pymadx.Data.CheckItsTfs(tfs)
 
+    # not very elegant but needs to be done
+    varnames = ['collimatordict','userdict','partnamedict','allelementdict','optionsdict','beamparamsdict']
+    vars     = [collimatordict,   userdict,  partnamedict,  allelementdict,  optionsdict,  beamparamsdict]
+    for var,varname in zip(vars,varnames):
+        typevar = type(var)
+        if typevar not in (dict, _Data.BDSAsciiData):
+            raise TypeError("Argument '" + varname + "' is not a dictionary")
+
     if usemadxaperture:
         aperturedict = madx
     elif aperturedict and aperlocalpositions:
@@ -220,8 +231,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         if (("RCOLLIMATOR" in madx.GetColumn("APERTYPE")
              or "ECOLLIMATOR" in madx.GetColumn("APERTYPE"))
                 and not collimatordict):
-            _warnings.warn("No collimatordict provided.  ALL collimators"
-                           " will be converted to DRIFTs.")
+            _warnings.warn("No collimatordict provided.  ALL collimators will be converted to DRIFTs.")
 
     if biases is not None:
         machine.AddBias(biases)
@@ -285,13 +295,13 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # Make beam file
     if beam:
         bm = MadxTfs2GmadBeam(madx, startname, verbose)
-        for k, v in beamParmsDict.iteritems():
+        for k, v in beamparamsdict.iteritems():
             bm[k] = v
         machine.AddBeam(bm)
 
     options = _Options()
-    if optionsDict:
-        options.update(optionsDict)  # expand with user supplied bdsim options
+    if optionsdict:
+        options.update(optionsdict)  # expand with user supplied bdsim options
     machine.AddOptions(options)
 
     if verbose:
@@ -327,7 +337,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return item
 
     kws = {}  # ensure empty
-    # deep copy as otherwise allelementdict gets irreperably changed!
+    # deep copy as otherwise allelementdict gets irreparably changed!
     kws = _deepcopy(allelementdict)
     if verbose:
         print('Starting key word arguments from all element dict')
@@ -436,7 +446,6 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
             return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
         else:
             return _Builder.Multipole(rname, l, knl=knl, ksl=ksl, **kws)
-        return _Builder.Drift(rname, l, **kws)
     elif t == 'OCTUPOLE':
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             k3 = item['K3L'] * factor if not linear else 0
@@ -572,7 +581,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                                                 ysize * 2.5])
                 if t == 'RCOLLIMATOR' or t == "COLLIMATOR":
                     return _Builder.RCol(rname, l, xsize, ysize, **kws)
-                return _Builder.ECol(rname, l, xsize, ysize, **kws)
+                else:
+                    return _Builder.ECol(rname, l, xsize, ysize, **kws)
         # dict is incomplete or the component is erroneously
         # reffered to as a collimator even when it can be thought
         # of as a drift (e.g. LHC TAS).

@@ -1,5 +1,5 @@
-! Tue, 26 Jun 2018 09:53:11 +0000
-! pybdsim.Builder Lattice, using pybdsim version 1.6 
+! Mon, 18 May 2020 12:49:26 +0000
+! pybdsim.Builder Lattice, using pybdsim version 2.1.0 
 ! COMPONENT DEFINITION
 
 QUADFH: quadrupole, aper1=0.05, aper2=0.03, aper3=0.05, aper4=0.05, apertureType="lhc", k1=0.008560445444, l=2.5;
@@ -49,4 +49,3 @@ QUADCIR1: quadrupole, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureTy
 COLTERT2: rcol, l=1.0, material="tungsten", outerDiameter=0.5, xsize=0.00800859745, ysize=0.00612971944;
 QUADCIR0: quadrupole, aper1=0.05, aper2=0.05, aper3=0.05, aper4=0.05, apertureType="circular", k1=-0.002974811042, l=10.0;
 COLTERT3: rcol, l=1.0, material="tungsten", outerDiameter=0.5, xsize=0.00522548795, ysize=0.00584306373;
-theendoftheline: marker;

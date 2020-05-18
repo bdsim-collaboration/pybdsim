@@ -82,7 +82,7 @@ class Study(object):
         self.outputnames = [] # file names
         self.outputsizes = [] # in bytes
 
-    def GetInfo(index=-1):
+    def GetInfo(self, index=-1):
         """
         Get info about a particular run.
         """
@@ -187,15 +187,15 @@ def Rebdsim(rootpath, inpath, outpath,silent=False, rebdsimExecutable=None):
     Run rebdsim with rootpath as analysisConfig file, inpath as bdsim 
     file, and outpath as output analysis file.
     """
-    if not rebdsimExectuable:
-        rebdsimExectuable = "bdsim"
+    if not rebdsimExecutable:
+        rebdsimExecutable = "rebdsim"
     if not _General.IsROOTFile(inpath):
         raise IOError("Not a ROOT file")
     if silent:
-        return _subprocess.call([rebdsimExectuable, rootpath , inpath , outpath],
+        return _subprocess.call([rebdsimExecutable, rootpath , inpath , outpath],
                                stdout=open(_os.devnull, 'wb'))
     else:
-        return _subprocess.call([rebdsimExectuable, rootpath, inpath, outpath])
+        return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
     
 def RebdsimOptics(rootpath, outpath, silent=False):
     """Run rebdsimOptics"""

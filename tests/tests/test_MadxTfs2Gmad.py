@@ -141,7 +141,7 @@ def test_atf2_conversion_with_aperturedict(atf2_input, tmppath):
 @pytest.mark.sanity
 def test_atf2_conversion_with_optionsDict(atf2_input, tmppath):
     pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath,
-                                 optionsDict={"stopSecondaries": "1"})
+                                 optionsdict={"stopSecondaries": "1"})
 
 @pytest.mark.sanity
 def test_atf2_conversion_with_userdict(atf2_input, tmppath):
