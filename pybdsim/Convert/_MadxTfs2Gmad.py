@@ -231,8 +231,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         if (("RCOLLIMATOR" in madx.GetColumn("APERTYPE")
              or "ECOLLIMATOR" in madx.GetColumn("APERTYPE"))
                 and not collimatordict):
-            _warnings.warn("No collimatordict provided.  ALL collimators"
-                           " will be converted to DRIFTs.")
+            _warnings.warn("No collimatordict provided.  ALL collimators will be converted to DRIFTs.")
 
     if biases is not None:
         machine.AddBias(biases)
@@ -338,7 +337,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return item
 
     kws = {}  # ensure empty
-    # deep copy as otherwise allelementdict gets irreperably changed!
+    # deep copy as otherwise allelementdict gets irreparably changed!
     kws = _deepcopy(allelementdict)
     if verbose:
         print 'starting key word arguments from all element dict'
