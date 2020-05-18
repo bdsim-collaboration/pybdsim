@@ -24,7 +24,7 @@ from . import Writer as _Writer
 from . import _General
 from ._General import IsFloat as _IsFloat
 
-import collections
+import collections as _collections
 import math as _math
 import time as _time
 import os as _os
@@ -74,7 +74,7 @@ bdsimcategories = [
     'dump'
     ]
 
-class ElementBase(collections.MutableMapping):
+class ElementBase(_collections.abc.MutableMapping):
     """
     A class that represents an element / item in an accelerator beamline.
     Printing or string conversion produces the BDSIM syntax.
@@ -722,7 +722,7 @@ class Sampler(object):
         else:
             return 'sample, range='+self.name+';\n'
 
-class Crystal(collections.MutableMapping):
+class Crystal(_collections.abc.MutableMapping):
     """
     A crystal is unique in that it does not have a length unlike every
     :class:`Element` hence it needs its own class to produce its
@@ -819,7 +819,7 @@ class Machine(object):
     def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
         self.sequence  = []
-        self.elements  = collections.OrderedDict()
+        self.elements  = _collections.OrderedDict()
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0
