@@ -1,6 +1,5 @@
 import os.path
 from itertools import islice
-from itertools import izip
 
 import pytest
 import pybdsim
@@ -35,13 +34,10 @@ def atf2_input():
 @pytest.fixture
 def model_model_input(tmppath):
     tfs = "{}/model-model.tfs.gz".format(PATH_TO_TEST_INPUT)
-    aper = pymadx.Data.Aperture(
-        "{}/model-model-aper.tfs.gz".format(PATH_TO_TEST_INPUT))
+    aper = pymadx.Data.Aperture("{}/model-model-aper.tfs.gz".format(PATH_TO_TEST_INPUT))
     aper = aper.RemoveBelowValue(0.005)
-    coll = pybdsim.Data.Load(
-        "{}/model-model-collsettings.dat".format(PATH_TO_TEST_INPUT))
-    return {"tfs": tfs, "outputfilename": tmppath,
-            "aperturedict": aper, "collimatordict": coll}
+    coll = pybdsim.Data.Load("{}/model-model-collsettings.dat".format(PATH_TO_TEST_INPUT))
+    return {"tfs": tfs, "outputfilename": tmppath, "aperturedict": aper, "collimatordict": coll}
 
 @pytest.fixture
 def tmppath(tmpdir):
@@ -52,8 +48,8 @@ def tmppath(tmpdir):
 def biases(request):
     """Biases can be either a single XSecBias instance or a list
     thereof.  This fixture provides both."""
-    bias1 = pybdsim.XSecBias.XSecBias("mydecay1", "gamma", "decay", "1e5", "2")
-    bias2 = pybdsim.XSecBias.XSecBias("mydecay2", "proton", "decay", "1e5", "2")
+    bias1 = pybdsim.XSecBias.XSecBias("mydecay1", "gamma", "decay", 1e5, "2")
+    bias2 = pybdsim.XSecBias.XSecBias("mydecay2", "proton", "decay", 1e5, "2")
     if request.param == "bias":
         return bias1
     if request.param == "list":
@@ -136,25 +132,21 @@ def test_atf2_conversion_with_aperturedict(atf2_input, tmppath):
 
 @pytest.mark.sanity
 def test_atf2_conversion_with_optionsDict(atf2_input, tmppath):
-    pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath,
-                                 optionsdict={"stopSecondaries": "1"})
+    pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath, optionsdict={"stopSecondaries": "1"})
 
 @pytest.mark.sanity
 def test_atf2_conversion_with_userdict(atf2_input, tmppath):
-    pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath,
-                                 userdict={"KEX1A": {"biasVacuum": "mybias"}})
+    pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath, userdict={"KEX1A": {"biasVacuum": "mybias"}})
 
 @pytest.mark.sanity
 def test_atf2_conversion_with_allelementdict(atf2_input, tmppath):
     """Don't crash for valid arguments of allelementdict"""
-    pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath,
-                                 allelementdict={"biasVacuum": "mybias"})
+    pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath, allelementdict={"biasVacuum": "mybias"})
 
 @pytest.mark.sanity
 def test_atf2_conversion_with_defaultAperture(atf2_input, tmppath):
     """Don't crash for valid arguments of defaultAperture"""
-    pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath,
-                                 defaultAperture="rectellipse")
+    pybdsim.Convert.MadxTfs2Gmad(atf2_input, tmppath, defaultAperture="rectellipse")
 
 @pytest.mark.sanity
 def test_atf2_conversion_with_biases(atf2_input, tmppath, biases):
