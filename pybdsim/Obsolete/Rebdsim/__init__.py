@@ -10,10 +10,10 @@ else :
     pass
     # TODO issue warning on unknown system
 
-from Options   import *
-from Model     import *
-from Run       import *
-from Event     import *
-from Processed import *
-from Root      import *
+from .Options   import *
+from .Model     import *
+from .Run       import *
+from .Event     import *
+from .Processed import *
+from .Root      import *
 # from Plots     import *
