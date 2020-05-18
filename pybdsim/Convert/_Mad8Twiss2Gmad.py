@@ -690,7 +690,7 @@ class Mad8CollimatorDatabase:
             self._collNames.append(name)
 
     def openCollimators(self,openHalfSizeX=0.2, openHalfSizeY=0.2) :
-        for c in self._coll.keys() :
+        for c in list(self._coll.keys()) :
             self._coll[c]['xsize'] = openHalfSizeX
             self._coll[c]['ysize'] = openHalfSizeY
 

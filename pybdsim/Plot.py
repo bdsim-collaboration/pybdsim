@@ -753,7 +753,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
 
     for parameter in ('x', 'y', 'xp', 'yp', 'T', energy):
         # get the parameter label
-        if parameter in labels.keys():
+        if parameter in list(labels.keys()):
             l[parameter] = labels[parameter]
         else:
             l[parameter] = defaultLabels[parameter]
@@ -773,7 +773,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
                 da[parameter] = data[parameter]
 
         # multiply data by scale factor
-        if parameter in scalefactors.keys():
+        if parameter in list(scalefactors.keys()):
             da[parameter] *= scalefactors[parameter]
         else:
             da[parameter] *= defaultScales[parameter]

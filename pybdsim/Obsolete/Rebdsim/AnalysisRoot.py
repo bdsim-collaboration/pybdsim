@@ -73,7 +73,7 @@ class AnalysisRoot:
 
         #fill histogram
         nentries = int(self.elossch.GetEntries())
-        for i in xrange(nentries):
+        for i in range(nentries):
             self.elossch.GetEntry(i)
             if weighted:
                 self.elosshist.Fill(self.elossch.s,self.elossch.E)
@@ -97,7 +97,7 @@ class AnalysisRoot:
 
         #fill histogram
         nentries = int(self.plossch.GetEntries())
-        for i in xrange(nentries):
+        for i in range(nentries):
             self.plossch.GetEntry(i)
             if weighted:
                 self.plosshist.Fill(self.plossch.s,self.plossch.E)
