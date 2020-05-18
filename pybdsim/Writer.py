@@ -14,7 +14,6 @@ from pybdsim import __version__ as _pybdsimVersion
 from . import _General
 from . import Beam as _Beam
 from . import Options as _Options
-from . import Builder as _Builder
 
 import time as _time
 import os as _os
@@ -540,7 +539,8 @@ class Writer():
         return fn_name
 
     def _machineCheck(self,machine):
-        if not isinstance(machine,_Builder.Machine):
+        # this way of comparing avoids having to import Builder which is a circular import
+        if type(machine).__name__ != 'Machine':
             raise TypeError("Not a machine instance")
 
     def _checkFiles(self,filename, overwrite=True):
