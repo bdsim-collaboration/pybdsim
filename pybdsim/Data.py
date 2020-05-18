@@ -74,7 +74,6 @@ def Load(filepath):
     if extension == 'txt':
         return _LoadAscii(filepath)
     elif extension == 'root':
-        return _LoadRoot(filepath)
         try:
             return _LoadRoot(filepath)
         except NameError:
