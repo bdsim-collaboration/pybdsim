@@ -573,7 +573,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                                                 ysize * 2.5])
                 if t == 'RCOLLIMATOR' or t == "COLLIMATOR":
                     return _Builder.RCol(rname, l, xsize, ysize, **kws)
-                return _Builder.ECol(rname, l, xsize, ysize, **kws)
+                else:
+                    return _Builder.ECol(rname, l, xsize, ysize, **kws)
         # dict is incomplete or the component is erroneously
         # reffered to as a collimator even when it can be thought
         # of as a drift (e.g. LHC TAS).
