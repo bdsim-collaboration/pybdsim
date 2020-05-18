@@ -1,9 +1,12 @@
 import os
+import sys
 
-PATH_TO_TEST_INPUT = "{}/../test_input/".format(
-    os.path.dirname(os.path.abspath(__file__)))
-PATH_TO_TEST_OUTPUT = "{}/../test_output/".format(
-    os.path.dirname(os.path.abspath(__file__)))
+PATH_TO_TEST_INPUT = "{}/../test_input/".format(os.path.dirname(os.path.abspath(__file__)))
+# we have different numerical precision for python3 vs 2, so 2 sets of test files
+if sys.version_info[0] == 3:
+    PATH_TO_TEST_OUTPUT = "{}/../test_output/".format(os.path.dirname(os.path.abspath(__file__)))
+else:
+    PATH_TO_TEST_OUTPUT = "{}/../test_output2/".format(os.path.dirname(os.path.abspath(__file__)))
 
 def make_model_name(model_file_name):
     return model_file_name.split('.tfs')[0]
