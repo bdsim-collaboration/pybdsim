@@ -21,9 +21,9 @@ class Field(object):
             f.write(str(key)+'> '+ str(value) + '\n')
 
         if self.doublePrecision:
-            colStrings = map(lambda s: '%23s' % s, self.columns)
+            colStrings = ['%23s' % s for s in self.columns]
         else:
-            colStrings = map(lambda s: '%14s' % s, self.columns)
+            colStrings = ['%14s' % s for s in self.columns]
         colStrings[0] = colStrings[0].strip() # don't pad the first column title
         # a '!' denotes the column header line
         f.write('! '+ '\t'.join(colStrings)+'\n')
@@ -48,11 +48,11 @@ class Field(object):
         datal = datal.reshape(-1,nvalues)
         for value in datal:
             if self.doublePrecision:
-                strings   = map(lambda x: '%.16E' % x, value)
-                stringsFW = map(lambda s: '%23s' % s,  strings)
+                strings   = ['%.16E' % x for x in value]
+                stringsFW = ['%23s' % s for s in strings]
             else:
-                strings   = map(lambda x: '%.8E' % x, value)
-                stringsFW = map(lambda s: '%14s' % s, strings)
+                strings   = ['%.8E' % x for x in value]
+                stringsFW = ['%14s' % s for s in strings]
             f.write('\t'.join(stringsFW) + '\n')
 
         f.close()
