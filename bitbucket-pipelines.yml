@@ -8,9 +8,20 @@ image: python:3.7.3
 pipelines:
   default:
     - step:
+        deployment: test
         caches:
           - pip
         script: # Modify the commands below to build your repository.
+          - git clone https://bitbucket.org/jairhul/pytransport
+          - cd pytransport
           - make develop
-          #- pip install -r requirements.txt
+          - cd ../
+          - git clone https://bitbucket.org/jairhul/pymad8
+          - cd pymad8
+          - make develop
+          - cd ../
+          - git clone https://bitbucket.org/jairhul/pymadx
+          - cd pymadx
+          - cd ../
+          - make develop
           - pytest
