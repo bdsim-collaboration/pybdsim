@@ -25,4 +25,4 @@ pipelines:
           - make develop
           - cd ../
           - make develop
-          - pytest
+          - python -m pytest
