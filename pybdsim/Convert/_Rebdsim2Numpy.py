@@ -34,12 +34,12 @@ def Rebdsim2Numpy(rootfilename,picklefilename):
             for dki in range(0,dkl.GetSize()) :
                 h  = d.Get(dkl[dki].GetName())
                 ah = _root_numpy.hist2array(h)
-                print "Histogram : ",name+"_"+dkl[dki].GetName()
+                print("Histogram : ",name+"_"+dkl[dki].GetName())
                 dd[name+"_"+dkl[dki].GetName()] = ah
 
         if cname == "TTree" : 
             t = f.Get(name)
-            print "Tree      : ",name
+            print("Tree      : ",name)
             at = _root_numpy.tree2array(t)
             dd[name] = at
 
@@ -53,6 +53,6 @@ def Rebdsim2Numpy(rootfilename,picklefilename):
 if __name__ == "__main__":
     nargs = len(_sys.argv)
     if (nargs < 3 or nargs > 3):
-        print "Error - Usage: Rebdsim2Numpy.py inputfile outputfile"
+        print("Error - Usage: Rebdsim2Numpy.py inputfile outputfile")
         _sys.exit(1)
     Rebdsim2Numpy(_sys.argv[1],_sys.argv[2])

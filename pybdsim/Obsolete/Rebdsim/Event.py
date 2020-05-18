@@ -15,7 +15,7 @@ class Event :
         # TODO move over to chains of files
         self._filename = filename
         self._rootFile = _ROOT.TFile(filename)
-        print self._rootFile
+        print(self._rootFile)
         if not self._rootFile.IsOpen() :
             raise IOError
         self._tree     = self._rootFile.Get("Event")

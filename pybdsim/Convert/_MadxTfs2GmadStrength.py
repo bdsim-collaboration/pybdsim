@@ -148,8 +148,8 @@ def _GenerateElementModifier(madxitem, nameToUse,
         pass # just keep a = None and return that
 
     if verbose:
-        print('New Strength: ', a)
+        print(('New Strength: ', a))
         if a is None:
-            print('Unsupported type: ', item['KEYWORD'])
+            print(('Unsupported type: ', item['KEYWORD']))
     
     return a

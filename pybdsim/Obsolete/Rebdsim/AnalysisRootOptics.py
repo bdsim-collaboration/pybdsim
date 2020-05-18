@@ -7,7 +7,7 @@ class AnalysisRootOptics :
     def LoopOverSamplers(self) :         
         for s in self.ar.samplerNames : 
             sd = self.SamplerAnalysis(self.ar.samplerDict[s])
-            print s,sd
+            print(s,sd)
 
     def SamplerAnalysis(self, chain) :         
         chain.SetBranchStatus("x",1) 

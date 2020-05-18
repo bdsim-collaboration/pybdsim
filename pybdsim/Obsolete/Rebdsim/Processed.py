@@ -16,9 +16,9 @@ class Processed:
         self._dataDict  = OrderedDict()
         nconvert = self.loadfile();
         if nconvert == 0 :
-            print 'Processed> file appears empty'
+            print('Processed> file appears empty')
         else :
-            print 'Processed>', nconvert, 'objects converted'
+            print('Processed>', nconvert, 'objects converted')
 
     def loadfile(self):
         '''

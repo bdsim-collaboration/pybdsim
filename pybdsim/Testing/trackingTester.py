@@ -75,11 +75,11 @@ class Test:
         
     def Make(self):
         #type_='drift', foldername=None, particle='e-', energy=1.0,**kwargs) : 
-        print 'Test> Element type:         ',self.type_
-        print 'Test> Destination filepath: ',self.filepath
-        print 'Test> kwargs: ',
+        print('Test> Element type:         ',self.type_)
+        print('Test> Destination filepath: ',self.filepath)
+        print('Test> kwargs: ', end=' ')
         for k in self.kwargs : 
-            print k+'='+str(self.kwargs[k]),
+            print(k+'='+str(self.kwargs[k]), end=' ')
 
         if self.distribution == 'flat':
             ptc = pymadx.Ptc.FlatGenerator(**self.distrkwargs)
@@ -321,8 +321,8 @@ class Test:
         r = robdsim.robdsimOutput("test.root")
         r.CalculateOpticalFunctions("optics.dat")
         d = pybdsim.Data.Load("optics.dat")
-        print 'Horizontal emittance bdsim (before,after) ',d.Emitt_x()
-        print 'Vertical emittance bdsim (before,after) ',d.Emitt_y()
+        print('Horizontal emittance bdsim (before,after) ',d.Emitt_x())
+        print('Vertical emittance bdsim (before,after) ',d.Emitt_y())
 
         if self.usingfolder:
             _os.chdir("../")

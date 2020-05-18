@@ -38,8 +38,8 @@ class LatticeTest:
         else:
             folderpath = cwd+"/"+"/".join(path[:-1])  #when relative filepath is given
 
-        print "Filename: ",filename
-        print "Folderpath: ",folderpath
+        print("Filename: ",filename)
+        print("Folderpath: ",folderpath)
         
         if filename[-5:] == ".madx":                
             self.filename    = filename[:-5]
@@ -205,7 +205,7 @@ class LatticeTest:
         Allows a bdsim and ptc run with already defined lattices. Only updates the beam distribution and
         produces the new output.
         """
-        print 'Test> Running new parameters: ', self.filename
+        print('Test> Running new parameters: ', self.filename)
 
         _os.chdir(self.folderpath)
         _os.system(bdsim+" --file="+self.filename+".gmad --ngenerate="+str(self.nparticles)+" --batch --output=rootevent --outfile="+self.filename+"> bdsim.log")
@@ -214,8 +214,8 @@ class LatticeTest:
 
 
     def Run(self, bdsim='bdsim', madx='madx', integratorSet=None, optionsDict = {}):
-        print 'Test> Lattice: ', self.filename 
-        print 'Test> Destination filepath: ', self.filepath
+        print('Test> Lattice: ', self.filename) 
+        print('Test> Destination filepath: ', self.filepath)
 
         _os.chdir(self.folderpath)
 
@@ -353,8 +353,8 @@ class LatticeTest:
         #Check all particles make it through
         if(len(Bx)!=len(Mx)):       
 
-            print "bdsimMadx.Compare>>Error: Unequal number of output particles, please check parameters and try again"
-            print "Input particles: ",self.nparticles," BDS_out particles: ", len(Bx), " PTC_out particles: ", len(Mx)
+            print("bdsimMadx.Compare>>Error: Unequal number of output particles, please check parameters and try again")
+            print("Input particles: ",self.nparticles," BDS_out particles: ", len(Bx), " PTC_out particles: ", len(Mx))
             return
                 
         if showResiduals:
@@ -370,9 +370,9 @@ class LatticeTest:
             rmsxp = "%.6E" % _np.sqrt(_np.average(fresxp*fresxp))
             rmsyp = "%.6E" % _np.sqrt(_np.average(fresyp*fresyp))
 
-            print "Rms residuals:"
-            print " x(m):    ", rmsx,  " y(m):    ", rmsy
-            print " xp(rad): ", rmsxp, " yp(rad): ", rmsyp
+            print("Rms residuals:")
+            print(" x(m):    ", rmsx,  " y(m):    ", rmsy)
+            print(" xp(rad): ", rmsxp, " yp(rad): ", rmsyp)
             
             #standard deviation
             stdMx  = _np.std(Mx)
@@ -477,7 +477,7 @@ class LatticeTest:
         in_Tfs = True       #some of the calculated optical functions are not present in the tfs file (e.g emittance,sigmas)
                             #and hence plots and residuals between BDSIM and MADX cannot be obtained
         for opt in plotopts:
-            print "bdsimMadx... plotting ", opt
+            print("bdsimMadx... plotting ", opt)
             if (opt=='beta'):
                 fn_name      = r'\beta' #this is a raw string for Latex labels and titles
                 fn_rname     = 'beta'   #this is reduced name for filename of saved figure
@@ -601,7 +601,7 @@ class LatticeTest:
                 fn_units     = '(rad)'
                 plotNr      += 1
 
-                print "Warning: Disp_xpyp not present in MADX tfs file, plotting only MADX-PTC and BDSIM results "
+                print("Warning: Disp_xpyp not present in MADX tfs file, plotting only MADX-PTC and BDSIM results ")
                 in_Tfs       = True
                 M_optfn_x    = madx.GetColumn('DPXBETA')
                 M_optfn_y    = madx.GetColumn('DPYBETA')
@@ -614,7 +614,7 @@ class LatticeTest:
                 B_opterr_x   = bdata.Sigma_Disp_xp()
                 B_opterr_y   = bdata.Sigma_Disp_yp()
             else:
-                print "Error: Unrecognised plotting option:", plot
+                print("Error: Unrecognised plotting option:", plot)
                 return
             
             #   if(in_Tfs):  
