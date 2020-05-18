@@ -59,7 +59,7 @@ def Load(filename, debug=False):
 
     requiredKeys    = required[:nDim]
     requiredKeysSet = set(requiredKeys)
-    if not requiredKeysSet.issubset(header.keys()):
+    if not requiredKeysSet.issubset(list(header.keys())):
         print('missing keys from header!')
         if debug:
             print(header)

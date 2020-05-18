@@ -36,7 +36,7 @@ def ZeroMissingRequiredColumns(tfsinstance):
 
     for column in missingColumns:
         tfsinstance.columns.append(column)
-        for key, data in tfsinstance.data.iteritems():
+        for key, data in tfsinstance.data.items():
             data.append(0.0)
 
     missingColsString = ", ".join(["\"{}\"".format(col)
@@ -295,7 +295,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # Make beam file
     if beam:
         bm = MadxTfs2GmadBeam(madx, startname, verbose)
-        for k, v in beamparamsdict.iteritems():
+        for k, v in beamparamsdict.items():
             bm[k] = v
         machine.AddBeam(bm)
 
@@ -738,8 +738,8 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
                   "SetX0": 'X',
                   "SetY0": 'Y'
                   }
-    for func,parameter in beamparams.iteritems():
-        if parameter in data.keys():
+    for func,parameter in beamparams.items():
+        if parameter in list(data.keys()):
             getattr(beam, func)(data[parameter])
 
     return beam

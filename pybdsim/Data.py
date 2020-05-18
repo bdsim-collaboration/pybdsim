@@ -365,15 +365,15 @@ class RebdsimFile(object):
         self.histograms1dpy = {}
         self.histograms2dpy = {}
         self.histograms3dpy = {}
-        for path,hist in self.histograms1d.iteritems():
+        for path,hist in self.histograms1d.items():
             hpy = TH1(hist)
             self.histograms1dpy[path] = hpy
             self.histogramspy[path] = hpy
-        for path,hist in self.histograms2d.iteritems():
+        for path,hist in self.histograms2d.items():
             hpy = TH2(hist)
             self.histograms2dpy[path] = hpy
             self.histogramspy[path] = hpy
-        for path,hist in self.histograms3d.iteritems():
+        for path,hist in self.histograms3d.items():
             hpy = TH3(hist)
             self.histograms3dpy[path] = hpy
             self.histogramspy[path] = hpy

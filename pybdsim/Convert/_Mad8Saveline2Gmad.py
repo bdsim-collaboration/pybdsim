@@ -27,15 +27,15 @@ def Mad8Saveline2Gmad(input, output_file_name, start_name=None, end_name=None, i
     ilc = _Builder.Machine()
 
     for element in mad8.elementList:
-        element_type = mad8.elementDict[element].keys()[0]
-        element_properties = mad8.elementDict[element].values()[0]
+        element_type = list(mad8.elementDict[element].keys())[0]
+        element_properties = list(mad8.elementDict[element].values())[0]
         length = element_properties['L'] if 'L' in element_properties else fake_length  # Everything has a length.
         zero_length = True if length < 1e-9 else False
 
         if element_type == 'LINE':
             for name in element_properties:
-                sequence_element_type = mad8.elementDict[name].keys()[0]
-                sequence_element_properties = mad8.elementDict[name].values()[0]
+                sequence_element_type = list(mad8.elementDict[name].keys())[0]
+                sequence_element_properties = list(mad8.elementDict[name].values())[0]
                 # Everything has a length.
                 length = sequence_element_properties['L'] if 'L' in sequence_element_properties else fake_length
 
@@ -261,12 +261,12 @@ class Mad8SavelineCollimatorDatabase:
             self._coll[name] = d     
         
     def OpenCollimators(self,openHalfSizeX=0.1, openHalfSizeY=0.1) : 
-        for c in self._coll.keys() :
+        for c in list(self._coll.keys()) :
             self._coll[c]['xsize'] = openHalfSizeX
             self._coll[c]['ysize'] = openHalfSizeY
     
     def GetCollimators(self) : 
-        return self._coll.keys()
+        return list(self._coll.keys())
 
     def GetCollimator(self, name) : 
         return self._coll[name]

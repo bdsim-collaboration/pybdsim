@@ -32,7 +32,7 @@ class ExecOptions(dict):
                         'seedstate',
                         'survey',
                         'distrFile']
-        for key,value in kwargs.iteritems():
+        for key,value in kwargs.items():
             if key in self._okFlags or key in self._okArgs:
                 self[key] = value
             else:
@@ -43,11 +43,11 @@ class ExecOptions(dict):
             self.pop("bdsimcommand", None)
 
     def GetExecFlags(self):
-        result = dict((k,self[k]) for k in self.keys() if k in self._okFlags)
+        result = dict((k,self[k]) for k in list(self.keys()) if k in self._okFlags)
         return result
 
     def GetExecArgs(self):
-        result = dict((k,self[k]) for k in self.keys() if k in self._okArgs)
+        result = dict((k,self[k]) for k in list(self.keys()) if k in self._okArgs)
         return result
 
 class GmadModifier(object):
@@ -116,7 +116,7 @@ class Study(object):
         command = eo.bdsimcommand
         for k in eo.GetExecFlags():
             command += ' --' + k
-        for k,v in eo.GetExecArgs().iteritems():
+        for k,v in eo.GetExecArgs().items():
             command += ' --' + str(k) + '=' + str(v)
         if debug:
             print('Command is')

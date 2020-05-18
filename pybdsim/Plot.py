@@ -1557,7 +1557,7 @@ def _AddColourLegend(colours, cmap=_ApertureTypeColourMap()):
     Make a legend with the set of colours used.
     """
     foundCols = set(colours)
-    typemap = dict((v,k) for k,v in cmap.iteritems()) #invert to get apertype from color
+    typemap = dict((v,k) for k,v in cmap.items()) #invert to get apertype from color
     for col in foundCols:
         _plt.scatter(None,None,color=col, label=typemap[col].lower())
 

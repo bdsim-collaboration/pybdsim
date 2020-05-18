@@ -58,12 +58,12 @@ class Options(dict):
 
     def ReturnOptionsString(self):
         s = ''
-        if len(self.keys()) == 0:
+        if len(list(self.keys())) == 0:
             #print 'No options set - empty string'
             return s
         
         numOptions=0
-        for k,v in self.iteritems():
+        for k,v in self.items():
             s += ', \n\t'+str(k)+'='+str(v)
             numOptions += 1
         s += ';'

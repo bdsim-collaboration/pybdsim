@@ -90,7 +90,7 @@ class ElementBase(collections.MutableMapping):
         self['name']      = name
         self._isMultipole = isMultipole
         self._keysextra   = set()
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             self[k] = v
 
     def __getitem__(self, key):
@@ -413,7 +413,7 @@ class ApertureModel(dict):
             print('Allowed MADX aperture types are: ',madxTypes.keys())
             raise ValueError("Invalid aperture type: "+str(apertureType))
 
-        if atL in madxTypes.keys():
+        if atL in list(madxTypes.keys()):
             self['apertureType'] = madxTypes[atL]
             if self['apertureType'] == None:
                 print('Unsupported type: :',self['apertureType'],'" - replacing with elliptical')
@@ -605,7 +605,7 @@ class _Col(Element):
     def __init__(self, name, category, l, xsize, ysize, **kwargs):
         d = {}
         # Strip aperture information:
-        kwargs = {key: value for key, value in kwargs.iteritems() if
+        kwargs = {key: value for key, value in kwargs.items() if
                   "aper" not in key.lower()}
         Element.__init__(self, name, category, l=l, xsize=xsize,
                          ysize=ysize, **kwargs)
@@ -732,7 +732,7 @@ class Crystal(collections.MutableMapping):
         self._store = dict()
         self.name         = name
         self._keysextra   = set()
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             self[k] = v
 
     def __getitem__(self, key):
@@ -880,7 +880,7 @@ class Machine(object):
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
-        elif item.name not in self.elements.keys():
+        elif item.name not in list(self.elements.keys()):
             #hasn't been used before - define it
             if type(item) is Line:
                 for element in item:
@@ -981,7 +981,7 @@ class Machine(object):
             self.length += value
             # todo: update self.lenint list with new lengths. Doesn't appear to be used so should be safe for now.
 
-        elif name in self.elements.keys():
+        elif name in list(self.elements.keys()):
             self.elements[name][parameter] = value
         else:
             msg = 'Unknown element {}'.format(name)
@@ -996,11 +996,11 @@ class Machine(object):
         # TODO: better method for name matching. Keep basic for now.
         if isinstance(names, str):
             if _string.lower(namelocation) == 'all':
-                elements = [name for name in self.elements.keys() if names in name]
+                elements = [name for name in list(self.elements.keys()) if names in name]
             elif _string.lower(namelocation) == 'start':
-                elements = [name for name in self.elements.keys() if names in name[:len(names)]]
+                elements = [name for name in list(self.elements.keys()) if names in name[:len(names)]]
             elif _string.lower(namelocation) == 'end':
-                elements = [name for name in self.elements.keys() if names in name[-len(names):]]
+                elements = [name for name in list(self.elements.keys()) if names in name[-len(names):]]
             else:
                 msg = 'Unknown string location {}'.format(namelocation)
                 raise ValueError(msg)
@@ -1021,7 +1021,7 @@ class Machine(object):
         """
         Update parameter for all elements of a given category.
         """
-        names = self.elements.keys()
+        names = list(self.elements.keys())
         self.UpdateElements(names, parameter, value)
 
     def SynchrotronRadiationRescale(self):
@@ -1167,14 +1167,14 @@ class Machine(object):
 
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
-        for k,v in kwargs.iteritems():
+        for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
 
     def AddJCol(self, name='jc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
-        for k,v in kwargs.iteritems():
+        for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
         self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
@@ -1209,7 +1209,7 @@ class Machine(object):
 
     def AddCrystalCol(self, name='cc', length=0.01, xsize=1e-3, **kwargs):
         objNames = [obj.name for obj in self.objects]
-        for k,v in kwargs.iteritems():
+        for k,v in kwargs.items():
             if (k == "crystalBoth") and (v not in objNames):
                 print("Warning: crystalBoth object " + v + " not known.")
             if (k == "crystalLeft") and (v not in objNames):
@@ -1222,14 +1222,14 @@ class Machine(object):
         self.Append(Element(name,'undulator',l=length,B=b,undulatorPeriod=undulatorPeriod,**kwargs))
 
     def AddTransform3D(self, name='t3d',**kwargs):
-        if len(kwargs.keys()) == 0:
+        if len(list(kwargs.keys())) == 0:
             pass
         else:
             self.Append(Element(name,'transform3d',**kwargs))
 
     def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
-        for k,v in kwargs.iteritems():
+        for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
         self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
@@ -1375,7 +1375,7 @@ def PrepareApertureModel(rowDictionary, default='circular'):
     if 'APER_4' in rd:
         a4 = rd['APER_4']
     
-    if 'APERTYPE' in rd.keys():
+    if 'APERTYPE' in list(rd.keys()):
         aType = str.lower(rd['APERTYPE'])
         # possible to be 'none' which isn't valid - replace with default
         if aType == 'none':
@@ -1578,7 +1578,7 @@ def WriteMachine(machine, filename, verbose=False):
     f.write(timestring)
     f.write('! pybdsim.Builder Lattice \n')
     f.write('! COMPONENT DEFINITION\n\n')
-    for element in machine.elements.values():
+    for element in list(machine.elements.values()):
         f.write(str(element))
     f.close()
 

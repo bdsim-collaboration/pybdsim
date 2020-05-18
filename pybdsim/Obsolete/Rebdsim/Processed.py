@@ -66,7 +66,7 @@ class Processed:
 
         :return: data keys (ROOT objects) available
         '''
-        return self._dataDict.keys()
+        return list(self._dataDict.keys())
 
     def getRootData(self, key):
         '''

@@ -28,7 +28,7 @@ PDGind = {
 }
 
 PDGname = {}
-for k,v in PDGind.items():
+for k,v in list(PDGind.items()):
     PDGname[v[0]] = k
     PDGname[v[0].lower()] = k
 del k,v

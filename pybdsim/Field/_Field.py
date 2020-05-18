@@ -17,7 +17,7 @@ class Field(object):
 
     def Write(self, fileName):
         f = open(fileName, 'w')
-        for key,value in self.header.iteritems():
+        for key,value in self.header.items():
             f.write(str(key)+'> '+ str(value) + '\n')
 
         if self.doublePrecision:
@@ -38,7 +38,7 @@ class Field(object):
             # [x,values]       -> [x,values]       for 1D
             if (self.data.ndim == 2):
                 pass # do nothin for 1D
-            inds = range(self.data.ndim)       # indices for dimension [0,1,2] etc
+            inds = list(range(self.data.ndim))       # indices for dimension [0,1,2] etc
             # keep the last value the same but reverse all indices before then
             inds[:(self.data.ndim - 1)] = reversed(inds[:(self.data.ndim - 1)])
             datal = _np.transpose(self.data, inds)

@@ -40,7 +40,7 @@ def MadxTfs2GmadStrength(input, outputfilename,
     elif type(existingmachine) == list:
         existingnames = existingmachine
     elif type(existingmachine) == dict:
-        existingnames = existingmachine.keys() #dictionary
+        existingnames = list(existingmachine.keys()) #dictionary
     else:
         raise ValueError("Unsuitable type of existing machine")
 

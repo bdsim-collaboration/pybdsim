@@ -63,7 +63,7 @@ class Analysis:
             #dcopydict = Data.AsciiData(zip(self.data.keyslist,[dcopy[:,i] for i in range(_np.shape(dcopy)[1])]))
             dcopydict['nparticles'] = _np.shape(dcopy)[0]
             self.datagrouped[value] = dcopydict
-        self.keysgrouped = list(_np.sort(self.datagrouped.keys()))
+        self.keysgrouped = list(_np.sort(list(self.datagrouped.keys())))
 
     def GenerateSigmas(self):
         if hasattr(self,'datagrouped') == False:

@@ -523,7 +523,7 @@ class GmadFileComponents(object) :
 
         # form new string
         s = e[2][0:e[2].find(",")]
-        for k in d.keys() :
+        for k in list(d.keys()) :
             s+=", "+k+"="+d[k]
         s+=";"
 

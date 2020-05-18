@@ -122,7 +122,7 @@ class Beam(dict) :
             
     def ReturnBeamString(self):
         s = ''
-        for k,v in sorted(self.iteritems()):
+        for k,v in sorted(self.items()):
             s += ', \n\t'+str(k)+'='+str(v)
         s += ';'
         s2 = s.split('\n')
