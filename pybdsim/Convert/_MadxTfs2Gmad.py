@@ -68,8 +68,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  defaultAperture       = 'circular',
                  biases                = None,
                  allelementdict        = {},
-                 optionsDict           = {},
-                 beamParmsDict         = {},
+                 optionsdict           = {},
+                 beamparamsdict        = {},
                  linear                = False,
                  overwrite             = True,
                  write                 = True,
@@ -174,8 +174,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
     | **allelementdict**            | Dictionary of parameter/value pairs to be written to all          |
     |                               | components.                                                       |
     +-------------------------------+-------------------------------------------------------------------+
-    | **optionsDict**               | Optional dictionary of general options to be written to the       |
+    | **optionsdict**               | Optional dictionary of general options to be written to the       |
     |                               | bdsim model options.                                              |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **beamparamsdict**            | Optional dictionary of parameters to be passed to the beam.       |
     +-------------------------------+-------------------------------------------------------------------+
     | **linear**                    | Only linear optical components                                    |
     +-------------------------------+-------------------------------------------------------------------+
@@ -285,13 +287,13 @@ def MadxTfs2Gmad(tfs, outputfilename,
     # Make beam file
     if beam:
         bm = MadxTfs2GmadBeam(madx, startname, verbose)
-        for k, v in beamParmsDict.iteritems():
+        for k, v in beamparamsdict.iteritems():
             bm[k] = v
         machine.AddBeam(bm)
 
     options = _Options()
-    if optionsDict:
-        options.update(optionsDict)  # expand with user supplied bdsim options
+    if optionsdict:
+        options.update(optionsdict)  # expand with user supplied bdsim options
     machine.AddOptions(options)
 
     if verbose:
