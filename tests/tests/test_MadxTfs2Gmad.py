@@ -48,8 +48,8 @@ def tmppath(tmpdir):
 def biases(request):
     """Biases can be either a single XSecBias instance or a list
     thereof.  This fixture provides both."""
-    bias1 = pybdsim.XSecBias.XSecBias("mydecay1", "gamma", "decay", 1e5, "2")
-    bias2 = pybdsim.XSecBias.XSecBias("mydecay2", "proton", "decay", 1e5, "2")
+    bias1 = pybdsim.XSecBias.XSecBias("mydecay1", "gamma", "decay", "1e5", "2")
+    bias2 = pybdsim.XSecBias.XSecBias("mydecay2", "proton", "decay", "1e5", "2")
     if request.param == "bias":
         return bias1
     if request.param == "list":

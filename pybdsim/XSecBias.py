@@ -56,10 +56,10 @@ class XSecBias(object):
 
     def SetFlags(self, flags):
         """
-        Set flags.  flags should be a space-delimited string of integers, 1-3,
+        Set flags. flags should be a space-delimited string of integers, 1-3,
         in the same order as the processes,
         """
-        flaglist = _split(', |,| ',flags)
+        flaglist = flags.split()
         for number in flaglist:
             if number not in _allowedflags:
                 raise ValueError("Unknown Flag type: " + str(number))
@@ -70,9 +70,9 @@ class XSecBias(object):
         Set cross section factors.  xsecs should be a space-delimited string
         of floats, e.g. "1.0 1e13 1234.9"
         """
-        xseclist = _split(', |,| ', xsecs)
+        xseclist = xsecs.split()
         for factor in xseclist:
-            if factor < 0:
+            if float(factor) < 0:
                 raise ValueError("Negative cross section factor: " +str(factor))
         return xseclist
 
