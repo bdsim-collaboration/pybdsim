@@ -919,11 +919,13 @@ class TrajectoryData(object):
         self._iterindex = -1
         return self
 
-    def next(self):
+    def __next__(self):
         if self._iterindex == len(self.trajectories)-1:
             raise StopIteration
         self._iterindex += 1
         return self.trajectories[self._iterindex]
+
+    next = __next__
 
     def _GetTrajectory(self, eventNumber):
         if eventNumber >= self._eventTree.GetEntries():

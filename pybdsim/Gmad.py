@@ -217,11 +217,13 @@ class Lattice(object):
     def __len__(self):
         return self.nelements
 
-    def next(self):
+    def __next__(self):
         if self._iterindex == len(self.sequence)-1:
             raise StopIteration
         self._iterindex += 1
         return self.lattice[self._iterindex]
+
+    next = __next__
 
     def __getitem__(self,index):
         if type(index) == str:
