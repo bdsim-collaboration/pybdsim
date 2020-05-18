@@ -1262,7 +1262,7 @@ class Machine(object):
         driftlength  - length of drift segment in metres
         kabs         - the absolute value of the quadrupole strength - alternates between magnets
 
-        \*\*kwargs are other parameters for bdsim - ie material='Fe'
+        kwargs are other parameters for bdsim - ie material='Fe'
         """
         names = [basename+extrabit for extrabit in ['_qfa','_dra','_qda','_drb','_qfb']]
         items = (
@@ -1289,7 +1289,7 @@ class Machine(object):
 
         nsplits will be cast to an even integer for symmetry purposes.
 
-        \*\*kwargs are other parameters for bdsim - ie aper=0.2
+        kwargs are other parameters for bdsim - ie aper=0.2
         """
         nsplits = _General.NearestEvenInteger(nsplits)
         splitdriftlength = driftlength / float(nsplits)
@@ -1490,7 +1490,7 @@ def CreateFodoLine(filename, ncells=10, driftlength=4.0, magnetlength=1.0, sampl
     driftlength  - length of drift segment in between magnets
     magnetlength - length of quadrupoles
     samplers     - 'all','first' or 'last'
-    \*\*kwargs   - kwargs to supply to quadrupole constructor
+    kwargs       - kwargs to supply to quadrupole constructor
 
     """
     ncells = int(ncells)

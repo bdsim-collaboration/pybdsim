@@ -60,12 +60,13 @@ def gmad_comparator():
     def f(first, second):
         """Paths to two sets of gmad files"""
         for suffix in GMAD_SUFFIXES:
+            print("comparing '"+suffix+"'")
             new_gmad = "{}{}.gmad".format(first, suffix)
             old_gmad = "{}{}.gmad".format(second, suffix)
             # Skip the first 3 lines which are just the header
             with open(new_gmad, "r") as new, open(old_gmad, "r") as old:
                 for new_line, old_line in zip(islice(new, 3, None),
-                                               islice(old, 3, None)):
+                                              islice(old, 3, None)):
                     assert new_line == old_line
     return f
 
