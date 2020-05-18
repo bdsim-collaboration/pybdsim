@@ -123,9 +123,21 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | keys (must be valid bdsim syntax). Alternatively, this can be a   |
     |                               | pymadx.Aperture instance that will be queried.                    |
     +-------------------------------+-------------------------------------------------------------------+
-    | **aperlocalpositions**        | Dictionary of element indices to a list of pairs of the form      |
-    |                               | (local_point, aperdict), for example                              |
-    |                               | (0.1, {"APER1": "CIRCULAR", "APER1": 0.4}).                       |
+    | **aperlocalpositions**        | Dictionary of element indices to local aperture definitions       |
+    |                               | of the form                                                       |
+    |                               | {1: [(0.0, {"APERTYPE": "CIRCULAR", "APER1": 0.4}),               |
+    |                               |      (0.5, {"APERTYPE": "ELLIPSE",  "APER1": 0.3, "APER2": 0.4}), |
+    |                               |      ...],                                                        |
+    |                               |  2: [...],                                                        |
+    |                               |  ...}                                                             |
+    |                               | This defines apertures in the element at index 1                  |
+    |                               | starting with a CIRCULAR aper from 0.0m (i.e. the start) before   |
+    |                               | changing to ELLIPSE 0.5m into the element, with possible further  |
+    |                               | changes not displayed above.  As the aperture definition in GMAD  |
+    |                               | is tied inseparable from its aperture definition, and vice versa, |
+    |                               | this conversion function will automatically split the element     |
+    |                               | at the provided local aperture points whilst retaining optical    |
+    |                               | correctness.                                                      |
     |                               | This kwarg is mutually exclusive with "aperturedict".             |
     +-------------------------------+-------------------------------------------------------------------+
     | **collimatordict**            | A dictionary of dictionaries with collimator information keys     |
