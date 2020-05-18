@@ -1,17 +1,7 @@
 """
 pybdsim - python tool for BDSIM.
 
-Copyright Royal Holloway, University of London 2019.
-
-+-----------------+--------------------------------+
-| **Dependency**  | **Minimum Version Required**   |
-+-----------------+--------------------------------+
-| numpy           | 1.7.1                          |
-+-----------------+--------------------------------+
-| matplotlib      | 1.3.0                          |
-+-----------------+--------------------------------+
-| pymadx          | latest                         |
-+-----------------+--------------------------------+
+Copyright Royal Holloway, University of London 2020.
 
 +-----------------+----------------------------------------------------------+
 | **Module**      | **Description**                                          |
@@ -91,6 +81,8 @@ __all__ = ['Beam',
            'Gmad',
            'Options',
            'Plot',
+           'Run',
            'ModelProcessing',
            'Visualisation',
-           'XSecBias']
+           'XSecBias',
+           '_General']
