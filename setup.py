@@ -19,8 +19,7 @@ setup(
 
     author='JAI@RHUL',
     author_email='laurie.nevay@rhul.ac.uk',
-    description=("Python utilities for the Monte Carlo"
-                 " Particle accelerator code BDSIM."),
+    description=("Python utilities for the Monte Carlo Particle accelerator code BDSIM."),
     license="GPL3",
     url='https://bitbucket.org/jairhul/pybdsim/'
 )
