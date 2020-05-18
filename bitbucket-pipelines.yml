@@ -26,5 +26,7 @@ pipelines:
           - cd ../
           - make develop
           - pwd
+          - ls
+          - cd pybdsim
           - pip install pytest
           - python -m pytest
