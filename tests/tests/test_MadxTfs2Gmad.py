@@ -1,6 +1,5 @@
 import os.path
 from itertools import islice
-from itertools import izip
 
 import pytest
 import pybdsim
