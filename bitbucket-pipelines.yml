@@ -26,6 +26,6 @@ pipelines:
           - make develop
           - cd ../
           - make develop
-	  - pwd
+          - pwd
           - ls
           - python -m pytest
