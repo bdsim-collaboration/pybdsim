@@ -27,7 +27,7 @@ from ._General import IsFloat as _IsFloat
 try:
     import collections as _collections
 except ImportError:
-    import colelctions.abc as _collections
+    import collections.abc as _collections
 import math as _math
 import time as _time
 import os as _os
