@@ -7,6 +7,12 @@ uninstall:
 develop:
 	pip install --editable . --user
 
+venv:
+	pip install --editable .
+
+venv-shared:
+	pip install .
+
 # bumpversion is a python utility available via pip.  Make sure to add
 # your pip user install location's bin directory to your PATH.
 bump-major:
