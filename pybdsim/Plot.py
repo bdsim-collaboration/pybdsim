@@ -495,6 +495,8 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         pass
     else:
         ax.set_title(title)
+
+    _plt.tight_layout()
     return f
 
 def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),**errorbarKwargs):
