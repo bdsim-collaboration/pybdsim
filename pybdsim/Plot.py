@@ -552,7 +552,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     
     return f
 
-def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), **imshowKwargs):
+def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -563,6 +563,8 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     scalingFactor  - multiplier for values
     xScalingFactor - multiplier for x coordinates
     yScalingFactor - multiplier for y coordinates
+    autovmin       - fill in the background (normally white) with minimum
+    vmin           - explicitly control the vmin for the log normalisation
     """
     h = histogram
     f = _plt.figure(figsize=figsize)
@@ -571,11 +573,17 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     xsf = xScalingFactor
     ysf = yScalingFactor
     ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
+    
+    if autovmin:
+        vmin = _np.min(h.contents[h.contents!=0])
     if logNorm:
-        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(), **imshowKwargs)
+        d = _copy.deepcopy(sf*h.contents.T)
+        if vmin is not None:
+            d[d==0] = vmin
+        _plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(vmin=vmin), interpolation='none', **imshowKwargs)
         _plt.colorbar(label=zlabel)
     else:
-        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, **imshowKwargs)
+        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', **imshowKwargs)
         _plt.colorbar(format='%.0e', label=zlabel)
 
     if xLogScale:
