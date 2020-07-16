@@ -831,6 +831,11 @@ class _SamplerData(object):
                     res = list(r)
                 except TypeError:
                     res = list([r])
+                except AttributeError:
+                    if isinstance(r, _ROOT.vector(bool)):
+                        res = [bool(r[i]) for i in range(r.size())]
+                    else:
+                        raise
                 result[v].extend(res)
 
         for v in vs:
