@@ -273,6 +273,7 @@ class RebdsimFile(object):
         self.histograms1d = {}
         self.histograms2d = {}
         self.histograms3d = {}
+        self.histograms4d = {}
         self._Map("", self._f)
         if convert:
             self.ConvertToPybdsimHistograms()
@@ -302,6 +303,7 @@ class RebdsimFile(object):
         h1d = self._ListType(currentDir, "TH1D")
         h2d = self._ListType(currentDir, "TH2D")
         h3d = self._ListType(currentDir, "TH3D")
+        h4d = self._ListType(currentDir, "TTree")
         for h in h1d:
             name = currentDirName + '/' + h
             name = name.strip('/') # protect against starting /
@@ -320,6 +322,15 @@ class RebdsimFile(object):
             hob = currentDir.Get(h)
             self.histograms[name] = hob
             self.histograms3d[name] = hob
+        for h in h4d:
+            if h not in ['Header', 'ModelTree']:
+                _ROOT.gInterpreter.Declare('#include "BDSBH4D.hh"')
+                name = currentDirName + '/' + h
+                name = name.strip('/')
+                hob = _ROOT.BDSBH4D()
+                hob.to_PyROOT(self.filename,name)
+                self.histograms[name] = hob
+                self.histograms4d[name] = hob
         subDirs = self._ListType(currentDir, "Directory")
         for d in subDirs:
             dName = currentDirName + '/' + d
@@ -365,6 +376,7 @@ class RebdsimFile(object):
         self.histograms1dpy = {}
         self.histograms2dpy = {}
         self.histograms3dpy = {}
+        self.histograms4dpy = {}
         for path,hist in self.histograms1d.items():
             hpy = TH1(hist)
             self.histograms1dpy[path] = hpy
@@ -376,6 +388,24 @@ class RebdsimFile(object):
         for path,hist in self.histograms3d.items():
             hpy = TH3(hist)
             self.histograms3dpy[path] = hpy
+            self.histogramspy[path] = hpy
+
+        def to_numpy(hist):
+            import numpy as np
+
+            histo4d = np.zeros((hist.h_nxbins, hist.h_nybins, hist.h_nzbins, hist.h_nebins))
+
+            for x in range(hist.h_nxbins):
+                for y in range(hist.h_nybins):
+                    for z in range(hist.h_nzbins):
+                        for e in range(hist.h_nebins):
+                            histo4d[x, y, z, e] = hist.h.at(x, y, z, e)
+
+            return histo4d
+
+        for path,hist in self.histograms4d.items():
+            hpy = to_numpy(hist)
+            self.histograms4dpy[path] = hpy
             self.histogramspy[path] = hpy
 
 class BDSAsciiData(list):
