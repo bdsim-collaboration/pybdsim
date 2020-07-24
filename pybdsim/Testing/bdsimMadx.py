@@ -7,7 +7,6 @@ import matplotlib.pyplot as _plt
 import matplotlib.backends.backend_pdf as _pdf
 import matplotlib.patches as _mpatches
 import numpy as _np
-import string as _string
 import subprocess as _sub
 import threading as _thread
 import time as _time
@@ -88,7 +87,7 @@ class LatticeTest:
         config          = self.filename+"_analConfig.txt"
 
         #ptc/madx output
-        tfs             = _string.lower(self.filename) + ".tfs"
+        tfs             = self.filename.lower() + ".tfs"
         trackone        = "trackone"
         maxwell         = "Maxwellian*"
         printFile       = "print.dat"
