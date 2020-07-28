@@ -239,11 +239,7 @@ class LatticeTest:
         if particle == 'ELECTRON' :
             self.flipmagnets = True
 
-        if _os.path.basename(bdsim) == "tracker":
-            beamparamsdict = {} # The tracker doesn't currently handle offsetSampleMean
-        else:
-            beamparamsdict = {'offsetSampleMean': 1}
-
+        beamparamsdict = {'offsetSampleMean': 1}
         if integratorSet is not None:
             optionsdict['integratorSet'] = '"'+integratorSet+'"'
         _Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs',
