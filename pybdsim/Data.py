@@ -326,10 +326,14 @@ class RebdsimFile(object):
             self.histograms3d[name] = hob
         for h in h4d:
             if h not in ['Header', 'ModelTree']:
-                _ROOT.gInterpreter.Declare('#include "BDSBH4D.hh"')
                 name = currentDirName + '/' + h
                 name = name.strip('/')
-                hob = _ROOT.BDSBH4D()
+                name = name.split("Event/MergedHistograms/")[1]
+                energy_axis_type = name.split('-')[-1]
+                if energy_axis_type == "linear":
+                    hob = _ROOT.BDSBH4D("boost_histogram_linear")()
+                elif energy_axis_type == "log":
+                    hob = _ROOT.BDSBH4D("boost_histogram_log")()
                 hob.to_PyROOT(self.filename,name)
                 self.histograms[name] = hob
                 self.histograms4d[name] = hob
@@ -825,7 +829,7 @@ class BDSBH4D():
         if extractData:
             self._GetContents(hist)
 
-    def GetBinsInfos(self,hist,e_axis_scaling_type='log'):
+    def GetBinsInfos(self,hist):
 
         x_step = (hist.h_xmax - hist.h_xmin)/hist.h_nxbins
         for i in range(hist.h_nxbins):
@@ -848,7 +852,7 @@ class BDSBH4D():
             self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
             self.zcentres[i] = self.zlowedge[i] + self.zwidths[i] / 2
 
-        if e_axis_scaling_type == 'log':
+        if hist.h_escale == 'log':
             e_step = (m.log10(hist.h_emax) - m.log10(hist.h_emin)) / hist.h_nebins
             for i in range(hist.h_nebins):
                 self.elowedge[i] = hist.h_emin * 10 ** (i * e_step)
@@ -856,7 +860,7 @@ class BDSBH4D():
                 self.ewidths[i] = self.ehighedge[i] - self.elowedge[i]
                 self.ecentres[i] = self.elowedge[i] + self.ewidths[i] / 2
 
-        if e_axis_scaling_type == 'linear':
+        if hist.h_escale == 'linear':
             e_step = (hist.h_emax - hist.h_emin) / hist.h_nebins
             for i in range(hist.h_nebins):
                 self.ewidths[i] = e_step
