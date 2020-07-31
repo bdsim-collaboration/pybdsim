@@ -334,6 +334,8 @@ class RebdsimFile(object):
                     hob = _ROOT.BDSBH4D("boost_histogram_linear")()
                 elif energy_axis_type == "log":
                     hob = _ROOT.BDSBH4D("boost_histogram_log")()
+                elif energy_axis_type == "user":
+                    hob = _ROOT.BDSBH4D("boost_histogram_variable")()
                 hob.to_PyROOT(self.filename,name)
                 self.histograms[name] = hob
                 self.histograms4d[name] = hob
@@ -867,6 +869,13 @@ class BDSBH4D():
                 self.elowedge[i] = hist.h_emin + i * e_step
                 self.ehighedge[i] = self.elowedge[i] + self.ewidths[i]
                 self.ecentres[i] = self.elowedge[i] + self.ewidths[i] / 2
+
+        if hist.h_escale == 'user':
+            for i in range(hist.h_nebins):
+                self.elowedge[i] = hist.h_ebinsedges.at(i)
+                self.ehighedge[i] = hist.h_ebinsedges.at(i+1)
+                self.ewidths[i] = hist.h_ebinsedges.at(i+1)-hist.h_ebinsedges.at(i)
+                self.ecentres[i] = self.elowedge[i] + 0.5*self.ewidths[i]
 
 
     def to_numpy(self,hist, hist_type="h"):
