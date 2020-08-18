@@ -1582,3 +1582,51 @@ def _ApertureTypeToColour(apertureType, cmap=_ApertureTypeColourMap()):
         colour =(0.8,0.8,0.8) # greyish
         
     return colour
+
+def LossMap(ax, xcentres, xwidth, y, ylow=None, **kwargs):
+    """Plot a loss map in such a way that works well for very large loss maps.
+    xcentres, xwidth and y are all provided by TH1 python histograms (see
+    pybdsim.Data.TH1).
+
+    Parameters
+    ----------
+    ax
+         Matplotlib axes instance to draw to
+    xcentres
+         centres of bins
+    xwidths
+         bin widths
+    y
+         loss map signal data, same length as xcentres and xwidths.
+    ylow
+         small non-zero value to fill between to ensure works with log scales.
+
+    kwargs
+         passed to calls to plot and fill_between.
+
+    """
+
+    if ylow is None:
+        ylow = min(y[~_np.isclose(0, y)])
+    elif ylow <=0:
+        raise ValueError("ylow must be positive.")
+
+    # here we remove runs of consecutive zeros but leave a 0 on either side of any
+    # finite value so the line drops back to 0. done by looking at difference from
+    # one value to another both for the regular data and the data shifted by 1.
+    # treats these differences as a Boolean in an or. one shorter than data length
+    # so just always take the last bin too irrespective if 0 or not
+    filt = _np.append(_np.logical_or(_np.diff(y), _np.diff(_np.roll(y,1))),
+                      [True])
+    xcentres = xcentres[filt]
+    y = y[filt]
+    # prepare 'low' values to fill between as no 0 on log scale
+    low = _np.full_like(y, ylow)
+    # the plot line with stepping is always visible as at least one pixel even
+    # at the widest scale. however, if you zoom in, they're not filled, so plot
+    # a fill between plot to fill in these bits. the fill between isn't really
+    # visible at the largest scale so can't use just that alone
+    ax.plot(xcentres, y, drawstyle='steps-mid', **kwargs)
+    label = kwargs.pop("label", None)
+    ax.fill_between(xcentres, low, y, step='mid', **kwargs)
+
