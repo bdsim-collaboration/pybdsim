@@ -1624,7 +1624,10 @@ def LossMap(ax, xcentres, y, ylow=None, **kwargs):
     # at the widest scale. however, if you zoom in, they're not filled, so plot
     # a fill between plot to fill in these bits. the fill between isn't really
     # visible at the largest scale so can't use just that alone
-    ax.plot(xcentres, y, drawstyle='steps-mid', **kwargs)
-    label = kwargs.pop("label", None)
-    ax.fill_between(xcentres, low, y, step='mid', **kwargs)
+    line, = ax.plot(xcentres, y, drawstyle='steps-mid', **kwargs)
+    kwargs.pop("label", None) # Only attach label to the line plot.
+    kwargs.pop("color", None) # Duplicate kwargs is an error, it is set below.
+    ax.fill_between(xcentres, low, y, step='mid',
+                    color=line.get_color(),
+                    **kwargs)
 
