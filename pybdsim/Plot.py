@@ -1583,7 +1583,7 @@ def _ApertureTypeToColour(apertureType, cmap=_ApertureTypeColourMap()):
         
     return colour
 
-def LossMap(ax, xcentres, xwidth, y, ylow=None, **kwargs):
+def LossMap(ax, xcentres, y, ylow=None, **kwargs):
     """Plot a loss map in such a way that works well for very large loss maps.
     xcentres, xwidth and y are all provided by TH1 python histograms (see
     pybdsim.Data.TH1).
@@ -1594,10 +1594,8 @@ def LossMap(ax, xcentres, xwidth, y, ylow=None, **kwargs):
          Matplotlib axes instance to draw to
     xcentres
          centres of bins
-    xwidths
-         bin widths
     y
-         loss map signal data, same length as xcentres and xwidths.
+         loss map signal data, same length as xcentres.
     ylow
          small non-zero value to fill between to ensure works with log scales.
 
