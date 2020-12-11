@@ -630,12 +630,21 @@ class ROOTHist(object):
     Base class for histogram wrappers.
     """
     def __init__(self, hist):
-        self.hist = hist
+        self.hist   = hist
         self.name   = hist.GetName()
         self.title  = hist.GetTitle()
         self.xlabel = hist.GetXaxis().GetTitle()
         self.ylabel = hist.GetYaxis().GetTitle()
         self.errorsAreErrorOnMean = True
+
+    def __getstate__(self):
+        """
+        We exclude the hist object which points to the rootpy object from pickling.
+        """
+        attributes = self.__dict__.copy()
+        if 'hist' in attributes:
+            del attributes['hist']
+        return attributes
 
     def ErrorsToSTD(self):
         """
