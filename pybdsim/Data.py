@@ -14,6 +14,7 @@ import copy as _copy
 import glob as _glob
 import numpy as _np
 import os as _os
+import pickle as _pickle
 
 _useRoot      = True
 _libsLoaded   = False
@@ -1331,3 +1332,33 @@ def _filterROOTObject(rootobj):
                  if not callable(getattr(rootobj, attr))]
 
     return interface
+
+
+def PickleObject(ob, filename, compress=True):
+    """
+    Write an object to a pickled file using Python pickle.
+
+    If compress is True, the bz2 package will be imported and used to compress the file.
+    """
+    if compress:
+        import bz2
+        with bz2.BZ2File(filename + ".pickle.pbz2", "w") as f: 
+            _pickle.dump(ob, f)
+    else:
+        with open(filename + ".pickle", "wb") as f:
+            _pickle.dump(ob, f)
+
+
+def LoadPickledObject(filename):
+    """
+    Unpickle an object. If the name contains .pbz2 the bz2 library will be
+    used as well to load the compressed pickled object.
+    """
+    if "pbz2" in filename:
+        import bz2
+        with bz2.BZ2File(filename, "rb") as f:
+            return _pickle.load(f)
+    else:
+        with open(filename, "rb") as f:
+            return _pickle.load(f)
+        
