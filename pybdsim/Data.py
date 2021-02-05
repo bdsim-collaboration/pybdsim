@@ -50,9 +50,9 @@ def LoadROOTLibraries():
         raise Warning("ROOT in python not available")
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
-    if reLoad is not 0:
+    if reLoad != 0:
         raise Warning("librebdsim not found")
-    if bdsLoad is not 0:
+    if bdsLoad != 0:
         raise Warning("libbdsimRootEvent not found")
     _libsLoaded = True
 
@@ -375,6 +375,12 @@ class RebdsimFile(object):
         for i in range(leaves.GetEntries()):
             result.append(str(leaves.At(i)))
         return result
+
+    def GetModelTree(self):
+        return self._f.Get('ModelTree')
+
+    def GetModel(self):
+        pass
 
     def ConvertToPybdsimHistograms(self):
         """
