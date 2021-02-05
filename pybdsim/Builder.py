@@ -204,16 +204,17 @@ class Element(ElementBase):
     capabilities.  It adds the requirement of type / category (because 'type' is
     a protected keyword in python) as well as checking for valid BDSIM types.
     """
-    def __init__(self, name, category, **kwargs):
+    def __init__(self, name, category, isMultipole=False, **kwargs):
         if category not in bdsimcategories:
             raise ValueError("Not a valid BDSIM element type: {}".format(category))
 
-        if (category == 'thinmultipole') or (category == 'multipole'):
-            ElementBase.__init__(self,name,isMultipole=True,**kwargs)
+        if (category == 'thinmultipole') or (category == 'multipole') or isMultipole:
+            ElementBase.__init__(self, name, isMultipole=True, **kwargs)
         else:
             ElementBase.__init__(self,name,**kwargs)
         self['category'] = category
         self.category    = category
+        self._isMultipole = isMultipole
         self.length      = 0.0 #for book keeping only
         self._UpdateLength()
 
@@ -231,12 +232,12 @@ class Element(ElementBase):
             for key in sorted(self._keysextra):
                 if (type(self[key]) == tuple
                     and (self.category != 'thinmultipole')
-                    and (self.category != 'multipole')):
+                    and (self.category != 'multipole') and self._isMultipole==False):
                     s += (', ' + key + '=' + str(self[key][0])
                           + '*' + str(self[key][1]))
                 elif (type(self[key]) == tuple
                       and ((self.category == 'thinmultipole')
-                           or (self.category == 'multipole'))):
+                           or (self.category == 'multipole') or self._isMultipole)):
                     s += (', ' + key + '=' + '{'
                           + (','.join([str(s) for s in self[key]]))+'}')
                 else:
@@ -295,10 +296,15 @@ class Element(ElementBase):
         return self._split_length(points)
 
     @classmethod
-    def from_element(cls, element):
-        parameters = _copy.copy(dict(element))
-        del parameters["category"] # don't set category explicitly..
-        return cls(**parameters)
+    def from_element(cls, element, isMultipole=False, **kwargs):
+        # parameters = _copy.copy(dict(element))
+        parameters = {}
+        for key, value in kwargs.items():
+            parameters[key] = value
+        parameters["category"] = element.name
+        if element.name not in bdsimcategories:
+            bdsimcategories.append(element.name)
+        return cls(isMultipole=isMultipole, **parameters)
 
 
 class ElementModifier(ElementBase):
@@ -887,7 +893,7 @@ class Machine(object):
         """
         return self.length
 
-    def Append(self, item):
+    def Append(self, item, is_component):
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
@@ -902,10 +908,11 @@ class Machine(object):
             if self.verbose:
                 print("Element of name: ",item.name," already defined, simply adding to sequence")
         #finally add it to the sequence
-        self.sequence.append(item.name)
+        if not is_component:
+            self.sequence.append(item.name)
 
-        self.length += item.length
-        self.lenint.append(self.length)
+            self.length += item.length
+            self.lenint.append(self.length)
 
         # list of elements that produce SR
         elementsSR = ["sbend", "rbend"]
