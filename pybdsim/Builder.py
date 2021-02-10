@@ -943,7 +943,7 @@ class Machine(object):
         """
         Returns a list of names of elements that are of the specified category.
         """
-        return [element for element in self.elements if element.category == category]
+        return [k for k,e in self.elements.items() if e.category == category]
 
     def ReplaceWithElement(self, name, newelement):
         """
