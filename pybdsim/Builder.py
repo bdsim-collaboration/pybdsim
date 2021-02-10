@@ -701,7 +701,7 @@ class Dump(Element):
         Element.__init__(self, name,'dump',l=l,**kwargs)
 
 
-class ExternalGeometry(object):
+class ExternalGeometry(Element):
     def __init__(self, name, l, outerDiameter, geometryFile, **kwargs):
         Element.__init__(self, name, 'element', l=l,
                          outerDiameter=outerDiameter,
