@@ -707,6 +707,12 @@ class ExternalGeometry(Element):
                          outerDiameter=outerDiameter,
                          geometryFile=geometryFile, **kwargs)
 
+
+class Transform3D(Element):
+    def __init__(self, name, **kwargs):
+        Element.__init__(self, name, 'transform3d', **kwargs)
+
+
 class Sampler(object):
     """
     A sampler is unique in that it does not have a length unlike every
