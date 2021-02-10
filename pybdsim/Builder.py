@@ -24,6 +24,7 @@ from . import Writer as _Writer
 from . import _General
 from ._General import IsFloat as _IsFloat
 
+import bisect as _bisect
 try:
     import collections as _collections
 except ImportError:
@@ -1034,6 +1035,91 @@ class Machine(object):
         """
         names = list(self.elements.keys())
         self.UpdateElements(names, parameter, value)
+
+    def InsertAndReplace(self, newElement, sLocation):
+        """
+        New element will be placed at the central s location.
+        """
+        ne = newElement
+        s = sLocation
+
+        def CheckName(name):
+            if name in self.sequence:
+                raise ValueError("This new element by name is already in this machine - name uniquely")
+        if type(ne) is list:
+            l = _np.array([e.length for e in ne]).sum()
+            for e in ne:
+                CheckName(e.name)
+        else:
+            l = ne.length
+            CheckName(ne.name)
+
+
+        if l == 0:
+            raise ValueError("Cannot be used to insert thin elements")
+        
+        sStart = s - 0.5*l
+        sEnd   = s + 0.5*l
+
+        if sStart < 0:
+            raise ValueError("Given position and length of item it would precede start of beam line.")
+        if sEnd > self.length:
+            print("Beam line will be extended by : ",sEnd-self.length," m")
+
+        # work out index points and new sequence to insert and do modification in only one step
+        # at the end
+        indFirstReplace = 0
+        indLastReplace  = 0
+        newSequence = []
+        newElements = {}
+
+        # first boundary
+        indSStart = _bisect.bisect_left(self.lenint, sStart)
+        if self.lenint[indSStart] == sStart:
+            indFirstReplace = indSStart + 1 # exactly matches on a boundary
+        else:
+            if sStart == 0:
+                indFirstReplace = 0
+            else:
+                indFirstReplace = indSStart
+                elToSplit = self.elements[self.sequence[indSStart]]
+                sElStart  = self.lenint[indSStart] - elToSplit.length # easier than boundary indexing issues
+                newElsStart = elToSplit.split([sStart - sElStart])
+                firstPart = newElsStart[0]
+                newSequence.append(firstPart.name)
+                newElements[firstPart.name] = firstPart
+
+        # insert new sequence
+        if type(ne) is list:
+            newSequence.extend([e.name for e in ne])
+            newElements.update({e.name:e for e in ne})
+        else:
+            newSequence.append(ne.name)
+            newElements[ne.name] = ne
+
+        # second boundary
+        indSEnd = _bisect.bisect(self.lenint, sEnd)
+        if self.lenint[indSEnd] == sEnd:
+            indLastReplace = indSEnd - 1 # exactly matches on a boundary
+        else:
+            indLastReplace = indSEnd
+            elToSplit = self.elements[self.sequence[indSEnd]]
+            sElStart  = self.lenint[indSEnd] - elToSplit.length
+            newElsEnd = elToSplit.split([sEnd - sElStart])
+            secondPart = newElsEnd[1]
+            newSequence.append(secondPart.name)
+            newElements[secondPart.name] = secondPart 
+
+        # do operation
+        self.sequence[indFirstReplace:indLastReplace+1] = newSequence
+        self.elements.update(newElements)
+        self.RegenerateLenInt()
+
+    def RegenerateLenInt(self):
+        ltot = [0.0]
+        for name in self.sequence:
+            ltot.append(ltot[-1] + self.elements[name].length)
+        self.lenint = ltot[1:]
 
     def SynchrotronRadiationRescale(self):
         """
