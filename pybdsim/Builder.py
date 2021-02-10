@@ -100,7 +100,6 @@ class ElementBase(_collections.MutableMapping):
         return self._store[key]
 
     def __setitem__(self, key, value):
-
         if (key == "name" or key == "category") and value:
             self._store[key] = value
         elif value == "":
@@ -547,14 +546,12 @@ class _Dipole(Element):
         if angle is None and B is None:
             raise TypeError('angle XOR B must be specified for an SBend')
         elif angle is not None:
-            Element.__init__(self, name, category, l=l,
-                             angle=angle, **kwargs)
+            Element.__init__(self, name, category, l=l, angle=angle, **kwargs)
         else:
             Element.__init__(self, name, category, l=l, B=B, **kwargs)
 
     def split(self, points):
-        split_bends = self._split_length_with_length_scaled_parameters(
-            points, ['angle'])
+        split_bends = self._split_length_with_length_scaled_parameters(points, ['angle'])
         # Delete all the in/out parameters.  pop syntax just a quicker
         # way of doing try: del...  etc.
         for bend in split_bends:
