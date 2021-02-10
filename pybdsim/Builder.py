@@ -962,7 +962,9 @@ class Machine(object):
             currlength = self.elements[name].length
             self.length -= currlength
             self.length += newelement.length
-            # todo: update self.lenint list with new length. Doesn't appear to be used so should be safe for now.
+            for i,ename in enumerate(self.sequence):
+                if ename == name:
+                    self.lenint[i] = newelement.length
         self.elements[name] = newelement
 
     def ReplaceElementCategory(self, category, newcategory):
@@ -987,8 +989,9 @@ class Machine(object):
             self.length -= currlength
             self.elements[name][parameter] = value
             self.length += value
-            # todo: update self.lenint list with new lengths. Doesn't appear to be used so should be safe for now.
-
+            for i,ename in enumerate(self.sequence):
+                if ename == name:
+                    self.lenint[i] = value
         elif name in list(self.elements.keys()):
             self.elements[name][parameter] = value
         else:
