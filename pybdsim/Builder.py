@@ -1274,7 +1274,7 @@ class Machine(object):
         for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
-        self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
+        self.Append(Element(name,'jcol',l=length,xsize=xsize,ysize=ysize,**d))
 
     def AddDegrader(self, length=0.1, name='deg', nWedges=1, wedgeLength=0.1, degHeight=0.1, materialThickness=None, degraderOffset=None, **kwargs):
         if (materialThickness==None) and (degraderOffset==None):
