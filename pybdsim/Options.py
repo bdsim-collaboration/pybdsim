@@ -1,15 +1,11 @@
 def ProtonColliderOptions():
     a = Options()
-    a.SetPhysicsList('QGSP_BERT')
+    a.SetPhysicsList('FTFP_BERT')
     a.SetBeamPipeThickness(5,'mm')
     a.SetOuterDiameter(0.5,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
-
-    #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
-
-    #Tunnel
     a.SetBuildTunnel(True)
     a.SetBuildTunnelFloor(True)
     a.SetTunnelRadius(2,'m')
@@ -25,28 +21,14 @@ def ElectronColliderOptions():
     a.SetOuterDiameter(1,'m')
     a.SetTunnelRadius(2,'m')
     a.SetNGenerate(100)
-
-    #Production cuts
     a.SetDefaultRangeCut(0.25,"m")
-    a.SetProductionCutElectrons(0.25,"m")
-    a.SetProductionCutPositrons(0.25,"m")
-    a.SetProductionCutPhotons(0.25,"m")
-
-    #Non mandatory options
     a.SetBeamPipeRadius(5,'cm')
-
-    #Tunnel
     a.SetBuildTunnel(True)
     a.SetBuildTunnelFloor(True)
     a.SetTunnelRadius(2,'m')
     a.SetTunnelThickness(50,'cm')
     a.SetTunnelOffsetX(1,'m')
     a.SetTunnelFloorOffset(1,'m')
-    return a
-
-def MinimumStandard():
-    a = Options()
-    # no specific defaults needed
     return a
 
 class Options(dict):
@@ -82,6 +64,7 @@ class Options(dict):
 
     def SetPhysicsList(self,physicslist=''):
         physicslistlist = [
+            'all_particles',
             'charge_exchange',
             'cherenkov',
             'cuts_and_limits',
@@ -145,7 +128,7 @@ class Options(dict):
             'shielding_lend'
             ]
         if len(physicslist.split()) == 1 :
-            if physicslist not in physicslistlist:
+            if physicslist not in physicslistlist and not physicslist.startswith("g4"):
                 raise ValueError('Unknown physicslist: '+physicslist)
             self['physicsList'] = '"' + str(physicslist) + '"'
         else :
@@ -269,12 +252,6 @@ class Options(dict):
 
     def SetThresholdCutPhotons(self,tcp=1,unitsstring='MeV'):
         self['thresholdCutPhotons'] = str(tcp) + '*' + unitsstring
-
-    def SetStopTracks(self,stop=True):
-        if stop == True:
-            self['stopTracks'] = 1
-        else:
-            self['stopTracks'] = 0
 
     def SetStopSecondaries(self,stop=True):
         if stop == True:
