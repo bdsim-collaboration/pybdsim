@@ -840,6 +840,8 @@ class Machine(object):
         self.energy.append(energy0)
         self.charge    = charge
         self.objects   = []  # list of non-sequence objects e.g crystals, lasers, placements etc.
+        self.includesPre  = []
+        self.includesPost = []
 
     def __repr__(self):
         s = ''
@@ -1200,6 +1202,18 @@ class Machine(object):
         if type(options) != _Options.Options:
             raise TypeError("Incorrect type - please provide pybdsim.Options.Options instance")
         self.options = options
+
+    def AddIncludePre(self, include):
+        """
+        Add the name of a file (str) that should be included in the main file before others.
+        """
+        self.includesPre.append(include)
+
+    def AddIncludePost(self, include):
+        """
+        Add the name of a file (str) that should be included in the main file after others.
+        """
+        self.includesPost.append(include)
 
     def AddMarker(self, name='mk'):
         """

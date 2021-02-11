@@ -287,6 +287,11 @@ class Writer():
                 f, ["! Number of Elements:\t{}".format(len(machine.elements)),
                     "! Total length:\t\t{}m".format(machine.length)])
 
+            # pre includes
+            if hasattr(machine, "includesPre"):
+                for inc in machine.includesPre:
+                    f.write('include ' + inc + ";\n")
+
             #other files to include
             for section in self._sectionsToBeWritten:
                 sectObject = getattr(self,section)
@@ -304,6 +309,11 @@ class Writer():
             if len(machine.samplers) <= 10:
                 for sampler in machine.samplers:
                     f.write(str(sampler))
+
+            # post includes
+            if hasattr(machine, "includesPost"):
+                for inc in machine.includesPost:
+                    f.write('include ' + inc + ";\n")
         self._mainFilename = fn_main
 
     def WriteComponents(self,machine,filename=''):
