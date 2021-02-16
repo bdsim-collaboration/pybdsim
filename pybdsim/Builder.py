@@ -801,6 +801,131 @@ class Crystal(_collections.MutableMapping):
         s += ';\n'
         return s
 
+
+class Placement(_collections.MutableMapping):
+    def __init__(self, name, **kwargs):
+        self._store = dict()
+        self.name = name
+        self._keysextra = set()
+        for k, v in kwargs.items():
+            self[k] = v
+
+    def __getitem__(self, key):
+        return self._store[key]
+
+    def __setitem__(self, key, value):
+
+        if (key == "name" or key == "category") and value:
+            self._store[key] = value
+        elif value == "":
+            return
+        elif isinstance(value, tuple):
+            self._store[key] = (float(value[0]), value[1])
+        elif isinstance(value, str):
+            if value.startswith('"') and value.endswith('"'):
+                # Prevent the buildup of quotes for multiple setitem calls
+                value = value.strip('"')
+            self._store[key] = '"{}"'.format(value)
+        else:
+            self._store[key] = value
+
+        if key not in {"name", "category"}: # keys which are not # 'extra'.
+            self._keysextra.add(key)
+
+    def __len__(self):
+        return len(self._store)
+
+    def __iter__(self):
+        return iter(self._store)
+
+    def keysextra(self):
+        #so behaviour is similar to dict.keys()
+        return self._keysextra
+
+    def __delitem__(self, key):
+        del self._store[key]
+        try: # it may be in _store, but not necessarily in _keyextra
+            self._keysextra.remove(key)
+        except:
+            pass
+
+    def __repr__(self):
+        s = "{s.name}: ".format(s=self) + "placement, "
+        for i,key in enumerate(self._keysextra):
+            if i > 0: # Separate with commas
+                s += ", "
+            # Write tuple (i.e. number + units) syntax
+            if type(self[key]) == tuple:
+                s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            # everything else (most things!)
+            else:
+                s += key + '=' + str(self[key])
+        s += ';\n'
+        return s
+
+
+class BLM(_collections.MutableMapping):
+    def __init__(self, name, **kwargs):
+        self._store = dict()
+        self.name = name
+        self._keysextra = set()
+        for k, v in kwargs.items():
+            self[k] = v
+
+    def __getitem__(self, key):
+        return self._store[key]
+
+    def __setitem__(self, key, value):
+
+        if (key == "name" or key == "category") and value:
+            self._store[key] = value
+        elif value == "":
+            return
+        elif isinstance(value, tuple):
+            self._store[key] = (float(value[0]), value[1])
+        elif isinstance(value, str):
+            if value.startswith('"') and value.endswith('"'):
+                # Prevent the buildup of quotes for multiple setitem calls
+                value = value.strip('"')
+            self._store[key] = '"{}"'.format(value)
+        else:
+            self._store[key] = value
+
+        if key not in {"name", "category"}: # keys which are not # 'extra'.
+            self._keysextra.add(key)
+
+    def __len__(self):
+        return len(self._store)
+
+    def __iter__(self):
+        return iter(self._store)
+
+    def keysextra(self):
+        #so behaviour is similar to dict.keys()
+        return self._keysextra
+
+    def __delitem__(self, key):
+        del self._store[key]
+        try: # it may be in _store, but not necessarily in _keyextra
+            self._keysextra.remove(key)
+        except:
+            pass
+
+    def __repr__(self):
+        s = "{s.name}: ".format(s=self) + "blm, "
+        for i,key in enumerate(self._keysextra):
+            if i > 0: # Separate with commas
+                s += ", "
+            # Write tuple (i.e. number + units) syntax
+            if type(self[key]) == tuple:
+                s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            # everything else (most things!)
+            else:
+                s += key + '=' + str(self[key])
+        s += ';\n'
+        return s
+
+
 class Machine(object):
     """
     A class represents an accelerator lattice as a sequence of
@@ -1477,6 +1602,12 @@ class Machine(object):
                             rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
                             rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
                             **kwargs))
+
+    def AddPlacement(self, name, **kwargs):
+        self.objects.append(Placement(name, **kwargs))
+
+    def AddBLMs(self, name, **kwargs):
+        self.objects.append(BLM(name, **kwargs))
 
 # General scripts below this point
 
