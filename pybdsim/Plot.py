@@ -504,6 +504,8 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
 
+    xScalingFactors may be a float, int or list
+
     Example ::
 
     Histogram1DMultiple([h1,h2,h3], 
@@ -511,7 +513,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
                         xlabel=r'$\mu$m', 
                         ylabel='Fraction',
                         scalingFactors=[1,100,100],
-                        xScalingFactor=1e6,
+                        xScalingFactors=1e6,
                         log=True)
     """
     if "xScalingFactor" in errorbarKwargs:
