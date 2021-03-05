@@ -337,7 +337,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
             a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
 #       ###################################################################
         elif c.type[i] == 'QUAD' :
-            if c.data[i][c.keys['quad']['l']] < 1e-7 :
+            if float(c.data[i][c.keys['quad']['l']]) < 1e-7 :
                 a.AddMarker(name = prepend+c.name[i]+'_'+str(eCount))
             else :
                 a.AddQuadrupole(name    = prepend+c.name[i]+'_'+str(eCount),
@@ -394,7 +394,7 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
                        aper1   = float(apertures.aper[i]))
 #       ###################################################################
         elif c.type[i] == 'SBEN' :
-            if c.data[i][c.keys['sben']['l']] < 1e-7 :
+            if float(c.data[i][c.keys['sben']['l']]) < 1e-7 :
                 a.AddMarker(prepend+c.name[i]+'_'+str(eCount))
             else :
                 length = float(c.data[i][c.keys['sben']['l']])
