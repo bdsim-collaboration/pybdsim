@@ -258,9 +258,16 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         o.SetBeamlineS(s_cut,'m')
         process = ''
         if enableSr :
-            process += ' synchrad'
+            if process == '' :
+                process = 'synchrad'
+            else :
+                process += ' synchrad'
         if enableMuon :
-            process += ' muon'
+            if process == '' :
+                process = 'muon'
+            else :
+                process += ' muon'
+
             o.SetStoreTrajectory(True)
             o.SetStoreTrajectoryParticle("mu+ mu-")
 
