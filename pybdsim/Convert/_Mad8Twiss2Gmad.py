@@ -19,6 +19,8 @@ import pybdsim.XSecBias as XSecBias
 # Check input options
 # Check SR scaling
 
+class MAD8ToGMADConversionError(Exception): pass
+
 def Mad8Twiss2GmadNew(inputFileName,
                       outputFileName,
                       rMatFile         = "",
@@ -560,6 +562,10 @@ def Mad8Twiss2Gmad(inputFileName,
 #       ###################################################################
         elif c.type[i] == 'MATR' :
             #print "RMAT> ",c.name[i]
+            if rmat == "":
+                raise MAD8ToGMADConversionError("Trying to convert MATR but"
+                                                " RMAT tape is missing.")
+            rmat.data[i]
             RMATRIX=rmat.data[i]
             RMATPRIOR=rmat.data[i-1]
             length=float(c.data[i][c.keys['matr']['l']])
