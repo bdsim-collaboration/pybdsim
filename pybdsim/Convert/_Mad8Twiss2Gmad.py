@@ -19,13 +19,39 @@ import pybdsim.XSecBias as XSecBias
 # Check input options
 # Check SR scaling
 
-def Mad8Twiss2Gmad(inputFileName, outputFileName,
+def Mad8Twiss2GmadNew(inputFileName,
+                      outputFileName,
+                      rMatFile         = "",
+                      mad8FileFileName = "",
+                      mad8OutputFile   = "",
+                      istart           = 0,
+                      iend             = -1,
+                      collimatorFile   = "collimators.dat",
+                      apertures        = "apertures.dat",
+                      beamName         = ["nominal"],
+                      beam             = None,
+                      options          = None,
+                      xSecBias         = [],
+                      samplers         = 'all',
+                      flipMagnets      = 1,
+                      openCollimators  = True,
+                      openApertures    = True,
+                      enableSextupoles = True, # linear
+                      enableSr         = False,
+                      enableSrScaling  = False,
+                      enableMuon       = False,
+                      enableMuonBias   = False) :
+    pass
+
+def Mad8Twiss2Gmad(inputFileName,
+                   outputFileName,
+                   mad8FileName                 = "",
+                   mad8OutputFile               = "",
                    istart                       = 0,
                    iend                         = -1,
                    beam                         = ["nominal"],
 #                   gemit                        = (1e-10,1e-10),
                    gemit                        = (1e-8,1e-8),
-                   mad8FileName                 = "",
                    collimator                   = "collimator.dat",
                    apertures                    = "apertures.dat",
                    samplers                     = 'all',
@@ -147,31 +173,30 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
     #scaleToWrite = _np.stack([scale,scale_mom],axis=-1)
     #_np.savetxt("scale.txt",scaleToWrite)
 
-
-
     # create beam (emit and energy spread)
-    if type(gemit) == str :
-        echoVals = pymad8.Output.EchoValue(gemit)
-        echoVals.loadMarkedValues()
+    if mad8OutputFile != "" :
+        echoVals = pymad8.Output.EchoValue(mad8OutputFile)
+        echoVals.loadValues()
         gemit = _np.zeros(2)
         gemit[0] = echoVals.valueDict['EMITX']
         gemit[1] = echoVals.valueDict['EMITY']
         esprd    = echoVals.valueDict['ESPRD']
-        bleng    = echoVals.valueDict['BLENG']
+        #bleng    = echoVals.valueDict['BLENG']
+        bleng    = 0.0
     else:
         esprd = 0.0001
         bleng = 0
 
     if istart !=0:
-        #relativistic factors at 0
+        # Relativistic factors at 0
         rGamma0    = (energy0*1000)/(mass)
         rBeta0     = _np.sqrt(1-1/(rGamma0**2))
-        #momentum & relativistic factors at cut
+        # Momentum & relativistic factors at cut
         energy_cut=energy[istart]
         momentum_cut =_np.sqrt(energy_cut**2+mass**2)
         rGamma_cut = (energy_cut*1000)/mass
         rBeta_cut = _np.sqrt(1-(1/(rGamma_cut**2)))
-        #Normalised emittance
+        # Normalised emittance
         Nemitx     = rBeta0*rGamma0*gemit[0]
         Nemity     = rBeta0*rGamma0*gemit[1]
         emitx  = Nemitx/(rBeta_cut*rGamma_cut)
@@ -254,9 +279,9 @@ def Mad8Twiss2Gmad(inputFileName, outputFileName,
         o.SetBuildTunnelFloor(False)
         o.SetStopSecondaries(False)
         o.SetPrintModuloFraction(1e-2)
-        o.SetMagnetGeometryType('"none"')
+        o.SetMagnetGeometryType('"polesfacetcrop"')
         o.SetBeamlineS(s_cut,'m')
-        process = ''
+        process = 'em'
         if enableSr :
             if process == '' :
                 process = 'synchrad'
