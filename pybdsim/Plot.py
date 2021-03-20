@@ -163,11 +163,6 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     def DrawLine(start,color,alpha=1.0):
         ax.plot([start,start],[-0.2,0.2],'-',color=color,alpha=alpha)
 
-    # plot beam line
-    smax = bds.SEnd()[-1] + sOffset
-    ax.plot([sOffset, smax],[0,0],'k-',lw=1)
-    ax.set_ylim(-0.2,0.2)
-
     # loop over elements and Draw on beamline
     types   = bds.Type()
     lengths = bds.ArcLength()
@@ -216,6 +211,12 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
             else:
                 #relatively short element - just draw a line
                 DrawLine(starts[i],'#cccccc',alpha=0.1)
+
+    # plot beam line
+    smax = bds.SEnd()[-1] + sOffset
+    ax.plot([sOffset, smax],[0,0],'k-',lw=1)
+    ax.set_ylim(-0.2,0.2)
+    ax.set_xlim(sOffset, smax)
 
 def SubplotsWithDrawnMachineLattice(survey, nrows=2,
                                     machine_plot_gap=0.01,
