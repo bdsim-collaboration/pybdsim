@@ -7,7 +7,7 @@ from ._MadxTfs2Gmad import MadxTfs2Gmad
 from ._MadxTfs2Gmad import ZeroMissingRequiredColumns as _ZeroMissingRequiredColumns
 from ._MadxTfs2GmadStrength import MadxTfs2GmadStrength
 from ._MadxTfs2Gmad import MadxTfs2GmadBeam
-
+from ._CPyMad2Gmad import CPyMad2Gmad
 try:
     from ._Mad8Saveline2Gmad import Mad8Saveline2Gmad
     from ._Mad8Twiss2Gmad import Mad8Twiss2Gmad
