@@ -205,6 +205,13 @@ class Element(ElementBase):
     a protected keyword in python) as well as checking for valid BDSIM types.
     """
     def __init__(self, name, category, isMultipole=False, **kwargs):
+        """
+        is Multipole is a flag to take into account the inheritance of multipole in a sequence
+        This is important to correctly write the knl in the gmad file
+        m1: multipole, l=0.0;
+        m2: m1, knl ={};
+        """
+
         if category not in bdsimcategories:
             raise ValueError("Not a valid BDSIM element type: {}".format(category))
 
@@ -1018,7 +1025,7 @@ class Machine(object):
         """
         return self.length
 
-    def Append(self, item, is_component):
+    def Append(self, item, is_component=False):
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
@@ -1032,7 +1039,7 @@ class Machine(object):
         else:
             if self.verbose:
                 print("Element of name: ",item.name," already defined, simply adding to sequence")
-        #finally add it to the sequence
+        # finally add it to the sequence if this is not a base component of the sequence.
         if not is_component:
             self.sequence.append(item.name)
 

@@ -1,1 +1,1 @@
-import test_MadxTfs2Gmad
+from. import test_MadxTfs2Gmad
