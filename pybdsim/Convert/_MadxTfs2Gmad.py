@@ -664,10 +664,12 @@ def _GetSingleElementWithAper(item, gmadElement,
     except AttributeError:
         pass
     try:
-        aper =  _Builder.PrepareApertureModel(aperturedict[name],
-                                              defaultAperture)
+        this_aperdict = aperturedict[name]
     except KeyError:
         pass
+    else:
+        aper = _Builder.PrepareApertureModel(this_aperdict, defaultAperture)
+
     gmadElement.update(aper)
     return gmadElement
 
