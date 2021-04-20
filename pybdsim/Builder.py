@@ -984,7 +984,7 @@ class Machine(object):
         Update a parameter for a specified element name. Modifying element length will produce a warning.
         If a value for that parameter already exists, the value will be overwritten.
         """
-        if parameter is 'length':
+        if parameter == 'length':
             msg = 'Caution: modifying an element length will change the machine length.'
             print(msg)
             # update total machine length

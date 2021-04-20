@@ -59,9 +59,9 @@ def LoadROOTLibraries():
     # shared libraries
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
-    if reLoad is not 0:
+    if reLoad != 0:
         raise Warning("librebdsim not found")
-    if bdsLoad is not 0:
+    if bdsLoad != 0:
         raise Warning("libbdsimRootEvent not found")
     _libsLoaded = True
 
