@@ -725,14 +725,14 @@ class Sampler(object):
         else:
             return 'sample, range='+self.name+';\n'
 
-class Crystal(_collections.MutableMapping):
+class GmadObject(_collections.MutableMapping):
     """
-    A crystal is unique in that it does not have a length unlike every
-    :class:`Element` hence it needs its own class to produce its
-    representation.
+    A gmad object does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
     """
-    def __init__(self,name,**kwargs):
+    def __init__(self,objecttype,name,**kwargs):
         self._store = dict()
+        self.objecttype   = objecttype
         self.name         = name
         self._keysextra   = set()
         for k, v in kwargs.items():
@@ -778,7 +778,7 @@ class Crystal(_collections.MutableMapping):
             pass
 
     def __repr__(self):
-        s = "{s.name}: ".format(s=self) + "crystal, "
+        s = "{s.name}: ".format(s=self) + self.objecttype + ", "
         for i,key in enumerate(self._keysextra):
             if i > 0: # Separate with commas
                 s += ", "
@@ -790,6 +790,31 @@ class Crystal(_collections.MutableMapping):
                 s += key + '=' + str(self[key])
         s += ';\n'
         return s
+
+class Crystal(GmadObject):
+    """
+    A crystal does not have a length unlike every
+    :class:`Element` hence it needs its own class to produce its
+    representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "crystal",name,**kwargs)
+
+class ScorerMesh(GmadObject):
+    """
+    A scorermesh does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "scorermesh",name,**kwargs)
+
+class Placement(GmadObject):
+    """
+    A placement does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "placement",name,**kwargs)
 
 class Machine(object):
     """
@@ -1338,6 +1363,12 @@ class Machine(object):
 
     def AddCrystal(self, name, **kwargs):
         self.objects.append(Crystal(name, **kwargs))
+
+    def AddScorerMesh(self, name, **kwargs):
+        self.objects.append(ScorerMesh(name, **kwargs))
+
+    def AddPlacement(self, name, **kwargs):
+        self.objects.append(Placement(name, **kwargs))
 
     def AddRmat(self, name='rmat', length=0.1,
                 r11=1.0, r12=0, r13=0, r14=0,
