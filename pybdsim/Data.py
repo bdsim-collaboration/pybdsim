@@ -42,16 +42,26 @@ def LoadROOTLibraries():
     """
     global _libsLoaded
     if _libsLoaded:
-        return #only load once
+        return #only load once        
     try:
         import ROOT as _ROOT
     except ImportError:
         raise Warning("ROOT in python not available")
+
+    # include path for root
+    try:
+        import os
+        rip = os.environ['ROOT_INCLUDE_PATH']
+        _ROOT.gSystem.AddIncludePath(rip)
+    except KeyError:
+        pass
+
+    # shared libraries
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
-    if reLoad is not 0:
+    if reLoad != 0:
         raise Warning("librebdsim not found")
-    if bdsLoad is not 0:
+    if bdsLoad != 0:
         raise Warning("libbdsimRootEvent not found")
     _libsLoaded = True
 

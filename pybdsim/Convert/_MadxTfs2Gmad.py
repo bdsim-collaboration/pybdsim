@@ -96,11 +96,11 @@ def MadxTfs2Gmad(tfs, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
     | **startname**                 | the name (exact string match) of the lattice element to start the |
     |                               | machine at this can also be an integer index of the element       |
-    |                               | sequence number in madx tfs.                                      |
+    |                               | sequence number in madx tfs. This item is included in the lattice |
     +-------------------------------+-------------------------------------------------------------------+
     | **stopname**                  | the name (exact string match) of the lattice element to stop the  |
     |                               | machine at this can also be an integer index of the element       |
-    |                               | sequence number in madx tfs.                                      |
+    |                               | sequence number in madx tfs. This item is not included            |
     +-------------------------------+-------------------------------------------------------------------+
     | **stepsize**                  | the slice step size. Default is 1, but -1 also useful for         |
     |                               | reversed line.                                                    |
