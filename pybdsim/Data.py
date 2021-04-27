@@ -71,7 +71,7 @@ def Load(filepath):
 
     ASCII file   - returns BDSAsciiData instance.
     BDSIM file   - uses ROOT, returns BDSIM DataLoader instance.
-    REBDISM file - uses ROOT, returns RebdsimFile instance.
+    REBDSIM file - uses ROOT, returns RebdsimFile instance.
 
     """
     if "*" not in filepath:
