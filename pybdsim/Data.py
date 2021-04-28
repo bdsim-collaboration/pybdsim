@@ -59,9 +59,9 @@ def LoadROOTLibraries():
     # shared libraries
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
-    if reLoad is not 0:
+    if reLoad != 0:
         raise Warning("librebdsim not found")
-    if bdsLoad is not 0:
+    if bdsLoad != 0:
         raise Warning("libbdsimRootEvent not found")
     _libsLoaded = True
 
@@ -71,7 +71,7 @@ def Load(filepath):
 
     ASCII file   - returns BDSAsciiData instance.
     BDSIM file   - uses ROOT, returns BDSIM DataLoader instance.
-    REBDISM file - uses ROOT, returns RebdsimFile instance.
+    REBDSIM file - uses ROOT, returns RebdsimFile instance.
 
     """
     if "*" not in filepath:

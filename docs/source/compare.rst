@@ -116,3 +116,7 @@ compared with the following command::
 
 Comparing to Transport
 ----------------------
+
+With the help of pytransport a TRANSPORT "FOR002" output file that has sigma matrices can be read and compared with BDSIM output::
+
+  >>> pybdsim.Compare.TransportVsBDSIM('FOR002.DAT', 'bdsim_optics.root')
