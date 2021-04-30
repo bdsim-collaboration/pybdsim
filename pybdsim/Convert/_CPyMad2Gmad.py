@@ -80,7 +80,7 @@ class CPyMad2Gmad:
                 for blm in blms:
                     for blm_name, blm_prop in blm.items():
                         blm_prop['referenceElement'] = ref_name
-                        bdsim_input.AddBLMs(blm_name + '_' + ref_name, **blm_prop)
+                        bdsim_input.AddBLM(blm_name + '_' + ref_name, **blm_prop)
 
         if with_placement:
             for ref_name, placements in self.placement_properties.items():
