@@ -303,14 +303,14 @@ class Element(ElementBase):
         return self._split_length(points)
 
     @classmethod
-    def from_element(cls, element, isMultipole=False, **kwargs):
+    def from_element(cls, parent_element_name: str, isMultipole=False, **kwargs):
         # parameters = _copy.copy(dict(element))
         parameters = {}
         for key, value in kwargs.items():
             parameters[key] = value
-        parameters["category"] = element.name
-        if element.name not in bdsimcategories:
-            bdsimcategories.append(element.name)
+        parameters["category"] = parent_element_name
+        if parent_element_name not in bdsimcategories:
+            bdsimcategories.append(parent_element_name)
         return cls(isMultipole=isMultipole, **parameters)
 
 
