@@ -524,7 +524,7 @@ class Multipole(Element):
             new_knl = tuple([integrated_strength * mp['l'] / self['l']
                              for integrated_strength in mp['knl']])
             new_ksl = tuple([integrated_strength * mp['l'] / self['l']
-                             for integrated_strength in mp['knl']])
+                             for integrated_strength in mp['ksl']])
             mp['knl'] = new_knl
             mp['ksl'] = new_ksl
         return split_mps
