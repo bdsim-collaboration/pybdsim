@@ -200,7 +200,6 @@ class CPyMad2Gmad:
         else:
             if not bool(bdsim_dict_arg):
                 bdsim_dict_arg = {'l': 0.0}  # Bare aliases not allowed in BDSim
-
             if element['LEVEL'] == 1:
                 bdsim_element = pybdsim.Builder.Element(name=element_name,
                                                         category=parent_name,
