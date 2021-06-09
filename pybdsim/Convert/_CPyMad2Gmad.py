@@ -26,7 +26,7 @@ BDSIM_RESERVED_NAME = {
 }
 
 BDSIM_ELEMENTS_ARGUMENTS = ['l',
-                            'k1',
+                            'k1',cd
                             'k2',
                             'angle',
                             'knl',
