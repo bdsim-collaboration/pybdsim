@@ -62,6 +62,11 @@ class CPyMad2Gmad:
         self.model = merge(self.model, _)
         self.model = merge(self.model, model or {})
 
+        # Add quotes for BDSim options
+        for k, v in self.model['options'].items():
+            if isinstance(v, str):
+                self.model['options'][k] = '"' + v + '"'
+
         # Compile the regular expressions in the model
         for r in list(self.model['sequence'].keys()):
             self.model['sequence'][re.compile(r)] = self.model['sequence'].pop(r)
@@ -100,7 +105,7 @@ class CPyMad2Gmad:
         self.components = _pd.DataFrame(components)
         # Fast method to drop duplicated indices - https://stackoverflow.com/a/34297689/420892
         self.components = self.components[~self.components['NAME'].duplicated(keep='first')]
-        self.components.sort_values(by=['IS_DRIFT', 'BASE_PARENT', 'LEVEL', 'PARENT'], inplace=True)
+        self.components.sort_values(by=['IS_DRIFT', 'IS_ELEMENT', 'BASE_PARENT', 'LEVEL'], inplace=True)
         self.components['BDSIM'] = self.components.apply(lambda r: self._build_bdsim_component(r['NAME'], r), axis=1)
         self.components.set_index("NAME", inplace=True)
 
