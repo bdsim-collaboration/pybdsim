@@ -38,6 +38,8 @@ BDSIM_ELEMENTS_ARGUMENTS = ['l',
 ELEMENTS_TO_KEEP = ['drift', 'sbend', 'rbend', 'quadrupole', 'sextupole', 'octupole', 'hkicker', 'vkicker', 'solenoid',
                     'rcol', 'multipole', 'thinmultipole']
 
+ELEMENTS_TO_DROP = ['monitor', 'marker', 'instrument']
+
 
 class CPyMad2Gmad:
     def __init__(self,
@@ -78,14 +80,16 @@ class CPyMad2Gmad:
         self.madx_beam = self.madx.sequence[self.model['builder']['sequence']].beam
 
         def build_component(element, i, level):
-            if element.parent.name == 'multipole' and element.base_type.name == 'multipole' and element.l == 0:
+            parent = element.parent.name
+            base_parent = element.base_type.name
+            length = element.l
+            if parent == 'multipole' and base_parent == 'multipole' and length == 0:
                 parent = 'thinmultipole'
                 base_parent = 'thinmultipole'
                 length = None
-            else:
-                parent = element.parent.name
-                base_parent = element.base_type.name
-                length = element.l
+            elif base_parent != 'multipole' and length == 0:
+                parent = 'marker'
+                base_parent = 'marker'
 
             return {
                 'NAME': element.name,
@@ -103,7 +107,9 @@ class CPyMad2Gmad:
             nonlocal bottom
             if element.parent.name != element.name and element.base_type.name != 'marker':
                 build_component_recursive(element.parent, i, level - 1)
-                components.append(build_component(element, i, level))
+                component = build_component(element, i, level)
+                if component['BASE_PARENT'] in ELEMENTS_TO_KEEP:
+                    components.append(component)
             else:
                 bottom = level
 
@@ -125,7 +131,8 @@ class CPyMad2Gmad:
             idx1 = expanded_elements.index(self.model['builder']['from'] or expanded_elements[0].name)
             idx2 = expanded_elements.index(self.model['builder']['to'] or expanded_elements[-1].name)
             for i in range(idx1, idx2+1):
-                yield expanded_elements[i]
+                if expanded_elements[i].base_type.name not in ELEMENTS_TO_DROP:
+                    yield expanded_elements[i]
         return _iterator
 
     def _get_model_properties_for_element(self, element_name):
@@ -161,10 +168,13 @@ class CPyMad2Gmad:
                 else:
                     bdsim_properties[BDSIM_MAD_CONVENTION.get(k, k)] = element[k]
 
-        return self._adjust_bdsim_component_properties(bdsim_properties)
+        return self.__class__._adjust_bdsim_component_properties(bdsim_properties)
 
-    def _adjust_bdsim_component_properties(self, bdsim_properties):
-        if bdsim_properties.get('apertype') == 'octagonal':
+    @staticmethod
+    def _adjust_bdsim_component_properties(bdsim_properties):
+        if 'apertureType' in bdsim_properties:
+            bdsim_properties['apertureType'] = BDSIM_MAD_CONVENTION.get(bdsim_properties['apertureType'], bdsim_properties['apertureType'])
+        if bdsim_properties.get('apertureType') == 'octagonal':
             # https://indico.cern.ch/event/379692/contributions/1804923/subcontributions/156446/attachments/757501/1039118/2105-03-18_HSS_meeting_rev.pdf
             aper3_mad = bdsim_properties['aper3']
             aper4_mad = bdsim_properties['aper4']
