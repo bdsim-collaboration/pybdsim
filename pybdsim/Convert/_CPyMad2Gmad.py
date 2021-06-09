@@ -30,11 +30,13 @@ BDSIM_ELEMENTS_ARGUMENTS = ['l',
                             'k2',
                             'angle',
                             'knl',
+                            'ksl',
                             'apertype',
                             'aperture']
 
+# Keep these elements (in BDSIM convention)
 ELEMENTS_TO_KEEP = ['drift', 'sbend', 'rbend', 'quadrupole', 'sextupole', 'octupole', 'hkicker', 'vkicker', 'solenoid',
-                    'rcol']
+                    'rcol', 'multipole', 'thinmultipole']
 
 
 class CPyMad2Gmad:
@@ -75,33 +77,40 @@ class CPyMad2Gmad:
         self.madx = madx_instance
         self.madx_beam = self.madx.sequence[self.model['builder']['sequence']].beam
 
-        # Build the complete table of (nested) components
-        def get_level(element, i, level=0):
+        def build_component(element, i, level):
+            if element.parent.name == 'multipole' and element.base_type.name == 'multipole' and element.l == 0:
+                parent = 'thinmultipole'
+                base_parent = 'thinmultipole'
+                length = None
+            else:
+                parent = element.parent.name
+                base_parent = element.base_type.name
+                length = element.l
+
+            return {
+                'NAME': element.name,
+                'PARENT': BDSIM_MAD_CONVENTION.get(parent, parent),
+                'BASE_PARENT': BDSIM_MAD_CONVENTION.get(base_parent, base_parent),
+                'IS_ELEMENT': element is e,
+                'IS_DRIFT': element.parent.name == 'drift',
+                'LEVEL': level - bottom,
+                'AT': element.at,
+                'L': length,
+                'ID': i,
+            }
+
+        def build_component_recursive(element, i, level=0):
             nonlocal bottom
             if element.parent.name != element.name and element.base_type.name != 'marker':
-                get_level(element.parent, i, level - 1)
-                components.append(
-                    {
-                        'NAME': element.name,
-                        'PARENT': BDSIM_MAD_CONVENTION.get(element.parent.name, element.parent.name),
-                        'BASE_PARENT': BDSIM_MAD_CONVENTION.get(element.base_type.name, element.base_type.name),
-                        'IS_ELEMENT': element is e,
-                        'IS_DRIFT': element.parent.name == 'drift',
-                        'LEVEL': level - bottom,
-                        'AT': element.at,
-                        'L': element.l,
-                        'ID': i,
-                    }
-                )
+                build_component_recursive(element.parent, i, level - 1)
+                components.append(build_component(element, i, level))
             else:
                 bottom = level
 
         components = []
         for i, e in enumerate(self._madx_subsequence()):
-            if e.l == 0:
-                continue
             bottom = 0
-            get_level(e, i)
+            build_component_recursive(e, i)
         self.components = _pd.DataFrame(components)
         # Fast method to drop duplicated indices - https://stackoverflow.com/a/34297689/420892
         self.components = self.components[~self.components['NAME'].duplicated(keep='first')]
@@ -180,8 +189,6 @@ class CPyMad2Gmad:
                                                      l=element['L'])
         else:
             if element['LEVEL'] == 1:
-                if not bool(bdsim_dict_arg):
-                    bdsim_dict_arg = {'l': 0.0}
                 bdsim_element = pybdsim.Builder.Element(name=element_name,
                                                         category=parent_name,
                                                         isMultipole='knl' in bdsim_dict_arg.keys(),
@@ -194,7 +201,12 @@ class CPyMad2Gmad:
 
         return bdsim_element
 
-    def __call__(self, with_beam: bool = True, with_options: bool = True, with_placements: bool = True):
+    def __call__(self,
+                 with_beam: bool = True,
+                 with_options: bool = True,
+                 with_placements: bool = True,
+                 drop_inactive_thinmultipoles: bool = False,
+                 ):
         bdsim_input = pybdsim.Builder.Machine()
 
         # Add all components
@@ -203,6 +215,11 @@ class CPyMad2Gmad:
 
         # Add elements (won't be redefined, simply added to the sequence)
         for name, component in self.components.query("IS_ELEMENT == True").sort_values(by=['ID']).iterrows():
+            if drop_inactive_thinmultipoles and \
+                component['BASE_PARENT'] == 'thinmultipole' and \
+                component['BDSIM'].get('knl') is None and \
+                component['BDSIM'].get('ksl') is None:
+                continue
             bdsim_input.Append(component['BDSIM'], is_component=False)
 
         if with_beam:
