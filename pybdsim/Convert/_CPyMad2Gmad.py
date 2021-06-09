@@ -188,15 +188,17 @@ class CPyMad2Gmad:
                                                      isMultipole=False,
                                                      l=element['L'])
         else:
+            if not bool(bdsim_dict_arg):
+                bdsim_dict_arg = {'l': 0.0}  # Bare aliases not allowed in BDSim
             if element['LEVEL'] == 1:
                 bdsim_element = pybdsim.Builder.Element(name=element_name,
                                                         category=parent_name,
-                                                        isMultipole='knl' in bdsim_dict_arg.keys(),
+                                                        isMultipole='knl' in bdsim_dict_arg.keys() or 'ksl' in bdsim_dict_arg.keys(),
                                                         **bdsim_dict_arg)
             else:
                 bdsim_element = pybdsim.Builder.Element.from_element(name=element_name,
                                                            parent_element_name=parent_name,
-                                                           isMultipole='knl' in bdsim_dict_arg.keys(),
+                                                           isMultipole='knl' in bdsim_dict_arg.keys() or 'ksl' in bdsim_dict_arg.keys(),
                                                            **bdsim_dict_arg)
 
         return bdsim_element
