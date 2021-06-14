@@ -201,7 +201,7 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
         elif kw == 'multipole':
             DrawHex(starts[i],lengths[i],'grey',alpha=0.5)
         elif kw == 'solenoid':
-            DrawRect(starts[i],lengths[i], u'#ffa500') #orange
+            DrawRect(starts[i],lengths[i], u'#ff8800') #orange
         elif kw == 'shield':
             DrawRect(starts[i],lengths[i], u'#808080') #dark grey
         else:
