@@ -1274,7 +1274,7 @@ class ModelData(object):
                                         self.beamPipeAper2,
                                         self.beamPipeAper3,
                                         self.beamPipeAper4):
-            if removeZeroLength and l < lengthTolerance:
+            if removeZeroLength and ll < lengthTolerance:
                 continue # skip this entry
             elif removeZeroApertures and (a1 == 0 and a2 == 0 and a3 == 0 and a4 == 0):
                 continue
