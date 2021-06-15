@@ -222,34 +222,25 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2,
                                     machine_plot_gap=0.01,
                                     gridspec_kw=None,
                                     subplots_kw=None, **fig_kw):
-    """Create a figure with a single column of axes, sharing the
+    """
+    Create a figure with a single column of axes, sharing the
     x-axis by default, with the machine drawn from the provided survey
     on the top row axes.  nrows gives the number of axes, the first is
     always the machine lattice.  by default 2 are drawn, the first for
     the machine, and the second for any data to be plotted to
     afterwards.
 
-    Parameters
-    ----------
+    Parameters:
+    survey : BSDIM survey which is used to draw the machine lattice on the top axes.
+    machine_plot_gap : vertical space between the top of the first axes and the 
+    bottom of the machine axes. By default this is small.
 
-    survey : BSDIM survey which is used to draw the machine lattice on
-             the top axes.
-
-    machine_plot_gap : vertical space between the top of the first
-             axes and the bottom of the machine axes.  by default this
-             is small.
-
-    Returns
-    -------
-    (figure, machine_axes, (axes1, axes2, ...))
+    Returns (figure, machine_axes, (axes1, axes2, ...))
 
     figure : Figure instance.
-
-    machine_axes : Axes instance with the machine drawn on it.  Can be used to
-             further edit
-
-    axes : iterable of axes, in order from the first below the
-           machine, downwards.
+    machine_axes : Axes instance with the machine drawn on it.  Can be used to further edit
+    axes : iterable of axes, in order from the first below the machine, downwards.
+    
     """
 
     if isinstance(survey, str):
@@ -507,15 +498,15 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
 
     xScalingFactors may be a float, int or list
 
-    Example ::
+    Example: ::
 
-    Histogram1DMultiple([h1,h2,h3], 
-                        ['Photons', 'Electrons', 'Positrons'], 
-                        xlabel=r'$\mu$m', 
-                        ylabel='Fraction',
-                        scalingFactors=[1,100,100],
-                        xScalingFactors=1e6,
-                        log=True)
+      Histogram1DMultiple([h1,h2,h3], 
+                          ['Photons', 'Electrons', 'Positrons'], 
+                          xlabel=r'$\mu$m', 
+                          ylabel='Fraction',
+                          scalingFactors=[1,100,100],
+                          xScalingFactors=1e6,
+                          log=True)
     """
     if "xScalingFactor" in errorbarKwargs:
         raise ValueError("'xScalingFactor' - did you mean 'xScalingFactors'?")
@@ -1589,23 +1580,18 @@ def _ApertureTypeToColour(apertureType, cmap=_ApertureTypeColourMap()):
     return colour
 
 def LossMap(ax, xcentres, y, ylow=None, **kwargs):
-    """Plot a loss map in such a way that works well for very large loss maps.
+    """
+    Plot a loss map in such a way that works well for very large loss maps.
     xcentres, xwidth and y are all provided by TH1 python histograms (see
     pybdsim.Data.TH1).
 
-    Parameters
-    ----------
-    ax
-         Matplotlib axes instance to draw to
-    xcentres
-         centres of bins
-    y
-         loss map signal data, same length as xcentres.
-    ylow
-         small non-zero value to fill between to ensure works with log scales.
+    :param  ax:      Matplotlib axes instance to draw to
+    :param xcentres: centres of bins
+    :param y:        loss map signal data, same length as xcentres.
+    :param ylow:     small non-zero value to fill between to ensure works with log scales.
 
-    kwargs
-         passed to calls to plot and fill_between.
+    kwargs:
+    * passed to calls to plot and fill_between.
 
     """
 

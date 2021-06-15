@@ -129,7 +129,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               |      (0.5, {"APERTYPE": "ELLIPSE",  "APER1": 0.3, "APER2": 0.4}), |
     |                               |      ...],                                                        |
     |                               |  2: [...],                                                        |
-    |                               |  ...}                                                             |
+    |                               | }                                                                 |
     |                               | This defines apertures in the element at index 1                  |
     |                               | starting with a CIRCULAR aper from 0.0m (i.e. the start) before   |
     |                               | changing to ELLIPSE 0.5m into the element, with possible further  |

@@ -2,6 +2,23 @@
 Version History
 ===============
 
+v2.4.0 - 2021 / 06 / 16
+=======================
+
+New Features
+------------
+
+* Transform3D function in a Machine.
+* Crystal, ScorerMesh and Placement also can be added to a Machine.
+* Ability to insert and replace an element in a machine.
+
+Bug Fixes
+---------
+
+* Python 3.8+ warnings fixed.
+* Add ROOT_INCLUDE_PATH to ROOT as newer versions don't do this automatically.
+* Fixed vmin for 2D histogram plot.
+
 v2.3.0 - 2020 / 12 / 15
 =======================
 
