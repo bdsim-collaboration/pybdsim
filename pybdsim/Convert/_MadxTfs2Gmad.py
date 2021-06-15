@@ -96,11 +96,11 @@ def MadxTfs2Gmad(tfs, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
     | **startname**                 | the name (exact string match) of the lattice element to start the |
     |                               | machine at this can also be an integer index of the element       |
-    |                               | sequence number in madx tfs.                                      |
+    |                               | sequence number in madx tfs. This item is included in the lattice |
     +-------------------------------+-------------------------------------------------------------------+
     | **stopname**                  | the name (exact string match) of the lattice element to stop the  |
     |                               | machine at this can also be an integer index of the element       |
-    |                               | sequence number in madx tfs.                                      |
+    |                               | sequence number in madx tfs. This item is not included            |
     +-------------------------------+-------------------------------------------------------------------+
     | **stepsize**                  | the slice step size. Default is 1, but -1 also useful for         |
     |                               | reversed line.                                                    |
@@ -168,7 +168,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
     | **flipmagnets**               | True \| False - flip the sign of all k values for magnets - MADX  |
     |                               | currently tracks particles agnostic of the particle charge -      |
-    |                               | BDISM however, follows the definition strictly -                  |
+    |                               | BDSIM however, follows the definition strictly -                  |
     |                               | positive k -> horizontal focussing for positive particles         |
     |                               | therefore, positive k -> vertical focussing for negative          |
     |                               | particles. Use this flag to flip the sign of all magnets.         |

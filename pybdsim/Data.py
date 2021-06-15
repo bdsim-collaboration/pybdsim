@@ -14,6 +14,7 @@ import copy as _copy
 import glob as _glob
 import numpy as _np
 import os as _os
+import pickle as _pickle
 
 import math as m
 
@@ -43,11 +44,21 @@ def LoadROOTLibraries():
     """
     global _libsLoaded
     if _libsLoaded:
-        return #only load once
+        return #only load once        
     try:
         import ROOT as _ROOT
     except ImportError:
         raise Warning("ROOT in python not available")
+
+    # include path for root
+    try:
+        import os
+        rip = os.environ['ROOT_INCLUDE_PATH']
+        _ROOT.gSystem.AddIncludePath(rip)
+    except KeyError:
+        pass
+
+    # shared libraries
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
     if reLoad != 0:
@@ -62,7 +73,7 @@ def Load(filepath):
 
     ASCII file   - returns BDSAsciiData instance.
     BDSIM file   - uses ROOT, returns BDSIM DataLoader instance.
-    REBDISM file - uses ROOT, returns RebdsimFile instance.
+    REBDSIM file - uses ROOT, returns RebdsimFile instance.
 
     """
     if "*" not in filepath:
@@ -660,12 +671,21 @@ class ROOTHist(object):
     Base class for histogram wrappers.
     """
     def __init__(self, hist):
-        self.hist = hist
+        self.hist   = hist
         self.name   = hist.GetName()
         self.title  = hist.GetTitle()
         self.xlabel = hist.GetXaxis().GetTitle()
         self.ylabel = hist.GetYaxis().GetTitle()
         self.errorsAreErrorOnMean = True
+
+    def __getstate__(self):
+        """
+        We exclude the hist object which points to the rootpy object from pickling.
+        """
+        attributes = self.__dict__.copy()
+        if 'hist' in attributes:
+            del attributes['hist']
+        return attributes
 
     def ErrorsToSTD(self):
         """
@@ -967,6 +987,11 @@ class _SamplerData(object):
                     res = list(r)
                 except TypeError:
                     res = list([r])
+                except AttributeError:
+                    if isinstance(r, _ROOT.vector(bool)):
+                        res = [bool(r[i]) for i in range(r.size())]
+                    else:
+                        raise
                 result[v].extend(res)
 
         for v in vs:
@@ -1385,7 +1410,7 @@ class ModelData(object):
                                         self.beamPipeAper2,
                                         self.beamPipeAper3,
                                         self.beamPipeAper4):
-            if removeZeroLength and l < lengthTolerance:
+            if removeZeroLength and ll < lengthTolerance:
                 continue # skip this entry
             elif removeZeroApertures and (a1 == 0 and a2 == 0 and a3 == 0 and a4 == 0):
                 continue
@@ -1453,3 +1478,33 @@ def _filterROOTObject(rootobj):
                  if not callable(getattr(rootobj, attr))]
 
     return interface
+
+
+def PickleObject(ob, filename, compress=True):
+    """
+    Write an object to a pickled file using Python pickle.
+
+    If compress is True, the bz2 package will be imported and used to compress the file.
+    """
+    if compress:
+        import bz2
+        with bz2.BZ2File(filename + ".pickle.pbz2", "w") as f: 
+            _pickle.dump(ob, f)
+    else:
+        with open(filename + ".pickle", "wb") as f:
+            _pickle.dump(ob, f)
+
+
+def LoadPickledObject(filename):
+    """
+    Unpickle an object. If the name contains .pbz2 the bz2 library will be
+    used as well to load the compressed pickled object.
+    """
+    if "pbz2" in filename:
+        import bz2
+        with bz2.BZ2File(filename, "rb") as f:
+            return _pickle.load(f)
+    else:
+        with open(filename, "rb") as f:
+            return _pickle.load(f)
+        

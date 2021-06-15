@@ -65,7 +65,7 @@ Comparing to MADX
 After preparing the optics from BDSIM, they may be compared to a MADX Tfs instance
 with the following command in Python (for example)::
 
-  >>> pybdsim.Compare.MadxVSBDSIM('twiss_v5.2fs', 'optics.root')
+  >>> pybdsim.Compare.MadxVsBDSIM('twiss_v5.2fs', 'optics.root')
 
 This will produce a series of plots comparing the orbit, beam size, and linear
 optical functions.
@@ -116,3 +116,7 @@ compared with the following command::
 
 Comparing to Transport
 ----------------------
+
+With the help of pytransport a TRANSPORT "FOR002" output file that has sigma matrices can be read and compared with BDSIM output::
+
+  >>> pybdsim.Compare.TransportVsBDSIM('FOR002.DAT', 'bdsim_optics.root')

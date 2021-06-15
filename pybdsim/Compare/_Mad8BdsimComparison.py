@@ -103,8 +103,10 @@ def _make_plotter(plot_info_dict):
             sigmaX,sigmaY,sigmaXP,sigmaYP = _CalculateSigmas(mad8opt)
             mad8Xdata = sigmaX
             mad8Ydata = sigmaY
-            # mad8Xdata = _np.sqrt(mad8opt['envel'].getColumn('s11'))
-            # mad8Ydata = _np.sqrt(mad8opt['envel'].getColumn('s44'))
+
+            mad8Xdata = _np.sqrt(mad8opt['envel'].getColumn('s11'))
+            mad8Ydata = _np.sqrt(mad8opt['envel'].getColumn('s33'))
+
             mad8s     = mad8opt['envel'].getColumn('suml')
             mad8legendx += '(calculated)'
             mad8legendy += '(calculated)'
@@ -112,9 +114,14 @@ def _make_plotter(plot_info_dict):
             sigmaX,sigmaY,sigmaXP,sigmaYP = _CalculateSigmas(mad8opt)
             mad8Xdata = sigmaXP
             mad8Ydata = sigmaYP
+
+            mad8Xdata = _np.sqrt(mad8opt['envel'].getColumn('s22'))
+            mad8Ydata = _np.sqrt(mad8opt['envel'].getColumn('s44'))
+
             mad8s     = mad8opt['envel'].getColumn('suml')
             mad8legendx += '(calculated)'
             mad8legendy += '(calculated)'
+
         elif plot_info_dict["title"] == "Emittance":
             emitX, emitY = _CalculateEmittance(mad8opt)
             mad8Xdata = emitX

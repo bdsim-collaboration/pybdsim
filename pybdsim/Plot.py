@@ -163,11 +163,6 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     def DrawLine(start,color,alpha=1.0):
         ax.plot([start,start],[-0.2,0.2],'-',color=color,alpha=alpha)
 
-    # plot beam line
-    smax = bds.SEnd()[-1] + sOffset
-    ax.plot([sOffset, smax],[0,0],'k-',lw=1)
-    ax.set_ylim(-0.2,0.2)
-
     # loop over elements and Draw on beamline
     types   = bds.Type()
     lengths = bds.ArcLength()
@@ -206,7 +201,7 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
         elif kw == 'multipole':
             DrawHex(starts[i],lengths[i],'grey',alpha=0.5)
         elif kw == 'solenoid':
-            DrawRect(starts[i],lengths[i], u'#ffa500') #orange
+            DrawRect(starts[i],lengths[i], u'#ff8800') #orange
         elif kw == 'shield':
             DrawRect(starts[i],lengths[i], u'#808080') #dark grey
         else:
@@ -216,6 +211,12 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
             else:
                 #relatively short element - just draw a line
                 DrawLine(starts[i],'#cccccc',alpha=0.1)
+
+    # plot beam line
+    smax = bds.SEnd()[-1] + sOffset
+    ax.plot([sOffset, smax],[0,0],'k-',lw=1)
+    ax.set_ylim(-0.2,0.2)
+    ax.set_xlim(sOffset, smax)
 
 def SubplotsWithDrawnMachineLattice(survey, nrows=2,
                                     machine_plot_gap=0.01,
@@ -504,6 +505,8 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
 
+    xScalingFactors may be a float, int or list
+
     Example ::
 
     Histogram1DMultiple([h1,h2,h3], 
@@ -511,7 +514,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
                         xlabel=r'$\mu$m', 
                         ylabel='Fraction',
                         scalingFactors=[1,100,100],
-                        xScalingFactor=1e6,
+                        xScalingFactors=1e6,
                         log=True)
     """
     if "xScalingFactor" in errorbarKwargs:
@@ -552,7 +555,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     
     return f
 
-def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, **imshowKwargs):
+def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -565,6 +568,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     yScalingFactor - multiplier for y coordinates
     autovmin       - fill in the background (normally white) with minimum
     vmin           - explicitly control the vmin for the log normalisation
+    vmax           - explicitly control the vmax for the log normalisation
     """
     h = histogram
     f = _plt.figure(figsize=figsize)
@@ -578,9 +582,10 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         vmin = _np.min(h.contents[h.contents!=0])
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
-        if vmin is not None:
-            d[d==0] = vmin
-        _plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=_LogNorm(vmin=vmin), interpolation='none', **imshowKwargs)
+        #if vmin is not None:
+        #    d[d==0] = vmin
+        norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
+        _plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
         _plt.colorbar(label=zlabel)
     else:
         _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', **imshowKwargs)
@@ -1582,3 +1587,52 @@ def _ApertureTypeToColour(apertureType, cmap=_ApertureTypeColourMap()):
         colour =(0.8,0.8,0.8) # greyish
         
     return colour
+
+def LossMap(ax, xcentres, y, ylow=None, **kwargs):
+    """Plot a loss map in such a way that works well for very large loss maps.
+    xcentres, xwidth and y are all provided by TH1 python histograms (see
+    pybdsim.Data.TH1).
+
+    Parameters
+    ----------
+    ax
+         Matplotlib axes instance to draw to
+    xcentres
+         centres of bins
+    y
+         loss map signal data, same length as xcentres.
+    ylow
+         small non-zero value to fill between to ensure works with log scales.
+
+    kwargs
+         passed to calls to plot and fill_between.
+
+    """
+
+    if ylow is None:
+        ylow = min(y[~_np.isclose(0, y)])
+    elif ylow <=0:
+        raise ValueError("ylow must be positive.")
+
+    # here we remove runs of consecutive zeros but leave a 0 on either side of any
+    # finite value so the line drops back to 0. done by looking at difference from
+    # one value to another both for the regular data and the data shifted by 1.
+    # treats these differences as a Boolean in an or. one shorter than data length
+    # so just always take the last bin too irrespective if 0 or not
+    filt = _np.append(_np.logical_or(_np.diff(y), _np.diff(_np.roll(y,1))),
+                      [True])
+    xcentres = xcentres[filt]
+    y = y[filt]
+    # prepare 'low' values to fill between as no 0 on log scale
+    low = _np.full_like(y, ylow)
+    # the plot line with stepping is always visible as at least one pixel even
+    # at the widest scale. however, if you zoom in, they're not filled, so plot
+    # a fill between plot to fill in these bits. the fill between isn't really
+    # visible at the largest scale so can't use just that alone
+    line, = ax.plot(xcentres, y, drawstyle='steps-mid', **kwargs)
+    kwargs.pop("label", None) # Only attach label to the line plot.
+    kwargs.pop("color", None) # Duplicate kwargs is an error, it is set below.
+    ax.fill_between(xcentres, low, y, step='mid',
+                    color=line.get_color(),
+                    **kwargs)
+

@@ -2,6 +2,16 @@
 Version History
 ===============
 
+v2.3.0 - 2020 / 12 / 15
+=======================
+
+New Features
+------------
+
+* Convenience functions for pickling and unpickling data in the Data module with optional compression.
+* Generic loss map plot.
+
+
 v2.2.0 - 2020 / 06 / 08
 =======================
 

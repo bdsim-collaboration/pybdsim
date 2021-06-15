@@ -36,7 +36,7 @@ class ExecOptions(dict):
             if key in self._okFlags or key in self._okArgs:
                 self[key] = value
             else:
-                raise ValueError(key+'='+str(value)+' is not a valid BDISM executable option')
+                raise ValueError(key+'='+str(value)+' is not a valid BDSIM executable option')
         self.bdsimcommand = 'bdsim'
         if 'bdsimcommand' in self:
             self.bdsimcommand = self['bdsimcommand']
@@ -153,7 +153,7 @@ class Study(object):
 
 
 def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
-          silent=False, errorSilent=False, options=None, bdsimExectuable=None):
+          silent=False, errorSilent=False, options=None, bdsimExecutable=None):
     """
     Runs bdsim with gmadpath as inputfile and outfile as outfile.
     Runs in batch mode by default, with 10,000 particles.  Any extra
@@ -161,9 +161,9 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
     the form "--vis_debug" or "--vis_mac=vis.mac", etc.
 
     """
-    if not bdsimExectuable:
-        bdsimExectuable = "bdsim"
-    args = [bdsimExectuable,
+    if not bdsimExecutable:
+        bdsimExecutable = "bdsim"
+    args = [bdsimExecutable,
             "--file={}".format(gmadpath),
             "--outfile={}".format(outfile),
             "--ngenerate={}".format(ngenerate)]
@@ -207,17 +207,17 @@ def RebdsimOptics(rootpath, outpath, silent=False):
     else:
         return _subprocess.call(["rebdsimOptics", rootpath, outpath])
 
-def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExectuable=None):
+def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=None):
     """Run rebdsimHistoMerge"""
-    if not rebdsimHistoExectuable:
-        rebdsimHistoExectuable = "rebdsimHistoMerge"
+    if not rebdsimHistoExecutable:
+        rebdsimHistoExecutable = "rebdsimHistoMerge"
     if not _General.IsROOTFile(rootpath):
         raise IOError("Not a ROOT file")
     if silent:
-        return _subprocess.call([rebdsimHistoExectuable, rootpath, outpath],
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath],
                                stdout=open(_os.devnull, 'wb'))
     else:
-        return _subprocess.call([rebdsimHistoExectuable, rootpath, outpath])
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
 
 def GetOpticsFromGMAD(gmad, keep_optics=False):
     """

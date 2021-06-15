@@ -1,7 +1,7 @@
 import numpy as _np
 import tarfile as _tarfile
 
-def Load(filename, debug=False):
+def Load(filename, debug=False, unconventionalOrder=False):
     """
     Load a BDSIM field format file into a numpy array. Can either
     be a regular ascii text file or can be a compressed file ending
@@ -54,6 +54,9 @@ def Load(filename, debug=False):
             print('Invalid number of columns')
             print(columns)
         return
+
+    if unconventionalOrder:
+        return data
 
     required = ['nx','ny','nz','nt']
 

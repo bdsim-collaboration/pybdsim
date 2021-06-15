@@ -24,6 +24,7 @@ from . import Writer as _Writer
 from . import _General
 from ._General import IsFloat as _IsFloat
 
+import bisect as _bisect
 try:
     import collections as _collections
 except ImportError:
@@ -100,7 +101,6 @@ class ElementBase(_collections.MutableMapping):
         return self._store[key]
 
     def __setitem__(self, key, value):
-
         if (key == "name" or key == "category") and value:
             self._store[key] = value
         elif value == "":
@@ -511,7 +511,7 @@ class Multipole(Element):
             new_knl = tuple([integrated_strength * mp['l'] / self['l']
                              for integrated_strength in mp['knl']])
             new_ksl = tuple([integrated_strength * mp['l'] / self['l']
-                             for integrated_strength in mp['knl']])
+                             for integrated_strength in mp['ksl']])
             mp['knl'] = new_knl
             mp['ksl'] = new_ksl
         return split_mps
@@ -547,14 +547,12 @@ class _Dipole(Element):
         if angle is None and B is None:
             raise TypeError('angle XOR B must be specified for an SBend')
         elif angle is not None:
-            Element.__init__(self, name, category, l=l,
-                             angle=angle, **kwargs)
+            Element.__init__(self, name, category, l=l, angle=angle, **kwargs)
         else:
             Element.__init__(self, name, category, l=l, B=B, **kwargs)
 
     def split(self, points):
-        split_bends = self._split_length_with_length_scaled_parameters(
-            points, ['angle'])
+        split_bends = self._split_length_with_length_scaled_parameters(points, ['angle'])
         # Delete all the in/out parameters.  pop syntax just a quicker
         # way of doing try: del...  etc.
         for bend in split_bends:
@@ -704,11 +702,17 @@ class Dump(Element):
         Element.__init__(self, name,'dump',l=l,**kwargs)
 
 
-class ExternalGeometry(object):
+class ExternalGeometry(Element):
     def __init__(self, name, l, outerDiameter, geometryFile, **kwargs):
         Element.__init__(self, name, 'element', l=l,
                          outerDiameter=outerDiameter,
                          geometryFile=geometryFile, **kwargs)
+
+
+class Transform3D(Element):
+    def __init__(self, name, **kwargs):
+        Element.__init__(self, name, 'transform3d', **kwargs)
+
 
 class Sampler(object):
     """
@@ -725,14 +729,14 @@ class Sampler(object):
         else:
             return 'sample, range='+self.name+';\n'
 
-class Crystal(_collections.MutableMapping):
+class GmadObject(_collections.MutableMapping):
     """
-    A crystal is unique in that it does not have a length unlike every
-    :class:`Element` hence it needs its own class to produce its
-    representation.
+    A gmad object does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
     """
-    def __init__(self,name,**kwargs):
+    def __init__(self,objecttype,name,**kwargs):
         self._store = dict()
+        self.objecttype   = objecttype
         self.name         = name
         self._keysextra   = set()
         for k, v in kwargs.items():
@@ -778,7 +782,7 @@ class Crystal(_collections.MutableMapping):
             pass
 
     def __repr__(self):
-        s = "{s.name}: ".format(s=self) + "crystal, "
+        s = "{s.name}: ".format(s=self) + self.objecttype + ", "
         for i,key in enumerate(self._keysextra):
             if i > 0: # Separate with commas
                 s += ", "
@@ -790,6 +794,31 @@ class Crystal(_collections.MutableMapping):
                 s += key + '=' + str(self[key])
         s += ';\n'
         return s
+
+class Crystal(GmadObject):
+    """
+    A crystal does not have a length unlike every
+    :class:`Element` hence it needs its own class to produce its
+    representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "crystal",name,**kwargs)
+
+class ScorerMesh(GmadObject):
+    """
+    A scorermesh does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "scorermesh",name,**kwargs)
+
+class Placement(GmadObject):
+    """
+    A placement does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "placement",name,**kwargs)
 
 class Machine(object):
     """
@@ -836,6 +865,8 @@ class Machine(object):
         self.energy.append(energy0)
         self.charge    = charge
         self.objects   = []  # list of non-sequence objects e.g crystals, lasers, placements etc.
+        self.includesPre  = []
+        self.includesPost = []
 
     def __repr__(self):
         s = ''
@@ -940,7 +971,7 @@ class Machine(object):
         """
         Returns a list of names of elements that are of the specified category.
         """
-        return [element for element in self.elements if element.category == category]
+        return [k for k,e in self.elements.items() if e.category == category]
 
     def ReplaceWithElement(self, name, newelement):
         """
@@ -959,7 +990,9 @@ class Machine(object):
             currlength = self.elements[name].length
             self.length -= currlength
             self.length += newelement.length
-            # todo: update self.lenint list with new length. Doesn't appear to be used so should be safe for now.
+            for i,ename in enumerate(self.sequence):
+                if ename == name:
+                    self.lenint[i] = newelement.length
         self.elements[name] = newelement
 
     def ReplaceElementCategory(self, category, newcategory):
@@ -976,7 +1009,7 @@ class Machine(object):
         Update a parameter for a specified element name. Modifying element length will produce a warning.
         If a value for that parameter already exists, the value will be overwritten.
         """
-        if parameter is 'length':
+        if parameter == 'length':
             msg = 'Caution: modifying an element length will change the machine length.'
             print(msg)
             # update total machine length
@@ -984,8 +1017,9 @@ class Machine(object):
             self.length -= currlength
             self.elements[name][parameter] = value
             self.length += value
-            # todo: update self.lenint list with new lengths. Doesn't appear to be used so should be safe for now.
-
+            for i,ename in enumerate(self.sequence):
+                if ename == name:
+                    self.lenint[i] = value
         elif name in list(self.elements.keys()):
             self.elements[name][parameter] = value
         else:
@@ -1028,6 +1062,91 @@ class Machine(object):
         """
         names = list(self.elements.keys())
         self.UpdateElements(names, parameter, value)
+
+    def InsertAndReplace(self, newElement, sLocation):
+        """
+        New element will be placed at the central s location.
+        """
+        ne = newElement
+        s = sLocation
+
+        def CheckName(name):
+            if name in self.sequence:
+                raise ValueError("This new element by name is already in this machine - name uniquely")
+        if type(ne) is list:
+            l = _np.array([e.length for e in ne]).sum()
+            for e in ne:
+                CheckName(e.name)
+        else:
+            l = ne.length
+            CheckName(ne.name)
+
+
+        if l == 0:
+            raise ValueError("Cannot be used to insert thin elements")
+        
+        sStart = s - 0.5*l
+        sEnd   = s + 0.5*l
+
+        if sStart < 0:
+            raise ValueError("Given position and length of item it would precede start of beam line.")
+        if sEnd > self.length:
+            print("Beam line will be extended by : ",sEnd-self.length," m")
+
+        # work out index points and new sequence to insert and do modification in only one step
+        # at the end
+        indFirstReplace = 0
+        indLastReplace  = 0
+        newSequence = []
+        newElements = {}
+
+        # first boundary
+        indSStart = _bisect.bisect_left(self.lenint, sStart)
+        if self.lenint[indSStart] == sStart:
+            indFirstReplace = indSStart + 1 # exactly matches on a boundary
+        else:
+            if sStart == 0:
+                indFirstReplace = 0
+            else:
+                indFirstReplace = indSStart
+                elToSplit = self.elements[self.sequence[indSStart]]
+                sElStart  = self.lenint[indSStart] - elToSplit.length # easier than boundary indexing issues
+                newElsStart = elToSplit.split([sStart - sElStart])
+                firstPart = newElsStart[0]
+                newSequence.append(firstPart.name)
+                newElements[firstPart.name] = firstPart
+
+        # insert new sequence
+        if type(ne) is list:
+            newSequence.extend([e.name for e in ne])
+            newElements.update({e.name:e for e in ne})
+        else:
+            newSequence.append(ne.name)
+            newElements[ne.name] = ne
+
+        # second boundary
+        indSEnd = _bisect.bisect(self.lenint, sEnd)
+        if self.lenint[indSEnd] == sEnd:
+            indLastReplace = indSEnd - 1 # exactly matches on a boundary
+        else:
+            indLastReplace = indSEnd
+            elToSplit = self.elements[self.sequence[indSEnd]]
+            sElStart  = self.lenint[indSEnd] - elToSplit.length
+            newElsEnd = elToSplit.split([sEnd - sElStart])
+            secondPart = newElsEnd[1]
+            newSequence.append(secondPart.name)
+            newElements[secondPart.name] = secondPart 
+
+        # do operation
+        self.sequence[indFirstReplace:indLastReplace+1] = newSequence
+        self.elements.update(newElements)
+        self.RegenerateLenInt()
+
+    def RegenerateLenInt(self):
+        ltot = [0.0]
+        for name in self.sequence:
+            ltot.append(ltot[-1] + self.elements[name].length)
+        self.lenint = ltot[1:]
 
     def SynchrotronRadiationRescale(self):
         """
@@ -1109,6 +1228,18 @@ class Machine(object):
             raise TypeError("Incorrect type - please provide pybdsim.Options.Options instance")
         self.options = options
 
+    def AddIncludePre(self, include):
+        """
+        Add the name of a file (str) that should be included in the main file before others.
+        """
+        self.includesPre.append(include)
+
+    def AddIncludePost(self, include):
+        """
+        Add the name of a file (str) that should be included in the main file after others.
+        """
+        self.includesPost.append(include)
+
     def AddMarker(self, name='mk'):
         """
         Add a marker to the beam line.
@@ -1182,7 +1313,7 @@ class Machine(object):
         for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
-        self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
+        self.Append(Element(name,'jcol',l=length,xsize=xsize,ysize=ysize,**d))
 
     def AddDegrader(self, length=0.1, name='deg', nWedges=1, wedgeLength=0.1, degHeight=0.1, materialThickness=None, degraderOffset=None, **kwargs):
         if (materialThickness==None) and (degraderOffset==None):
@@ -1338,6 +1469,12 @@ class Machine(object):
 
     def AddCrystal(self, name, **kwargs):
         self.objects.append(Crystal(name, **kwargs))
+
+    def AddScorerMesh(self, name, **kwargs):
+        self.objects.append(ScorerMesh(name, **kwargs))
+
+    def AddPlacement(self, name, **kwargs):
+        self.objects.append(Placement(name, **kwargs))
 
     def AddRmat(self, name='rmat', length=0.1,
                 r11=1.0, r12=0, r13=0, r14=0,
@@ -1516,157 +1653,6 @@ def SuggestFodoK(magnetlength,driftlength):
 
     """
     return 1.0 / (float(magnetlength)*(float(magnetlength) + float(driftlength)))
-
-def WriteMachine(machine, filename, verbose=False):
-    """
-    WriteMachine(machine(machine),filename(string),verbose(bool))
-
-    Write a machine to disk. This writes several files to make the
-    machine, namely:
-
-    filename_components.gmad - component files (max 10k per file)
-    filename_sequence.gmad   - lattice definition
-    filename_samplers.gmad   - sampler definitions (max 10k per file)
-    filename_options.gmad    - options
-    filename.gmad            - suitable main file with all sub
-                               files in correct order
-
-    these are prefixed with the specified filename / path
-
-    """
-
-    if not isinstance(machine,Machine):
-        raise TypeError("Not machine instance")
-
-    elementsperline = 100 #number of machine elements per bdsim line (not text line)
-
-    #check filename
-    if filename[-5:] != '.gmad':
-        filename += '.gmad'
-
-    #check for directory and make it if not:
-    if '/' in filename:
-        directory = '/'.join(filename.split('/')[:-1]) #strip the filename off
-        if not _os.path.exists(directory):
-            _os.system("mkdir -p " + directory)
-
-    #check if file already exists
-    ofilename = filename
-    filename = _General.GenUniqueFilename(filename)
-    if filename != ofilename:
-        print('Warning, chosen filename already exists - using filename: ',filename.split('.')[0])
-    basefilename = filename[:-5] #everything before '.gmad'
-
-    #prepare names
-    files         = []
-    fn_main       = basefilename + '.gmad'
-    fn_components = basefilename + '_components.gmad'
-    fn_sequence   = basefilename + '_sequence.gmad'
-    fn_samplers   = basefilename + '_samplers.gmad'
-    fn_beam       = basefilename + '_beam.gmad'
-    fn_options    = basefilename + '_options.gmad'
-    fn_bias       = basefilename + '_bias.gmad'
-    fn_objects    = basefilename + '_objects.gmad'
-    timestring = '! ' + _time.strftime("%a, %d %b %Y %H:%M:%S +0000", _time.gmtime()) + '\n'
-
-    #write bias if it exists
-    if len(machine.bias) > 0:
-        f = open(fn_bias,'w')
-        files.append(fn_bias)
-        for bias in machine.bias:
-            f.write(str(bias))
-        f.close()
-
-    #write component files
-    f = open(fn_components, 'w')
-    files.append(fn_components)
-    f.write(timestring)
-    f.write('! pybdsim.Builder Lattice \n')
-    f.write('! COMPONENT DEFINITION\n\n')
-    for element in list(machine.elements.values()):
-        f.write(str(element))
-    f.close()
-
-    #write lattice sequence
-    f = open(fn_sequence,'w')
-    files.append(fn_sequence)
-    f.write(timestring)
-    f.write('! pybdsim.Builder Lattice \n')
-    f.write('! LATTICE SEQUENCE DEFINITION\n\n')
-    linelist = []
-    ti = 0
-    for line in _General.Chunks(machine.sequence,elementsperline):
-        f.write('l'+str(ti)+': line = ('+', '.join(line)+');\n')
-        linelist.append('l'+str(ti))
-        ti += 1
-    # need to define the period before making sampler planes
-    f.write('lattice: line = ('+', '.join(linelist)+');\n')
-    f.write('use, period=lattice;\n')
-    f.close()
-
-    #write samplers
-    # if less than 10 samplers, just put in main file
-    if len(machine.samplers) > 10:
-        f = open(fn_samplers,'w')
-        files.append(fn_samplers)
-        f.write(timestring)
-        f.write('! pybdsim.Builder Lattice \n')
-        f.write('! SAMPLER DEFINITION\n\n')
-        for sampler in machine.samplers:
-            f.write(str(sampler))
-        f.close()
-
-    # write beam
-    f = open(fn_beam,'w')
-    files.append(fn_beam)
-    f.write(timestring)
-    f.write('! pybdsim.Builder \n')
-    f.write('! BEAM DEFINITION \n\n')
-    f.write(machine.beam.ReturnBeamString())
-    f.close()
-
-    # write objects
-    if len(machine.objects) > 0:
-        f = open(fn_objects,'w')
-        files.append(fn_objects)
-        f.write(timestring)
-        f.write('! pybdsim.Builder \n')
-        f.write('! OBJECTS DEFINITION \n\n')
-        for obj in machine.objects:
-            f.write(str(obj))
-        f.close()
-
-    # write options - only if specified
-    if machine.options != None:
-        f = open(fn_options,'w')
-        files.append(fn_options)
-        f.write(timestring)
-        f.write('! pybdsim.Builder \n')
-        f.write('! OPTIONS DEFINITION \n\n')
-        f.write(machine.options.ReturnOptionsString())
-        f.close()
-
-    # write main file
-    f = open(fn_main,'w')
-    f.write(timestring)
-    f.write('! pybdsim.Builder Lattice \n')
-    f.write('! number of elements = ' + str(len(machine.elements)) + '\n')
-    f.write('! total length       = ' + str(machine.length) + ' m\n\n')
-
-    for fn in files:
-        fn = fn.split('/')[-1]
-        f.write('include '+fn+';\n')
-    if len(machine.samplers) <= 10:
-        for sampler in machine.samplers:
-            f.write(str(sampler))
-    f.close()
-
-    #user feedback
-    print('Lattice written to:')
-    for fn in files:
-        print(fn)
-    print('All included in main file: \n',fn_main)
-
 
 def GenerateSamplersFromBDSIMSurvey(surveyfile,outputfilename,excludesamplers=True):
     """

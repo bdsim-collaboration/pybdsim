@@ -7,7 +7,6 @@ import matplotlib.pyplot as _plt
 import matplotlib.backends.backend_pdf as _pdf
 import matplotlib.patches as _mpatches
 import numpy as _np
-import string as _string
 import subprocess as _sub
 import threading as _thread
 import time as _time
@@ -88,7 +87,7 @@ class LatticeTest:
         config          = self.filename+"_analConfig.txt"
 
         #ptc/madx output
-        tfs             = _string.lower(self.filename) + ".tfs"
+        tfs             = self.filename.lower() + ".tfs"
         trackone        = "trackone"
         maxwell         = "Maxwellian*"
         printFile       = "print.dat"
@@ -213,7 +212,12 @@ class LatticeTest:
         _os.system(madx+" < "+self.ptcfilename+" > ptc_madx.log")
 
 
-    def Run(self, bdsim='bdsim', madx='madx', integratorSet=None, optionsDict = {}):
+    def Run(self,
+            bdsim='bdsim',
+            madx='madx',
+            integratorSet=None,
+            optionsdict=None):
+        optionsdict = {} if optionsdict is None else optionsdict
         print('Test> Lattice: ', self.filename) 
         print('Test> Destination filepath: ', self.filepath)
 
@@ -235,11 +239,16 @@ class LatticeTest:
         if particle == 'ELECTRON' :
             self.flipmagnets = True
 
-        beamParmsDict = {'offsetSampleMean':1}
+        beamparamsdict = {'offsetSampleMean': 1}
         if integratorSet is not None:
-            optionsDict['integratorSet'] = '"'+integratorSet+'"'
-        #pybdsim.Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename,flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose)
-        _Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs', self.filename, flipmagnets=self.flipmagnets, ignorezerolengthitems=False,verbose=self.verbose, optionsDict=optionsDict, beamParmsDict=beamParmsDict)
+            optionsdict['integratorSet'] = '"'+integratorSet+'"'
+        _Convert.MadxTfs2Gmad(self.tfsfilename+'.tfs',
+                              self.filename,
+                              flipmagnets=self.flipmagnets,
+                              ignorezerolengthitems=False,
+                              verbose=self.verbose,
+                              optionsdict=optionsdict,
+                              beamparamsdict=beamparamsdict)
         
         _pymadx.Convert.TfsToPtc(''+self.tfsfilename+'.tfs', self.ptcfilename, self.ptcinrays, ignorezerolengthitems=False, ptctrackaperture=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
 
