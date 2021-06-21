@@ -1,12 +1,14 @@
 from __future__ import annotations
-from typing import Optional, Dict
+from typing import Optional, Dict, Tuple, MutableMapping
 import os
 import re
-import logging
-
+import logging as _logging
+import pkg_resources
+import cpymad.madx
 import yaml
 import pandas as _pd
 import numpy as _np
+import scipy.interpolate
 from mergedeep import merge
 import pybdsim
 from typing import TYPE_CHECKING
@@ -14,33 +16,51 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pymask.madxp import Madxp
 
+APERTURE_LHC_APER1 = 0.022
+APERTURE_LHC_APER2 = 0.01715
+APERTURE_LHC_APER3 = 0.022
+APERTURE_LHC_APER4 = 0.022
+
 BDSIM_MAD_CONVENTION = {
     'apertype': 'apertureType',
     'circle': 'circular',
     'octagon': 'octagonal',
     'rectangle': 'rectangular',
+    'collimator': 'rcol',
     'rcollimator': 'rcol',
-    'electron': 'e-'}
+    'electron': 'e-',
+}
 
 BDSIM_RESERVED_NAME = {
     'ms': 'ms.'
 }
 
-BDSIM_ELEMENTS_ARGUMENTS = ['l',
-                            'k1',
-                            'k2',
-                            'angle',
-                            'knl',
-                            'ksl',
-                            'apertype',
-                            'aperture']
+BDSIM_MADX_ELEMENTS_ARGUMENTS = ['l',
+                                 'k1',
+                                 'k1s',
+                                 'k2',
+                                 'k2s',
+                                 'k3',
+                                 'ks',
+                                 'angle',
+                                 'tilt',
+                                 'kick',
+                                 'hkick',
+                                 'vkick',
+                                 'knl',
+                                 'ksl',
+                                 'apertype',
+                                 'aperture']
 
-# Keep these elements (in BDSIM convention)
-BDSIM_ELEMENTS_TO_GENERATE = ['drift', 'sbend', 'rbend', 'quadrupole', 'sextupole', 'octupole', 'hkicker', 'vkicker', 'solenoid',
-                    'rcol', 'multipole', 'thinmultipole']
+BDSIM_ELEMENTS_TO_GENERATE = ['drift', 'sbend', 'rbend', 'quadrupole', 'sextupole', 'octupole',
+                              'decapole', 'hkicker', 'vkicker', 'tkicker', 'kicker',
+                              'solenoid', 'rcol', 'ecol', 'jcol', 'multipole', 'thinmultipole']
 
-"""Elements that are dropped immediately without any processing when reading the MAD-X sequence."""
-MAD_ELEMENTS_TO_DROP = ['marker', 'monitor']
+MAD_ELEMENTS_TO_DROP_IF_ZERO_LENGTH = ['marker', 'monitor', 'instrument', 'placeholder', 'rcollimator', 'cavity']
+
+
+def _log_component_info(name: str, parent_name: str, base_name: str, max_length: int = 25) -> str:
+    return ' ' * 5 + name.ljust(max_length, ' ') + parent_name.ljust(max_length, ' ') + base_name.ljust(max_length, ' ')
 
 
 class CPyMad2Gmad:
@@ -49,8 +69,14 @@ class CPyMad2Gmad:
                  model: Optional[Dict] = None,
                  model_path: str = '.',
                  model_file: str = 'model.yml',
+                 log_file: str = 'model.log',
                  ):
         # Read main configuration file
+        self.logging = _logging.getLogger()
+        handler = _logging.FileHandler(log_file, mode='w')
+        handler.setLevel(_logging.INFO)
+        self.logging.addHandler(handler)
+        self.logging.info("Reading the model configuration file.")
         with open(os.path.join(model_path, model_file)) as file:
             _ = yaml.full_load(file)
 
@@ -65,198 +91,391 @@ class CPyMad2Gmad:
                     'data.yml')
             ) as file:
                 self.model = merge(self.model, yaml.full_load(file))
-                logging.debug(f"Merged data from module {module}.")
+                self.logging.info(f"Merged data from module '{module}'.")
         self.model = merge(self.model, _)
         self.model = merge(self.model, model or {})
 
         # Add quotes for BDSim options
         for k, v in self.model['options'].items():
-            if isinstance(v, str) and '*' not in v:
+            if isinstance(v, str) and '*' not in v:  # Physical quantity with units should not be quoted
                 self.model['options'][k] = '"' + v + '"'
 
         # Compile the regular expressions in the model
-        logging.debug("Compiling regular expressions...")
+        self.logging.info("Compiling regular expressions...")
         for r in list(self.model['sequence'].keys()):
             self.model['sequence'][re.compile(r)] = self.model['sequence'].pop(r)
-        logging.debug("All regular expressions compiled.")
+        self.logging.info("... done.")
 
         # MAD-X
         self.madx = madx_instance
         self.madx_beam = self.madx.sequence[self.model['builder']['sequence']].beam
+        self.madx_sequence = self.madx.sequence['lhcb1']
+        self.madx_expanded_element_positions = self.madx_sequence.expanded_element_positions()
+        self.madx_expanded_element_names = self.madx_sequence.expanded_element_names()
 
-        def build_component(element, i, level):
-            parent = element.parent.name
-            base_parent = element.base_type.name
-            length = element.l
-            if parent == 'multipole' and base_parent == 'multipole' and length == 0:
-                parent = 'thinmultipole'
-                base_parent = 'thinmultipole'
-                length = None
-                logging.warning(f"{element.name} (of type {element.parent.name} / {element.base_type.name})"
-                                f" - Converting to thinmultipole because it is a zero-length multipole.")
-            elif base_parent != 'multipole' and length == 0 and level == 0:
-                logging.warning(f"{element.name} (of type {element.parent.name} / {element.base_type.name})"
-                                f" - Dropping element because its length is zero.")
-                base_parent = None
+        # Additional definitions
+        self._arc_starts = []
+        self._arc_ends = []
+        for ip in range(1, 8 + 1):
+            self._arc_starts.append(self._find_location(f's.ds.r{ip}.b1'))
+            self._arc_ends.append(self._find_location(f'e.ds.l{(ip % 8 + 1)}.b1'))
 
+        # Build the aperture definitions
+        apertures = _pd.concat(
+            (_pd.read_csv(os.path.join(pkg_resources.resource_filename('failsim', "data/aperture"),
+                                       f'LHC-apertures-YETS 2022-2023-IP{i}.csv')) for i in
+             range(1, 8 + 1))
+        ).query("BEAM != 'B2'").sort_values(by='S_FROM_IP1').reset_index()
+        self._ldb_apertures = apertures
+        self._ldb_apertures_a = scipy.interpolate.interp1d(apertures['S_FROM_IP1'], apertures['ELEM_ELLIPSE_PARAM_A'],
+                                                           kind='next', bounds_error=False, fill_value=(
+                apertures.at[0, 'ELEM_ELLIPSE_PARAM_A'], apertures.iloc[-1]['ELEM_ELLIPSE_PARAM_A']),
+                                                           assume_sorted=True)
+        self._ldb_apertures_b = scipy.interpolate.interp1d(apertures['S_FROM_IP1'], apertures['ELEM_ELLIPSE_PARAM_B'],
+                                                           kind='next', bounds_error=False, fill_value=(
+                apertures.at[0, 'ELEM_ELLIPSE_PARAM_B'], apertures.iloc[-1]['ELEM_ELLIPSE_PARAM_B']),
+                                                           assume_sorted=True)
+        self._ldb_apertures_c = scipy.interpolate.interp1d(apertures['S_FROM_IP1'], apertures['ELEM_ELLIPSE_PARAM_C'],
+                                                           kind='next', bounds_error=False, fill_value=(
+                apertures.at[0, 'ELEM_ELLIPSE_PARAM_C'], apertures.iloc[-1]['ELEM_ELLIPSE_PARAM_C']),
+                                                           assume_sorted=True)
+        self._ldb_apertures_d = scipy.interpolate.interp1d(apertures['S_FROM_IP1'], apertures['ELEM_ELLIPSE_PARAM_D'],
+                                                           kind='next', bounds_error=False, fill_value=(
+                apertures.at[0, 'ELEM_ELLIPSE_PARAM_D'], apertures.iloc[-1]['ELEM_ELLIPSE_PARAM_D']),
+                                                           assume_sorted=True)
+
+        def build_component(element, i, position, level):
             return {
-                'NAME': element.name,
-                'PARENT': BDSIM_MAD_CONVENTION.get(parent, parent),
-                'BASE_PARENT': BDSIM_MAD_CONVENTION.get(base_parent, base_parent),
+                'NAME': BDSIM_RESERVED_NAME.get(element.name, element.name),
+                'PARENT': BDSIM_MAD_CONVENTION.get(element.parent.name, element.parent.name),
+                'BASE_PARENT': BDSIM_MAD_CONVENTION.get(element.base_type.name, element.base_type.name),
+                'MAD_ELEMENT': element,
                 'IS_ELEMENT': element is e,
-                'IS_DRIFT': element.parent.name == 'drift',
+                'IS_IMPLICIT_DRIFT': level - bottom == 0 and element.parent.name == 'drift',
                 'LEVEL': level - bottom,
-                'AT': element.at,
-                'L': length,
+                'L': element.l,
+                'AT': position,
                 'ID': i,
+                'USED': 1,
             }
 
-        def build_component_recursive(element, i, level=0):
+        def build_component_recursive(i, element, position, level=0):
             nonlocal bottom
-            if element.parent.name != element.name and element.base_type.name != 'marker':
-                component = build_component(element, i, level)
-                if component['BASE_PARENT'] is not None:
-                    components.append(component)
-                    build_component_recursive(element.parent, i, level - 1)
+            if element.parent.name != element.name:
+                if element.name not in components:
+                    components[element.name] = build_component(element, i, position, level)
+                    build_component_recursive(i, element.parent, position, level - 1)
+                else:
+                    components[element.name]['USED'] += 1
             else:
                 bottom = level
 
-        components = []
-        for i, e in enumerate(self._madx_subsequence()):
+        components = {}
+        self.logging.info("Extracting all elements of the sequence to the dataframe...")
+        for i, e, p in self._madx_subsequence():
             bottom = 0
-            build_component_recursive(e, i)
-        self.components = _pd.DataFrame(components)
-        # Fast method to drop duplicated indices - https://stackoverflow.com/a/34297689/420892
-        self.components = self.components[~self.components['NAME'].duplicated(keep='first')]
-        self.components.sort_values(by=['IS_DRIFT', 'IS_ELEMENT', 'BASE_PARENT', 'LEVEL'], inplace=True)
-        self.components['BDSIM'] = self.components.apply(lambda r: self._build_bdsim_component(r['NAME'], r), axis=1)
+            build_component_recursive(i, e, p)
+        self.components = _pd.DataFrame(components.values())
+        self.components.sort_values(by=['IS_IMPLICIT_DRIFT', 'IS_ELEMENT', 'BASE_PARENT', 'LEVEL'], inplace=True)
+        self.logging.info("... done.")
+
+        self.logging.info("Starting the conversion to BDSIM elements...")
+        self.components['BDSIM'] = self.components.apply(self._build_bdsim_component, axis=1)
+        self.components['BDSIM_TYPE'] = self.components.apply(lambda _: getattr(_['BDSIM'], 'category', None), axis=1)
         self.components.set_index("NAME", inplace=True)
+
+        used = self.components['USED'].copy()
+        for i, _ in self.components.iterrows():
+            if _['BDSIM'] is None and _['PARENT'] in used:
+                used.loc[_['PARENT']] -= 1
+        self.components['USED'] = used
+        keep = self.components['USED'] > 0
+
+        self.logging.info("Dropping the following unused components:")
+        for _ in keep[~keep].index:
+            self.logging.info(' ' * 5 + _)
+        self.components = self.components[keep]
+        self.logging.info("... done.")
+
+    def _is_in_arc(self, name: str) -> bool:
+        in_arc = False
+        for s, e in zip(self._arc_starts, self._arc_ends):
+            if s <= self._find_location(name) <= e:
+                in_arc = True
+        return in_arc
+
+    def _find_location(self, name: str) -> float:
+        try:
+            return self.madx_expanded_element_positions[
+                self.madx_expanded_element_names.index(name + '[0]')
+            ]
+        except ValueError:
+            return self.madx_sequence.expanded_element_positions()[
+                self.madx_expanded_element_names.index(name)
+            ]
 
     @property
     def _madx_subsequence(self):
         def _iterator():
-            expanded_elements = self.madx.sequence[self.model['builder']['sequence']].expanded_elements
+            mad_sequence = self.madx.sequence[self.model['builder']['sequence']]
+            expanded_elements = mad_sequence.expanded_elements
+            expanded_element_positions = mad_sequence.expanded_element_positions()
             idx1 = expanded_elements.index(self.model['builder']['from'] or expanded_elements[0].name)
             idx2 = expanded_elements.index(self.model['builder']['to'] or expanded_elements[-1].name)
-            for i in range(idx1, idx2+1):
+            for i in range(idx1, idx2 + 1):
                 element = expanded_elements[i]
-                if expanded_elements[i].base_type.name not in MAD_ELEMENTS_TO_DROP:
-                    yield element
+                if element.base_type.name not in MAD_ELEMENTS_TO_DROP_IF_ZERO_LENGTH or element.get('l', 0.0) > 0.0:
+                    yield i, element, expanded_element_positions[i]
                 else:
-                    assert element['l'] == 0.0
-                    logging.info(f"{element.name} (of type {element.parent.name} / {element.base_type.name})"
-                                 f" - Skipping element because it should be dropped (length = {element['l']}).")
+                    self.logging.info(_log_component_info(element.name, element.parent.name, element.base_type.name)
+                                      + f" - Skipping element because it should be dropped and its length is zero.")
+
         return _iterator
 
-    def _get_model_properties_for_element(self, element_name):
+    def _get_model_properties_for_element(self, element_name: str) -> Tuple[Optional[str], dict]:
         properties = {}
+        element_type = None
         for regex, data in self.model['sequence'].items():
             if regex.match(element_name):
                 properties = merge(properties, data['properties'])
-        return properties
+                element_type: Optional[str] = data.get('type', None)
+        return element_type, properties
 
-    def _build_bdsim_component_properties(self, element):
-        parent_keys = element.parent.defs
-        daughter_keys = element.defs
-        non_default_args = {
-            k: daughter_keys[k] for k in parent_keys if
-                            k in BDSIM_ELEMENTS_ARGUMENTS and k in daughter_keys and parent_keys[k] != daughter_keys[k] and k != 'at'
-        }
-        if not bool(non_default_args):  # Bare aliases not allowed in BDSim
-            non_default_args = {'l': element.defs['l']}
-            logging.info(f"{element.name} (of type {element.parent.name} / {element.base_type.name})"
-                            f" - Adding the length in the definition because bare aliases are not allowed.")
+    def _build_bdsim_component_properties(self, element: _pd.Series) -> dict:
+        mad_element = element['MAD_ELEMENT']
+        mad_parent = mad_element.parent
         bdsim_properties = {}
-        for k, i in non_default_args.items():
-            if k in BDSIM_ELEMENTS_ARGUMENTS:
-                if k == 'knl' or k == 'ksl':
-                    # The value in madx.defs is an expression
-                    bdsim_properties[k] = tuple(element[k])
-                elif k == 'aperture':
-                    if len(element[k]) >= 1:
-                        bdsim_properties['aper1'] = element[k][0]
-                    if len(element[k]) >= 2:
-                        bdsim_properties['aper2'] = element[k][1]
-                    if len(element[k]) >= 3:
-                        bdsim_properties['aper3'] = element[k][2]
-                    if len(element[k]) >= 4:
-                        bdsim_properties['aper4'] = element[k][3]
+        for k, v in mad_element.items():
+            if k in BDSIM_MADX_ELEMENTS_ARGUMENTS:
+                if isinstance(v, cpymad.madx.ArrayAttribute):
+                    if list(mad_parent.get(k)) != list(v):
+                        bdsim_properties[BDSIM_MAD_CONVENTION.get(k, k)] = v
                 else:
-                    bdsim_properties[BDSIM_MAD_CONVENTION.get(k, k)] = element[k]
+                    if mad_parent.get(k) != v:
+                        bdsim_properties[BDSIM_MAD_CONVENTION.get(k, k)] = v
+        if not bool(bdsim_properties):
+            bdsim_properties = {'l': mad_element.l}
+            self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                              + f" - Adding the length in the definition because bare aliases are not allowed.")
 
-        return self._adjust_bdsim_component_properties(element, bdsim_properties)
+        return self._generate_apertures(element, self._adjust_bdsim_component_properties(element, bdsim_properties))
 
-    def _adjust_bdsim_component_properties(self, element, bdsim_properties):
-        if 'apertureType' in bdsim_properties:
-            bdsim_properties['apertureType'] = BDSIM_MAD_CONVENTION.get(bdsim_properties['apertureType'], bdsim_properties['apertureType'])
-        if bdsim_properties.get('apertureType') == 'octagonal':
-            # https://indico.cern.ch/event/379692/contributions/1804923/subcontributions/156446/attachments/757501/1039118/2105-03-18_HSS_meeting_rev.pdf
-            aper3_mad = bdsim_properties['aper3']
-            aper4_mad = bdsim_properties['aper4']
-            bdsim_properties['aper3'] = bdsim_properties['aper2'] / _np.tan(aper4_mad)
-            bdsim_properties['aper4'] = bdsim_properties['aper1'] * _np.tan(aper3_mad)
-        for key in ('aper1', 'aper2', 'aper3', 'aper4'):
-            if bdsim_properties.get(key, 0.0) > self.model['builder']['config']['apertures']['remove_above_value']:
-                logging.warning(f"Dropping the key {key} of element {element.name} because it exceeds the treshold value")
-                del bdsim_properties[key]
-        if 'aper1' not in bdsim_properties and 'aper2' not in bdsim_properties and 'aper3' not in bdsim_properties and 'aper4' not in bdsim_properties and 'apertureType' in bdsim_properties:
-            del bdsim_properties['apertureType']
-            logging.warning(f'Dropping the apertureType key of {element.name} because it has no aperture')
+    def _generate_apertures(self, element: _pd.Series, bdsim_properties: dict) -> dict:
+        """Generate missing apertures"""
+        if element['IS_ELEMENT'] \
+                and 'apertureType' not in bdsim_properties \
+                and 'xsize' not in bdsim_properties \
+                and 'ysize' not in bdsim_properties:
+            if self._is_in_arc(element['NAME']):
+                self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                  + f" - Setting the default LHC aperture type for this arc element.")
+                bdsim_properties['apertureType'] = 'lhc'
+                bdsim_properties['aper1'] = APERTURE_LHC_APER1
+                bdsim_properties['aper2'] = APERTURE_LHC_APER2
+                bdsim_properties['aper3'] = APERTURE_LHC_APER3
+                bdsim_properties['aper4'] = APERTURE_LHC_APER4
+            else:
+                location = self._find_location(element['NAME'])
+                if element['BASE_PARENT'] == 'rcol':
+                    bdsim_properties['xsize'] = float(self._ldb_apertures_a(location))
+                    bdsim_properties['ysize'] = float(self._ldb_apertures_b(location))
+                    self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                      + f" - Setting the aperture from LDB: "
+                                        f"{bdsim_properties['xsize']}, "
+                                        f"{bdsim_properties['ysize']}, "
+                                      )
+                else:
+                    bdsim_properties['apertureType'] = 'rectellipse'
+                    bdsim_properties['aper1'] = float(self._ldb_apertures_a(location))
+                    bdsim_properties['aper2'] = float(self._ldb_apertures_b(location))
+                    bdsim_properties['aper3'] = float(self._ldb_apertures_c(location))
+                    bdsim_properties['aper4'] = float(self._ldb_apertures_d(location))
+                    self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                      + f" - Setting the aperture from LDB: "
+                                        f"{bdsim_properties['aper1']}, "
+                                        f"{bdsim_properties['aper2']}, "
+                                        f"{bdsim_properties['aper3']}, "
+                                        f"{bdsim_properties['aper4']}."
+                                      )
 
         return bdsim_properties
 
-    def _build_bdsim_component(self, name, element):
-        if element['PARENT'] == 'drift':
-            bdsim_dict_arg = {'l': element['L']}
-        else:
-            bdsim_dict_arg = self._build_bdsim_component_properties(self.madx.elements.get(name))
-        bdsim_dict_arg = merge(bdsim_dict_arg, self._get_model_properties_for_element(name))
-        element_name = BDSIM_RESERVED_NAME.get(name, name)
-        parent_name = BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
+    def _adjust_bdsim_component_properties(self, element: _pd.Series, bdsim_properties: dict) -> dict:
+        """For this method, explicit is better than implicit!"""
 
-        if element['BASE_PARENT'] not in BDSIM_ELEMENTS_TO_GENERATE:
-            print(element_name)
-            print(element['PARENT'])
-            bdsim_element = pybdsim.Builder.Element(name=element_name,
-                                                     category='drift',
-                                                     isMultipole=False,
-                                                     l=element['L'])
-        else:
-            if element['LEVEL'] == 1:
-                bdsim_element = pybdsim.Builder.Element(name=element_name,
-                                                        category=parent_name,
-                                                        isMultipole='knl' in bdsim_dict_arg.keys() or 'ksl' in bdsim_dict_arg.keys(),
-                                                        **bdsim_dict_arg)
-            else:
-                bdsim_element = pybdsim.Builder.Element.from_element(name=element_name,
-                                                           parent_element_name=parent_name,
-                                                           isMultipole='knl' in bdsim_dict_arg.keys() or 'ksl' in bdsim_dict_arg.keys(),
-                                                           **bdsim_dict_arg)
+        def convert_aperture_value_definitions():
+            k = 'aperture'
+            if k in bdsim_properties:
+                if len(bdsim_properties[k]) >= 1:
+                    bdsim_properties['aper1'] = bdsim_properties[k][0]
+                if len(bdsim_properties[k]) >= 2:
+                    bdsim_properties['aper2'] = bdsim_properties[k][1]
+                if len(bdsim_properties[k]) >= 3:
+                    bdsim_properties['aper3'] = bdsim_properties[k][2]
+                if len(bdsim_properties[k]) >= 4:
+                    bdsim_properties['aper4'] = bdsim_properties[k][3]
 
-        return bdsim_element
+        def set_collimator_gap_definitions():
+            if element['BASE_PARENT'] == 'rcol':
+                if 'aperture' in bdsim_properties:
+                    bdsim_properties['xsize'] = bdsim_properties['aper1']
+                    bdsim_properties['ysize'] = bdsim_properties['aper2']
+                    del bdsim_properties['aper1']
+                    del bdsim_properties['aper2']
+                    del bdsim_properties['aper3']
+                    del bdsim_properties['aper4']
+                    del bdsim_properties['apertureType']
+                    self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                      + f" - Setting the collimator opening: "
+                                        f"xsize={bdsim_properties['xsize']}, ysize={bdsim_properties['ysize']}.")
+                elif element['IS_ELEMENT']:
+                    bdsim_properties['xsize'] = 0.05
+                    bdsim_properties['ysize'] = 0.05
+                    self.logging.warning(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                         + f" - Setting the collimator opening with default values: "
+                                           f"xsize={bdsim_properties['xsize']}, ysize={bdsim_properties['ysize']}.")
+
+        def convert_aperture_types():
+            k = 'apertureType'
+            if k in bdsim_properties:
+                bdsim_properties[k] = BDSIM_MAD_CONVENTION.get(bdsim_properties[k], bdsim_properties[k])
+
+            k = 'apertureType'
+            v = 'octagonal'
+            if bdsim_properties.get(k) == v:
+                # https://indico.cern.ch/event/379692/contributions/1804923/subcontributions/156446/attachments/757501/1039118/2105-03-18_HSS_meeting_rev.pdf
+                aper3_mad = bdsim_properties['aper3']
+                aper4_mad = bdsim_properties['aper4']
+                bdsim_properties['aper3'] = bdsim_properties['aper2'] / _np.tan(aper4_mad)
+                bdsim_properties['aper4'] = bdsim_properties['aper1'] * _np.tan(aper3_mad)
+
+        def clean_apertures():
+            k = 'aperture'
+            if k in bdsim_properties:
+                del bdsim_properties[k]
+
+            k = ('aper1', 'aper2', 'aper3', 'aper4')
+            for _ in k:
+                threshold = self.model['builder']['config']['apertures']['remove_above_value']
+                if bdsim_properties.get(_, 0.0) > threshold:
+                    self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                      + f" - Dropping the key {_} because it exceeds the treshold value {threshold}.")
+                    del bdsim_properties[_]
+
+            if 'aper1' not in bdsim_properties and 'aper2' not in bdsim_properties and 'aper3' not in bdsim_properties \
+                    and 'aper4' not in bdsim_properties and 'apertureType' in bdsim_properties:
+                del bdsim_properties['apertureType']
+                self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                  + f" - Dropping `apertureType` because it has no definition of aperture values.")
+
+        def process_kicker_strengths():
+            if element['BASE_PARENT'] == 'hkicker':
+                if 'kick' in bdsim_properties:
+                    if 'hkick' in bdsim_properties:
+                        bdsim_properties['hkick'] += bdsim_properties['kick']
+                    else:
+                        bdsim_properties['hkick'] = bdsim_properties['kick']
+                    del bdsim_properties['kick']
+            if element['BASE_PARENT'] == 'vkicker':
+                if 'kick' in bdsim_properties:
+                    if 'vkick' in bdsim_properties:
+                        bdsim_properties['vkick'] += bdsim_properties['kick']
+                    else:
+                        bdsim_properties['vkick'] = bdsim_properties['kick']
+                    del bdsim_properties['kick']
+
+        def process_multipolar_components():
+            for _ in ('knl', 'ksl'):
+                if _ in bdsim_properties:
+                    bdsim_properties[_] = tuple(bdsim_properties[_])
+
+        convert_aperture_value_definitions()
+        set_collimator_gap_definitions()
+        convert_aperture_types()
+        clean_apertures()
+        process_kicker_strengths()
+        process_multipolar_components()
+
+        return bdsim_properties
+
+    def _generate_bdsim_component(self, element: _pd.Series, bdsim_properties: MutableMapping):
+        """
+        Generate the Pybdsim component from its adjusted properties.
+
+        Args:
+            element:
+            bdsim_properties:
+
+        Returns:
+
+        """
+        parent_name = element['PARENT']
+        if element['L'] == 0:
+            if element['BASE_PARENT'] == 'multipole' \
+                    and all(m == 0 for m in bdsim_properties.get('knl', ()) + bdsim_properties.get('ksl', ())) \
+                    and element['LEVEL'] == 0:
+                self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                  + f" - Dropping multipole because its length is zero and it has no field.")
+                return None
+            if element['BASE_PARENT'] in ('kicker', 'hkicker', 'vkicker', 'tkicker') \
+                    and bdsim_properties.get('hkick', 0.0) == 0 \
+                    and bdsim_properties.get('vkick', 0.0) == 0 \
+                    and element['LEVEL'] == 0:
+                self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                  + f" - Dropping kicker because its length is zero and it has no field.")
+                return None
+            # if :  # Means it is a base type
+            #     parent_name = 'thinmultipole'
+            #     logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+            #                  + f" - Converting to thinmultipole because it is a zero-length multipole.")
+
+        if element['PARENT'] not in self.components['NAME'].values:
+            if element['PARENT'] not in BDSIM_ELEMENTS_TO_GENERATE:
+                parent_name = 'drift'
+                self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                                  + f" - Converting to a drift because {element['PARENT']} is not supported.")
+            bdsim_component = pybdsim.Builder.Element(
+                name=element['NAME'],
+                category=parent_name,
+                isMultipole='knl' in bdsim_properties or 'ksl' in bdsim_properties,
+                **bdsim_properties)
+        else:
+            bdsim_component = pybdsim.Builder.Element.from_element(
+                name=element['NAME'],
+                parent_element_name=parent_name,
+                isMultipole='knl' in bdsim_properties.keys() or 'ksl' in bdsim_properties.keys(),
+                **bdsim_properties)
+
+        return bdsim_component
+
+    def _build_bdsim_component(self, element: _pd.Series):
+        bdsim_properties = self._build_bdsim_component_properties(element)
+        bdsim_element_type, properties = self._get_model_properties_for_element(element['NAME'])
+        bdsim_properties = merge(bdsim_properties, properties)
+        element['PARENT'] = bdsim_element_type or BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
+
+        return self._generate_bdsim_component(element, bdsim_properties)
 
     def __call__(self,
-                 with_beam: bool = True,
-                 with_options: bool = True,
-                 with_placements: bool = True,
-                 drop_inactive_thinmultipoles: bool = False,
+                 with_bdsim_beam: bool = True,
+                 with_bdsim_options: bool = True,
+                 with_bdsim_placements: bool = True,
                  ):
         bdsim_input = pybdsim.Builder.Machine()
-
+        components = self.components[~self.components['BDSIM'].isnull()]
         # Add all components
-        for name, component in self.components.iterrows():
+        for name, component in components.iterrows():
             bdsim_input.Append(component['BDSIM'], is_component=True)
 
         # Add elements (won't be redefined, simply added to the sequence)
-        for name, component in self.components.query("IS_ELEMENT == True").sort_values(by=['ID']).iterrows():
-            if drop_inactive_thinmultipoles and \
-                component['BASE_PARENT'] == 'thinmultipole' and \
-                component['BDSIM'].get('knl') is None and \
-                component['BDSIM'].get('ksl') is None:
-                continue
+        for name, component in components.query("IS_ELEMENT == True").sort_values(by=['ID']).iterrows():
             bdsim_input.Append(component['BDSIM'], is_component=False)
+            if 'apertureType' not in component['BDSIM'].keys() and 'xsize' not in component['BDSIM'].keys() \
+                    and 'ysize' not in component['BDSIM'].keys():
+                self.logging.warning(_log_component_info(name, component['PARENT'], component['BASE_PARENT'])
+                                     + f" - Placing an element with no aperture definition !")
 
-        if with_beam:
+        if with_bdsim_beam:
             if 'twiss' not in self.madx.table:
                 self.madx.input('twiss;')
             tw = self.madx.table['twiss'].dframe().iloc[0]
@@ -278,10 +497,10 @@ class CPyMad2Gmad:
             # bdsim_beam.SetSigmaT(self.madx_beam['sigt'])
             bdsim_input.AddBeam(bdsim_beam)
 
-        if with_options:
+        if with_bdsim_options:
             bdsim_input.AddOptions(pybdsim.Options.Options(**self.model['options']))
 
-        # if with_placements:
+        # if with_bdsim_placements:
         #     for ref_name, placements in self.placement_properties.items():
         #         for plcm in placements:
         #             for plm_name, placement_prop in plcm.items():

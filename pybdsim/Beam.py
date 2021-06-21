@@ -25,9 +25,10 @@ BDSIMParticleTypes = [
     'gamma',
 ]
 
-class Beam(dict) :
-    def __init__(self,particletype='e-',energy=1.0,distrtype='reference',*args,**kwargs):
-        dict.__init__(self,*args,**kwargs)
+
+class Beam(dict):
+    def __init__(self, particletype='e-', energy=1.0, distrtype='reference', *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
         self.SetParticleType(particletype)
         self.SetEnergy(energy)
         self.SetDistributionType(distrtype)
@@ -54,7 +55,7 @@ class Beam(dict) :
         setattr(self, 'SetDispXP',     self._SetDispXP)
         setattr(self, 'SetDispYP',     self._SetDispYP)
         
-    def SetDistributionType(self,distrtype='reference'):
+    def SetDistributionType(self, distrtype='reference'):
         if distrtype not in BDSIMDistributionTypes:
             raise ValueError("Unknown distribution type: '"+str(distrtype)+"'")
         self['distrType'] = '"' + distrtype + '"'
@@ -182,7 +183,7 @@ class Beam(dict) :
     def _SetSigmaT(self,sigmat=1.0,unitsstring='s'):
         self['sigmaT'] = str(sigmat)
 
-    def _SetBetaX(self,betx=1.0,unitsstring='m'):
+    def _SetBetaX(self, betx=1.0, unitsstring='m'):
         self['betx'] = str(betx) + '*' + unitsstring
 
     def _SetBetaY(self,bety=1.0,unitsstring='m'):
