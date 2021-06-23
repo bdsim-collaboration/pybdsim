@@ -5,6 +5,12 @@ Version History
 V2.5.0 - 2021 / XX / XX
 =======================
 
+New Features
+------------
+
+* Create a nice copy of the header information from any (re)bdsim file when
+  loading with pybdsim using only Python types.
+
 Bug Fixes
 ---------
 

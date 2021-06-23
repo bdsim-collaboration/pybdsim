@@ -180,6 +180,7 @@ def _LoadRoot(filepath):
         print('BDSIM output file - using DataLoader')
         d = _ROOT.DataLoader(filepath)
         d.model = GetModelForPlotting(d) # attach BDSAsciiData instance for convenience
+        d.header = Header(HeaderTree=d.GetHeaderTree())
         return d
     elif fileType == "REBDSIM":
         print('REBDSIM analysis file - using RebdsimFile')
@@ -264,6 +265,55 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
     [result.append(d) for d in data]
     return result
 
+class Header(object):
+    """
+    A simple Python version of a header in a (RE)BDSIM file for
+    easy access to the data.
+    """
+    def __init__(self, **kwargs):
+        self.bdsimVersion  = ""
+        self.geant4Version = ""
+        self.rootVersion   = ""
+        self.clhepVersion  = ""
+        self.fileType      = ""
+        self.dataVersion   = -1
+        self.analysedFiles = []
+        self.combinedFiles = []
+        self.trajectoryFilters = []
+        self.nOriginalEvents = 0
+        if 'TFile' in kwargs:
+            self._FillFromTFile(kwargs['TFile'])
+        elif 'Header' in kwargs:
+            self._Fill(kwargs['Header'])
+        elif 'HeaderTree' in kwargs:
+            self._FillFromHeaderTree(kwargs['HeaderTree'])
+
+    def _FillFromTFile(self, tfileInstance):
+        LoadROOTLibraries()
+        f = tfileInstance
+        ht = f.Get("Header")
+        self._FillFromHeaderTree(ht)
+
+    def _FillFromHeaderTree(self, headerTree):
+        ht = headerTree
+        if not ht:
+            pass
+        for hi in ht:
+            self._Fill(hi.Header)
+
+    def _Fill(self, headerInstance):
+        hi = headerInstance
+        self.bdsimVersion  = str(hi.bdsimVersion)
+        self.geant4Version = str(hi.geant4Version)
+        self.rootVersion   = str(hi.rootVersion)
+        self.clhepVersion  = str(hi.clhepVersion)
+        self.fileType      = str(hi.fileType)
+        self.dataVersion   = int(hi.dataVersion)
+        self.analysedFiles = [str(s) for s in hi.analysedFiles]
+        self.combinedFiles = [str(s) for s in hi.combinedFiles]
+        self.trajectoryFilters = [str(s) for s in hi.trajectoryFilters]
+        self.nOriginalEvents = int(hi.nOriginalEvents)
+
 class RebdsimFile(object):
     """
     Class to represent data in rebdsim output file.
@@ -281,6 +331,7 @@ class RebdsimFile(object):
         LoadROOTLibraries()
         self.filename = filename
         self._f = _ROOT.TFile(filename)
+        self.header = Header(TFile=self._f)
         self.histograms   = {}
         self.histograms1d = {}
         self.histograms2d = {}
