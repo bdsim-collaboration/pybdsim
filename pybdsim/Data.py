@@ -316,7 +316,7 @@ class RebdsimFile(object):
         h1d = self._ListType(currentDir, "TH1D")
         h2d = self._ListType(currentDir, "TH2D")
         h3d = self._ListType(currentDir, "TH3D")
-        h4d = self._ListType(currentDir, "TTree")
+        h4d = self._ListType(currentDir, "BDSBH4D")
         for h in h1d:
             name = currentDirName + '/' + h
             name = name.strip('/') # protect against starting /
@@ -336,20 +336,12 @@ class RebdsimFile(object):
             self.histograms[name] = hob
             self.histograms3d[name] = hob
         for h in h4d:
-            if h not in ['Header', 'ModelTree']:
-                name = currentDirName + '/' + h
-                name = name.strip('/')
-                name = name.split("Event/MergedHistograms/")[1]
-                energy_axis_type = name.split('-')[-1]
-                if energy_axis_type == "linear":
-                    hob = _ROOT.BDSBH4D("boost_histogram_linear")()
-                elif energy_axis_type == "log":
-                    hob = _ROOT.BDSBH4D("boost_histogram_log")()
-                elif energy_axis_type == "user":
-                    hob = _ROOT.BDSBH4D("boost_histogram_variable")()
-                hob.to_PyROOT(self.filename,name)
-                self.histograms[name] = hob
-                self.histograms4d[name] = hob
+            name = currentDirName + '/' + h
+            name = name.strip('/')
+            name = name.split("Event/MergedHistograms/")[1]
+            hob = currentDir.Get(h)
+            self.histograms[name] = hob
+            self.histograms4d[name] = hob
         subDirs = self._ListType(currentDir, "Directory")
         for d in subDirs:
             dName = currentDirName + '/' + d
