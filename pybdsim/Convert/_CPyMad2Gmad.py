@@ -1,25 +1,18 @@
 from __future__ import annotations
-from typing import Optional, Dict, Tuple, MutableMapping
+from typing import Optional, Dict, Tuple, MutableMapping, Callable
 import os
 import re
 import logging as _logging
-import pkg_resources
 import cpymad.madx
 import yaml
 import pandas as _pd
 import numpy as _np
-import scipy.interpolate
 from mergedeep import merge
 import pybdsim
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pymask.madxp import Madxp
-
-APERTURE_LHC_APER1 = 0.022
-APERTURE_LHC_APER2 = 0.01715
-APERTURE_LHC_APER3 = 0.022
-APERTURE_LHC_APER4 = 0.022
 
 BDSIM_MAD_CONVENTION = {
     'apertype': 'apertureType',
@@ -67,6 +60,7 @@ class CPyMad2Gmad:
     def __init__(self,
                  madx_instance: Madxp,
                  model: Optional[Dict] = None,
+                 aperture_model: Callable[[str], str] = None,
                  model_path: str = '.',
                  model_file: str = 'model.yml',
                  log_file: str = 'model.log',
@@ -106,43 +100,15 @@ class CPyMad2Gmad:
             self.model['sequence'][re.compile(r)] = self.model['sequence'].pop(r)
         self.logging.info("... done.")
 
+        # Aperture model
+        self.aperture = aperture_model
+
         # MAD-X
         self.madx = madx_instance
         self.madx_beam = self.madx.sequence[self.model['builder']['sequence']].beam
         self.madx_sequence = self.madx.sequence['lhcb1']
         self.madx_expanded_element_positions = self.madx_sequence.expanded_element_positions()
         self.madx_expanded_element_names = self.madx_sequence.expanded_element_names()
-
-        # Additional definitions
-        self._arc_starts = []
-        self._arc_ends = []
-        for ip in range(1, 8 + 1):
-            self._arc_starts.append(self._find_location(f's.ds.r{ip}.b1'))
-            self._arc_ends.append(self._find_location(f'e.ds.l{(ip % 8 + 1)}.b1'))
-
-        # Build the aperture definitions
-        apertures = _pd.concat(
-            (_pd.read_csv(os.path.join(pkg_resources.resource_filename('failsim', "data/aperture"),
-                                       f'LHC-apertures-YETS 2022-2023-IP{i}.csv')) for i in
-             range(1, 8 + 1))
-        ).query("BEAM != 'B2'").sort_values(by='S_FROM_IP1').reset_index()
-        self._ldb_apertures = apertures
-        self._ldb_apertures_a = scipy.interpolate.interp1d(apertures['S_FROM_IP1'], apertures['ELEM_ELLIPSE_PARAM_A'],
-                                                           kind='next', bounds_error=False, fill_value=(
-                apertures.at[0, 'ELEM_ELLIPSE_PARAM_A'], apertures.iloc[-1]['ELEM_ELLIPSE_PARAM_A']),
-                                                           assume_sorted=True)
-        self._ldb_apertures_b = scipy.interpolate.interp1d(apertures['S_FROM_IP1'], apertures['ELEM_ELLIPSE_PARAM_B'],
-                                                           kind='next', bounds_error=False, fill_value=(
-                apertures.at[0, 'ELEM_ELLIPSE_PARAM_B'], apertures.iloc[-1]['ELEM_ELLIPSE_PARAM_B']),
-                                                           assume_sorted=True)
-        self._ldb_apertures_c = scipy.interpolate.interp1d(apertures['S_FROM_IP1'], apertures['ELEM_ELLIPSE_PARAM_C'],
-                                                           kind='next', bounds_error=False, fill_value=(
-                apertures.at[0, 'ELEM_ELLIPSE_PARAM_C'], apertures.iloc[-1]['ELEM_ELLIPSE_PARAM_C']),
-                                                           assume_sorted=True)
-        self._ldb_apertures_d = scipy.interpolate.interp1d(apertures['S_FROM_IP1'], apertures['ELEM_ELLIPSE_PARAM_D'],
-                                                           kind='next', bounds_error=False, fill_value=(
-                apertures.at[0, 'ELEM_ELLIPSE_PARAM_D'], apertures.iloc[-1]['ELEM_ELLIPSE_PARAM_D']),
-                                                           assume_sorted=True)
 
         def build_component(element, i, position, level):
             return {
@@ -197,23 +163,6 @@ class CPyMad2Gmad:
         self.components = self.components[keep]
         self.logging.info("... done.")
 
-    def _is_in_arc(self, name: str) -> bool:
-        in_arc = False
-        for s, e in zip(self._arc_starts, self._arc_ends):
-            if s <= self._find_location(name) <= e:
-                in_arc = True
-        return in_arc
-
-    def _find_location(self, name: str) -> float:
-        try:
-            return self.madx_expanded_element_positions[
-                self.madx_expanded_element_names.index(name + '[0]')
-            ]
-        except ValueError:
-            return self.madx_sequence.expanded_element_positions()[
-                self.madx_expanded_element_names.index(name)
-            ]
-
     @property
     def _madx_subsequence(self):
         def _iterator():
@@ -266,37 +215,18 @@ class CPyMad2Gmad:
                 and 'apertureType' not in bdsim_properties \
                 and 'xsize' not in bdsim_properties \
                 and 'ysize' not in bdsim_properties:
-            if self._is_in_arc(element['NAME']):
-                self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
-                                  + f" - Setting the default LHC aperture type for this arc element.")
-                bdsim_properties['apertureType'] = 'lhc'
-                bdsim_properties['aper1'] = APERTURE_LHC_APER1
-                bdsim_properties['aper2'] = APERTURE_LHC_APER2
-                bdsim_properties['aper3'] = APERTURE_LHC_APER3
-                bdsim_properties['aper4'] = APERTURE_LHC_APER4
+            self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
+                              + f" - Setting the aperture from the aperture model for this element.")
+            apertype, aper1, aper2, aper3, aper4 = self.aperture(element['NAME'])
+            if element['BASE_PARENT'] == 'rcol':
+                bdsim_properties['xsize'] = aper1
+                bdsim_properties['ysize'] = aper2
             else:
-                location = self._find_location(element['NAME'])
-                if element['BASE_PARENT'] == 'rcol':
-                    bdsim_properties['xsize'] = float(self._ldb_apertures_a(location))
-                    bdsim_properties['ysize'] = float(self._ldb_apertures_b(location))
-                    self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
-                                      + f" - Setting the aperture from LDB: "
-                                        f"{bdsim_properties['xsize']}, "
-                                        f"{bdsim_properties['ysize']}, "
-                                      )
-                else:
-                    bdsim_properties['apertureType'] = 'rectellipse'
-                    bdsim_properties['aper1'] = float(self._ldb_apertures_a(location))
-                    bdsim_properties['aper2'] = float(self._ldb_apertures_b(location))
-                    bdsim_properties['aper3'] = float(self._ldb_apertures_c(location))
-                    bdsim_properties['aper4'] = float(self._ldb_apertures_d(location))
-                    self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
-                                      + f" - Setting the aperture from LDB: "
-                                        f"{bdsim_properties['aper1']}, "
-                                        f"{bdsim_properties['aper2']}, "
-                                        f"{bdsim_properties['aper3']}, "
-                                        f"{bdsim_properties['aper4']}."
-                                      )
+                bdsim_properties['apertureType'] = apertype
+                bdsim_properties['aper1'] = aper1
+                bdsim_properties['aper2'] = aper2
+                bdsim_properties['aper3'] = aper3
+                bdsim_properties['aper4'] = aper4
 
         return bdsim_properties
 
@@ -490,6 +420,8 @@ class CPyMad2Gmad:
             bdsim_beam.SetBetaY(tw['bety'])
             bdsim_beam.SetAlphaX(tw['alfx'])
             bdsim_beam.SetAlphaY(tw['alfy'])
+            bdsim_beam.SetDispX(tw['dx'])
+            bdsim_beam.SetDispY(tw['dy'])
 
             bdsim_beam.SetEmittanceX(self.madx_beam['ex'])
             bdsim_beam.SetEmittanceY(self.madx_beam['ey'])
