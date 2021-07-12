@@ -730,6 +730,8 @@ class Output(metaclass=OutputType):
             if self.BRANCH_NAME == '':
                 return ''
             name = self.branch.name
+            if self.BRANCH_NAME:
+                name += self.BRANCH_NAME
             if not name.endswith('.'):
                 return name + '.'
             else:
@@ -794,7 +796,7 @@ class BDSimOutput(Output):
     class Beam(Output.Tree):
 
         class BeamBase(Output.Branch):
-            BRANCH_NAME = 'Beam.GMAD::BeamBase'
+            BRANCH_NAME = 'GMAD::BeamBase'
             DEFAULT_LEAVES = {
                 'particle': [True, None],
                 'beamParticleName': [True, None],
