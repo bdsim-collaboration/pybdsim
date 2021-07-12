@@ -19,9 +19,9 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
 try:
-    import uproot4 as _uproot
+    import uproot as _uproot
 except (ImportError, ImportWarning):
-    logging.warning("Uproot4 is required for this module to have full functionalities.\n")
+    logging.warning("Uproot is required for this module to have full functionalities.\n")
     raise ImportError("Uproot is required for this module to work.")
 
 _WITH_ROOT = False
@@ -56,7 +56,6 @@ try:
 except (ImportError, ImportWarning):
     logging.warning("boost_histogram is required for this module to have full functionalities.\n"
                     "Not all methods will be available.")
-
 
 __all__ = [
     'Output',
@@ -102,7 +101,7 @@ class Histogram:
 
     @property
     def xnumbins(self):
-        return len(self._h.axes[0].edges())-1
+        return len(self._h.axes[0].edges()) - 1
 
 
 class Histogram1d(Histogram):
@@ -169,16 +168,16 @@ class Histogram3d(Histogram):
             return self._centers
         self._centers = [[
             self.coordinates_normalization * (self.edges[j][i] + self.edges[j][i + 1]) / 2
-            for i in range(len(self.edges[j])-1)] for j in range(3)]
+            for i in range(len(self.edges[j]) - 1)] for j in range(3)]
         return self._centers
 
     @property
     def ynumbins(self):
-        return len(self._h.axes[1].edges())-1
+        return len(self._h.axes[1].edges()) - 1
 
     @property
     def znumbins(self):
-        return len(self._h.axes[2].edges())-1
+        return len(self._h.axes[2].edges()) - 1
 
     @property
     def scoring_mesh_translations(self):
@@ -239,7 +238,8 @@ class Histogram4d:
                 bh.axis.Regular(self._h.h_nzbins, self._h.h_zmin, self._h.h_zmax),
                 energy_axis)
 
-            for x, y, z, e in itertools.product(range(self._h.h_nxbins), range(self._h.h_nybins), range(self._h.h_nzbins), range(self._h.h_nebins)):
+            for x, y, z, e in itertools.product(range(self._h.h_nxbins), range(self._h.h_nybins),
+                                                range(self._h.h_nzbins), range(self._h.h_nebins)):
                 histo4d[x, y, z, e] = getattr(self._h, hist_type).at(x, y, z, e)
 
             return histo4d
@@ -295,7 +295,7 @@ class Histogram4d:
         self._cache = self.project_to_3d(weights=f(self.bh.axes[3].centers)).view()
         return self.project_to_3d(weights=f(self.bh.axes[3].centers))
 
-    def plot_spectrum(self, x=0, y=0, z=0, xlim=[1e-10,300],ylim=[1e-15,1e-7], log=True, error_bar=True, **kwargs ):
+    def plot_spectrum(self, x=0, y=0, z=0, xlim=[1e-10, 300], ylim=[1e-15, 1e-7], log=True, error_bar=True, **kwargs):
 
         fig, ax = plt.subplots(sharex=True, figsize=(8, 5.5))
 
@@ -445,6 +445,7 @@ class Histogram4d:
         centers_e = self.bh.axes[3].centers
         return _np.array([centers_x, centers_y, centers_z, centers_e], dtype=object)
 
+
 class OutputType(type):
     """A generic type for BDSIM output classes."""
     pass
@@ -506,7 +507,6 @@ class Output(metaclass=OutputType):
     def rootfile(self):
         return self._rootfile
 
-
     class Directory:
         def __init__(self, parent: Union[Output, Output.Directory], directory: _uproot.rootio.ROOTDirectory):
             """
@@ -540,7 +540,7 @@ class Output(metaclass=OutputType):
                 return Histogram3d(item, self.parent, n)
             elif c.startswith('BDSBH4D'):
                 name = n.split(';')[0]
-                return Histogram4d(self.parent, self.parent.rootfile.Get('Event/MergedHistograms/'+name), name )
+                return Histogram4d(self.parent, self.parent.rootfile.Get('Event/MergedHistograms/' + name), name)
             else:
                 return self._directory[n]
 
@@ -672,11 +672,10 @@ class Output(metaclass=OutputType):
                 parent: the `Tree` to which the branch is attached
             """
             self._parent: Output.Tree = parent
-            b = branch_name or self.BRANCH_NAME or self.__class__.__name__
-            if len(b) > 0:
-                self._branch = parent[b]
+            if branch_name != "Event":
+                self._branch = parent[branch_name]
             else:
-                self._branch = parent
+                self._branch = parent[self.__class__.__name__]
             self._df: Optional[_pd.DataFrame] = None
             self._np: Optional[_np.ndarray] = None
             self._active_leaves: Dict[str, Tuple[bool, Optional[str]]] = self.DEFAULT_LEAVES.copy()
@@ -794,7 +793,6 @@ class BDSimOutput(Output):
             }
 
     class Beam(Output.Tree):
-
         class BeamBase(Output.Branch):
             BRANCH_NAME = 'GMAD::BeamBase'
             DEFAULT_LEAVES = {
@@ -917,7 +915,7 @@ class BDSimOutput(Output):
 
     class Options(Output.Tree):
         class OptionsBase(Output.Branch):
-            BRANCH_NAME = 'Options.GMAD::OptionsBase'
+            BRANCH_NAME = 'GMAD::OptionsBase'
             DEFAULT_LEAVES = {
                 'inputFileName': [True, None],
                 'visMacroFileName': [True, None],
@@ -1106,7 +1104,6 @@ class BDSimOutput(Output):
                 'storeElossStepLength': [True, None],
                 'storeElossPreStepKineticEnergy': [True, None],
                 'storeElossModelID': [True, None],
-                'storeGeant4Data': [True, None],
                 'storeTrajectory': [True, None],
                 'storeTrajectoryDepth': [True, None],
                 'storeTrajectoryParticle': [True, None],
@@ -1130,7 +1127,6 @@ class BDSimOutput(Output):
                 'trajCutGTZ': [True, None],
                 'trajCutLTR': [True, None],
                 'trajConnect': [True, None],
-                'writePrimaries': [True, None],
                 'storeModel': [True, None],
                 'nturns': [True, None],
                 'ptcOneTurnMapFileName': [True, None],
