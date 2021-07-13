@@ -1184,6 +1184,7 @@ class BDSimOutput(Output):
                 'placementName': [False, None],
                 'componentType': [True, None],
                 'length': [True, None],
+                'angle': [True, None],
                 'staPos': [True, None],
                 'midPos': [True, None],
                 'endPos': [True, None],
@@ -1302,6 +1303,7 @@ class BDSimOutput(Output):
 
             # Scalar
             for branch, name in {'length': 'L',
+                                 'angle': 'ANGLE',
                                  'staS': 'AT_ENTRY',
                                  'midS': 'AT_CENTER',
                                  'endS': 'AT_EXIT',
