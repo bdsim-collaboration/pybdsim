@@ -360,6 +360,9 @@ class Histogram4d:
         pos_z = origin[2] + centers[2][z]
         return _np.array([pos_x, pos_y, pos_z], dtype=object)
 
+    def set_values(self, new_values):
+        self._cache = new_values
+
     @property
     def filename(self):
         return self._filename
@@ -411,6 +414,10 @@ class Histogram4d:
     @property
     def enumbins(self):
         return self.bh.axes[3].size
+
+    @property
+    def shape(self):
+        return (self.xnumbins, self.ynumbins, self.znumbins, self.enumbins)
 
     @property
     def coordinates_normalization(self):
