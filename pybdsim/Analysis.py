@@ -1580,6 +1580,7 @@ class BDSimOutput(Output):
                 'T': [True, None],
                 'energy': [True, None],
                 'p': [True, None],
+                'kineticEnergy': [True, None],
                 'turnNumber': [True, None],
                 'parentID': [True, None],
                 'partID': [True, None],
