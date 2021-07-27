@@ -43,7 +43,8 @@ BDSIM_MADX_ELEMENTS_ARGUMENTS = ['l',
                                  'knl',
                                  'ksl',
                                  'apertype',
-                                 'aperture']
+                                 'aperture',
+                                 'aper_offset']
 
 BDSIM_ELEMENTS_TO_GENERATE = ['drift', 'sbend', 'rbend', 'quadrupole', 'sextupole', 'octupole',
                               'decapole', 'hkicker', 'vkicker', 'tkicker', 'kicker',
@@ -250,6 +251,10 @@ class CPyMad2Gmad:
                 if 'aperture' in bdsim_properties:
                     bdsim_properties['xsize'] = bdsim_properties['aper1']
                     bdsim_properties['ysize'] = bdsim_properties['aper2']
+                    if 'aper_offset' in bdsim_properties:
+                        bdsim_properties['offsetX'] = bdsim_properties['aper_offset'][0]
+                        bdsim_properties['offsetY'] = bdsim_properties['aper_offset'][1]
+                        del bdsim_properties['aper_offset']
                     del bdsim_properties['aper1']
                     del bdsim_properties['aper2']
                     del bdsim_properties['aper3']
@@ -257,7 +262,9 @@ class CPyMad2Gmad:
                     del bdsim_properties['apertureType']
                     self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
                                       + f" - Setting the collimator opening: "
-                                        f"xsize={bdsim_properties['xsize']}, ysize={bdsim_properties['ysize']}.")
+                                        f"xsize={bdsim_properties['xsize']}, ysize={bdsim_properties['ysize']}, "
+                                        f"offsetX={bdsim_properties.get('offsetX', 0.0)}, "
+                                        f"offsetY={bdsim_properties.get('offsetY', 0.0)}.")
                 elif element['IS_ELEMENT']:
                     bdsim_properties['xsize'] = 0.05
                     bdsim_properties['ysize'] = 0.05
