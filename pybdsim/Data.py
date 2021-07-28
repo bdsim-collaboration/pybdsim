@@ -275,11 +275,13 @@ class Header(object):
         self.geant4Version = ""
         self.rootVersion   = ""
         self.clhepVersion  = ""
+        self.timeStamp     = ""
         self.fileType      = ""
         self.dataVersion   = -1
         self.analysedFiles = []
         self.combinedFiles = []
         self.trajectoryFilters = []
+        self.skimmedFile   = False
         self.nOriginalEvents = 0
         if 'TFile' in kwargs:
             self._FillFromTFile(kwargs['TFile'])
@@ -307,11 +309,13 @@ class Header(object):
         self.geant4Version = str(hi.geant4Version)
         self.rootVersion   = str(hi.rootVersion)
         self.clhepVersion  = str(hi.clhepVersion)
+        self.timeStamp     = str(hi.timeStamp).strip()
         self.fileType      = str(hi.fileType)
         self.dataVersion   = int(hi.dataVersion)
         self.analysedFiles = [str(s) for s in hi.analysedFiles]
         self.combinedFiles = [str(s) for s in hi.combinedFiles]
         self.trajectoryFilters = [str(s) for s in hi.trajectoryFilters]
+        self.skimmedFile   = bool(hi.skimmedFile)
         self.nOriginalEvents = int(hi.nOriginalEvents)
 
 class RebdsimFile(object):
