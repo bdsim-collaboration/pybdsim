@@ -491,7 +491,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     _plt.tight_layout()
     return f
 
-def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),**errorbarKwargs):
+def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
     """
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
@@ -520,10 +520,20 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
         xScalingFactors = _np.ones_like(histograms)
     elif type(xScalingFactors) == float or type(xScalingFactors) == int:
         xScalingFactors = xScalingFactors * _np.ones_like(histograms)
+    ymax = -_np.inf
+    ymin =  _np.inf
+    yminpos = _np.inf
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
         ht = _Data.PadHistogram1D(h)
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
+        # for heuristic determination of ylim we use original unpadded histogram data
+        ymin = min(ymin, _np.min(h.contents-h.errors))
+        ypos = h.contents[h.contents>0]
+        if len(ypos) > 0:
+            yminpos = min(yminpos, _np.min(ypos))
+        ymax = max(ymax, _np.max(h.contents+h.errors))
+        
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
@@ -539,9 +549,18 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     else:
         ax.set_title(title)
     if log:
-        _plt.yscale('log', nonposy='clip')
+        _plt.ylim(abs(yminpos)*0.9,abs(ymax)*1.1)
+        if _matplotlib.__version__ >= '3.3':
+            _plt.yscale('log', nonpositive='clip')
+        else:
+            _plt.yscale('log', nonposy='clip')
+    else:
+        _plt.ylim(ymin*0.8, ymax*1.05)
 
-    _plt.legend()
+    if xlog:
+        _plt.xscale('log')
+
+    _plt.legend(**legendKwargs)
     _plt.tight_layout()
     
     return f
