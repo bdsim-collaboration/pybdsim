@@ -819,12 +819,11 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     else:
         norm2D = None
     if log1daxes:
-        axX.set_yscale('log', nonposy='clip')
-        axY.set_yscale('log', nonposy='clip')
-        axXp.set_yscale('log', nonposy='clip')
-        axYp.set_yscale('log', nonposy='clip')
-        axE.set_yscale('log', nonposy='clip')
-        axT.set_yscale('log', nonposy='clip')
+        axes = [axX, axY, axXp, axYp, axE, axT]
+        if _matplotlib.__version__ >= '3.3':
+            [a.set_yscale('log', nonpositive='clip') for a in axes]
+        else:
+            [a.set_yscale('log', nonposy='clip') for a in axes]
 
     # plot the transverse coords histograms
     axX.hist(da['x'], nbins)
@@ -1215,7 +1214,10 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
         ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
 
-    ax.set_yscale("log", nonposy='clip')
+    if _matplotlib.__version__ >= '3.3':
+        ax.set_yscale("log", nonpositive='clip')
+    else:
+        ax.set_yscale("log", nonposy='clip')
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.yaxis.set_major_locator(_plt.LogLocator(subs=(1.0,))) #TODO: Find a way to disable auto ticks and always display all int powers
@@ -1297,7 +1299,10 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     ax2 = ax1.twinx()
     ax2.errorbar(eloss.xcentres, eloss.contents, xerr=eloss.xwidths*0.5,yerr=eloss.errors,c='k',
                  elinewidth=0.8, label='Energy Deposition', drawstyle='steps-mid', alpha=0.5)
-    ax2.set_yscale('log',nonposy='clip')
+    if _matplotlib.__version__ >= '3.3':
+        ax2.set_yscale('log',nonpositive='clip')
+    else:
+        ax2.set_yscale('log',nonposy='clip')
 
     if phitsylim is not None:
         ax1.set_ylim(*phitsylim)
