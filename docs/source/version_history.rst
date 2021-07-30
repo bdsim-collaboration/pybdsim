@@ -18,6 +18,12 @@ Bug Fixes
 * pybdsim would throw an exception that librebdsim and libbdsimRootEvent could not be
   loaded and stop if the libraries had been already loaded separately outside pybdsim.
   This has been fixed by fixing the interpretation of the error codes from ROOT.
+* Fix warning about "nonposy" in matplotlib version for log scales.
+
+General
+-------
+
+* Better automatic ranges for Histogram1DMultiple plots by default.
 
 v2.4.0 - 2021 / 06 / 16
 =======================

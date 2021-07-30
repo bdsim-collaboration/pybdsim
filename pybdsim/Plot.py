@@ -455,15 +455,15 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
         print("Written ", output_filename)
 
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(10,5), **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
 
-    xlabel         - x axis label
-    ylabel         - y axis label
-    title          - plot title
-    scalingFactor  - multiplier for values
-    xScalingFactor - multiplier for x axis coordinates
+    :param xlabel: x axis label
+    :param ylabel: y axis label
+    :param title:  plot title
+    :param scalingFactor: multiplier for values
+    :param xScalingFactor: multiplier for x axis coordinates
     """
     if 'drawstyle' not in errorbarKwargs:
         errorbarKwargs['drawstyle'] = 'steps-mid'
