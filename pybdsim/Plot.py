@@ -650,6 +650,95 @@ def Histogram3D(th3):
     ax.voxels(fill, facecolors=colours)
     #return colours
 
+def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, **errorbarKwargs):
+    """
+    Plot two histograms with their ratio (#1 / #2) in a subplot below.
+
+    :param histogram1: a `pybdsim.Data.TH1` instance
+    :param histogram2: a `pybdsim.Data.TH1` instance
+    :param label1: legend label for histogram1 (str or "" or None)
+    :param label2: legend label for histogram2
+    :param ratio:  integer ratio of main plot to ratio plot (recommend 1 - 5)
+
+    If the labels are "" then the histogram.title string will be used. If None, then
+    no label will be added.
+    """
+
+    if 'drawstyle' not in errorbarKwargs:
+        errorbarKwargs['drawstyle'] = 'steps-mid'   
+
+    h1 = histogram1
+    h2 = histogram2
+    fig     = _plt.figure(figsize=figsize)
+    nrows   = ratio + 1
+    gs      = fig.add_gridspec(ncols=1, nrows=nrows, hspace=0.06)
+    axHist  = fig.add_subplot(gs[:-1,0])
+    axRatio = fig.add_subplot(gs[-1,0], sharex=axHist)
+
+    # calculate ratio array
+    if len(h1.xcentres) != len(h2.xcentres):
+        raise ValueError("Histograms with different binning - ratio cannot be taken")
+
+    mask = _np.logical_and(h1.contents != 0, h2.contents != 0)
+    ratio = _np.divide(h1.contents, h2.contents, where=mask)
+    ratio = _np.ma.masked_where(_np.logical_not(mask), ratio)
+    con1  = _np.ma.masked_where(_np.logical_not(mask), h1.contents)
+    con2  = _np.ma.masked_where(_np.logical_not(mask), h2.contents)
+    err1  = _np.ma.masked_where(_np.logical_not(mask), h1.errors)
+    err2  = _np.ma.masked_where(_np.logical_not(mask), h2.errors)
+    ratioErr = ratio * _np.sqrt( (err1/con1)**2 + (err2/con2)**2 )
+    
+    sf  = scalingFactor
+    xsf = xScalingFactor
+    if label1 == "":
+        label1 = h1.title
+    if label2 == "":
+        label2 = h2.title
+    if histogram1Colour is not None:
+        errorbarKwargs['c'] = histogram1Colour
+    axHist.errorbar(xsf*h1.xcentres, sf*h1.contents, yerr=sf*h1.errors, label=label1, **errorbarKwargs)
+    if histogram1Colour is not None:
+        errorbarKwargs.pop('c')
+    if histogram2Colour is not None:
+        errorbarKwargs['c'] = histogram2Colour
+    axHist.errorbar(xsf*h2.xcentres, sf*h2.contents, yerr=sf*h2.errors, label=label2, **errorbarKwargs)
+    if label1 is not None and label2 is not None:
+        axHist.legend()
+    if yLogScale:
+        if _matplotlib.__version__ >= '3.3':
+            axHist.set_yscale('log', nonpositive='clip')
+        else:
+            axHist.set_yscale('log', nonposy='clip')
+    _plt.setp(axHist.get_xticklabels(), visible=False)
+
+    colour = _plt.rcParams['axes.prop_cycle'].by_key()['color'][2] # 3rd colour
+    if ratioColour is not None:
+        colour = ratioColour
+    axRatio.axhline(1.0, c='grey', alpha=0.2)
+    axRatio.errorbar(xsf*h1.xcentres, sf*ratio, yerr=sf*ratioErr, color=colour, drawstyle='steps-mid')
+
+    if xlabel is None:
+        axRatio.set_xlabel(h1.xlabel)
+    else:
+        axRatio.set_xlabel(xlabel)
+    if ylabel is None:
+        axHist.set_ylabel(h1.ylabel)
+    else:
+        axHist.set_ylabel(ylabel)
+    if title == "":
+        axHist.set_title(h1.title) # default to one in histogram
+    elif title is None:
+        pass
+    else:
+        axHist.set_title(title)
+
+    axRatio.set_ylabel('Ratio')
+
+    # when using gridspec, we use its tight layout
+    gs.tight_layout(fig)
+
+    return fig
+
 def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):
     """
     Load a BDSIM output file and plot primary phase space. Only accepts raw BDSIM output.

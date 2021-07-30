@@ -10,6 +10,7 @@ New Features
 
 * Create a nice copy of the header information from any (re)bdsim file when
   loading with pybdsim using only Python types.
+* New ratio plot for 2x 1D histograms. See `pybdsim.Plot.Histogram1DRatio`.
 
 Bug Fixes
 ---------
