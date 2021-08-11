@@ -17,6 +17,7 @@ import numpy as _np
 import pandas as _pd
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+from . import Data as _Data
 
 try:
     import uproot as _uproot
@@ -1355,6 +1356,28 @@ class BDSimOutput(Output):
                                  'beamPipeAper3': 'APERTURE3',
                                  'beamPipeAper4': 'APERTURE4'}.items():
                 model_geometry_df[name] = self.array(branch=branch)
+
+            # Collimators
+            # Check that the option storeCollimator is set in BDSIM
+            """
+            We must use DataLoader because in BDSIM, the model tree has a splitLevel of 1. If we update to 2, we can use
+            uproot but it breaks the DataLoader of pybdsim, this is not backward compatible. It generates warnings and
+            we should not display them.
+            """
+            data = _Data.Load(self.parent._file)
+            model = data.GetModel() # Keep this line here otherwise it doesn t work
+            collimator_infos = _pd.DataFrame()
+            for i in range(model.model.collimatorInfo.size()):
+                collimator_infos.at[i, "NAME"] = model.model.collimatorInfo.at(i).componentName
+                collimator_infos.at[i, "APERTURE1"] = model.model.collimatorInfo.at(i).xSizeIn
+                collimator_infos.at[i, "APERTURE2"] = model.model.collimatorInfo.at(i).ySizeIn
+
+            if not collimator_infos.empty:
+                for _, j in collimator_infos.iterrows():
+                    model_geometry_df.loc[model_geometry_df.query("NAME == @j['NAME']").index, 'APERTURE1'] = j['APERTURE1']
+                    model_geometry_df.loc[model_geometry_df.query("NAME == @j['NAME']").index, 'APERTURE2'] = j['APERTURE2']
+            else:
+                logging.warning("Informations for collimators are empty, you shoud set storeCollimatorInfo=1")
 
             # Vectors
             geometry_branches = {'staPos': 'ENTRY_',
