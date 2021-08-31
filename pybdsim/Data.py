@@ -181,6 +181,8 @@ def _LoadRoot(filepath):
         d = _ROOT.DataLoader(filepath)
         d.model = GetModelForPlotting(d) # attach BDSAsciiData instance for convenience
         d.header = Header(HeaderTree=d.GetHeaderTree())
+        if d.header.nOriginalEvents == 0:
+            d.header.nOriginalEvents = int(d.GetEventTree().GetEntries())
         return d
     elif fileType == "REBDSIM":
         print('REBDSIM analysis file - using RebdsimFile')
