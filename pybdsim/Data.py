@@ -447,6 +447,28 @@ class RebdsimFile(object):
             self.histograms3dpy[path] = hpy
             self.histogramspy[path] = hpy
 
+def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
+    """
+    Create an empty rebdsim format file with the layout of folders.
+    Returns the ROOT.TFile object.
+    """
+    if not outputfilename.endswith(".root"):
+        outputfilename += ".root"
+
+    dc = _ROOT.DataDummyClass()
+    f = dc.CreateEmptyRebdsimFile(outputfilename, nOriginalEvents)
+    return f
+
+def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
+    """
+    Write a list of hitograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
+    """
+    tfile.cd(directoryName)
+    directory = tfile.Get(directoryName)
+    for hist in histograms:
+        directory.WriteObject(hist, hist.GetName())
+    
+            
 class BDSAsciiData(list):
     """
     General class representing simple 2 column data.
@@ -1311,6 +1333,14 @@ class ModelData(object):
                     pass # just ignore it
             except ValueError:
                 pass # just ignore it
+
+        possibleDicts = ["materialIDToName", "materialNameToID"]
+        for n in possibleDicts:
+            if hasattr(self, n):
+                try:
+                    setattr(self, n, dict(getattr(self,n)))
+                except ValueError:
+                    pass
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
