@@ -749,10 +749,12 @@ def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):
     """
     PhaseSpaceFromFile(filename, 0, outputfilename=outputfilename, extension=extension)
 
-def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf'):
+def PhaseSpaceFromFile(filename, samplerIndexOrName=0, nbins=None, outputfilename=None, extension='.pdf'):
     """
     Load a BDSIM output file and plot the phase space of a sampler (default the primaries).
     Only accepts raw BDSIM output.
+    
+    Number of bins chosen depending on number of samples.
 
     'outputfilename' should be without an extension - any extension will be stripped off.
     Plots are saves automatically as pdf, the file extension can be changed with
@@ -762,7 +764,7 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None, exte
     from . import Data as _Data
     d = _Data.Load(filename)
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
-    PhaseSpace(psd, outputfilename=outputfilename, extension=extension)
+    PhaseSpace(psd, nbins=nbins, outputfilename=outputfilename, extension=extension)
 
 def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf',
                            nbins=None, energy='total', offsetTime=True, includeSecondaries=False,
