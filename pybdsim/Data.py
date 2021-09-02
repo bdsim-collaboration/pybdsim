@@ -1341,6 +1341,10 @@ class ModelData(object):
                     setattr(self, n, dict(getattr(self,n)))
                 except ValueError:
                     pass
+        if hasattr(self, 'materialIDToName'):
+            self.materialIDToName = {int(k):v for k,v in self.materialIDToName.items()}
+        if hasattr(self, 'materialNameToID'):
+            self.materialNameToID = {k:int(v) for k,v in self.materialNameToID.items()}
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
