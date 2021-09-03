@@ -1321,6 +1321,8 @@ class ModelData(object):
         return cls(data)
 
     def _getData(self, interface, rootobj):
+        # remove when fixed this
+        _np.warnings.filterwarnings('ignore', category=_np.VisibleDeprecationWarning)
         for name in interface:
             try:
                 setattr(self, name, _np.array(getattr(rootobj, name)))
