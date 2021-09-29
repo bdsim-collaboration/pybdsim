@@ -277,6 +277,36 @@ class Histogram4d:
 
                     f.close()
 
+    def extract_error(self, x=0, y=0, z=0, path='.', extract_all=False):
+
+        if not extract_all:
+            all_x = [x]
+            all_y = [y]
+            all_z = [z]
+        else:
+            all_x = range(self.xnumbins)
+            all_y = range(self.ynumbins)
+            all_z = range(self.znumbins)
+
+        for _x in all_x:
+            for _y in all_y:
+                for _z in all_z:
+
+                    f = open(f"{path}/errors_{self.meshname}_{_x}_{_y}_{_z}", 'w')
+                    spectrum = list(self.bh_err[_x, _y, _z, :].to_numpy()[0])
+                    spectrum.reverse()
+
+                    i = 1
+                    for value in spectrum:
+                        f.write("  {:.4E}".format(value))
+                        if i % 6 == 0:
+                            f.write('\n')
+                        i += 1
+                    f.write('\n 1.000\n')
+                    f.write(f'errors_{self.meshname}_{_x}_{_y}_{_z}')
+
+                    f.close()
+
     def project_to_3d(self, weights=1):
 
         histo3d = bh.Histogram(*self.bh.axes[0:3])
@@ -419,6 +449,11 @@ class Histogram4d:
     @property
     def shape(self):
         return (self.xnumbins, self.ynumbins, self.znumbins, self.enumbins)
+
+    @property
+    def find_max_coordinates(self):
+        result = _np.where(self.values == _np.max(self.values))
+        return result[0][0], result[1][0], result[2][0]
 
     @property
     def coordinates_normalization(self):
@@ -709,7 +744,7 @@ class Output(metaclass=OutputType):
                 branches = [self.branch_name + b for b, _ in self._active_leaves.items() if _[0] is True]
             else:
                 branches = [self.branch_name + b for b in branches]
-            df = self.parent.tree.arrays(branches, library='pandas')
+            df = self.parent.tree.arrays(branches, library='pandas')[0]
             if strip_prefix:
                 import re
                 df.columns = [re.split(self.branch_name, c)[1] for c in df.columns]
