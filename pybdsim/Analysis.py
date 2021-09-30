@@ -1400,19 +1400,25 @@ class BDSimOutput(Output):
             we should not display them.
             """
             data = _Data.Load(self.parent._file)
-            model = data.GetModel() # Keep this line here otherwise it doesn t work
-            collimator_infos = _pd.DataFrame()
-            for i in range(model.model.collimatorInfo.size()):
-                collimator_infos.at[i, "NAME"] = model.model.collimatorInfo.at(i).componentName
-                collimator_infos.at[i, "APERTURE1"] = model.model.collimatorInfo.at(i).xSizeIn
-                collimator_infos.at[i, "APERTURE2"] = model.model.collimatorInfo.at(i).ySizeIn
+            try:
+                model = data.GetModel()  # Keep this line here otherwise it doesn t work
+                collimator_infos = _pd.DataFrame()
+                for i in range(model.model.collimatorInfo.size()):
+                    collimator_infos.at[i, "NAME"] = model.model.collimatorInfo.at(i).componentName
+                    collimator_infos.at[i, "APERTURE1"] = model.model.collimatorInfo.at(i).xSizeIn
+                    collimator_infos.at[i, "APERTURE2"] = model.model.collimatorInfo.at(i).ySizeIn
 
-            if not collimator_infos.empty:
-                for _, j in collimator_infos.iterrows():
-                    model_geometry_df.loc[model_geometry_df.query("NAME == @j['NAME']").index, 'APERTURE1'] = j['APERTURE1']
-                    model_geometry_df.loc[model_geometry_df.query("NAME == @j['NAME']").index, 'APERTURE2'] = j['APERTURE2']
-            else:
-                logging.warning("Informations for collimators are empty, you shoud set storeCollimatorInfo=1")
+                if not collimator_infos.empty:
+                    for _, j in collimator_infos.iterrows():
+                        model_geometry_df.loc[model_geometry_df.query("NAME == @j['NAME']").index, 'APERTURE1'] = j[
+                            'APERTURE1']
+                        model_geometry_df.loc[model_geometry_df.query("NAME == @j['NAME']").index, 'APERTURE2'] = j[
+                            'APERTURE2']
+                else:
+                    logging.warning("Informations for collimators are empty, you shoud set storeCollimatorInfo=1")
+
+            except AttributeError:
+                logging.critical("Get Model function must be changed for RebdsimOutputFile")
 
             # Vectors
             geometry_branches = {'staPos': 'ENTRY_',
