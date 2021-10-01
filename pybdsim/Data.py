@@ -898,17 +898,12 @@ class BDSBH4D():
 
     def to_numpy(self,hist, hist_type="h"):
         import numpy as np
+        import itertools
 
         histo4d = np.zeros((hist.h_nxbins, hist.h_nybins, hist.h_nzbins, hist.h_nebins))
 
-        for x in range(hist.h_nxbins):
-            for y in range(hist.h_nybins):
-                for z in range(hist.h_nzbins):
-                    for e in range(hist.h_nebins):
-                        if hist_type == "h":
-                            histo4d[x, y, z, e] = hist.h.at(x, y, z, e)
-                        if hist_type == "h_err":
-                            histo4d[x, y, z, e] = hist.h_err.at(x, y, z, e)
+        for x, y, z, e in itertools.product(range(hist.h_nxbins), range(hist.h_nybins), range(hist.h_nzbins), range(hist.h_nebins)):
+            histo4d[x, y, z, e] = getattr(hist, hist_type).at(x, y, z, e)
 
         return histo4d
 
