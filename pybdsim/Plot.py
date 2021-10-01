@@ -464,6 +464,8 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     :param title:  plot title
     :param scalingFactor: multiplier for values
     :param xScalingFactor: multiplier for x axis coordinates
+
+    return figure instance
     """
     if 'drawstyle' not in errorbarKwargs:
         errorbarKwargs['drawstyle'] = 'steps-mid'
@@ -495,6 +497,8 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     """
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
+
+    return figure instance
 
     xScalingFactors may be a float, int or list
 
@@ -579,6 +583,8 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     autovmin       - fill in the background (normally white) with minimum
     vmin           - explicitly control the vmin for the log normalisation
     vmax           - explicitly control the vmax for the log normalisation
+
+    return figure instance
     """
     h = histogram
     f = _plt.figure(figsize=figsize)
