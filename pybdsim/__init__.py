@@ -52,6 +52,7 @@ from . import Constants
 from . import Convert
 from . import Compare
 from . import Data
+from . import Analysis
 from . import Field
 from . import Gmad
 from . import Options
@@ -68,6 +69,7 @@ __all__ = ['Beam',
            'Convert',
            'Compare',
            'Data',
+           'Analysis',
            'Field',
            'Gmad',
            'Options',
