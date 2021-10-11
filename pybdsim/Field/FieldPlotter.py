@@ -45,18 +45,32 @@ class OneDData(FourDData):
     def __init__(self, filename):
         FourDData.__init__(self, filename, tind=-1, zind=-1, yind=-1)
 
-def _Niceties(xlabel, ylabel):
+def _Niceties(xlabel, ylabel, zlabel=""):
     _plt.xlabel(xlabel)
     _plt.ylabel(ylabel)
-    _plt.colorbar()
+    _plt.colorbar(label=zlabel)
     _plt.tight_layout()
-    _plt.axes().set_aspect('equal', 'datalim')
+    ax = _plt.gca()
+    ax.set_aspect('equal')
 
 def Plot2DXY(filename, scale=None):
     d = TwoDData(filename)
     _plt.figure()
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
-    _Niceties('X (cm)', 'Y (cm)')
+    _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)")
+
+def Plot2DXYBz(filename, scale=None):
+    if type(filename) is str:
+        d = _pybdsim.Field.Load(filename)
+    elif isinstance(filename, _pybdsim.Field._Field.Field2D):
+        d = filename
+    else:
+        raise TypeError("'filename' must be either str or Field2D")
+    
+    _plt.figure()
+    ext = [_np.min(d.data[:,:,0]),_np.max(d.data[:,:,0]),_np.min(d.data[:,:,1]),_np.max(d.data[:,:,1])]
+    _plt.imshow(d.data[:,:,-1], extent=ext, origin='lower', aspect='equal', interpolation='none', cmap=_plt.cm.magma)
+    _Niceties('X (cm)', 'Y (cm)', zlabel="$B_z$ (T)")
 
 def Plot3DXY(filename, scale=None):
     """
