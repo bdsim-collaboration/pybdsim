@@ -1,12 +1,20 @@
 import matplotlib.pyplot as _plt
 import numpy as _np
 
-import pybdsim
+import pybdsim as _pybdsim
 
 class FourDData(object):
+    """
+    Class purely to simplify plotting of fields. Not for general use.
+    """
     def __init__(self, filename, xind=0, yind=1, zind=2, tind=3):
-        d = pybdsim.Field.Load(filename)
-        
+        if type(filename) is str:
+            d = _pybdsim.Field.Load(filename)
+        elif isinstance(filename, _pybdsim.Field._Field.Field):
+            d = filename.data
+        else:
+            d = filename
+            
         # '...' fills in unknown number of dimensions with ':' meaning
         # all of that dimension
         if (xind >= 0):

@@ -13,6 +13,8 @@ New Features
 * New ratio plot for 2x 1D histograms. See `pybdsim.Plot.Histogram1DRatio`.
 * pybdsim.Data.TH1,2,3 now have :code:`xrange`, :code:`yrange`, and :code:`zrange` members
   where approriate with a conveninent tuple of the range in each dimension.
+* Field plotting functions now tolerate Field class objects as well as filenames to make
+  it easier to check field objects as you're making them.
 
 Bug Fixes
 ---------
