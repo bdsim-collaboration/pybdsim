@@ -48,7 +48,7 @@ BDSIM_MADX_ELEMENTS_ARGUMENTS = ['l',
 
 BDSIM_ELEMENTS_TO_GENERATE = ['drift', 'sbend', 'rbend', 'quadrupole', 'sextupole', 'octupole',
                               'decapole', 'hkicker', 'vkicker', 'tkicker', 'kicker',
-                              'solenoid', 'rcol', 'ecol', 'jcol', 'multipole', 'thinmultipole']
+                              'solenoid', 'rcol', 'ecol', 'jcol', 'multipole', 'thinmultipole', 'rfcavity']
 
 MAD_ELEMENTS_TO_DROP_IF_ZERO_LENGTH = ['marker', 'monitor', 'instrument', 'placeholder', 'rcollimator', 'cavity']
 
@@ -77,16 +77,20 @@ class CPyMad2Gmad:
 
         # Build the complete model dictionnary
         self.model = {}
-        for module in _['builder']['modules']:
-            with open(os.path.join(
-                    model_path,
-                    _['builder']['config']['geometries_path'],
-                    'modules',
-                    module,
-                    'data.yml')
-            ) as file:
-                self.model = merge(self.model, yaml.full_load(file))
-                self.logging.info(f"Merged data from module '{module}'.")
+
+        # need to check if there are some modules in the yml file
+        if _['builder']['modules']:
+            for module in _['builder']['modules']:
+                with open(os.path.join(
+                        model_path,
+                        _['builder']['config']['geometries_path'],
+                        'modules',
+                        module,
+                        'data.yml')
+                ) as file:
+                    self.model = merge(self.model, yaml.full_load(file))
+                    self.logging.info(f"Merged data from module '{module}'.")
+
         self.model = merge(self.model, _)
         self.model = merge(self.model, model or {})
 
@@ -95,11 +99,13 @@ class CPyMad2Gmad:
             if isinstance(v, str) and '*' not in v:  # Physical quantity with units should not be quoted
                 self.model['options'][k] = '"' + v + '"'
 
-        # Compile the regular expressions in the model
-        self.logging.info("Compiling regular expressions...")
-        for r in list(self.model['sequence'].keys()):
-            self.model['sequence'][re.compile(r)] = self.model['sequence'].pop(r)
-        self.logging.info("... done.")
+        ## comment as there is some problem in the simple case where model['sequence'] does not exist
+
+        # # Compile the regular expressions in the model
+        # self.logging.info("Compiling regular expressions...")
+        # for r in list(self.model['sequence'].keys()):
+        #     self.model['sequence'][re.compile(r)] = self.model['sequence'].pop(r)
+        # self.logging.info("... done.")
 
         # Aperture model
         self.aperture = aperture_model
@@ -107,7 +113,7 @@ class CPyMad2Gmad:
         # MAD-X
         self.madx = madx_instance
         self.madx_beam = self.madx.sequence[self.model['builder']['sequence']].beam
-        self.madx_sequence = self.madx.sequence['lhcb1']
+        self.madx_sequence = self.madx.sequence[self.model['builder']['sequence']]
         self.madx_expanded_element_positions = self.madx_sequence.expanded_element_positions()
         self.madx_expanded_element_names = self.madx_sequence.expanded_element_names()
 
@@ -218,7 +224,15 @@ class CPyMad2Gmad:
                 and 'ysize' not in bdsim_properties:
             self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
                               + f" - Setting the aperture from the aperture model for this element.")
-            apertype, aper1, aper2, aper3, aper4 = self.aperture(element['NAME'])
+            if self.aperture:
+                apertype, aper1, aper2, aper3, aper4 = self.aperture(element['NAME'])
+            # we need some default values if there is no aperture file
+            else:
+                apertype = "circular"
+                aper1 = 0.01
+                aper2 = 0.01
+                aper3 = 0.01
+                aper4 = 0.01
             if element['BASE_PARENT'] == 'rcol':
                 bdsim_properties['xsize'] = aper1
                 bdsim_properties['ysize'] = aper2
@@ -387,10 +401,14 @@ class CPyMad2Gmad:
 
     def _build_bdsim_component(self, element: _pd.Series):
         bdsim_properties = self._build_bdsim_component_properties(element)
-        bdsim_element_type, properties = self._get_model_properties_for_element(element['NAME'])
-        bdsim_properties = merge(bdsim_properties, properties)
-        element['PARENT'] = bdsim_element_type or BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
 
+        ## comment as there is some problem in the simple case where model['sequence'] does not exist
+
+        #bdsim_element_type, properties = self._get_model_properties_for_element(element['NAME'])
+        #bdsim_properties = merge(bdsim_properties, properties)
+        #element['PARENT'] = bdsim_element_type or BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
+
+        element['PARENT'] = BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
         return self._generate_bdsim_component(element, bdsim_properties)
 
     def __call__(self,
