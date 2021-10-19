@@ -99,13 +99,12 @@ class CPyMad2Gmad:
             if isinstance(v, str) and '*' not in v:  # Physical quantity with units should not be quoted
                 self.model['options'][k] = '"' + v + '"'
 
-        ## comment as there is some problem in the simple case where model['sequence'] does not exist
-
-        # # Compile the regular expressions in the model
-        # self.logging.info("Compiling regular expressions...")
-        # for r in list(self.model['sequence'].keys()):
-        #     self.model['sequence'][re.compile(r)] = self.model['sequence'].pop(r)
-        # self.logging.info("... done.")
+        if 'sequence' in self.model.keys():
+            # Compile the regular expressions in the model
+            self.logging.info("Compiling regular expressions...")
+            for r in list(self.model['sequence'].keys()):
+                self.model['sequence'][re.compile(r)] = self.model['sequence'].pop(r)
+            self.logging.info("... done.")
 
         # Aperture model
         self.aperture = aperture_model
@@ -226,7 +225,6 @@ class CPyMad2Gmad:
                               + f" - Setting the aperture from the aperture model for this element.")
             if self.aperture:
                 apertype, aper1, aper2, aper3, aper4 = self.aperture(element['NAME'])
-            # we need some default values if there is no aperture file
             else:
                 apertype = "circular"
                 aper1 = 0.01
@@ -402,13 +400,13 @@ class CPyMad2Gmad:
     def _build_bdsim_component(self, element: _pd.Series):
         bdsim_properties = self._build_bdsim_component_properties(element)
 
-        ## comment as there is some problem in the simple case where model['sequence'] does not exist
+        if 'sequence' in self.model.keys():
+            bdsim_element_type, properties = self._get_model_properties_for_element(element['NAME'])
+            bdsim_properties = merge(bdsim_properties, properties)
+            element['PARENT'] = bdsim_element_type or BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
+        else:
+            element['PARENT'] = BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
 
-        #bdsim_element_type, properties = self._get_model_properties_for_element(element['NAME'])
-        #bdsim_properties = merge(bdsim_properties, properties)
-        #element['PARENT'] = bdsim_element_type or BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
-
-        element['PARENT'] = BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
         return self._generate_bdsim_component(element, bdsim_properties)
 
     def __call__(self,
