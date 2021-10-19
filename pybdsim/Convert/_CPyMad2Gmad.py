@@ -227,10 +227,10 @@ class CPyMad2Gmad:
                 apertype, aper1, aper2, aper3, aper4 = self.aperture(element['NAME'])
             else:
                 apertype = "circular"
-                aper1 = 0.01
-                aper2 = 0.01
-                aper3 = 0.01
-                aper4 = 0.01
+                aper1 = 0.1
+                aper2 = 0.1
+                aper3 = 0.1
+                aper4 = 0.1
             if element['BASE_PARENT'] == 'rcol':
                 bdsim_properties['xsize'] = aper1
                 bdsim_properties['ysize'] = aper2
