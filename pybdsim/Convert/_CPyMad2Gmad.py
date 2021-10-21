@@ -226,9 +226,9 @@ class CPyMad2Gmad:
             if self.aperture:
                 apertype, aper1, aper2, aper3, aper4 = self.aperture(element['NAME'])
             else:
-                apertype = "circular"
-                aper1 = 0.1
-                aper2 = 0.1
+                apertype = "elliptical"
+                aper1 = 0.073
+                aper2 = 0.035
                 aper3 = 0.1
                 aper4 = 0.1
             if element['BASE_PARENT'] == 'rcol':
