@@ -204,16 +204,24 @@ class Element(ElementBase):
     capabilities.  It adds the requirement of type / category (because 'type' is
     a protected keyword in python) as well as checking for valid BDSIM types.
     """
-    def __init__(self, name, category, **kwargs):
+    def __init__(self, name, category, isMultipole=False, **kwargs):
+        """
+        is Multipole is a flag to take into account the inheritance of multipole in a sequence
+        This is important to correctly write the knl in the gmad file
+        m1: multipole, l=0.0;
+        m2: m1, knl ={};
+        """
+
         if category not in bdsimcategories:
             raise ValueError("Not a valid BDSIM element type: {}".format(category))
 
-        if (category == 'thinmultipole') or (category == 'multipole'):
-            ElementBase.__init__(self,name,isMultipole=True,**kwargs)
+        if (category == 'thinmultipole') or (category == 'multipole') or isMultipole:
+            ElementBase.__init__(self, name, isMultipole=True, **kwargs)
         else:
             ElementBase.__init__(self,name,**kwargs)
         self['category'] = category
         self.category    = category
+        self._isMultipole = isMultipole
         self.length      = 0.0 #for book keeping only
         self._UpdateLength()
 
@@ -231,12 +239,12 @@ class Element(ElementBase):
             for key in sorted(self._keysextra):
                 if (type(self[key]) == tuple
                     and (self.category != 'thinmultipole')
-                    and (self.category != 'multipole')):
+                    and (self.category != 'multipole') and self._isMultipole==False):
                     s += (', ' + key + '=' + str(self[key][0])
                           + '*' + str(self[key][1]))
                 elif (type(self[key]) == tuple
                       and ((self.category == 'thinmultipole')
-                           or (self.category == 'multipole'))):
+                           or (self.category == 'multipole') or self._isMultipole)):
                     s += (', ' + key + '=' + '{'
                           + (','.join([str(s) for s in self[key]]))+'}')
                 else:
@@ -295,10 +303,15 @@ class Element(ElementBase):
         return self._split_length(points)
 
     @classmethod
-    def from_element(cls, element):
-        parameters = _copy.copy(dict(element))
-        del parameters["category"] # don't set category explicitly..
-        return cls(**parameters)
+    def from_element(cls, parent_element_name: str, isMultipole=False, **kwargs):
+        # parameters = _copy.copy(dict(element))
+        parameters = {}
+        for key, value in kwargs.items():
+            parameters[key] = value
+        parameters["category"] = parent_element_name
+        if parent_element_name not in bdsimcategories:
+            bdsimcategories.append(parent_element_name)
+        return cls(isMultipole=isMultipole, **parameters)
 
 
 class ElementModifier(ElementBase):
@@ -729,6 +742,7 @@ class Sampler(object):
         else:
             return 'sample, range='+self.name+';\n'
 
+
 class GmadObject(_collections.MutableMapping):
     """
     A gmad object does not have a length unlike every :class:`Element` hence it
@@ -795,6 +809,17 @@ class GmadObject(_collections.MutableMapping):
         s += ';\n'
         return s
 
+
+class BLM(GmadObject):
+    """
+    A blm does not have a length unlike every
+    :class:`Element` hence it needs its own class to produce its
+    representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "blm",name,**kwargs)
+
+
 class Crystal(GmadObject):
     """
     A crystal does not have a length unlike every
@@ -804,6 +829,7 @@ class Crystal(GmadObject):
     def __init__(self,name,**kwargs):
         GmadObject.__init__(self, "crystal",name,**kwargs)
 
+
 class ScorerMesh(GmadObject):
     """
     A scorermesh does not have a length unlike every :class:`Element` hence it
@@ -812,6 +838,7 @@ class ScorerMesh(GmadObject):
     def __init__(self,name,**kwargs):
         GmadObject.__init__(self, "scorermesh",name,**kwargs)
 
+
 class Placement(GmadObject):
     """
     A placement does not have a length unlike every :class:`Element` hence it
@@ -819,6 +846,7 @@ class Placement(GmadObject):
     """
     def __init__(self,name,**kwargs):
         GmadObject.__init__(self, "placement",name,**kwargs)
+
 
 class Machine(object):
     """
@@ -912,7 +940,7 @@ class Machine(object):
         """
         return self.length
 
-    def Append(self, item):
+    def Append(self, item, is_component=False):
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
@@ -926,11 +954,12 @@ class Machine(object):
         else:
             if self.verbose:
                 print("Element of name: ",item.name," already defined, simply adding to sequence")
-        #finally add it to the sequence
-        self.sequence.append(item.name)
+        # finally add it to the sequence if this is not a base component of the sequence.
+        if not is_component:
+            self.sequence.append(item.name)
 
-        self.length += item.length
-        self.lenint.append(self.length)
+            self.length += item.length
+            self.lenint.append(self.length)
 
         # list of elements that produce SR
         elementsSR = ["sbend", "rbend"]
@@ -1475,6 +1504,9 @@ class Machine(object):
 
     def AddPlacement(self, name, **kwargs):
         self.objects.append(Placement(name, **kwargs))
+
+    def AddBLM(self, name, **kwargs):
+        self.objects.append(BLM(name, **kwargs))
 
     def AddRmat(self, name='rmat', length=0.1,
                 r11=1.0, r12=0, r13=0, r14=0,
