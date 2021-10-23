@@ -545,16 +545,21 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     ymax = -_np.inf
     ymin =  _np.inf
     yminpos = _np.inf
+    xmin = _np.inf
+    xmax = -_np.inf
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
+        # x range heuristic - do before padding
+        xmin = min(xmin, _np.min(xsf*h.xlowedge))
+        xmax = max(xmax, _np.max(xsf*h.xhighedge))
         ht = _Data.PadHistogram1D(h)
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
         # for heuristic determination of ylim we use original unpadded histogram data
-        ymin = min(ymin, _np.min(h.contents-h.errors))
+        ymin = min(ymin, sf*_np.min(h.contents-h.errors))
         ypos = h.contents[h.contents>0]
         if len(ypos) > 0:
             yminpos = min(yminpos, _np.min(ypos))
-        ymax = max(ymax, _np.max(h.contents+h.errors))
+        ymax = max(ymax, sf*_np.max(h.contents+h.errors))
         
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
@@ -581,6 +586,10 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
 
     if xlog:
         _plt.xscale('log')
+        suggestedXMin = 0.95*xmin
+        if suggestedXMin <= 0:
+            suggestedXMin = 1
+        _plt.xlim(suggestedXMin, 1.05*xmax)
 
     _plt.legend(**legendKwargs)
     _plt.tight_layout()
