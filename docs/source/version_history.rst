@@ -15,6 +15,7 @@ New Features
   where approriate with a conveninent tuple of the range in each dimension.
 * Field plotting functions now tolerate Field class objects as well as filenames to make
   it easier to check field objects as you're making them.
+* New field plotting for 2D field maps showing each component.
 
 Bug Fixes
 ---------
