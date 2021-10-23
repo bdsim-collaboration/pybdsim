@@ -10,6 +10,7 @@ Data - read various output files
 from . import Constants as _Constants
 from . import _General
 
+from collections import defaultdict as _defaultdict
 import copy as _copy
 import glob as _glob
 import numpy as _np
@@ -320,6 +321,33 @@ class Header(object):
         self.skimmedFile   = bool(hi.skimmedFile)
         self.nOriginalEvents = int(hi.nOriginalEvents)
 
+class Spectra(object):
+    def __init__(self, nameIn=None):
+        self.name = nameIn
+        self.histograms = {}
+        self.histogramspy = {}
+        self.pdgids = set()
+        self.pdgidsSorted = []
+
+    def append(self, pdgid, hist, path, nameIn=None):
+        if nameIn:
+            self.name = nameIn
+        self.histograms[pdgid] = hist
+        self.histogramspy[pdgid] = TH1(hist)
+        self.pdgids.add(pdgid)
+        self._generateSortedList()
+
+    def _generateSortedList(self):
+        integrals = {pdgid:h.integral for pdgid,h in self.histogramspy.items()}
+        integralsSorted = sorted(integrals.items(), key=lambda item: item[1])
+        self.pdgidsSorted = [pdgid for pdgid,_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
+
+def ParseSpectraName(hname):
+    hn = hname.replace('Spectra_','')
+    name,nth,pdgid = hn.split('_')
+    pdgid = int(pdgid)
+    return name+"_"+nth,pdgid
+
 class RebdsimFile(object):
     """
     Class to represent data in rebdsim output file.
@@ -338,13 +366,20 @@ class RebdsimFile(object):
         self.filename = filename
         self._f = _ROOT.TFile(filename)
         self.header = Header(TFile=self._f)
-        self.histograms   = {}
+        self.histograms = {}
         self.histograms1d = {}
         self.histograms2d = {}
         self.histograms3d = {}
+        self.histogramspy = {}
+        self.histograms1dpy = {}
+        self.histograms2dpy = {}
+        self.histograms3dpy = {}
+        self.spectra = _defaultdict(Spectra)
         self._Map("", self._f)
         if convert:
             self.ConvertToPybdsimHistograms()
+
+        self._PopulateSpectraDictionaries()
 
         def _prepare_data(branches, treedata):
             data = BDSAsciiData()
@@ -430,10 +465,6 @@ class RebdsimFile(object):
         """
         Convert all root histograms into numpy arrays.
         """
-        self.histogramspy = {}
-        self.histograms1dpy = {}
-        self.histograms2dpy = {}
-        self.histograms3dpy = {}
         for path,hist in self.histograms1d.items():
             hpy = TH1(hist)
             self.histograms1dpy[path] = hpy
@@ -446,6 +477,13 @@ class RebdsimFile(object):
             hpy = TH3(hist)
             self.histograms3dpy[path] = hpy
             self.histogramspy[path] = hpy
+
+    def _PopulateSpectraDictionaries(self):
+        for path,hist in self.histograms1d.items():
+            hname = str(hist.GetName())
+            if 'Spectra' in hname:
+                sname,pdgid = ParseSpectraName(hname)
+                self.spectra[sname].append(pdgid, hist, path, sname)
 
 def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
     """
@@ -795,6 +833,8 @@ class TH1(ROOTHist):
         if extractData:
             self._GetContents()
 
+        self.integral = _np.sum(self.contents)
+
     def _GetContents(self):
         for i in range(self.nbinsx):
             self.contents[i] = self.hist.GetBinContent(i+1)
@@ -829,6 +869,8 @@ class TH2(TH1):
 
         if extractData:
             self._GetContents()
+
+        self.integral = _np.sum(self.contents)
 
     def _GetContents(self):
         for i in range(self.nbinsx) :
@@ -866,6 +908,8 @@ class TH3(TH2):
 
         if extractData:
             self._GetContents()
+
+        self.integral = _np.sum(self.contents)
 
     def _GetContents(self):
         for i in range(self.nbinsx):

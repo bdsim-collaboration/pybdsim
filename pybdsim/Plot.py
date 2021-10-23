@@ -3,6 +3,7 @@ Useful plots for bdsim output
 
 """
 from .import Data as _Data
+from .import Constants as _Constants
 import pymadx as _pymadx
 
 import copy as _copy
@@ -492,6 +493,23 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
 
     _plt.tight_layout()
     return f
+
+def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
+    histograms = [spectra.histogramspy[pdgid] for pdgid in spectra.pdgidsSorted]
+    labels = [_Constants.GetPDGName(pdgid)[1] for pdgid in spectra.pdgidsSorted]
+    if xlabel is None:
+        print("Using default xlabel of kinetic energy")
+        xlabel="Kinetic Energy (GeV)"
+    if ylabel is None:
+        h1 = histograms[0]
+        if _np.any(_np.diff(h1.xwidths)):
+            # uneven binning suspected
+            ylabel = "Per-Event Rate"
+        else:
+            ylabel = "Per-Event Rate / " + str(round(h1.xwidths[0],2)) + " GeV"
+    if title is None:
+        title = spectra.name
+    Histogram1DMultiple(histograms, labels, log, xlog, xlabel, ylabel, title, scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
 
 def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
     """
