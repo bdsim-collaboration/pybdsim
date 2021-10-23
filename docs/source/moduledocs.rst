@@ -105,6 +105,10 @@ pybdsim.Field module
 		:members:
 		:show-inheritance:
 
+.. automodule:: pybdsim.Field.FieldPlotter
+		:members:
+
+
 pybdsim.Gmad module
 -------------------
 

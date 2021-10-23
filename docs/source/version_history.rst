@@ -28,6 +28,8 @@ General
 -------
 
 * Better automatic ranges for Histogram1DMultiple plots by default.
+* Better field loading in `pybdsim.Field.Load`. Returns the same Field object
+  from pybdsim as you would write.
 
 v2.4.0 - 2021 / 06 / 16
 =======================

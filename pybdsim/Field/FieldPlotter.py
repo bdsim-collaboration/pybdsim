@@ -34,14 +34,23 @@ class FourDData(object):
         self.mag = _np.sqrt(self.fx**2 + self.fy**2 + self.fz**2)
 
 class ThreeDData(FourDData):
+    """
+    Class purely to simplify plotting of fields. Not for general use.
+    """
     def __init__(self, filename):
         FourDData.__init__(self, filename, tind=-1)
 
 class TwoDData(FourDData):
+    """
+    Class purely to simplify plotting of fields. Not for general use.
+    """
     def __init__(self, filename):
         FourDData.__init__(self, filename, tind=-1, zind=-1)
 
 class OneDData(FourDData):
+    """
+    Class purely to simplify plotting of fields. Not for general use.
+    """
     def __init__(self, filename):
         FourDData.__init__(self, filename, tind=-1, zind=-1, yind=-1)
 
@@ -54,12 +63,28 @@ def _Niceties(xlabel, ylabel, zlabel=""):
     ax.set_aspect('equal')
 
 def Plot2DXY(filename, scale=None):
+    """
+    Plot a bdsim field map file use the X,Y plane.
+    
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field1D instance
+    :param scale: numerical scaling for quiver plot arrow lengths.
+    :type scale: float
+    """
     d = TwoDData(filename)
     _plt.figure()
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
     _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)")
 
 def Plot2DXYBz(filename, scale=None):
+    """
+    Plot a bdsim field map file use the X,Y plane, but plotting By component.
+    
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field1D instance
+    :param scale: numerical scaling for quiver plot arrow lengths.
+    :type scale: float
+    """
     if type(filename) is str:
         d = _pybdsim.Field.Load(filename)
     elif isinstance(filename, _pybdsim.Field._Field.Field2D):
