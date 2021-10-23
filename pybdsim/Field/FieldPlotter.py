@@ -98,7 +98,7 @@ def Plot2DXYBz(filename, scale=None):
     _Niceties('X (cm)', 'Y (cm)', zlabel="$B_z$ (T)")
 
 
-def Plot2DXYFxFyFz(filename, title=None, aspect="auto", **imshowKwargs):
+def Plot2DXYFxFyFz(filename, title=None, aspect="auto", extent=None, **imshowKwargs):
     """
     Plot Fx,Fy,Fz components of a field separately as a function of X,Y.
 
@@ -108,6 +108,8 @@ def Plot2DXYFxFyFz(filename, title=None, aspect="auto", **imshowKwargs):
     :type title: None, str
     :param aspect: aspect ratio for matplotlib imshow
     :type aspect: str
+    :param extent: list or tuple of (xmin,xmax,ymin,ymax) for each plot (optional)
+    :type extent: list,tuple
     """
     imshowKwargs['aspect'] = aspect
     if type(filename) is str:
@@ -127,7 +129,9 @@ def Plot2DXYFxFyFz(filename, title=None, aspect="auto", **imshowKwargs):
     xmax = _np.max(a[:,:,0])
     ymin = _np.min(a[:,:,1])
     ymax = _np.max(a[:,:,1])
-    ext = [_np.min(a[:,:,0]), _np.max(a[:,:,0]), _np.min(a[:,:,1]), _np.max(a[:,:,1])]
+    if extent is None:
+        extent = [_np.min(a[:,:,0]), _np.max(a[:,:,0]), _np.min(a[:,:,1]), _np.max(a[:,:,1])]
+    imshowKwargs['extent'] = extent
 
     # determine a consistent colour min and max value for all three subplots
     if 'vmin' not in imshowKwargs:
@@ -135,17 +139,17 @@ def Plot2DXYFxFyFz(filename, title=None, aspect="auto", **imshowKwargs):
     if 'vmax' not in imshowKwargs:
         imshowKwargs['vmax'] = _np.max(a[:,:,3:])
     
-    ax.imshow(a[:,:,2], interpolation='None', extent=ext, origin='lower', **imshowKwargs)
+    ax.imshow(a[:,:,2], interpolation='None', origin='lower', **imshowKwargs)
     ax.set_xlabel('X (cm)')
     ax.set_ylabel('Y (cm)')
     ax.set_title('X-Component',size='medium')
     
-    im = ax2.imshow(a[:,:,3], interpolation='None', extent=ext, origin='lower', **imshowKwargs)
+    im = ax2.imshow(a[:,:,3], interpolation='None', origin='lower', **imshowKwargs)
     ax2.set_xlabel('X (cm)')
     ax2.set_title('Y-Component',size='medium')
     ax2.get_yaxis().set_ticks([])
 
-    im = ax3.imshow(a[:,:,4], interpolation='None', extent=ext, origin='lower', **imshowKwargs)
+    im = ax3.imshow(a[:,:,4], interpolation='None', origin='lower', **imshowKwargs)
     ax3.set_xlabel('X (cm)')
     ax3.set_title('Z-Component',size='medium')
     ax3.get_yaxis().set_ticks([])
@@ -156,8 +160,6 @@ def Plot2DXYFxFyFz(filename, title=None, aspect="auto", **imshowKwargs):
 
     if title:
         _plt.suptitle(title, size='x-large')
-    _plt.savefig(filename+'.png', dpi=400)
-    _plt.draw()
 
 def Plot3DXY(filename, scale=None):
     """
