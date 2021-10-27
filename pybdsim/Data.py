@@ -342,7 +342,7 @@ class Spectra(object):
         integralsSorted = sorted(integrals.items(), key=lambda item: item[1])
         self.pdgidsSorted = [pdgid for pdgid,_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
 
-def ParseSpectraName(hname)
+def ParseSpectraName(hname):
     hn = hname.replace('Top_','')
     hn = hn.replace('Spectra_','')
     name,nth,pdgid = hn.split('_')
