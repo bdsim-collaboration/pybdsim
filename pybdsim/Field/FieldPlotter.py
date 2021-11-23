@@ -76,6 +76,18 @@ def Plot2DXY(filename, scale=None):
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
     _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)")
 
+def Plot2DXYConnectionOrder(filename):
+    d = TwoDData(filename)
+    _plt.figure()
+    _plt.plot(d.x,d.y)
+    _plt.plot(d.x,d.y,'.')
+    _plt.xlabel('X (cm)')
+    _plt.ylabel('Y (cm)')
+    _plt.tight_layout()
+    ax = _plt.gca()
+    ax.set_aspect('equal')
+    
+
 def Plot2DXYBz(filename, scale=None):
     """
     Plot a bdsim field map file use the X,Y plane, but plotting By component.

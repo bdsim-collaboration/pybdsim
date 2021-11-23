@@ -10,6 +10,7 @@ from ._Field import Field4D
 from ._Field import Load
 
 from .FieldPlotter import Plot2DXY
+from .FieldPlotter import Plot2DXYConnectionOrder
 from .FieldPlotter import Plot2DXYBz
 from .FieldPlotter import Plot2DXYFxFyFz
 from .FieldPlotter import Plot3DXY
