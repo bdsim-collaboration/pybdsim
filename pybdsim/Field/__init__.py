@@ -8,6 +8,7 @@ from ._Field import Field2D
 from ._Field import Field3D
 from ._Field import Field4D
 from ._Field import Load
+from ._Field import MirrorDipoleQuadrant1
 
 from .FieldPlotter import Plot2DXY
 from .FieldPlotter import Plot2DXYConnectionOrder

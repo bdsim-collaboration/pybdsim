@@ -285,3 +285,58 @@ def Load(filename, debug=False, unconventionalOrder=False):
         raise ValueError("Invalid number of dimensions")
 
     return fd
+
+
+def MirrorDipoleQuadrant1(field2D):
+    """
+    +-------+-------+
+    |       |       |
+    |   2   |   1   |
+    |       |       |
+    +-------+-------+
+    |       |       |
+    |   3   |   4   |
+    |       |       |
+    +-------+-------+
+
+    :param field2D: field object
+    :type field2D: pybdsim.Field._Field.Field2D instance
+
+    returns an instance of the same type.
+    
+    For a 2D field (i.e. function of x,y but can include Bx,By,Bz),
+    for the quadrant #1, mirror it and generate a bigger field for
+    all four quadrants.
+    1: original data
+    2: data mirrored in x, (x,Bx) *= -1
+    3: data mirrored in x,y, (x,y,By) *= -1
+    4: data mirrored in y, (y,Bx) *= -1
+
+    This is based on a dipole field.
+    """
+    d = field2D.data
+    ds = _np.shape(d)
+    sx = ds[0]
+    sy = ds[1]
+    result = _np.empty((2*sx, 2*sy, ds[2]))
+    # top right quadrant
+    result[sx:,sy:,:] = d
+    # top left quadrant
+    result[:sx,sy:,:] = d[::-1,:,:]
+    # bottom left quadrant
+    result[:sx,:sy] = d[::-1,::-1,:]
+    # bottom right quadrant
+    result[sx:,:sy,:] = d[:,::-1,:]
+
+    # each value is x,y,Bx,By,Bz
+    
+    # flip x,Bx for top left
+    result[:sx,sy:,_np.array([0,2])] *= -1
+    # flip x,y for bottom left
+    result[:sx,:sy,:2] *= -1
+    # flip y,Bx for bottom right
+    result[sx:,:sy,_np.array([1,2])] *= -1
+    
+    resultField = Field2D(result)
+    return resultField
+

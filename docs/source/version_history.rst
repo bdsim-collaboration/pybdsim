@@ -16,6 +16,9 @@ New Features
 * Field plotting functions now tolerate Field class objects as well as filenames to make
   it easier to check field objects as you're making them.
 * New field plotting for 2D field maps showing each component.
+* New field reflection utility function `pybdsim.Field.MirrorDipoleQuadrant1` for 2D fields.
+* New field plotting function `pybdsim.Field.Plot2DXYConnectionOrder` to see the order
+  an array is written in. This can be used to validate any field manipulations.
 
 Bug Fixes
 ---------
