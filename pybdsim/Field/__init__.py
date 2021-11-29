@@ -1,6 +1,9 @@
 """
 Utilities to convert and prepare field maps.
 
+Most of the plots assume magnetic fields for the labels, but they
+work equally well for electric fields.
+
 """
 
 from ._Field import Field1D
@@ -10,6 +13,7 @@ from ._Field import Field4D
 from ._Field import Load
 from ._Field import MirrorDipoleQuadrant1
 
+from .FieldPlotter import Plot1DFxFyFz
 from .FieldPlotter import Plot2DXY
 from .FieldPlotter import Plot2DXYConnectionOrder
 from .FieldPlotter import Plot2DXYBz

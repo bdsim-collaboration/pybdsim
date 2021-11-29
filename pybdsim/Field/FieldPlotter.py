@@ -62,12 +62,47 @@ def _Niceties(xlabel, ylabel, zlabel=""):
     ax = _plt.gca()
     ax.set_aspect('equal')
 
+def Plot1DFxFyFz(filename):
+    """
+    Plot a bdsim 1D field map file.
+
+    :param filename: name of the field map file or object
+    :type filename: str, pybdsim.Field._Field.Field1D instance
+    """
+    if type(filename) is str:
+        d = _pybdsim.Field.Load(filename)
+    elif isinstance(filename, _pybdsim.Field._Field.Field1D):
+        d = filename
+    else:
+        raise TypeError("'filename' must be either str or Field1D")
+
+    f = _plt.figure(figsize=(7.5,4))
+    axFz = f.add_subplot(313)
+    axFx = f.add_subplot(311, sharex=axFz)
+    axFy = f.add_subplot(312, sharex=axFz)
+
+    axFx.plot(d.data[:,0], d.data[:,1],'b')
+    axFx.plot(d.data[:,0], d.data[:,1],'b.')
+    axFy.plot(d.data[:,0], d.data[:,2],'g')
+    axFy.plot(d.data[:,0], d.data[:,2],'g.')
+    axFz.plot(d.data[:,0], d.data[:,3],'r')
+    axFz.plot(d.data[:,0], d.data[:,3],'r.')
+
+    axFx.set_ylabel('B$_x$ (T)')
+    axFy.set_ylabel('B$_y$ (T)')
+    axFz.set_ylabel('B$_z$ (T)')
+    axFz.set_xlabel(d.columns[0]+' (cm)')
+
+    _plt.setp(axFx.get_xticklabels(), visible=False)
+    _plt.setp(axFy.get_xticklabels(), visible=False)
+    _plt.tight_layout()
+
 def Plot2DXY(filename, scale=None):
     """
-    Plot a bdsim field map file use the X,Y plane.
+    Plot a bdsim field map file using the X,Y plane.
     
     :param filename: name of field map file or object
-    :type filename: str, pybdsim.Field._Field.Field1D instance
+    :type filename: str, pybdsim.Field._Field.Field2D instance
     :param scale: numerical scaling for quiver plot arrow lengths.
     :type scale: float
     """

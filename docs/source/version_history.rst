@@ -19,6 +19,7 @@ New Features
 * New field reflection utility function `pybdsim.Field.MirrorDipoleQuadrant1` for 2D fields.
 * New field plotting function `pybdsim.Field.Plot2DXYConnectionOrder` to see the order
   an array is written in. This can be used to validate any field manipulations.
+* New field plotting function `pybdsim.Field.Plot1DFxFyFz` to see field components in 1D.
 
 Bug Fixes
 ---------
