@@ -996,7 +996,7 @@ class _SamplerData(object):
 
 class PhaseSpaceData(_SamplerData):
     """
-    Pull phase space data from a loaded DataLoader instance of raw data.
+    Pull phase space data from a loaded DataLoader instance of raw data for all events.
 
     Extracts only: 'x','xp','y','yp','z','zp','energy','T'
 
@@ -1016,7 +1016,7 @@ class PhaseSpaceData(_SamplerData):
 
 class SamplerData(_SamplerData):
     """
-    Pull sampler data from a loaded DataLoader instance of raw data.
+    Pull sampler data from a loaded DataLoader instance of raw data for all events.
 
     Loads all data in a given sampler.
 
