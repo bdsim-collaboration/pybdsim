@@ -28,6 +28,7 @@ Bug Fixes
   loaded and stop if the libraries had been already loaded separately outside pybdsim.
   This has been fixed by fixing the interpretation of the error codes from ROOT.
 * Fix warning about "nonposy" in matplotlib version for log scales.
+* Fix check in Run of if it's a ROOT file or not. Simplify it to use file extension.
 
 General
 -------
