@@ -500,6 +500,13 @@ def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
 
 def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     """
+    :param tfile: TFile object to write to.
+    :type  tfile: ROOT.TFile.
+    :param directoryName: Full path of directory you wish to write the histograms to.
+    :type  directoryName: str  (e.g. "Event/PerEntryHistograms" )
+    :param histograms:  List of ROOT histograms to write.
+    :type  histograms: [ROOT.TH1,..]
+    
     Write a list of hitograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
     """
     tfile.cd(directoryName)
