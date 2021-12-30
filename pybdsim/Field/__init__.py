@@ -15,6 +15,7 @@ from ._Field import MirrorDipoleQuadrant1
 
 from .FieldPlotter import Plot1DFxFyFz
 from .FieldPlotter import Plot2DXY
+from .FieldPlotter import Plot2DXYStream
 from .FieldPlotter import Plot2DXYConnectionOrder
 from .FieldPlotter import Plot2DXYBz
 from .FieldPlotter import Plot2DXYFxFyFz
