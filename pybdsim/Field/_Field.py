@@ -305,12 +305,13 @@ def MirrorDipoleQuadrant1(field2D):
     returns an instance of the same type.
     
     For a 2D field (i.e. function of x,y but can include Bx,By,Bz),
-    for the quadrant #1, mirror it and generate a bigger field for
+    for the quadrant \#1, mirror it and generate a bigger field for
     all four quadrants.
-    1: original data
-    2: data mirrored in x, (x,Bx) *= -1
-    3: data mirrored in x,y, (x,y,By) *= -1
-    4: data mirrored in y, (y,Bx) *= -1
+    
+    1. original data
+    2. data mirrored in x, (x,Bx) \*= -1
+    3. data mirrored in x,y, (x,y,By) \*= -1
+    4. data mirrored in y, (y,Bx) \*= -1
 
     This is based on a dipole field.
     """
