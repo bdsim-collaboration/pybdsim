@@ -63,9 +63,9 @@ information. However, a small example script is shown below here (in Python lang
   ymax = 30
   data = []
   # loop over and build up 3d lists of lists of lists
-  for xi in [-xmax, xmax]:
+  for yi in [-ymax, ymax]:
      v = []
-     for yi in [-ymax, ymax]:
+     for xi in [-xmax, xmax]:
          # here, fx,fy,fz could be from a function
          v.append([xi, yi, fx, fy, fz])
          data.append(v)
@@ -98,6 +98,13 @@ Generally, the :code:`numpy.shape(array)` would look like:
 * 2D: :code:`(N_x, N_y, 5)`
 * 3D: :code:`(N_x, N_y, N_z, 6)`
 * 4D: :code:`(N_x, N_y, N_z, N_t, 7)`
+
+.. warning:: A key check is looking at the field map, the higher dimension coordinates
+	     (e.g. Y, not X) should chanage first. So for a given X value we should see
+	     the Y values cycle through a range, then the X should increment then the Y
+	     values cycle again. If this is not the case, then the loop order of dimensions
+	     is backwards. You can use "loopOrder" in the header or rewrite the field map
+	     correctly.
 
 Alternative Dimensions
 **********************
