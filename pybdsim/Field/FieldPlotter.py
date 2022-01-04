@@ -54,7 +54,10 @@ class OneDData(FourDData):
     def __init__(self, filename):
         FourDData.__init__(self, filename, tind=-1, zind=-1, yind=-1)
 
-def _Niceties(xlabel, ylabel, zlabel=""):
+def _Niceties(xlabel, ylabel, zlabel="", flipX=False):
+    if flipX:
+        cx = _plt.xlim()
+        _plt.xlim(cx[1],cx[0]) # plot backwards in effect
     _plt.xlabel(xlabel)
     _plt.ylabel(ylabel)
     _plt.colorbar(label=zlabel)
@@ -97,7 +100,7 @@ def Plot1DFxFyFz(filename):
     _plt.setp(axFy.get_xticklabels(), visible=False)
     _plt.tight_layout()
 
-def Plot2DXY(filename, scale=None):
+def Plot2DXY(filename, scale=None, title=None, flipX=False):
     """
     Plot a bdsim field map file using the X,Y plane.
     
@@ -105,11 +108,15 @@ def Plot2DXY(filename, scale=None):
     :type filename: str, pybdsim.Field._Field.Field2D instance
     :param scale: numerical scaling for quiver plot arrow lengths.
     :type scale: float
+    :param title: title for plot
+    :type title: str
     """
     d = TwoDData(filename)
     _plt.figure()
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
-    _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)")
+    if title:
+        _plt.title(title)
+    _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX)
 
 def Plot2DXYConnectionOrder(filename):
     d = TwoDData(filename)
@@ -123,7 +130,7 @@ def Plot2DXYConnectionOrder(filename):
     ax.set_aspect('equal')
     
 
-def Plot2DXYBz(filename, scale=None):
+def Plot2DXYBz(filename, scale=None, title=None, flipX=False):
     """
     Plot a bdsim field map file use the X,Y plane, but plotting By component.
     
@@ -131,6 +138,8 @@ def Plot2DXYBz(filename, scale=None):
     :type filename: str, pybdsim.Field._Field.Field2D instance
     :param scale: numerical scaling for quiver plot arrow lengths.
     :type scale: float
+    :param title: title for plot
+    :type title: str
     """
     if type(filename) is str:
         d = _pybdsim.Field.Load(filename)
@@ -142,7 +151,9 @@ def Plot2DXYBz(filename, scale=None):
     _plt.figure()
     ext = [_np.min(d.data[:,:,0]),_np.max(d.data[:,:,0]),_np.min(d.data[:,:,1]),_np.max(d.data[:,:,1])]
     _plt.imshow(d.data[:,:,-1], extent=ext, origin='lower', aspect='equal', interpolation='none', cmap=_plt.cm.magma)
-    _Niceties('X (cm)', 'Y (cm)', zlabel="$B_z$ (T)")
+    if title:
+        _plt.title(title)
+    _Niceties('X (cm)', 'Y (cm)', zlabel="$B_z$ (T)", flipX=flipX)
 
 
 def Plot2DXYFxFyFz(filename, title=None, aspect="auto", extent=None, **imshowKwargs):
