@@ -16,13 +16,7 @@ functions that are added dynamically based on the distribution type selected.::
   >>> b = pybdsim.Beam.Beam()
   >>> b.SetParicleType("proton")
   >>> b.SetDistributionType("reference")
-  
 
-Field
------
-
-This module allows BDSIM format field maps to be written and loaded. There are also
-some plotting functions.  Please see :ref:`pybdsim-field-module` for more details.
 
 Options.Options
 ---------------

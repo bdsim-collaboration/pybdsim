@@ -500,6 +500,13 @@ def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
 
 def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     """
+    :param tfile: TFile object to write to.
+    :type  tfile: ROOT.TFile.
+    :param directoryName: Full path of directory you wish to write the histograms to.
+    :type  directoryName: str  (e.g. "Event/PerEntryHistograms" )
+    :param histograms:  List of ROOT histograms to write.
+    :type  histograms: [ROOT.TH1,..]
+    
     Write a list of hitograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
     """
     tfile.cd(directoryName)
@@ -996,7 +1003,7 @@ class _SamplerData(object):
 
 class PhaseSpaceData(_SamplerData):
     """
-    Pull phase space data from a loaded DataLoader instance of raw data.
+    Pull phase space data from a loaded DataLoader instance of raw data for all events.
 
     Extracts only: 'x','xp','y','yp','z','zp','energy','T'
 
@@ -1016,7 +1023,7 @@ class PhaseSpaceData(_SamplerData):
 
 class SamplerData(_SamplerData):
     """
-    Pull sampler data from a loaded DataLoader instance of raw data.
+    Pull sampler data from a loaded DataLoader instance of raw data for all events.
 
     Loads all data in a given sampler.
 

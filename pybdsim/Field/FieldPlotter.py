@@ -118,6 +118,51 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False):
         _plt.title(title)
     _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX)
 
+def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
+    """
+    Plot a bdsim field map file using the X,Y plane as a stream plot.
+    
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field2D or Field3D instance
+    :param density: arrow density (default=1) for matplotlib streamplot
+    :type density: float
+    :param zIndexIf3D: index in Z if using 3D field map (default=0)
+    :type zIndexIf3D: int
+    :param useColour: use magnitude of field as colour.
+    :type useColour: bool
+
+    Note, matplotlibs streamplot may raise an exception if the field is entriely 0 valued.
+    """
+    if type(filename) is str:
+        d = _pybdsim.Field.Load(filename)
+    elif isinstance(filename, _pybdsim.Field._Field.Field):
+        d = filename.data
+    else:
+        raise ValueError("Invalid type of data")
+
+    shape = _np.shape(d.data)
+    zInd = zIndexIf3D
+    if len(shape) == 3:
+        cx = d[0,:,0]
+        cy = d[:,0,1]
+        fx = d[:,:,2]
+        fy = d[:,:,3]
+    elif len(shape) == 4:
+        cx = d[zInd,0,:,0]
+        cy = d[zInd,:,0,1]
+        fx = d[zInd,:,:,3]
+        fy = d[zInd,:,:,4]
+    else:
+        raise ValueError("Currently only 2D and 3D field maps supported.")
+        
+    _plt.figure()
+    if useColour:
+        mag = _np.sqrt(fx**2 + fy**2)
+        _plt.streamplot(cx,cy,fx,fy,color=mag,cmap=_plt.cm.magma,density=density)
+    else:
+        _plt.streamplot(cx,cy,fx,fy,density=density)
+    _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)")
+
 def Plot2DXYConnectionOrder(filename):
     d = TwoDData(filename)
     _plt.figure()
