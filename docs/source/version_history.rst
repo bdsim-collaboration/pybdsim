@@ -20,6 +20,7 @@ New Features
 * New field plotting function `pybdsim.Field.Plot2DXYConnectionOrder` to see the order
   an array is written in. This can be used to validate any field manipulations.
 * New field plotting function `pybdsim.Field.Plot1DFxFyFz` to see field components in 1D.
+* Field loading automatically works for dimensions such as X, Z for 2D instead of X, Y now.
 
 Bug Fixes
 ---------

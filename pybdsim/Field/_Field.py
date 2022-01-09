@@ -191,14 +191,17 @@ class Field4D(Field):
         self.header['nt']   = _np.shape(self.data)[inds[3]]
 
 
-def Load(filename, debug=False, unconventionalOrder=False):
+def Load(filename, debug=False):
     """
+    :param filename: name of file to load
+    :type filename: str
+    
     Load a BDSIM field format file into a numpy array. Can either
     be a regular ascii text file or can be a compressed file ending
     in ".tar.gz".
 
     returns a numpy array with the corresponding number of dimensions
-    and the dimension has the coordaintes and fx,fy,fz.
+    and the dimension has the coordinates and fx,fy,fz.
     """
     gzippedFile = False
     if (filename.endswith('.tar.gz')):
@@ -251,20 +254,17 @@ def Load(filename, debug=False, unconventionalOrder=False):
             print(columns)
         return
 
-    if unconventionalOrder:
-        return data
-
-    required = ['nx','ny','nz','nt']
-
-    requiredKeys    = required[:nDim]
-    requiredKeysSet = set(requiredKeys)
-    if not requiredKeysSet.issubset(list(header.keys())):
+    requiredSet = {'nx','ny','nz','nt'}
+    headerKeySet = set(header.keys())
+    keysPresent = headerKeySet.intersection(requiredSet)
+    keysPresentList = list(keysPresent)
+    if len(keysPresent) < nDim:
         print('missing keys from header!')
         if debug:
             print(header)
         return
     else:
-        dims = [int(header[k]) for k in requiredKeys[::-1]]
+        dims = [int(header[k]) for k in keysPresentList[::-1]]
         dims.append(len(columns))
         if debug:
             print(dims)
@@ -273,12 +273,13 @@ def Load(filename, debug=False, unconventionalOrder=False):
         data = data.reshape(*dims)
 
     # build field object
+    columns = [s.strip('n') for s in keysPresentList]
     if nDim == 1:
-        fd = Field1D(data)
+        fd = Field1D(data, column=columns[0])
     elif nDim == 2:
-        fd = Field2D(data)
+        fd = Field2D(data, firstColumn=columns[0], secondColumn=columns[1])
     elif nDim == 3:
-        fd = Field3D(data)
+        fd = Field3D(data, firstColumn=columns[0], secondColumn=columns[1], thirdColumn=columns[2])
     elif nDim == 4:
         fd = Field4D(data)
     else:
