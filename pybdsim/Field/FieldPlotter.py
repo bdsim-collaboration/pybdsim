@@ -100,7 +100,7 @@ def Plot1DFxFyFz(filename):
     _plt.setp(axFy.get_xticklabels(), visible=False)
     _plt.tight_layout()
 
-def Plot2DXY(filename, scale=None, title=None, flipX=False):
+def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y"):
     """
     Plot a bdsim field map file using the X,Y plane.
     
@@ -110,13 +110,19 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False):
     :type scale: float
     :param title: title for plot
     :type title: str
+    :param flipX: whether to plot x backwards to math the right hand coordinate system of Geant4.
+    :type flipX: bool
+    :param firstDimension: Name of first dimension, e.g. "X"
+    :type firstDimension: str
+    :param secondDimension: Name of second dimension, e.g. "Z"
+    :type secondDimension: str
     """
     d = TwoDData(filename)
     _plt.figure()
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
     if title:
         _plt.title(title)
-    _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX)
+    _Niceties(firstDimension+' (cm)', secondDimension+' (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX)
 
 def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
     """
