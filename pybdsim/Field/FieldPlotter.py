@@ -3,6 +3,20 @@ import numpy as _np
 
 import pybdsim as _pybdsim
 
+def _ArrowSize(d):
+    """
+    :param d: pybdsim.Field.Field instance
+    :type  d: pybdsim.Field.Field
+    """
+    nDim = d.nDimensions
+    h = d.header
+    result = _np.inf
+    for i in range(nDim):
+        key = d.columns[i]
+        step = (h[key+'max'] - h[key+'min']) / h['n'+key]
+        result = _np.min([result, step])
+    return result
+
 class FourDData(object):
     """
     Class purely to simplify plotting of fields. Not for general use.
@@ -123,6 +137,53 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
     if title:
         _plt.title(title)
     _Niceties(firstDimension+' (cm)', secondDimension+' (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX)
+
+
+def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDimension="X", secondDimension="Y"):
+    """
+    Plot a bdsim field map file using any two planes. The corresponding
+    field components are plotted (e.g. X:Z -> Fx:Fz).
+
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field2D instance
+    :param scale: numerical scaling for quiver plot arrow lengths.
+    :type scale: float
+    :param title: title for plot
+    :type title: str
+    :param flipX: whether to plot x backwards to math the right hand coordinate system of Geant4.
+    :type flipX: bool
+    :param firstDimension: Name of first dimension, e.g. "X"
+    :type firstDimension: str
+    :param secondDimension: Name of second dimension, e.g. "Z"
+    :type secondDimension: str
+    """
+    if type(filename) is str:
+        doriginal = _pybdsim.Field.Load(filename)
+        d = doriginal.data
+    elif isinstance(filename, _pybdsim.Field._Field.Field):
+        doriginal = filename
+        d = filename.data
+    else:
+        raise ValueError("Invalid type of data")
+    _plt.figure()
+    assert(firstDimension != secondDimension)
+    iInd = ['x', 'y', 'z', 't'].index(firstDimension.lower())
+    jInd = ['x', 'y', 'z', 't'].index(secondDimension.lower())
+    ci = d[:, :, 0].flatten()
+    cj = d[:, :, 1].flatten()
+    fi = d[:, :, iInd+2].flatten()
+    fj = d[:, :, jInd+2].flatten()
+    if scale is None:
+        scale = _ArrowSize(doriginal)
+    fmag = _np.hypot(fi,fj)
+    fi /= fmag
+    fj /= fmag
+    _plt.quiver(ci, cj, fi, fj, fmag, cmap=_plt.cm.magma, pivot='mid', scale=1.0/scale, units='xy', scale_units='xy')
+    if title:
+        _plt.title(title)
+    fd = firstDimension
+    sd = secondDimension
+    _Niceties(fd + ' (cm)', sd + ' (cm)', zlabel="|$B_{"+fd+","+sd+"}$| (T)", flipX=flipX)
 
 def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
     """

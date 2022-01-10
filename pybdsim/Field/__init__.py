@@ -14,6 +14,7 @@ from ._Field import Load
 from ._Field import MirrorDipoleQuadrant1
 
 from .FieldPlotter import Plot1DFxFyFz
+from .FieldPlotter import Plot2D
 from .FieldPlotter import Plot2DXY
 from .FieldPlotter import Plot2DXYStream
 from .FieldPlotter import Plot2DXZStream
