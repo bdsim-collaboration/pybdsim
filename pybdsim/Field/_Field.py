@@ -15,7 +15,8 @@ class Field(object):
         self.columns         = columns
         self.header          = {}
         self.flip            = flip
-        self.doublePrecision = doublePrecision       
+        self.doublePrecision = doublePrecision
+        self.nDimensions     = 0
 
     def Write(self, fileName):
         f = open(fileName, 'w')
@@ -82,6 +83,7 @@ class Field1D(Field):
         self.header[column.lower() + 'min'] = _np.min(self.data[:,0])
         self.header[column.lower() + 'max'] = _np.max(self.data[:,0])
         self.header['n' + column.lower()]   = _np.shape(self.data)[0]
+        self.nDimensions = 1
 
 class Field2D(Field):
     """
@@ -115,6 +117,7 @@ class Field2D(Field):
         self.header[scl+'min'] = _np.min(self.data[:,:,1])
         self.header[scl+'max'] = _np.max(self.data[:,:,1])
         self.header['n'+scl]   = _np.shape(self.data)[inds[1]]
+        self.nDimensions = 2
 
 class Field3D(Field):
     """
@@ -152,6 +155,7 @@ class Field3D(Field):
         self.header[tcl+'min'] = _np.min(self.data[:,:,:,2])
         self.header[tcl+'max'] = _np.max(self.data[:,:,:,2])
         self.header['n'+tcl]   = _np.shape(self.data)[inds[2]]
+        self.nDimensions = 3
 
 class Field4D(Field):
     """
@@ -189,6 +193,7 @@ class Field4D(Field):
         self.header['tmin'] = _np.min(self.data[:,:,:,:,3])
         self.header['tmax'] = _np.max(self.data[:,:,:,:,3])
         self.header['nt']   = _np.shape(self.data)[inds[3]]
+        self.nDimensions = 4
 
 
 def Load(filename, debug=False):
