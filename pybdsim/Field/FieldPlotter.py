@@ -126,7 +126,7 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
 
 def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
     """
-    Plot a bdsim field map file using the X,Y plane as a stream plot.
+    Plot a bdsim field map file using the X,Y plane as a stream plot and plotting Fx, Fy.
     
     :param filename: name of field map file or object
     :type filename: str, pybdsim.Field._Field.Field2D or Field3D instance
@@ -160,7 +160,14 @@ def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
         fy = d[zInd,:,:,4]
     else:
         raise ValueError("Currently only 2D and 3D field maps supported.")
-        
+
+    # modern matplotlib's streamplot has a very strict check on the spacing
+    # of points being equal, which they're meant. However, it is too strict
+    # given the precision of incoming data, So, knowing here they're linearly
+    # spaced, we regenerate again for the purpose of this plot.
+    cx = _np.linspace(_np.min(cx), _np.max(cx), len(cx))
+    cy = _np.linspace(_np.min(cy), _np.max(cy), len(cy))
+    
     _plt.figure()
     if useColour:
         mag = _np.sqrt(fx**2 + fy**2)
@@ -168,6 +175,58 @@ def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
     else:
         _plt.streamplot(cx,cy,fx,fy,density=density)
     _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)")
+
+def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True):
+    """
+    Plot a bdsim field map file using the X,Z plane as a stream plot and plotting Fx, Fz.
+    
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field2D or Field3D instance
+    :param density: arrow density (default=1) for matplotlib streamplot
+    :type density: float
+    :param yIndexIf3D: index in Z if using 3D field map (default=0)
+    :type yIndexIf3D: int
+    :param useColour: use magnitude of field as colour.
+    :type useColour: bool
+
+    Note, matplotlibs streamplot may raise an exception if the field is entriely 0 valued.
+    """
+    if type(filename) is str:
+        d = _pybdsim.Field.Load(filename)
+    elif isinstance(filename, _pybdsim.Field._Field.Field):
+        d = filename.data
+    else:
+        raise ValueError("Invalid type of data")
+
+    shape = _np.shape(d.data)
+    yInd = yIndexIf3D
+    if len(shape) == 3:
+        cx = d[0,:,0]
+        cz = d[:,0,1] # still 2d data
+        fx = d[:,:,2]
+        fz = d[:,:,4]
+    elif len(shape) == 4:
+        cx = d[yInd,0,:,0]
+        cz = d[yInd,:,0,2]
+        fx = d[yInd,:,:,3]
+        fz = d[yInd,:,:,5]
+    else:
+        raise ValueError("Currently only 2D and 3D field maps supported.")
+
+    # modern matplotlib's streamplot has a very strict check on the spacing
+    # of points being equal, which they're meant. However, it is too strict
+    # given the precision of incoming data, So, knowing here they're linearly
+    # spaced, we regenerate again for the purpose of this plot.
+    cx = _np.linspace(_np.min(cx), _np.max(cx), len(cx))
+    cz = _np.linspace(_np.min(cz), _np.max(cz), len(cz))
+    
+    _plt.figure()
+    if useColour:
+        mag = _np.sqrt(fx**2 + fz**2)
+        _plt.streamplot(cx,cz,fx,fz,color=mag,cmap=_plt.cm.magma,density=density)
+    else:
+        _plt.streamplot(cx,cz,fx,fz,density=density)
+    _Niceties('X (cm)', 'Z (cm)', zlabel="|$B_{x,z}$| (T)")
 
 def Plot2DXYConnectionOrder(filename):
     d = TwoDData(filename)
