@@ -115,7 +115,7 @@ def Plot1DFxFyFz(filename):
     _plt.setp(axFy.get_xticklabels(), visible=False)
     _plt.tight_layout()
 
-def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y"):
+def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal'):
     """
     Plot a bdsim field map file using the X,Y plane.
     
@@ -131,16 +131,18 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
     :type firstDimension: str
     :param secondDimension: Name of second dimension, e.g. "Z"
     :type secondDimension: str
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
     """
     d = TwoDData(filename)
     _plt.figure()
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
     if title:
         _plt.title(title)
-    _Niceties(firstDimension+' (cm)', secondDimension+' (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX)
+    _Niceties(firstDimension+' (cm)', secondDimension+' (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX, aspect=aspect)
 
 
-def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDimension="X", secondDimension="Y"):
+def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDimension="X", secondDimension="Y", aspect="equal"):
     """
     Plot a bdsim field map file using any two planes. The corresponding
     field components are plotted (e.g. X:Z -> Fx:Fz).
@@ -157,6 +159,8 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
     :type firstDimension: str
     :param secondDimension: Name of second dimension, e.g. "Z"
     :type secondDimension: str
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
     """
     if type(filename) is str:
         doriginal = _pybdsim.Field.Load(filename)
@@ -184,9 +188,9 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
         _plt.title(title)
     fd = firstDimension
     sd = secondDimension
-    _Niceties(fd + ' (cm)', sd + ' (cm)', zlabel="|$B_{"+fd+","+sd+"}$| (T)", flipX=flipX)
+    _Niceties(fd + ' (cm)', sd + ' (cm)', zlabel="|$B_{"+fd+","+sd+"}$| (T)", flipX=flipX, aspect=aspect)
 
-def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
+def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True, aspect='equal'):
     """
     Plot a bdsim field map file using the X,Y plane as a stream plot and plotting Fx, Fy.
     
@@ -197,7 +201,9 @@ def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
     :param zIndexIf3D: index in Z if using 3D field map (default=0)
     :type zIndexIf3D: int
     :param useColour: use magnitude of field as colour.
-    :type useColour: bool
+    :type useColour: bool\
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
 
     Note, matplotlibs streamplot may raise an exception if the field is entriely 0 valued.
     """
@@ -236,9 +242,9 @@ def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True):
         _plt.streamplot(cx,cy,fx,fy,color=mag,cmap=_plt.cm.magma,density=density)
     else:
         _plt.streamplot(cx,cy,fx,fy,density=density)
-    _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)")
+    _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)", aspect=aspect)
 
-def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True):
+def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True, aspect='equal'):
     """
     Plot a bdsim field map file using the X,Z plane as a stream plot and plotting Fx, Fz.
     
@@ -250,6 +256,8 @@ def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True):
     :type yIndexIf3D: int
     :param useColour: use magnitude of field as colour.
     :type useColour: bool
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
 
     Note, matplotlibs streamplot may raise an exception if the field is entriely 0 valued.
     """
@@ -288,7 +296,7 @@ def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True):
         _plt.streamplot(cx,cz,fx,fz,color=mag,cmap=_plt.cm.magma,density=density)
     else:
         _plt.streamplot(cx,cz,fx,fz,density=density)
-    _Niceties('X (cm)', 'Z (cm)', zlabel="|$B_{x,z}$| (T)")
+    _Niceties('X (cm)', 'Z (cm)', zlabel="|$B_{x,z}$| (T)", aspect=aspect)
 
 def Plot2DXYConnectionOrder(filename):
     d = TwoDData(filename)
@@ -313,6 +321,8 @@ def Plot2DXYComponent(filename, componentIndex=2, scale=None, title=None, flipX=
     :type scale: float
     :param title: title for plot
     :type title: str
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
     """
     if type(filename) is str:
         d = _pybdsim.Field.Load(filename)
@@ -345,6 +355,8 @@ def Plot2DXYBx(filename, scale=None, title=None, flipX=False, aspect='equal'):
     :type scale: float
     :param title: title for plot
     :type title: str
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
     """
     Plot2DXYComponent(filename, 0, scale, title, flipX, aspect)
 
@@ -358,6 +370,8 @@ def Plot2DXYBy(filename, scale=None, title=None, flipX=False, aspect='equal'):
     :type scale: float
     :param title: title for plot
     :type title: str
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
     """
     Plot2DXYComponent(filename, 1, scale, title, flipX, aspect)
 
@@ -371,6 +385,8 @@ def Plot2DXYBz(filename, scale=None, title=None, flipX=False, aspect='equal'):
     :type scale: float
     :param title: title for plot
     :type title: str
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
     """
     Plot2DXYComponent(filename, 2, scale, title, flipX, aspect)
 
