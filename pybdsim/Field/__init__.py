@@ -19,6 +19,8 @@ from .FieldPlotter import Plot2DXY
 from .FieldPlotter import Plot2DXYStream
 from .FieldPlotter import Plot2DXZStream
 from .FieldPlotter import Plot2DXYConnectionOrder
+from .FieldPlotter import Plot2DXYBx
+from .FieldPlotter import Plot2DXYBy
 from .FieldPlotter import Plot2DXYBz
 from .FieldPlotter import Plot2DXYFxFyFz
 from .FieldPlotter import Plot3DXY

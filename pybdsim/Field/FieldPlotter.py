@@ -68,16 +68,17 @@ class OneDData(FourDData):
     def __init__(self, filename):
         FourDData.__init__(self, filename, tind=-1, zind=-1, yind=-1)
 
-def _Niceties(xlabel, ylabel, zlabel="", flipX=False):
+def _Niceties(xlabel, ylabel, zlabel="", flipX=False, aspect='equal'):
     if flipX:
         cx = _plt.xlim()
         _plt.xlim(cx[1],cx[0]) # plot backwards in effect
     _plt.xlabel(xlabel)
     _plt.ylabel(ylabel)
     _plt.colorbar(label=zlabel)
-    _plt.tight_layout()
     ax = _plt.gca()
-    ax.set_aspect('equal')
+    ax.set_aspect(aspect)
+    _plt.tight_layout()
+
 
 def Plot1DFxFyFz(filename):
     """
@@ -299,14 +300,15 @@ def Plot2DXYConnectionOrder(filename):
     _plt.tight_layout()
     ax = _plt.gca()
     ax.set_aspect('equal')
-    
 
-def Plot2DXYBz(filename, scale=None, title=None, flipX=False):
+def Plot2DXYComponent(filename, componentIndex=2, scale=None, title=None, flipX=False, aspect='equal'):
     """
     Plot a bdsim field map file use the X,Y plane, but plotting By component.
     
     :param filename: name of field map file or object
     :type filename: str, pybdsim.Field._Field.Field2D instance
+    :param componentIndex: index of field component (0,1,2) for Fx, Fy, Fz
+    :type componentIndex: int
     :param scale: numerical scaling for quiver plot arrow lengths.
     :type scale: float
     :param title: title for plot
@@ -318,13 +320,59 @@ def Plot2DXYBz(filename, scale=None, title=None, flipX=False):
         d = filename
     else:
         raise TypeError("'filename' must be either str or Field2D")
+
+    acceptableIndices = {0,1,2}
+    assert(componentIndex in acceptableIndices)
+
+    label = ["x", "y", "z"][componentIndex]
+
+    ci = -3 + componentIndex
     
     _plt.figure()
     ext = [_np.min(d.data[:,:,0]),_np.max(d.data[:,:,0]),_np.min(d.data[:,:,1]),_np.max(d.data[:,:,1])]
-    _plt.imshow(d.data[:,:,-1], extent=ext, origin='lower', aspect='equal', interpolation='none', cmap=_plt.cm.magma)
+    _plt.imshow(d.data[:,:,ci], extent=ext, origin='lower', aspect='equal', interpolation='none', cmap=_plt.cm.magma)
     if title:
         _plt.title(title)
-    _Niceties('X (cm)', 'Y (cm)', zlabel="$B_z$ (T)", flipX=flipX)
+    _Niceties(d.columns[0]+' (cm)', d.columns[1]+' (cm)', zlabel="$B_"+label+"$ (T)", flipX=flipX, aspect=aspect)
+
+def Plot2DXYBx(filename, scale=None, title=None, flipX=False, aspect='equal'):
+    """
+    Plot a bdsim field map file use the X,Y plane, but plotting By component.
+    
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field2D instance
+    :param scale: numerical scaling for quiver plot arrow lengths.
+    :type scale: float
+    :param title: title for plot
+    :type title: str
+    """
+    Plot2DXYComponent(filename, 0, scale, title, flipX, aspect)
+
+def Plot2DXYBy(filename, scale=None, title=None, flipX=False, aspect='equal'):
+    """
+    Plot a bdsim field map file use the X,Y plane, but plotting By component.
+    
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field2D instance
+    :param scale: numerical scaling for quiver plot arrow lengths.
+    :type scale: float
+    :param title: title for plot
+    :type title: str
+    """
+    Plot2DXYComponent(filename, 1, scale, title, flipX, aspect)
+
+def Plot2DXYBz(filename, scale=None, title=None, flipX=False, aspect='equal'):
+    """
+    Plot a bdsim field map file use the X,Y plane, but plotting By component.
+    
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field2D instance
+    :param scale: numerical scaling for quiver plot arrow lengths.
+    :type scale: float
+    :param title: title for plot
+    :type title: str
+    """
+    Plot2DXYComponent(filename, 2, scale, title, flipX, aspect)
 
 
 def Plot2DXYFxFyFz(filename, title=None, aspect="auto", extent=None, **imshowKwargs):
