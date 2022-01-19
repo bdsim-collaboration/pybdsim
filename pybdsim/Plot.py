@@ -3,6 +3,7 @@ Useful plots for bdsim output
 
 """
 from .import Data as _Data
+from .import Constants as _Constants
 import pymadx as _pymadx
 
 import copy as _copy
@@ -455,15 +456,17 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
         print("Written ", output_filename)
 
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(10,5), **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
 
-    xlabel         - x axis label
-    ylabel         - y axis label
-    title          - plot title
-    scalingFactor  - multiplier for values
-    xScalingFactor - multiplier for x axis coordinates
+    :param xlabel: x axis label
+    :param ylabel: y axis label
+    :param title:  plot title
+    :param scalingFactor: multiplier for values
+    :param xScalingFactor: multiplier for x axis coordinates
+
+    return figure instance
     """
     if 'drawstyle' not in errorbarKwargs:
         errorbarKwargs['drawstyle'] = 'steps-mid'
@@ -491,10 +494,29 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     _plt.tight_layout()
     return f
 
-def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),**errorbarKwargs):
+def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
+    histograms = [spectra.histogramspy[pdgid] for pdgid in spectra.pdgidsSorted]
+    labels = [_Constants.GetPDGName(pdgid)[1] for pdgid in spectra.pdgidsSorted]
+    if xlabel is None:
+        print("Using default xlabel of kinetic energy")
+        xlabel="Kinetic Energy (GeV)"
+    if ylabel is None:
+        h1 = histograms[0]
+        if _np.any(_np.diff(h1.xwidths)):
+            # uneven binning suspected
+            ylabel = "Per-Event Rate"
+        else:
+            ylabel = "Per-Event Rate / " + str(round(h1.xwidths[0],2)) + " GeV"
+    if title is None:
+        title = spectra.name
+    Histogram1DMultiple(histograms, labels, log, xlog, xlabel, ylabel, title, scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+
+def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
     """
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
+
+    return figure instance
 
     xScalingFactors may be a float, int or list
 
@@ -520,10 +542,25 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
         xScalingFactors = _np.ones_like(histograms)
     elif type(xScalingFactors) == float or type(xScalingFactors) == int:
         xScalingFactors = xScalingFactors * _np.ones_like(histograms)
+    ymax = -_np.inf
+    ymin =  _np.inf
+    yminpos = _np.inf
+    xmin = _np.inf
+    xmax = -_np.inf
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
+        # x range heuristic - do before padding
+        xmin = min(xmin, _np.min(xsf*h.xlowedge))
+        xmax = max(xmax, _np.max(xsf*h.xhighedge))
         ht = _Data.PadHistogram1D(h)
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
+        # for heuristic determination of ylim we use original unpadded histogram data
+        ymin = min(ymin, sf*_np.min(h.contents-h.errors))
+        ypos = h.contents[h.contents>0]
+        if len(ypos) > 0:
+            yminpos = min(yminpos, _np.min(ypos))
+        ymax = max(ymax, sf*_np.max(h.contents+h.errors))
+        
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
@@ -539,9 +576,22 @@ def Histogram1DMultiple(histograms, labels, log=False, xlabel=None, ylabel=None,
     else:
         ax.set_title(title)
     if log:
-        _plt.yscale('log', nonposy='clip')
+        _plt.ylim(abs(yminpos)*0.9,abs(ymax)*1.1)
+        if _matplotlib.__version__ >= '3.3':
+            _plt.yscale('log', nonpositive='clip')
+        else:
+            _plt.yscale('log', nonposy='clip')
+    else:
+        _plt.ylim(ymin*0.8, ymax*1.05)
 
-    _plt.legend()
+    if xlog:
+        _plt.xscale('log')
+        suggestedXMin = 0.95*xmin
+        if suggestedXMin <= 0:
+            suggestedXMin = 1
+        _plt.xlim(suggestedXMin, 1.05*xmax)
+
+    _plt.legend(**legendKwargs)
     _plt.tight_layout()
     
     return f
@@ -560,6 +610,8 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     autovmin       - fill in the background (normally white) with minimum
     vmin           - explicitly control the vmin for the log normalisation
     vmax           - explicitly control the vmax for the log normalisation
+
+    return figure instance
     """
     h = histogram
     f = _plt.figure(figsize=figsize)
@@ -631,6 +683,95 @@ def Histogram3D(th3):
     ax.voxels(fill, facecolors=colours)
     #return colours
 
+def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, **errorbarKwargs):
+    """
+    Plot two histograms with their ratio (#1 / #2) in a subplot below.
+
+    :param histogram1: a `pybdsim.Data.TH1` instance
+    :param histogram2: a `pybdsim.Data.TH1` instance
+    :param label1: legend label for histogram1 (str or "" or None)
+    :param label2: legend label for histogram2
+    :param ratio:  integer ratio of main plot to ratio plot (recommend 1 - 5)
+
+    If the labels are "" then the histogram.title string will be used. If None, then
+    no label will be added.
+    """
+
+    if 'drawstyle' not in errorbarKwargs:
+        errorbarKwargs['drawstyle'] = 'steps-mid'   
+
+    h1 = histogram1
+    h2 = histogram2
+    fig     = _plt.figure(figsize=figsize)
+    nrows   = ratio + 1
+    gs      = fig.add_gridspec(ncols=1, nrows=nrows, hspace=0.06)
+    axHist  = fig.add_subplot(gs[:-1,0])
+    axRatio = fig.add_subplot(gs[-1,0], sharex=axHist)
+
+    # calculate ratio array
+    if len(h1.xcentres) != len(h2.xcentres):
+        raise ValueError("Histograms with different binning - ratio cannot be taken")
+
+    mask = _np.logical_and(h1.contents != 0, h2.contents != 0)
+    ratio = _np.divide(h1.contents, h2.contents, where=mask)
+    ratio = _np.ma.masked_where(_np.logical_not(mask), ratio)
+    con1  = _np.ma.masked_where(_np.logical_not(mask), h1.contents)
+    con2  = _np.ma.masked_where(_np.logical_not(mask), h2.contents)
+    err1  = _np.ma.masked_where(_np.logical_not(mask), h1.errors)
+    err2  = _np.ma.masked_where(_np.logical_not(mask), h2.errors)
+    ratioErr = ratio * _np.sqrt( (err1/con1)**2 + (err2/con2)**2 )
+    
+    sf  = scalingFactor
+    xsf = xScalingFactor
+    if label1 == "":
+        label1 = h1.title
+    if label2 == "":
+        label2 = h2.title
+    if histogram1Colour is not None:
+        errorbarKwargs['c'] = histogram1Colour
+    axHist.errorbar(xsf*h1.xcentres, sf*h1.contents, yerr=sf*h1.errors, label=label1, **errorbarKwargs)
+    if histogram1Colour is not None:
+        errorbarKwargs.pop('c')
+    if histogram2Colour is not None:
+        errorbarKwargs['c'] = histogram2Colour
+    axHist.errorbar(xsf*h2.xcentres, sf*h2.contents, yerr=sf*h2.errors, label=label2, **errorbarKwargs)
+    if label1 is not None and label2 is not None:
+        axHist.legend()
+    if yLogScale:
+        if _matplotlib.__version__ >= '3.3':
+            axHist.set_yscale('log', nonpositive='clip')
+        else:
+            axHist.set_yscale('log', nonposy='clip')
+    _plt.setp(axHist.get_xticklabels(), visible=False)
+
+    colour = _plt.rcParams['axes.prop_cycle'].by_key()['color'][2] # 3rd colour
+    if ratioColour is not None:
+        colour = ratioColour
+    axRatio.axhline(1.0, c='grey', alpha=0.2)
+    axRatio.errorbar(xsf*h1.xcentres, sf*ratio, yerr=sf*ratioErr, color=colour, drawstyle='steps-mid')
+
+    if xlabel is None:
+        axRatio.set_xlabel(h1.xlabel)
+    else:
+        axRatio.set_xlabel(xlabel)
+    if ylabel is None:
+        axHist.set_ylabel(h1.ylabel)
+    else:
+        axHist.set_ylabel(ylabel)
+    if title == "":
+        axHist.set_title(h1.title) # default to one in histogram
+    elif title is None:
+        pass
+    else:
+        axHist.set_title(title)
+
+    axRatio.set_ylabel('Ratio')
+
+    # when using gridspec, we use its tight layout
+    gs.tight_layout(fig)
+
+    return fig
+
 def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):
     """
     Load a BDSIM output file and plot primary phase space. Only accepts raw BDSIM output.
@@ -641,10 +782,12 @@ def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):
     """
     PhaseSpaceFromFile(filename, 0, outputfilename=outputfilename, extension=extension)
 
-def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf'):
+def PhaseSpaceFromFile(filename, samplerIndexOrName=0, nbins=None, outputfilename=None, extension='.pdf'):
     """
     Load a BDSIM output file and plot the phase space of a sampler (default the primaries).
     Only accepts raw BDSIM output.
+    
+    Number of bins chosen depending on number of samples.
 
     'outputfilename' should be without an extension - any extension will be stripped off.
     Plots are saves automatically as pdf, the file extension can be changed with
@@ -654,7 +797,7 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, outputfilename=None, exte
     from . import Data as _Data
     d = _Data.Load(filename)
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
-    PhaseSpace(psd, outputfilename=outputfilename, extension=extension)
+    PhaseSpace(psd, nbins=nbins, outputfilename=outputfilename, extension=extension)
 
 def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf',
                            nbins=None, energy='total', offsetTime=True, includeSecondaries=False,
@@ -819,12 +962,11 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     else:
         norm2D = None
     if log1daxes:
-        axX.set_yscale('log', nonposy='clip')
-        axY.set_yscale('log', nonposy='clip')
-        axXp.set_yscale('log', nonposy='clip')
-        axYp.set_yscale('log', nonposy='clip')
-        axE.set_yscale('log', nonposy='clip')
-        axT.set_yscale('log', nonposy='clip')
+        axes = [axX, axY, axXp, axYp, axE, axT]
+        if _matplotlib.__version__ >= '3.3':
+            [a.set_yscale('log', nonpositive='clip') for a in axes]
+        else:
+            [a.set_yscale('log', nonposy='clip') for a in axes]
 
     # plot the transverse coords histograms
     axX.hist(da['x'], nbins)
@@ -1215,7 +1357,10 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
         ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
 
-    ax.set_yscale("log", nonposy='clip')
+    if _matplotlib.__version__ >= '3.3':
+        ax.set_yscale("log", nonpositive='clip')
+    else:
+        ax.set_yscale("log", nonposy='clip')
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
     ax.yaxis.set_major_locator(_plt.LogLocator(subs=(1.0,))) #TODO: Find a way to disable auto ticks and always display all int powers
@@ -1297,7 +1442,10 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     ax2 = ax1.twinx()
     ax2.errorbar(eloss.xcentres, eloss.contents, xerr=eloss.xwidths*0.5,yerr=eloss.errors,c='k',
                  elinewidth=0.8, label='Energy Deposition', drawstyle='steps-mid', alpha=0.5)
-    ax2.set_yscale('log',nonposy='clip')
+    if _matplotlib.__version__ >= '3.3':
+        ax2.set_yscale('log',nonpositive='clip')
+    else:
+        ax2.set_yscale('log',nonposy='clip')
 
     if phitsylim is not None:
         ax1.set_ylim(*phitsylim)
