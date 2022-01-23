@@ -10,18 +10,21 @@ class Field(object):
     This does not support arbitrary loop ordering - only the originally intended
     xyzt.
     """
-    def __init__(self, array=_np.array([]), columns=[], flip=True, doublePrecision=False):
+    def __init__(self, array=_np.array([]), columns=[], flip=False, doublePrecision=False):
         self.data            = array
         self.columns         = columns
         self.header          = {}
         self.flip            = flip
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
-
-    def Write(self, fileName):
+        
+    def Write(self, fileName, writeLoopOrderReversed=False):
         f = open(fileName, 'w')
+        
         for key,value in self.header.items():
             f.write(str(key)+'> '+ str(value) + '\n')
+        lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
+        f.write("loopOrder> "+lo+"\n")
 
         if self.doublePrecision:
             colStrings = ['%23s' % s for s in self.columns]
@@ -105,7 +108,7 @@ class Field2D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y'):
+    def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y'):
         columns = [firstColumn, secondColumn, 'Fx', 'Fy', 'Fz']
         super(Field2D, self).__init__(data,columns,flip,doublePrecision)
         inds = [0,1] if flip else [1,0]
@@ -139,7 +142,7 @@ class Field3D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
+    def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
         columns = [firstColumn,secondColumn,thirdColumn,'Fx','Fy','Fz']
         super(Field3D, self).__init__(data,columns,flip,doublePrecision)
         inds = [0,1,2] if flip else [2,1,0]
@@ -177,7 +180,7 @@ class Field4D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False):
+    def __init__(self, data, flip=False, doublePrecision=False):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
         super(Field4D, self).__init__(data,columns,flip,doublePrecision)
         inds = [0,1,2,3] if flip else [3,2,1,0]
