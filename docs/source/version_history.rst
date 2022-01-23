@@ -2,8 +2,11 @@
 Version History
 ===============
 
-V2.5.0 - 2021 / XX / XX
+V2.5.0 - 2022 / 02 / XX
 =======================
+
+* Field classes no longer have :code:`flip=True` as the default - it is now :code:`False`.
+  Please check any field maps created by scripts using these classes.
 
 New Features
 ------------
@@ -30,10 +33,12 @@ Bug Fixes
   This has been fixed by fixing the interpretation of the error codes from ROOT.
 * Fix warning about "nonposy" in matplotlib version for log scales.
 * Fix check in Run of if it's a ROOT file or not. Simplify it to use file extension.
+* Tolerate no pytransport installation.
 
 General
 -------
 
+* Updated out of date documentation.
 * Better automatic ranges for Histogram1DMultiple plots by default.
 * Better field loading in `pybdsim.Field.Load`. Returns the same Field object
   from pybdsim as you would write.

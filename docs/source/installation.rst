@@ -6,15 +6,21 @@ Installation
 Requirements
 ------------
 
- * pybdsim is developed exclusively for Python 2.7.
+ * pybdsim is developed for Python 3. The developers use 3.8, 3.9 and 3.10.
 
- * Matplotlib
- * Numpy
- * Scipy
+ * matplotlib
+ * numpy
+ * scipy
  * fortranformat
- * root-numpy
+ * pymadx, pymad8
+ * pip to install the package
+
+Optional:
  * ROOT Python interface
- * pip
+ * pytransport
+
+pybdsim should be compatible with Python 2 but this is untested.
+
 
 Installation
 ------------
