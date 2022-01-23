@@ -37,7 +37,12 @@ class Field(object):
         # flatten all but last dimension - 3 field components
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
 
-        if self.flip:
+
+        flipLocal = self.flip
+        if writeLoopOrderReversed:
+            flipLocal = not flipLocal
+        
+        if flipLocal:
             # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
             # [x,y,z,values]   -> [z,y,x,values]   for 3D
             # [x,y,values]     -> [y,x,values]     for 2D
