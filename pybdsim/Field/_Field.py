@@ -42,7 +42,7 @@ class Field(object):
         if writeLoopOrderReversed:
             flipLocal = not flipLocal
         
-        if flipLocal:
+        if not flipLocal:
             # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
             # [x,y,z,values]   -> [z,y,x,values]   for 3D
             # [x,y,values]     -> [y,x,values]     for 2D
@@ -107,7 +107,7 @@ class Field2D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (y,x,value) dimension order
-    to be written as (x,y,value).
+    to be written as (x,y,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
@@ -116,7 +116,7 @@ class Field2D(Field):
     def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y'):
         columns = [firstColumn, secondColumn, 'Fx', 'Fy', 'Fz']
         super(Field2D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1] if flip else [1,0]
+        inds = [1,0] if flip else [0,1]
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         self.header[fcl+'min'] = _np.min(self.data[:,:,0])
@@ -141,7 +141,7 @@ class Field3D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (z,y,x,value) dimension order to
-    be written as (x,y,z,value).
+    be written as (x,y,z,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
@@ -150,7 +150,7 @@ class Field3D(Field):
     def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
         columns = [firstColumn,secondColumn,thirdColumn,'Fx','Fy','Fz']
         super(Field3D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1,2] if flip else [2,1,0]
+        inds = [2,1,0] if flip else [0,1,2]
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         tcl = thirdColumn.lower()
@@ -179,7 +179,7 @@ class Field4D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (t,z,y,x,value) dimension order to
-    be written as (x,y,z,t,value).
+    be written as (x,y,z,t,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
@@ -188,7 +188,7 @@ class Field4D(Field):
     def __init__(self, data, flip=False, doublePrecision=False):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
         super(Field4D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1,2,3] if flip else [3,2,1,0]
+        inds = [3,2,1,0] if flip else [0,1,2,3]
         self.header['xmin'] = _np.min(self.data[:,:,:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,:,:,0])
         self.header['nx']   = _np.shape(self.data)[inds[0]]
