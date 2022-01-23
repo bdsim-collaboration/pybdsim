@@ -63,9 +63,9 @@ information. However, a small example script is shown below here (in Python lang
   ymax = 30
   data = []
   # loop over and build up 3d lists of lists of lists
-  for yi in [-ymax, ymax]:
+  for xi in [-xmax, xmax]:
      v = []
-     for xi in [-xmax, xmax]:
+     for yi in [-ymax, ymax]:
          # here, fx,fy,fz could be from a function
          v.append([xi, yi, fx, fy, fz])
          data.append(v)
@@ -79,7 +79,7 @@ information. However, a small example script is shown below here (in Python lang
 
 
 .. note:: BDSIM's default convention for a field map is to loop over the lowest
-	  dimension first, i.e. x. Therefore, the loop above is written y, then x.
+	  dimension first, i.e. x. Therefore, the loop above is with x on the outside.
 	  See below for purposely handling the other order of looping.
 
 This minimal example creates a 2D 'box' of 4 points in space each with the same field
@@ -142,6 +142,7 @@ the field map equivalently. ::
      v = []
      for xi in [-xmax, xmax]:
          # here, fx,fy,fz could be from a function
+	 # note, xi and yi coordinates must still be in that order for the value in the array
          v.append([xi, yi, fx, fy, fz])
          data.append(v)
 
@@ -149,7 +150,8 @@ the field map equivalently. ::
   data = np.array(data)
     
   # construct a BDSIM format field object and write it out
-  f = pybdsim.Field.Field2D(data, writeLoopOrderReversed=True)
+  # this will be written out in the BDSIM conventional looping order
+  f = pybdsim.Field.Field2D(data, flip=True)
   f.Write("box-field-map.dat')
 
 Below is a script included with bdsim (:code:`bdsim/examples/features/maps_bdsim/Generate2DLoopOrder.py`)
@@ -160,6 +162,8 @@ same field map to BDSIM although the file contents differ (2 sets of possible co
     import numpy as _np
     import pybdsim
     
+    B = 2.0
+
     # LOOP METHOD 1
     data = []
     # loop over and build up 3d lists of lists of lists
@@ -172,18 +176,21 @@ same field map to BDSIM although the file contents differ (2 sets of possible co
     # convert to numpy array
     data = _np.array(data)
 
-    # loop order is actually z, then x - ie z varies first, so tzyx, so flip=True
-    f = pybdsim.Field.Field2D(data, flip=True, secondColumn='Z')
-    # we do this so the order is always written out in the default bdsim way
+    # we looped in x first as per bdsim, so we need only tell it that
+    # the 2nd column is Z and not Y
+    f = pybdsim.Field.Field2D(data, secondColumn='Z')
     f.Write('2dexample_loopOrder_for_xz.dat')
-    # but we can purposively write it out the other loop way for testing
+    # but we can purposively write it out the other loop way for testing purposes
     # note the header keys are still the same apart from loopOrder> tzyx
     f.Write('2dexample_loopOrder_for_xz_tzyx.dat', writeLoopOrderReversed=True)
 
 
     # LOOP METHOD 2
     data2 = []
-    # loop over other way
+    # loop over other way - outer dimension first
+    # this isn't the bdsim way, but we may get a field map from some other source that's
+    # structured like this - so even if you're not creating it in a loop, it may have this
+    # structure already.
     for z in [3,4]:
         v = []
         for x in [-1,0,1]:
@@ -193,9 +200,10 @@ same field map to BDSIM although the file contents differ (2 sets of possible co
     # convert to numpy array
     data2 = _np.array(data2)
 
-    # loop order is actually x, then z - ie x varies first, so xyzt, so flip=False
-    g = pybdsim.Field.Field2D(data2, flip=False, secondColumn='Z')
-    # this will write out a file identical to the first one
+    # array structure is z is outer dimension, then x - we need it the other way
+    # around, so we use flip=True when constructing the field instance
+    g = pybdsim.Field.Field2D(data2, flip=True, secondColumn='Z')
+    # this will write out a file identical to the very first one
     g.Write('2dexample_loopOrder_for_zx.dat')
     # this will write out a file identical to the second one
     g.Write('2dexample_loopOrder_for_zx_tzyx.dat', writeLoopOrderReversed=True)
