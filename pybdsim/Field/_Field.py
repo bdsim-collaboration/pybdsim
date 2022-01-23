@@ -255,7 +255,20 @@ def Load(filename, debug=False):
     
     data = _np.array(data, dtype=float)
 
+    normalLoopOrder = ['x','y','z','t']
+    # this is convention - in the case of xyzt, bdsim loops
+    # over x first, then y, then z, so it appears the first
+    # column is changing.
+    flip = False
+
+    if 'loopOrder' in header:
+        order = header['loopOrder']
+        flip = order == 'tzyx'
+        if debug:
+            print("flip :",flip)
+
     nDim = len(columns) - 3
+    # TBC for no case when we don't store spatial coords also
     if (nDim < 1 or nDim > 4):
         if debug:
             print('Invalid number of columns')
@@ -272,24 +285,30 @@ def Load(filename, debug=False):
             print(header)
         return
     else:
-        dims = [int(header[k]) for k in keysPresentList[::-1]]
+        dimToNVariable = {'x' : 'nx',
+                          'y' : 'ny',
+                          'z' : 'nz',
+                          't' : 'nt'}
+        print("Columns: ",columns)
+        print("Header: ",header)
+        dims = [int(header[dimToNVariable[k.lower()]]) for k in columns[:-3]]
         dims.append(len(columns))
         if debug:
-            print(dims)
-            print(nDim)
-            print(_np.shape(data))
+            print("Shape of numpy array to be: ",dims)
+            print("nDimensions: ",nDim)
+            print("Existing numpy array shape: ",_np.shape(data))
         data = data.reshape(*dims)
 
     # build field object
-    columns = [s.strip('n') for s in keysPresentList]
+    #columns = [s.strip('n') for s in keysPresentList]
     if nDim == 1:
         fd = Field1D(data, column=columns[0])
     elif nDim == 2:
-        fd = Field2D(data, firstColumn=columns[0], secondColumn=columns[1])
+        fd = Field2D(data, flip=flip, firstColumn=columns[0], secondColumn=columns[1])
     elif nDim == 3:
-        fd = Field3D(data, firstColumn=columns[0], secondColumn=columns[1], thirdColumn=columns[2])
+        fd = Field3D(data, flip=flip, firstColumn=columns[0], secondColumn=columns[1], thirdColumn=columns[2])
     elif nDim == 4:
-        fd = Field4D(data)
+        fd = Field4D(data, flip=flip)
     else:
         raise ValueError("Invalid number of dimensions")
 
