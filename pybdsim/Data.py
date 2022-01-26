@@ -353,6 +353,13 @@ class RebdsimFile(object):
     """
     Class to represent data in rebdsim output file.
 
+    :param filename: File to load
+    :type filename: str
+    :param convert: Whether to ROOT histograms to pybdsim ones as well
+    :type convert: bool
+    :param histogramsOnly: If true, then don't load rebdsim libraries and only load histograms.
+    :type histogramsOnly: bool
+
     Contains histograms as root objects. Conversion function converts
     to pybdsim.Rebdsim.THX classes holding numpy data.
 
@@ -361,12 +368,19 @@ class RebdsimFile(object):
 
     If convert=True (default), root histograms are automatically converted
     to classes provided here with numpy data.
+
+    If histogramsOnly is true, only the basic ROOT libraries are needed
+    (i.e. import ROOT) and no Model data will be loaded - only ROOT histograms.
     """
-    def __init__(self, filename, convert=True):
-        LoadROOTLibraries()
+    def __init__(self, filename, convert=True, histogramsOnly=False):
+        if not histogramsOnly:
+            LoadROOTLibraries()
         self.filename = filename
         self._f = _ROOT.TFile(filename)
-        self.header = Header(TFile=self._f)
+        if not histogramsOnly:
+            self.header = Header(TFile=self._f)
+        else:
+            self.header = Header()
         self.histograms = {}
         self.histograms1d = {}
         self.histograms2d = {}
@@ -394,14 +408,15 @@ class RebdsimFile(object):
                 data.append(elementlist)
             return data
 
-        trees = self.ListOfTrees()
-        # keep as optics (not Optics) to preserve data loading in Bdsim comparison plotting methods.
-        if 'Optics' in trees:
-            self.optics = _LoadVectorTree(self._f.Get("Optics"))
-        if 'Orbit' in trees:
-            self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
-        if 'Model' in trees or 'ModelTree' in trees:
-            self.model = GetModelForPlotting(self._f)
+        if not histogramsOnly:
+            trees = self.ListOfTrees()
+            # keep as optics (not Optics) to preserve data loading in Bdsim comparison plotting methods.
+            if 'Optics' in trees:
+                self.optics = _LoadVectorTree(self._f.Get("Optics"))
+            if 'Orbit' in trees:
+                self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
+            if 'Model' in trees or 'ModelTree' in trees:
+                self.model = GetModelForPlotting(self._f)
 
     def _Map(self, currentDirName, currentDir):
         h1d = self._ListType(currentDir, "TH1D")

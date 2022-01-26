@@ -25,6 +25,40 @@ of the BDSIM DataLoader analysis class is returned (even in Python).
 	  (i.e. the C++ classes). See also, :ref:`data-load-manual` for a method to
 	  load the libraries yourself (normally automatic with :code:`Load()`).
 
+Load Just Histograms
+********************
+
+It may be useful to load just the histograms on a computer with ROOT and pybdsim but
+without BDSIM and all the libraries. In this case, we can use the RebdsimFile class
+directly and flag that we should not try to load the BDSIM libraries. In this case,
+it can only interpret native ROOT objects such as histograms and not the other data
+in the file such as the beam line model (for plotting machine diagrams). ::
+
+
+  >>> import pybdsim
+  >>> d = pybdsim.Data.RebdsimFile("sample1.root", histogramsOnly=True)
+  >>> d.histogramspy
+  {'Event/PerEntryHistograms/PrimaryX': <pybdsim.Data.TH1 at 0x1549cef40>,
+  'Event/PerEntryHistograms/EventDuration': <pybdsim.Data.TH1 at 0x1549d1040>,
+  'Event/PerEntryHistograms/EnergySpectrum': <pybdsim.Data.TH1 at 0x1549e0df0>,
+  'Event/PerEntryHistograms/EnergyLossManual': <pybdsim.Data.TH1 at 0x15503adc0>,
+  'Event/PerEntryHistograms/TunnelLossManual': <pybdsim.Data.TH1 at 0x15503adf0>,
+  'Event/PerEntryHistograms/AperImpactXInRange': <pybdsim.Data.TH1 at 0x15503ae20>,
+  'Event/SimpleHistograms/PrimaryYSimple': <pybdsim.Data.TH1 at 0x15503ae50>,
+  'Event/MergedHistograms/PhitsHisto': <pybdsim.Data.TH1 at 0x15503ae80>,
+  'Event/MergedHistograms/PlossHisto': <pybdsim.Data.TH1 at 0x15503aeb0>,
+  'Event/MergedHistograms/ElossHisto': <pybdsim.Data.TH1 at 0x15503aee0>,
+  'Event/MergedHistograms/PhitsPEHisto': <pybdsim.Data.TH1 at 0x15503af10>,
+  'Event/MergedHistograms/PlossPEHisto': <pybdsim.Data.TH1 at 0x15503af40>,
+  'Event/MergedHistograms/ElossPEHisto': <pybdsim.Data.TH1 at 0x15503af70>,
+  'Event/MergedHistograms/PFirstAIHisto': <pybdsim.Data.TH1 at 0x15503afa0>,
+  'Event/MergedHistograms/ElossTunnelHisto': <pybdsim.Data.TH1 at 0x15503afd0>,
+  'Event/MergedHistograms/ElossTunnelPEHisto': <pybdsim.Data.TH1 at 0x15503ad90>,
+  'Event/PerEntryHistograms/PrimaryXY': <pybdsim.Data.TH2 at 0x155043040>,
+  'Event/SimpleHistograms/PrimaryXYSimple': <pybdsim.Data.TH2 at 0x1550430a0>,
+  'Event/PerEntryHistograms/D2XYEnergy': <pybdsim.Data.TH3 at 0x1550430d0>}
+
+
 
 Looping Over Raw ROOT Data
 --------------------------
