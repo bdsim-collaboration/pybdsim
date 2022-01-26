@@ -956,7 +956,10 @@ class _SamplerData(object):
                           "loaded with pybdsim.Data.Load")
         self._et           = data.GetEventTree()
         self._ev           = data.GetEvent()
-        self._samplerNames = list(data.GetSamplerNames())
+        # this two step assignment is stupid but to counter bad behaviour with
+        # root, python and our classes... this works, direct assignemnt doens't
+        sn = data.GetSamplerNames() 
+        self._samplerNames = list(sn)
         self._samplerNames.insert(0,'Primary')
         self._samplers     = list(self._ev.Samplers)
         self._samplers.insert(0,self._ev.GetPrimaries())
