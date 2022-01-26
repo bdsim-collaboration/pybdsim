@@ -394,7 +394,9 @@ class RebdsimFile(object):
         if convert:
             self.ConvertToPybdsimHistograms()
 
-        self._PopulateSpectraDictionaries()
+        # even if the header isn't loaded, the default will be -1
+        if self.header.dataVersion > 7:
+            self._PopulateSpectraDictionaries()
 
         def _prepare_data(branches, treedata):
             data = BDSAsciiData()
@@ -498,8 +500,11 @@ class RebdsimFile(object):
         for path,hist in self.histograms1d.items():
             hname = str(hist.GetName())
             if 'Spectra' in hname:
-                sname,pdgid = ParseSpectraName(hname)
-                self.spectra[sname].append(pdgid, hist, path, sname)
+                try:
+                    sname,pdgid = ParseSpectraName(hname)
+                    self.spectra[sname].append(pdgid, hist, path, sname)
+                except ValueError:
+                    pass # could be old data with the word "Spectra" in the name
 
 def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
     """
