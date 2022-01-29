@@ -290,8 +290,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
         elif name in collimatordict: # Don't add apertures to collimators
             machine.Append(gmadElement)
         elif aperlocalpositions: # split aperture if provided.
-            elements_split_with_aper = _GetElementSplitByAperture(
-                gmadElement, aperlocalpositions[i])
+            elements_split_with_aper = _GetElementSplitByAperture(gmadElement,
+                                                                  aperlocalpositions[i])
             for ele in elements_split_with_aper:
                 machine.Append(ele)
         else: # Get element with single aperture

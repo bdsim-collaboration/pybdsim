@@ -271,10 +271,9 @@ class Element(ElementBase):
             split_elements.append(This(name, l=length, **other_kwargs))
         # Add the final element (for n points we have n+1 elements, so
         # we add the last one here "by hand").
-        split_elements.append(
-                This("{}_split_{}".format(self['name'], i + 1),
-                     l=round(total_length - accumulated_length, 15),
-                     **other_kwargs))
+        split_elements.append(This("{}_split_{}".format(self['name'], i + 1),
+                                   l=round(total_length - accumulated_length, 15),
+                                   **other_kwargs))
 
         return split_elements
 
