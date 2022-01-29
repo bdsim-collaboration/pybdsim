@@ -478,13 +478,13 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return _Builder.Quadrupole(rname, l, k1, **kws)
     elif t == 'RBEND':
         angle = item['ANGLE']
-        e1 = item['E1']
-        e2 = item['E2']
-        fint = item['FINT']
-        fintx = item['FINTX']
-        h1 = item['H1']
-        h2 = item['H2']
-        hgap = item['HGAP']
+        e1 = item['E1'] if 'E1' in item else 0
+        e2 = item['E2'] if 'E2' in item else 0
+        fint = item['FINT'] if 'FINT' in item else 0
+        fintx = item['FINTX'] if 'FINTX' in item else -1 # madx convention -> -1 => same as FINT
+        h1 = item['H1'] if 'H1' in item else 0
+        h2 = item['H2'] if 'H2' in item else 0
+        hgap = item['HGAP'] if 'HGAP' in item else 0
         k1l = item['K1L']
         # set element length to be the chord length - tfs output rbend
         # length is arc length
@@ -518,13 +518,13 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return _Builder.RBend(rname, chordLength, angle=angle, **kws)
     elif t == 'SBEND':
         angle = item['ANGLE']
-        e1 = item['E1']
-        e2 = item['E2']
-        fint = item['FINT']
-        fintx = item['FINTX']
-        h1 = item['H1']
-        h2 = item['H2']
-        hgap = item['HGAP']
+        e1 = item['E1'] if 'E1' in item else 0
+        e2 = item['E2'] if 'E2' in item else 0
+        fint = item['FINT'] if 'FINT' in item else 0
+        fintx = item['FINTX'] if 'FINTX' in item else -1
+        h1 = item['H1'] if 'H1' in item else 0
+        h2 = item['H2'] if 'H2' in item else 0
+        hgap = item['HGAP'] if 'HGAP' in item else 0
         k1l = item['K1L']
         if e1 != 0:
             kws['e1'] = e1
