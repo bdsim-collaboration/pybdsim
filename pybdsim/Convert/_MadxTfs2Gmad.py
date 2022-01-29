@@ -633,8 +633,15 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
     raise ValueError("Unable to construct Element: {}, {}".format(t, name))
 
 def _GetElementSplitByAperture(gmadElement, localApertures):
-    apertures = [_Builder.PrepareApertureModel(aper)
-                 for point, aper in localApertures]
+    # tolerate any bad apertures - like only a few - and just don't append them
+    apertures = []
+    for point, aper in localApertures:
+        try:
+            arp = _Builder.PrepareApertureModel(aper, warningName=gmadElement.name)
+            apertures.append(arp)
+        except ValueError:
+            pass
+        
     if localApertures[0][0] != 0.0 :
         raise ValueError("No aperture defined at start of element.")
     if len(localApertures) > 1:
