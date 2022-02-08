@@ -353,6 +353,13 @@ class RebdsimFile(object):
     """
     Class to represent data in rebdsim output file.
 
+    :param filename: File to load
+    :type filename: str
+    :param convert: Whether to ROOT histograms to pybdsim ones as well
+    :type convert: bool
+    :param histogramsOnly: If true, then don't load rebdsim libraries and only load histograms.
+    :type histogramsOnly: bool
+
     Contains histograms as root objects. Conversion function converts
     to pybdsim.Rebdsim.THX classes holding numpy data.
 
@@ -361,12 +368,19 @@ class RebdsimFile(object):
 
     If convert=True (default), root histograms are automatically converted
     to classes provided here with numpy data.
+
+    If histogramsOnly is true, only the basic ROOT libraries are needed
+    (i.e. import ROOT) and no Model data will be loaded - only ROOT histograms.
     """
-    def __init__(self, filename, convert=True):
-        LoadROOTLibraries()
+    def __init__(self, filename, convert=True, histogramsOnly=False):
+        if not histogramsOnly:
+            LoadROOTLibraries()
         self.filename = filename
         self._f = _ROOT.TFile(filename)
-        self.header = Header(TFile=self._f)
+        if not histogramsOnly:
+            self.header = Header(TFile=self._f)
+        else:
+            self.header = Header()
         self.histograms = {}
         self.histograms1d = {}
         self.histograms2d = {}
@@ -380,7 +394,9 @@ class RebdsimFile(object):
         if convert:
             self.ConvertToPybdsimHistograms()
 
-        self._PopulateSpectraDictionaries()
+        # even if the header isn't loaded, the default will be -1
+        if self.header.dataVersion > 7:
+            self._PopulateSpectraDictionaries()
 
         def _prepare_data(branches, treedata):
             data = BDSAsciiData()
@@ -394,14 +410,15 @@ class RebdsimFile(object):
                 data.append(elementlist)
             return data
 
-        trees = self.ListOfTrees()
-        # keep as optics (not Optics) to preserve data loading in Bdsim comparison plotting methods.
-        if 'Optics' in trees:
-            self.optics = _LoadVectorTree(self._f.Get("Optics"))
-        if 'Orbit' in trees:
-            self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
-        if 'Model' in trees or 'ModelTree' in trees:
-            self.model = GetModelForPlotting(self._f)
+        if not histogramsOnly:
+            trees = self.ListOfTrees()
+            # keep as optics (not Optics) to preserve data loading in Bdsim comparison plotting methods.
+            if 'Optics' in trees:
+                self.optics = _LoadVectorTree(self._f.Get("Optics"))
+            if 'Orbit' in trees:
+                self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
+            if 'Model' in trees or 'ModelTree' in trees:
+                self.model = GetModelForPlotting(self._f)
 
     def _Map(self, currentDirName, currentDir):
         h1d = self._ListType(currentDir, "TH1D")
@@ -483,8 +500,11 @@ class RebdsimFile(object):
         for path,hist in self.histograms1d.items():
             hname = str(hist.GetName())
             if 'Spectra' in hname:
-                sname,pdgid = ParseSpectraName(hname)
-                self.spectra[sname].append(pdgid, hist, path, sname)
+                try:
+                    sname,pdgid = ParseSpectraName(hname)
+                    self.spectra[sname].append(pdgid, hist, path, sname)
+                except ValueError:
+                    pass # could be old data with the word "Spectra" in the name
 
 def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
     """
@@ -941,7 +961,10 @@ class _SamplerData(object):
                           "loaded with pybdsim.Data.Load")
         self._et           = data.GetEventTree()
         self._ev           = data.GetEvent()
-        self._samplerNames = list(data.GetSamplerNames())
+        # this two step assignment is stupid but to counter bad behaviour with
+        # root, python and our classes... this works, direct assignemnt doens't
+        sn = data.GetSamplerNames() 
+        self._samplerNames = list(sn)
         self._samplerNames.insert(0,'Primary')
         self._samplers     = list(self._ev.Samplers)
         self._samplers.insert(0,self._ev.GetPrimaries())
@@ -1103,19 +1126,31 @@ class TrajectoryData(object):
             pyTrajectory['partID']   = int(self._trajectory.partID[i])
             pyTrajectory['parentID'] = int(self._trajectory.parentID[i])
 
-            prePT = self._trajectory.preProcessTypes[i]
-            prePST = self._trajectory.preProcessSubTypes[i]
-            postPT = self._trajectory.postProcessTypes[i]
-            postPST = self._trajectory.postProcessSubTypes[i]
 
             # Adding new parameters and updating trajectory names
             if self._dataVersion >= 5:
                 t = self._trajectory.XYZ[i]
                 ts = self._trajectory.S[i]
-                p = self._trajectory.PXPYPZ[i]
                 e = self._trajectory.energyDeposit[i]
-                time = self._trajectory.T[i]
 
+                try:
+                    p = self._trajectory.PXPYPZ[i]
+                    time = self._trajectory.T[i]
+                except:
+                    p = _np.zeros(len(t))
+                    time = _np.zeros(len(t))
+
+
+                try:
+                    prePT = self._trajectory.preProcessTypes[i]
+                    prePST = self._trajectory.preProcessSubTypes[i]
+                    postPT = self._trajectory.postProcessTypes[i]
+                    postPST = self._trajectory.postProcessSubTypes[i]
+                except:
+                    prePT = _np.zeros(len(t))
+                    prePST = _np.zeros(len(t))
+                    postPT = _np.zeros(len(t))
+                    postPST = _np.zeros(len(t))
                 try:
                     xyz = self._trajectory.xyz[i]
                     pxpypz = self._trajectory.pxpypz[i]
@@ -1151,7 +1186,6 @@ class TrajectoryData(object):
                 #from IPython import embed; embed()
                 t  = self._trajectory.trajectories[i]
                 #tS = self._trajectory.trajectoriesS[i]
-
 
                 p = self._trajectory.momenta[i]
                 e = self._trajectory.energies[i]
@@ -1199,15 +1233,20 @@ class TrajectoryData(object):
                 Z[j] = t[j].Z()
                 S[j] = S[j]
 
-                # momenta
-                PX[j] = p[j].X()
-                PY[j] = p[j].Y()
-                PZ[j] = p[j].Z()
-
                 EDeposit[j] = e[j]
 
                 if self._dataVersion >= 5:
                     T[j] = time[j]
+                     # momenta
+                    try:
+                        PX[j] = p[j].X()
+                        PY[j] = p[j].Y()
+                        PZ[j] = p[j].Z()
+                    except:
+                        PX[j] = 0
+                        PY[j] = 0
+                        PZ[j] = 0
+
                     try:
                         x[j] = xyz[j].X()
                         y[j] = xyz[j].Y()

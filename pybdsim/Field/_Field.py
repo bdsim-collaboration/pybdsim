@@ -10,18 +10,21 @@ class Field(object):
     This does not support arbitrary loop ordering - only the originally intended
     xyzt.
     """
-    def __init__(self, array=_np.array([]), columns=[], flip=True, doublePrecision=False):
+    def __init__(self, array=_np.array([]), columns=[], flip=False, doublePrecision=False):
         self.data            = array
         self.columns         = columns
         self.header          = {}
         self.flip            = flip
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
-
-    def Write(self, fileName):
+        
+    def Write(self, fileName, writeLoopOrderReversed=False):
         f = open(fileName, 'w')
+        
         for key,value in self.header.items():
             f.write(str(key)+'> '+ str(value) + '\n')
+        lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
+        f.write("loopOrder> "+lo+"\n")
 
         if self.doublePrecision:
             colStrings = ['%23s' % s for s in self.columns]
@@ -34,7 +37,12 @@ class Field(object):
         # flatten all but last dimension - 3 field components
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
 
-        if self.flip:
+
+        flipLocal = self.flip
+        if writeLoopOrderReversed:
+            flipLocal = not flipLocal
+        
+        if not flipLocal:
             # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
             # [x,y,z,values]   -> [z,y,x,values]   for 3D
             # [x,y,values]     -> [y,x,values]     for 2D
@@ -99,16 +107,16 @@ class Field2D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (y,x,value) dimension order
-    to be written as (x,y,value).
+    to be written as (x,y,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y'):
+    def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y'):
         columns = [firstColumn, secondColumn, 'Fx', 'Fy', 'Fz']
         super(Field2D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1] if flip else [1,0]
+        inds = [1,0] if flip else [0,1]
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         self.header[fcl+'min'] = _np.min(self.data[:,:,0])
@@ -133,16 +141,16 @@ class Field3D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (z,y,x,value) dimension order to
-    be written as (x,y,z,value).
+    be written as (x,y,z,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
+    def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
         columns = [firstColumn,secondColumn,thirdColumn,'Fx','Fy','Fz']
         super(Field3D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1,2] if flip else [2,1,0]
+        inds = [2,1,0] if flip else [0,1,2]
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         tcl = thirdColumn.lower()
@@ -171,16 +179,16 @@ class Field4D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (t,z,y,x,value) dimension order to
-    be written as (x,y,z,t,value).
+    be written as (x,y,z,t,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False):
+    def __init__(self, data, flip=False, doublePrecision=False):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
         super(Field4D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1,2,3] if flip else [3,2,1,0]
+        inds = [3,2,1,0] if flip else [0,1,2,3]
         self.header['xmin'] = _np.min(self.data[:,:,:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,:,:,0])
         self.header['nx']   = _np.shape(self.data)[inds[0]]
@@ -252,7 +260,20 @@ def Load(filename, debug=False):
     
     data = _np.array(data, dtype=float)
 
+    normalLoopOrder = ['x','y','z','t']
+    # this is convention - in the case of xyzt, bdsim loops
+    # over x first, then y, then z, so it appears the first
+    # column is changing.
+    flip = False
+
+    if 'loopOrder' in header:
+        order = header['loopOrder']
+        flip = order == 'tzyx'
+        if debug:
+            print("flip :",flip)
+
     nDim = len(columns) - 3
+    # TBC for no case when we don't store spatial coords also
     if (nDim < 1 or nDim > 4):
         if debug:
             print('Invalid number of columns')
@@ -269,24 +290,30 @@ def Load(filename, debug=False):
             print(header)
         return
     else:
-        dims = [int(header[k]) for k in keysPresentList[::-1]]
+        dimToNVariable = {'x' : 'nx',
+                          'y' : 'ny',
+                          'z' : 'nz',
+                          't' : 'nt'}
+        print("Columns: ",columns)
+        print("Header: ",header)
+        dims = [int(header[dimToNVariable[k.lower()]]) for k in columns[:-3]]
         dims.append(len(columns))
         if debug:
-            print(dims)
-            print(nDim)
-            print(_np.shape(data))
+            print("Shape of numpy array to be: ",dims)
+            print("nDimensions: ",nDim)
+            print("Existing numpy array shape: ",_np.shape(data))
         data = data.reshape(*dims)
 
     # build field object
-    columns = [s.strip('n') for s in keysPresentList]
+    #columns = [s.strip('n') for s in keysPresentList]
     if nDim == 1:
         fd = Field1D(data, column=columns[0])
     elif nDim == 2:
-        fd = Field2D(data, firstColumn=columns[0], secondColumn=columns[1])
+        fd = Field2D(data, flip=flip, firstColumn=columns[0], secondColumn=columns[1])
     elif nDim == 3:
-        fd = Field3D(data, firstColumn=columns[0], secondColumn=columns[1], thirdColumn=columns[2])
+        fd = Field3D(data, flip=flip, firstColumn=columns[0], secondColumn=columns[1], thirdColumn=columns[2])
     elif nDim == 4:
-        fd = Field4D(data)
+        fd = Field4D(data, flip=flip)
     else:
         raise ValueError("Invalid number of dimensions")
 

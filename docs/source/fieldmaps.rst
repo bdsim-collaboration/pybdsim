@@ -63,9 +63,9 @@ information. However, a small example script is shown below here (in Python lang
   ymax = 30
   data = []
   # loop over and build up 3d lists of lists of lists
-  for yi in [-ymax, ymax]:
+  for xi in [-xmax, xmax]:
      v = []
-     for xi in [-xmax, xmax]:
+     for yi in [-ymax, ymax]:
          # here, fx,fy,fz could be from a function
          v.append([xi, yi, fx, fy, fz])
          data.append(v)
@@ -77,6 +77,10 @@ information. However, a small example script is shown below here (in Python lang
   f = pybdsim.Field.Field2D(data)
   f.Write("box-field-map.dat')
 
+
+.. note:: BDSIM's default convention for a field map is to loop over the lowest
+	  dimension first, i.e. x. Therefore, the loop above is with x on the outside.
+	  See below for purposely handling the other order of looping.
 
 This minimal example creates a 2D 'box' of 4 points in space each with the same field
 value of [0,1,0] (unit Y direction with magnitude 1). The box is :math:`\pm 30 cm` in
@@ -100,7 +104,7 @@ Generally, the :code:`numpy.shape(array)` would look like:
 * 4D: :code:`(N_x, N_y, N_z, N_t, 7)`
 
 .. warning:: A key check is looking at the field map, the higher dimension coordinates
-	     (e.g. Y, not X) should chanage first. So for a given X value we should see
+	     (e.g. Y, not X) should change first. So for a given X value we should see
 	     the Y values cycle through a range, then the X should increment then the Y
 	     values cycle again. If this is not the case, then the loop order of dimensions
 	     is backwards. You can use "loopOrder" in the header or rewrite the field map
@@ -116,6 +120,94 @@ must be in order (e.g. `x`, `y`, `z`, then `t` for whichever ones are used).
 Example: ::
 
   fm = pybdsim.Field.Field2D(arrayData, firstColumn='X', secondColumn='Z')
+
+Alternative Loop Order
+**********************
+
+It is possible for BDSIM to read a file where the right-most coordinate column varies first.
+However, for each value, the coordinate columns must still be in x,y,z,t order left to right.
+Below is an example similar to above but writing out the file the other way (note the write function).
+This will also write the line :code:`loopOrder> tzyx` in the header so BDSIM can load
+the field map equivalently. ::
+
+  import numpy as np
+  import pybdsim
+
+  fx, fy, fz = 0.0, 1.0, 0.0
+  xmax = 30  # cm is the default units for bdsim field maps
+  ymax = 30
+  data = []
+  # loop over and build up 3d lists of lists of lists
+  for yi in [-ymax, ymax]:
+     v = []
+     for xi in [-xmax, xmax]:
+         # here, fx,fy,fz could be from a function
+	 # note, xi and yi coordinates must still be in that order for the value in the array
+         v.append([xi, yi, fx, fy, fz])
+         data.append(v)
+
+  # convert to numpy array
+  data = np.array(data)
+    
+  # construct a BDSIM format field object and write it out
+  # this will be written out in the BDSIM conventional looping order
+  f = pybdsim.Field.Field2D(data, flip=True)
+  f.Write("box-field-map.dat')
+
+Below is a script included with bdsim (:code:`bdsim/examples/features/maps_bdsim/Generate2DLoopOrder.py`)
+that shows 4 ways to write a field map with the same information. Ultimately, they convey the exact
+same field map to BDSIM although the file contents differ (2 sets of possible contents). ::
+
+
+    import numpy as _np
+    import pybdsim
+    
+    B = 2.0
+
+    # LOOP METHOD 1
+    data = []
+    # loop over and build up 3d lists of lists of lists
+    for x in [-1,0,1]:
+        v = []
+        for z in [3,4]:
+            v.append([x, z, B*x, B*x*z, B*z])
+        data.append(v)
+
+    # convert to numpy array
+    data = _np.array(data)
+
+    # we looped in x first as per bdsim, so we need only tell it that
+    # the 2nd column is Z and not Y
+    f = pybdsim.Field.Field2D(data, secondColumn='Z')
+    f.Write('2dexample_loopOrder_for_xz.dat')
+    # but we can purposively write it out the other loop way for testing purposes
+    # note the header keys are still the same apart from loopOrder> tzyx
+    f.Write('2dexample_loopOrder_for_xz_tzyx.dat', writeLoopOrderReversed=True)
+
+
+    # LOOP METHOD 2
+    data2 = []
+    # loop over other way - outer dimension first
+    # this isn't the bdsim way, but we may get a field map from some other source that's
+    # structured like this - so even if you're not creating it in a loop, it may have this
+    # structure already.
+    for z in [3,4]:
+        v = []
+        for x in [-1,0,1]:
+            v.append([x, z, B*x, B*x*z, B*z]) # values must still be in xyzt order
+        data2.append(v)
+
+    # convert to numpy array
+    data2 = _np.array(data2)
+
+    # array structure is z is outer dimension, then x - we need it the other way
+    # around, so we use flip=True when constructing the field instance
+    g = pybdsim.Field.Field2D(data2, flip=True, secondColumn='Z')
+    # this will write out a file identical to the very first one
+    g.Write('2dexample_loopOrder_for_zx.dat')
+    # this will write out a file identical to the second one
+    g.Write('2dexample_loopOrder_for_zx_tzyx.dat', writeLoopOrderReversed=True)
+
 
 
 Visualisation and Plotting
