@@ -1126,19 +1126,31 @@ class TrajectoryData(object):
             pyTrajectory['partID']   = int(self._trajectory.partID[i])
             pyTrajectory['parentID'] = int(self._trajectory.parentID[i])
 
-            prePT = self._trajectory.preProcessTypes[i]
-            prePST = self._trajectory.preProcessSubTypes[i]
-            postPT = self._trajectory.postProcessTypes[i]
-            postPST = self._trajectory.postProcessSubTypes[i]
 
             # Adding new parameters and updating trajectory names
             if self._dataVersion >= 5:
                 t = self._trajectory.XYZ[i]
                 ts = self._trajectory.S[i]
-                p = self._trajectory.PXPYPZ[i]
                 e = self._trajectory.energyDeposit[i]
-                time = self._trajectory.T[i]
 
+                try:
+                    p = self._trajectory.PXPYPZ[i]
+                    time = self._trajectory.T[i]
+                except:
+                    p = _np.zeros(len(t))
+                    time = _np.zeros(len(t))
+
+
+                try:
+                    prePT = self._trajectory.preProcessTypes[i]
+                    prePST = self._trajectory.preProcessSubTypes[i]
+                    postPT = self._trajectory.postProcessTypes[i]
+                    postPST = self._trajectory.postProcessSubTypes[i]
+                except:
+                    prePT = _np.zeros(len(t))
+                    prePST = _np.zeros(len(t))
+                    postPT = _np.zeros(len(t))
+                    postPST = _np.zeros(len(t))
                 try:
                     xyz = self._trajectory.xyz[i]
                     pxpypz = self._trajectory.pxpypz[i]
@@ -1174,7 +1186,6 @@ class TrajectoryData(object):
                 #from IPython import embed; embed()
                 t  = self._trajectory.trajectories[i]
                 #tS = self._trajectory.trajectoriesS[i]
-
 
                 p = self._trajectory.momenta[i]
                 e = self._trajectory.energies[i]
@@ -1222,15 +1233,20 @@ class TrajectoryData(object):
                 Z[j] = t[j].Z()
                 S[j] = S[j]
 
-                # momenta
-                PX[j] = p[j].X()
-                PY[j] = p[j].Y()
-                PZ[j] = p[j].Z()
-
                 EDeposit[j] = e[j]
 
                 if self._dataVersion >= 5:
                     T[j] = time[j]
+                     # momenta
+                    try:
+                        PX[j] = p[j].X()
+                        PY[j] = p[j].Y()
+                        PZ[j] = p[j].Z()
+                    except:
+                        PX[j] = 0
+                        PY[j] = 0
+                        PZ[j] = 0
+
                     try:
                         x[j] = xyz[j].X()
                         y[j] = xyz[j].Y()
