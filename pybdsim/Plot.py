@@ -17,8 +17,10 @@ import string as _string
 import datetime as _datetime
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 from scipy import constants as _con
+import os.path as _ospath
 
 from ._General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
+from ._General import CheckBdsimDataHasSurveyModel as _CheckBdsimDataHasSurveyModel
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
@@ -107,7 +109,13 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
 
     """
     from . import Data as _Data
-    sf = _CheckItsBDSAsciiData(surveyfile)
+    if isinstance(surveyfile, str) and not _ospath.isfile(surveyfile):
+        raise IOError("Survey not found: ", surveyfile)
+    if _CheckBdsimDataHasSurveyModel(surveyfile):
+        sf = _Data.Load(surveyfile).model
+    else:
+        sf = _CheckItsBDSAsciiData(surveyfile)
+
     # we don't need to check this has the required columns because we control a
     # BDSIM survey contents.
 
