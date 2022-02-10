@@ -862,6 +862,8 @@ class TH1(ROOTHist):
             self._GetContents()
 
         self.integral = _np.sum(self.contents)
+        # this assumes uncorrelated
+        self.integralError = _np.sqrt((self.errors**2).sum())
 
     def _GetContents(self):
         for i in range(self.nbinsx):
@@ -899,6 +901,8 @@ class TH2(TH1):
             self._GetContents()
 
         self.integral = _np.sum(self.contents)
+        # this assumes uncorrelated
+        self.integralError = _np.sqrt((self.errors**2).sum())
 
     def _GetContents(self):
         for i in range(self.nbinsx) :
@@ -938,6 +942,8 @@ class TH3(TH2):
             self._GetContents()
 
         self.integral = _np.sum(self.contents)
+        # this assumes uncorrelated
+        self.integralError = _np.sqrt((self.errors**2).sum())
 
     def _GetContents(self):
         for i in range(self.nbinsx):

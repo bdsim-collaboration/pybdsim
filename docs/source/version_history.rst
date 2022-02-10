@@ -11,11 +11,12 @@ V2.5.0 - 2022 / 02 / XX
 New Features
 ------------
 
-* Create a nice copy of the header information from any (re)bdsim file when
+* Create a nice Python copy of the header information from any (re)bdsim file when
   loading with pybdsim using only Python types.
 * New ratio plot for 2x 1D histograms. See `pybdsim.Plot.Histogram1DRatio`.
 * pybdsim.Data.TH1,2,3 now have :code:`xrange`, :code:`yrange`, and :code:`zrange` members
-  where approriate with a conveninent tuple of the range in each dimension.
+  where approriate with a conveninent tuple of the range in each dimension. They also
+  have the member :code:`integral` and :code:`integralError` taken from their ROOT objects.
 * Field plotting functions now tolerate Field class objects as well as filenames to make
   it easier to check field objects as you're making them.
 * New field plotting for 2D field maps showing each component.
