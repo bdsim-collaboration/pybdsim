@@ -842,6 +842,7 @@ class TH1(ROOTHist):
         self.xcentres   = _np.zeros(self.nbinsx)
         self.xlowedge   = _np.zeros(self.nbinsx)
         self.xhighedge  = _np.zeros(self.nbinsx)
+        self.xedges     = _np.zeros(self.nbinsx+1)
         self.xrange     = (0,0)
 
         # data holders
@@ -857,6 +858,7 @@ class TH1(ROOTHist):
             self.xhighedge[i] = self.xlowedge[i] + self.xwidths[i]
             self.xcentres[i]  = xaxis.GetBinCenter(i+1)
         self.xrange = (self.xlowedge[0],self.xhighedge[-1])
+        self.xedges = _np.append(self.xlowedge, self.xhighedge[-1])
 
         if extractData:
             self._GetContents()
@@ -884,6 +886,7 @@ class TH2(TH1):
         self.ycentres  = _np.zeros(self.nbinsy)
         self.ylowedge  = _np.zeros(self.nbinsy)
         self.yhighedge = _np.zeros(self.nbinsy)
+        self.yedges    = _np.zeros(self.nbinsy+1)
         self.yrange    = (0,0)
 
         self.contents = _np.zeros((self.nbinsx,self.nbinsy))
@@ -896,6 +899,7 @@ class TH2(TH1):
             self.yhighedge[i] = self.ylowedge[i] + self.ywidths[i]
             self.ycentres[i]  = yaxis.GetBinCenter(i+1)
         self.yrange = (self.ylowedge[0],self.yhighedge[-1])
+        self.yedges = _np.append(self.ylowedge, self.yhighedge[-1])
 
         if extractData:
             self._GetContents()
@@ -925,6 +929,7 @@ class TH3(TH2):
         self.zcentres  = _np.zeros(self.nbinsz)
         self.zlowedge  = _np.zeros(self.nbinsz)
         self.zhighedge = _np.zeros(self.nbinsz)
+        self.zedges    = _np.zeros(self.nbinsz+1)
         self.zrange    = (0,0)
 
         self.contents = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
@@ -937,6 +942,7 @@ class TH3(TH2):
             self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
             self.zcentres[i]  = zaxis.GetBinCenter(i+1)
         self.zrange = (self.zlowedge[0],self.zhighedge[-1])
+        self.zedges = _np.append(self.zlowedge, self.zhighedge[-1])
 
         if extractData:
             self._GetContents()
