@@ -1,4 +1,4 @@
-#pybdsim#
+# pybdsim #
 
 A python package containing both utilities for preparing and analysing BDSIM input and output as well as controlling BDSIM.
 
