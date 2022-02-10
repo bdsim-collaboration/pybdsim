@@ -628,16 +628,15 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     xsf = xScalingFactor
     ysf = yScalingFactor
     ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
-    
-    if autovmin:
+    if autovmin or vmin is None:
         vmin = _np.min(h.contents[h.contents!=0])
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
-        #if vmin is not None:
-        #    d[d==0] = vmin
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
-        _plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
-        _plt.colorbar(label=zlabel)
+        ax = f.add_subplot(111)
+        im = ax.pcolormesh(h.xedges, h.yedges, d, norm=norm, rasterized=True)
+        #_plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
+        _plt.colorbar(im, label=zlabel)
     else:
         _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', **imshowKwargs)
         _plt.colorbar(format='%.0e', label=zlabel)
