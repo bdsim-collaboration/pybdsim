@@ -13,6 +13,7 @@ from . import _General
 from collections import defaultdict as _defaultdict
 import copy as _copy
 import glob as _glob
+import itertools as _itertools
 import math as _math
 import numpy as _np
 import os as _os
@@ -1066,8 +1067,6 @@ class BDSBH4D():
 
 
     def to_numpy(self,hist, hist_type="h"):
-        import numpy as np
-        import itertools
 
         histo4d = np.zeros((hist.h_nxbins, hist.h_nybins, hist.h_nzbins, hist.h_nebins))
 
