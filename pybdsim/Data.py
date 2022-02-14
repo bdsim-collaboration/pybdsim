@@ -450,7 +450,6 @@ class RebdsimFile(object):
         for h in h4d:
             name = currentDirName + '/' + h
             name = name.strip('/')
-            name = name.split("Event/MergedHistograms/")[1]
             hob = currentDir.Get(h)
             self.histograms[name] = hob
             self.histograms4d[name] = hob
