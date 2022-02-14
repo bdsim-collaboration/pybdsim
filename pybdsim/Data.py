@@ -815,6 +815,8 @@ class ROOTHist(object):
         self.xlabel = hist.GetXaxis().GetTitle()
         self.ylabel = hist.GetYaxis().GetTitle()
         self.errorsAreErrorOnMean = True
+        self.entries = 0
+        self.errors  = _np.array([]) # avoid problems with error methods
 
     def __getstate__(self):
         """
@@ -1010,13 +1012,13 @@ class BDSBH4D():
         self.ycentres  = _np.zeros(self.nbinsy)
         self.ylowedge  = _np.zeros(self.nbinsy)
         self.yhighedge = _np.zeros(self.nbinsy)
-        self.yedges    = _np.zeros(self.ybinsx+1)
+        self.yedges    = _np.zeros(self.nbinsy+1)
 
         self.zwidths   = _np.zeros(self.nbinsz)
         self.zcentres  = _np.zeros(self.nbinsz)
         self.zlowedge  = _np.zeros(self.nbinsz)
         self.zhighedge = _np.zeros(self.nbinsz)
-        self.zedges    = _np.zeros(self.zbinsx+1)
+        self.zedges    = _np.zeros(self.nbinsz+1)
 
         self.ewidths   = _np.zeros(self.nbinse)
         self.ecentres  = _np.zeros(self.nbinse)
@@ -1116,8 +1118,7 @@ class BDSBH4D():
 
 
     def _ToNumpy(self, hist, hist_type="h"):
-        histo4d = np.zeros((hist.h_nxbins, hist.h_nybins, hist.h_nzbins, hist.h_nebins))
-
+        histo4d = _np.zeros((hist.h_nxbins, hist.h_nybins, hist.h_nzbins, hist.h_nebins))
         ho = getattr(hist, hist_type)
         for x, y, z, e in _itertools.product(range(hist.h_nxbins),
                                              range(hist.h_nybins),
