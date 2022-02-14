@@ -986,98 +986,150 @@ class BDSBH4D():
 
     """
     def __init__(self, hist, extractData=True):
-        self.nbinsx    = hist.GetNbinsX()
+        # these members are made to be the same as our "ROOTHist" class
+        # even though it isn't inherited (can't be as data different)
+        self.hist   = hist
+        self.name   = hist.GetName()
+        self.title  = hist.GetTitle()
+        self.xlabel = ""
+        self.ylabel = ""
+        self.errorsAreErrorOnMean = True
+        
+        self.nbinsx = hist.GetNbinsX()
         self.nbinsy = hist.GetNbinsY()
         self.nbinsz = hist.GetNbinsZ()
-        self.nbinse    = hist.GetNbinsE()
+        self.nbinse = hist.GetNbinsE()
 
-        self.xwidths = _np.zeros(self.nbinsx)
-        self.xcentres = _np.zeros(self.nbinsx)
-        self.xlowedge = _np.zeros(self.nbinsx)
+        self.xwidths   = _np.zeros(self.nbinsx)
+        self.xcentres  = _np.zeros(self.nbinsx)
+        self.xlowedge  = _np.zeros(self.nbinsx)
         self.xhighedge = _np.zeros(self.nbinsx)
+        self.xedges    = _np.zeros(self.nbinsx+1)
 
-        self.ywidths = _np.zeros(self.nbinsy)
-        self.ycentres = _np.zeros(self.nbinsy)
-        self.ylowedge = _np.zeros(self.nbinsy)
+        self.ywidths   = _np.zeros(self.nbinsy)
+        self.ycentres  = _np.zeros(self.nbinsy)
+        self.ylowedge  = _np.zeros(self.nbinsy)
         self.yhighedge = _np.zeros(self.nbinsy)
+        self.yedges    = _np.zeros(self.ybinsx+1)
 
-        self.zwidths = _np.zeros(self.nbinsz)
-        self.zcentres = _np.zeros(self.nbinsz)
-        self.zlowedge = _np.zeros(self.nbinsz)
+        self.zwidths   = _np.zeros(self.nbinsz)
+        self.zcentres  = _np.zeros(self.nbinsz)
+        self.zlowedge  = _np.zeros(self.nbinsz)
         self.zhighedge = _np.zeros(self.nbinsz)
+        self.zedges    = _np.zeros(self.zbinsx+1)
 
         self.ewidths   = _np.zeros(self.nbinse)
         self.ecentres  = _np.zeros(self.nbinse)
         self.elowedge  = _np.zeros(self.nbinse)
         self.ehighedge = _np.zeros(self.nbinse)
+        self.eedges    = _np.zeros(self.nbinse+1)
 
         self.contents = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz,self.nbinse))
         self.errors   = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz,self.nbinse))
 
-        self.GetBinsInfos(hist)
+        self._GetBinsInfo(hist)
 
         if extractData:
             self._GetContents(hist)
 
-    def GetBinsInfos(self,hist):
+        self.integral = _np.sum(self.contents)
+        # this assumes uncorrelated
+        self.integralError = _np.sqrt((self.errors**2).sum())
 
+    def ErrorsToSTD(self):
+        """
+        Errors are by default the error on the mean. Call this function
+        to multiply by sqrt(N) to convert to the standard deviation.
+        Will automatically only apply itself once even if repeatedly called.
+        """
+        if self.errorsAreErrorOnMean:
+            self.errors *= _np.sqrt(self.entries)
+            self.errorsAreErrorOnMean = False
+        else:
+            pass # don't double apply calculation
+
+    def ErrorsToErrorOnMean(self):
+        """
+        Errors are by default the error on the mean. However, if you used
+        ErrorsToSTD, you can convert back to error on the mean with this
+        function, which divides by sqrt(N).
+        """
+        if self.errorsAreErrorOnMean:
+            pass # don't double apply calculation
+        else:
+            self.errors /= _np.sqrt(self.entries)
+            self.errorsAreErrorOnMean = True
+
+    def _GetBinsInfo(self, hist):
         x_step = (hist.h_xmax - hist.h_xmin)/hist.h_nxbins
         for i in range(hist.h_nxbins):
-            self.xwidths[i] = x_step
-            self.xlowedge[i] = hist.h_xmin + i*x_step
+            self.xwidths[i]   = x_step
+            self.xlowedge[i]  = hist.h_xmin + i*x_step
             self.xhighedge[i] = self.xlowedge[i] + self.xwidths[i]
-            self.xcentres[i] = self.xlowedge[i] + self.xwidths[i]/2
+            self.xcentres[i]  = self.xlowedge[i] + self.xwidths[i]/2
+        self.xrange = (self.xlowedge[0],self.xhighedge[-1])
+        self.xedges = _np.append(self.xlowedge, self.xhighedge[-1])
 
         y_step = (hist.h_ymax - hist.h_ymin) / hist.h_nybins
         for i in range(hist.h_nybins):
-            self.ywidths[i] = y_step
-            self.ylowedge[i] = hist.h_ymin + i*y_step
+            self.ywidths[i]   = y_step
+            self.ylowedge[i]  = hist.h_ymin + i*y_step
             self.yhighedge[i] = self.ylowedge[i] + self.ywidths[i]
-            self.ycentres[i] = self.ylowedge[i] + self.ywidths[i] / 2
-
+            self.ycentres[i]  = self.ylowedge[i] + self.ywidths[i] / 2
+        self.yrange = (self.ylowedge[0],self.yhighedge[-1])
+        self.yedges = _np.append(self.ylowedge, self.yhighedge[-1])
+            
         z_step = (hist.h_zmax - hist.h_zmin) / hist.h_nzbins
         for i in range(hist.h_nzbins):
-            self.zwidths[i] = z_step
-            self.zlowedge[i] = hist.h_zmin + i*z_step
+            self.zwidths[i]   = z_step
+            self.zlowedge[i]  = hist.h_zmin + i*z_step
             self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
-            self.zcentres[i] = self.zlowedge[i] + self.zwidths[i] / 2
+            self.zcentres[i]  = self.zlowedge[i] + self.zwidths[i] / 2
+        self.zrange = (self.zlowedge[0],self.zhighedge[-1])
+        self.zedges = _np.append(self.zlowedge, self.zhighedge[-1])
 
         if hist.h_escale == 'log':
             e_step = (_math.log10(hist.h_emax) - _math.log10(hist.h_emin)) / hist.h_nebins
             for i in range(hist.h_nebins):
-                self.elowedge[i] = hist.h_emin * 10 ** (i * e_step)
+                self.elowedge[i]  = hist.h_emin * 10 ** (i * e_step)
                 self.ehighedge[i] = hist.h_emin * 10 ** ((i+1) * e_step)
-                self.ewidths[i] = self.ehighedge[i] - self.elowedge[i]
-                self.ecentres[i] = self.elowedge[i] + self.ewidths[i] / 2
+                self.ewidths[i]   = self.ehighedge[i] - self.elowedge[i]
+                self.ecentres[i]  = self.elowedge[i] + self.ewidths[i] / 2
 
         if hist.h_escale == 'linear':
             e_step = (hist.h_emax - hist.h_emin) / hist.h_nebins
             for i in range(hist.h_nebins):
-                self.ewidths[i] = e_step
-                self.elowedge[i] = hist.h_emin + i * e_step
+                self.ewidths[i]  = e_step
+                self.elowedge[i]  = hist.h_emin + i * e_step
                 self.ehighedge[i] = self.elowedge[i] + self.ewidths[i]
-                self.ecentres[i] = self.elowedge[i] + self.ewidths[i] / 2
+                self.ecentres[i]  = self.elowedge[i] + self.ewidths[i] / 2
 
         if hist.h_escale == 'user':
             for i in range(hist.h_nebins):
-                self.elowedge[i] = hist.h_ebinsedges.at(i)
+                self.elowedge[i]  = hist.h_ebinsedges.at(i)
                 self.ehighedge[i] = hist.h_ebinsedges.at(i+1)
-                self.ewidths[i] = hist.h_ebinsedges.at(i+1)-hist.h_ebinsedges.at(i)
-                self.ecentres[i] = self.elowedge[i] + 0.5*self.ewidths[i]
+                self.ewidths[i]   = hist.h_ebinsedges.at(i+1)-hist.h_ebinsedges.at(i)
+                self.ecentres[i]  = self.elowedge[i] + 0.5*self.ewidths[i]
+
+        self.erange = (self.elowedge[0],self.ehighedge[-1])
+        self.eedges = _np.append(self.elowedge, self.ehighedge[-1])
 
 
-    def to_numpy(self,hist, hist_type="h"):
-
+    def _ToNumpy(self, hist, hist_type="h"):
         histo4d = np.zeros((hist.h_nxbins, hist.h_nybins, hist.h_nzbins, hist.h_nebins))
 
-        for x, y, z, e in itertools.product(range(hist.h_nxbins), range(hist.h_nybins), range(hist.h_nzbins), range(hist.h_nebins)):
-            histo4d[x, y, z, e] = getattr(hist, hist_type).at(x, y, z, e)
+        ho = getattr(hist, hist_type)
+        for x, y, z, e in _itertools.product(range(hist.h_nxbins),
+                                             range(hist.h_nybins),
+                                             range(hist.h_nzbins),
+                                             range(hist.h_nebins)):
+            histo4d[x, y, z, e] = ho.at(x, y, z, e)
 
         return histo4d
 
     def _GetContents(self,hist):
-        self.contents = self.to_numpy(hist)
-        self.errors = self.to_numpy(hist, hist_type="h_err")
+        self.contents = self._ToNumpy(hist)
+        self.errors   = self._ToNumpy(hist, hist_type="h_err")
 
 
 class _SamplerData(object):
