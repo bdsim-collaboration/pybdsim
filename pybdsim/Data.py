@@ -13,11 +13,10 @@ from . import _General
 from collections import defaultdict as _defaultdict
 import copy as _copy
 import glob as _glob
+import math as _math
 import numpy as _np
 import os as _os
 import pickle as _pickle
-
-import math as m
 
 _useRoot      = True
 _libsLoaded   = False
@@ -1043,7 +1042,7 @@ class BDSBH4D():
             self.zcentres[i] = self.zlowedge[i] + self.zwidths[i] / 2
 
         if hist.h_escale == 'log':
-            e_step = (m.log10(hist.h_emax) - m.log10(hist.h_emin)) / hist.h_nebins
+            e_step = (_math.log10(hist.h_emax) - _math.log10(hist.h_emin)) / hist.h_nebins
             for i in range(hist.h_nebins):
                 self.elowedge[i] = hist.h_emin * 10 ** (i * e_step)
                 self.ehighedge[i] = hist.h_emin * 10 ** ((i+1) * e_step)
