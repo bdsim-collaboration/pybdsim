@@ -14,6 +14,7 @@ of BDSIM models.
    convert
    compare	     
    data
+   fieldmaps
    classes
    support
    version_history

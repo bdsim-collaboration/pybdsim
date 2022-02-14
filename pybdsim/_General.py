@@ -133,6 +133,4 @@ def IsSurvey(file):
 
 def IsROOTFile(path):
     """Check if input is a ROOT file."""
-    # First four bytes of a ROOT file is the word "root"
-    with open(path, "rb") as f:
-        return f.read()[:4] == "root"
+    return path[-4:] == "root"

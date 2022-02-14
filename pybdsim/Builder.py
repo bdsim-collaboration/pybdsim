@@ -271,10 +271,9 @@ class Element(ElementBase):
             split_elements.append(This(name, l=length, **other_kwargs))
         # Add the final element (for n points we have n+1 elements, so
         # we add the last one here "by hand").
-        split_elements.append(
-                This("{}_split_{}".format(self['name'], i + 1),
-                     l=round(total_length - accumulated_length, 15),
-                     **other_kwargs))
+        split_elements.append(This("{}_split_{}".format(self['name'], i + 1),
+                                   l=round(total_length - accumulated_length, 15),
+                                   **other_kwargs))
 
         return split_elements
 
@@ -386,7 +385,7 @@ class ApertureModel(dict):
     A class that produces the aperture representation of an element. Only non-zero
     values are written for the aperture parameters. Includes parameter checking.
     """
-    def __init__(self, apertureType='circular', aper1=0.1, aper2=0, aper3=0, aper4=0):
+    def __init__(self, apertureType='circular', aper1=0.1, aper2=0, aper3=0, aper4=0, warningName=""):
         dict.__init__(self)
         allowedTypes = [
             'circular',
@@ -414,7 +413,7 @@ class ApertureModel(dict):
         if atL not in allowedTypes and atL not in madxTypes.keys():
             print('Allowed BDSIM aperture types are: ', allowedTypes)
             print('Allowed MADX aperture types are: ',madxTypes.keys())
-            raise ValueError("Invalid aperture type: "+str(apertureType))
+            raise ValueError(str(warningName)+" Invalid aperture type: "+str(apertureType))
 
         if atL in list(madxTypes.keys()):
             self['apertureType'] = madxTypes[atL]
@@ -426,8 +425,9 @@ class ApertureModel(dict):
 
         if self['apertureType'] in allowedTypes[1:] and aper2 == 0:
             print('For aperture type "',self['apertureType'],'" at least aper1 and aper2 must be specified')
-            raise ValueError("Too few aperture parameters supplied")
-
+            print("apertures: ",aper1,aper2,aper3,aper4)
+            raise ValueError(str(warningName) + " Too few aperture parameters supplied")
+        
         self['aper1'] = aper1
         self['aper2'] = aper2
         self['aper3'] = aper3
@@ -1504,7 +1504,7 @@ class Machine(object):
 
 # General scripts below this point
 
-def PrepareApertureModel(rowDictionary, default='circular'):
+def PrepareApertureModel(rowDictionary, default='circular', warningName=""):
     rd = rowDictionary # shortcut
     a1 = rd['APER_1']
     a2 = 0.0
@@ -1529,7 +1529,7 @@ def PrepareApertureModel(rowDictionary, default='circular'):
             a2 = a3 = a4 = 0 # set 0 to save writing needlessly
         else:
             aType = default
-    a = ApertureModel(aType,a1,a2,a3,a4)
+    a = ApertureModel(aType,a1,a2,a3,a4,warningName=warningName)
     return a
 
 def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first'):

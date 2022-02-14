@@ -5,7 +5,10 @@ from ._MadxBdsimComparison import MadxVsBDSIMOrbit
 from ._MadxBdsimComparison import MadxVsBDSIMOrbitResiduals
 from ._MadxBdsimComparison import MadxVsBDSIMFromGMAD
 
-from ._TransportBdsimComparison import TransportVsBDSIM
+try:
+    from ._TransportBdsimComparison import TransportVsBDSIM
+except ImportError:
+    pass
 
 from ._Mad8BdsimComparison import Mad8VsBDSIM
 

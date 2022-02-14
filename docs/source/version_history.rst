@@ -2,6 +2,68 @@
 Version History
 ===============
 
+V2.5.0 - 2022 / 02 / XX
+=======================
+
+* Field classes no longer have :code:`flip=True` as the default - it is now :code:`False`.
+  Please check any field maps created by scripts using these classes.
+
+New Features
+------------
+
+* Create a nice Python copy of the header information from any (re)bdsim file when
+  loading with pybdsim using only Python types.
+* New ratio plot for 2x 1D histograms. See `pybdsim.Plot.Histogram1DRatio`.
+* pybdsim.Data.TH1,2,3 now have :code:`xrange`, :code:`yrange`, and :code:`zrange` members
+  where approriate with a conveninent tuple of the range in each dimension. They also
+  have the member :code:`integral` and :code:`integralError` taken from their ROOT objects.
+* Field plotting functions now tolerate Field class objects as well as filenames to make
+  it easier to check field objects as you're making them.
+* New field plotting for 2D field maps showing each component.
+* New field reflection utility function `pybdsim.Field.MirrorDipoleQuadrant1` for 2D fields.
+* New field plotting function `pybdsim.Field.Plot2DXYConnectionOrder` to see the order
+  an array is written in. This can be used to validate any field manipulations.
+* New field plotting function `pybdsim.Field.Plot1DFxFyFz` to see field components in 1D.
+* Field loading automatically works for dimensions such as X, Z for 2D instead of X, Y now.
+* Ability to load a rebdsim output file and only load the ROOT histograms without loading
+  the BDSIM and rebdsim shared libraries, so it can be used on a separate computer with just
+  ROOT.
+
+Bug Fixes
+---------
+
+* pybdsim would throw an exception that librebdsim and libbdsimRootEvent could not be
+  loaded and stop if the libraries had been already loaded separately outside pybdsim.
+  This has been fixed by fixing the interpretation of the error codes from ROOT.
+* Fix warning about "nonposy" in matplotlib version for log scales.
+* Fix check in Run of if it's a ROOT file or not. Simplify it to use file extension.
+* Tolerate no pytransport installation.
+
+General
+-------
+
+* Updated out of date documentation.
+* Better automatic ranges for Histogram1DMultiple plots by default.
+* Better field loading in `pybdsim.Field.Load`. Returns the same Field object
+  from pybdsim as you would write.
+
+v2.4.0 - 2021 / 06 / 16
+=======================
+
+New Features
+------------
+
+* Transform3D function in a Machine.
+* Crystal, ScorerMesh and Placement also can be added to a Machine.
+* Ability to insert and replace an element in a machine.
+
+Bug Fixes
+---------
+
+* Python 3.8+ warnings fixed.
+* Add ROOT_INCLUDE_PATH to ROOT as newer versions don't do this automatically.
+* Fixed vmin for 2D histogram plot.
+
 v2.3.0 - 2020 / 12 / 15
 =======================
 

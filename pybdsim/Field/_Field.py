@@ -1,4 +1,6 @@
+import gzip as _gzip
 import numpy as _np
+import tarfile as _tarfile
 
 
 class Field(object):
@@ -8,17 +10,21 @@ class Field(object):
     This does not support arbitrary loop ordering - only the originally intended
     xyzt.
     """
-    def __init__(self, array=_np.array([]), columns=[], flip=True, doublePrecision=False):
+    def __init__(self, array=_np.array([]), columns=[], flip=False, doublePrecision=False):
         self.data            = array
         self.columns         = columns
         self.header          = {}
         self.flip            = flip
-        self.doublePrecision = doublePrecision       
-
-    def Write(self, fileName):
+        self.doublePrecision = doublePrecision
+        self.nDimensions     = 0
+        
+    def Write(self, fileName, writeLoopOrderReversed=False):
         f = open(fileName, 'w')
+        
         for key,value in self.header.items():
             f.write(str(key)+'> '+ str(value) + '\n')
+        lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
+        f.write("loopOrder> "+lo+"\n")
 
         if self.doublePrecision:
             colStrings = ['%23s' % s for s in self.columns]
@@ -31,7 +37,12 @@ class Field(object):
         # flatten all but last dimension - 3 field components
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
 
-        if self.flip:
+
+        flipLocal = self.flip
+        if writeLoopOrderReversed:
+            flipLocal = not flipLocal
+        
+        if not flipLocal:
             # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
             # [x,y,z,values]   -> [z,y,x,values]   for 3D
             # [x,y,values]     -> [y,x,values]     for 2D
@@ -80,6 +91,7 @@ class Field1D(Field):
         self.header[column.lower() + 'min'] = _np.min(self.data[:,0])
         self.header[column.lower() + 'max'] = _np.max(self.data[:,0])
         self.header['n' + column.lower()]   = _np.shape(self.data)[0]
+        self.nDimensions = 1
 
 class Field2D(Field):
     """
@@ -95,16 +107,16 @@ class Field2D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (y,x,value) dimension order
-    to be written as (x,y,value).
+    to be written as (x,y,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y'):
+    def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y'):
         columns = [firstColumn, secondColumn, 'Fx', 'Fy', 'Fz']
         super(Field2D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1] if flip else [1,0]
+        inds = [1,0] if flip else [0,1]
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         self.header[fcl+'min'] = _np.min(self.data[:,:,0])
@@ -113,6 +125,7 @@ class Field2D(Field):
         self.header[scl+'min'] = _np.min(self.data[:,:,1])
         self.header[scl+'max'] = _np.max(self.data[:,:,1])
         self.header['n'+scl]   = _np.shape(self.data)[inds[1]]
+        self.nDimensions = 2
 
 class Field3D(Field):
     """
@@ -128,16 +141,16 @@ class Field3D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (z,y,x,value) dimension order to
-    be written as (x,y,z,value).
+    be written as (x,y,z,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
+    def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
         columns = [firstColumn,secondColumn,thirdColumn,'Fx','Fy','Fz']
         super(Field3D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1,2] if flip else [2,1,0]
+        inds = [2,1,0] if flip else [0,1,2]
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         tcl = thirdColumn.lower()
@@ -150,6 +163,7 @@ class Field3D(Field):
         self.header[tcl+'min'] = _np.min(self.data[:,:,:,2])
         self.header[tcl+'max'] = _np.max(self.data[:,:,:,2])
         self.header['n'+tcl]   = _np.shape(self.data)[inds[2]]
+        self.nDimensions = 3
 
 class Field4D(Field):
     """
@@ -165,16 +179,16 @@ class Field4D(Field):
     >>> a.Write('outputFileName.dat')
 
     The 'flip' boolean allows an array with (t,z,y,x,value) dimension order to
-    be written as (x,y,z,t,value).
+    be written as (x,y,z,t,value). Values must still be (x,y,fx,fy,fz).
 
     The 'doublePrecision' boolean controls whether the field and spatial
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=True, doublePrecision=False):
+    def __init__(self, data, flip=False, doublePrecision=False):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
         super(Field4D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [0,1,2,3] if flip else [3,2,1,0]
+        inds = [3,2,1,0] if flip else [0,1,2,3]
         self.header['xmin'] = _np.min(self.data[:,:,:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,:,:,0])
         self.header['nx']   = _np.shape(self.data)[inds[0]]
@@ -187,3 +201,176 @@ class Field4D(Field):
         self.header['tmin'] = _np.min(self.data[:,:,:,:,3])
         self.header['tmax'] = _np.max(self.data[:,:,:,:,3])
         self.header['nt']   = _np.shape(self.data)[inds[3]]
+        self.nDimensions = 4
+
+
+def Load(filename, debug=False):
+    """
+    :param filename: name of file to load
+    :type filename: str
+    
+    Load a BDSIM field format file into a numpy array. Can either
+    be a regular ascii text file or can be a compressed file ending
+    in ".tar.gz".
+
+    returns a numpy array with the corresponding number of dimensions
+    and the dimension has the coordinates and fx,fy,fz.
+    """
+    gzippedFile = False
+    if (filename.endswith('.tar.gz')):
+        print('Field Loader> loading compressed file ' + filename)
+        tar = _tarfile.open(filename,'r')
+        f = tar.extractfile(tar.firstmember)
+    elif '.gz' in filename:
+        f = _gzip.open(filename)
+        gzippedFile = True
+    else:
+        print('Field Loader> loading file ' + filename)
+        f = open(filename)
+
+    intoData = False
+    header   = {}
+    columns  = []
+    data     = []
+    
+    for line in f:
+        if gzippedFile:
+            line = line.decode('utf-8')
+        if intoData:
+            ls = line.strip()
+            # avoid empty lines
+            if ls.isspace() or len(ls) == 0:
+                continue
+            data.append(line.strip().split())
+
+        elif '>' in line:
+            d = line.strip().split('>')
+            k = d[0].strip()
+            try:
+                v = float(d[1].strip())
+            except ValueError:
+                v = d[1].strip()
+            header[k] = v
+
+        elif '!' in line:
+            columns = line.strip('!').strip().split()
+            intoData = True
+
+    f.close()
+    
+    data = _np.array(data, dtype=float)
+
+    normalLoopOrder = ['x','y','z','t']
+    # this is convention - in the case of xyzt, bdsim loops
+    # over x first, then y, then z, so it appears the first
+    # column is changing.
+    flip = False
+
+    if 'loopOrder' in header:
+        order = header['loopOrder']
+        flip = order == 'tzyx'
+        if debug:
+            print("flip :",flip)
+
+    nDim = len(columns) - 3
+    # TBC for no case when we don't store spatial coords also
+    if (nDim < 1 or nDim > 4):
+        if debug:
+            print('Invalid number of columns')
+            print(columns)
+        return
+
+    requiredSet = {'nx','ny','nz','nt'}
+    headerKeySet = set(header.keys())
+    keysPresent = headerKeySet.intersection(requiredSet)
+    keysPresentList = list(keysPresent)
+    if len(keysPresent) < nDim:
+        print('missing keys from header!')
+        if debug:
+            print(header)
+        return
+    else:
+        dimToNVariable = {'x' : 'nx',
+                          'y' : 'ny',
+                          'z' : 'nz',
+                          't' : 'nt'}
+        print("Columns: ",columns)
+        print("Header: ",header)
+        dims = [int(header[dimToNVariable[k.lower()]]) for k in columns[:-3]]
+        dims.append(len(columns))
+        if debug:
+            print("Shape of numpy array to be: ",dims)
+            print("nDimensions: ",nDim)
+            print("Existing numpy array shape: ",_np.shape(data))
+        data = data.reshape(*dims)
+
+    # build field object
+    #columns = [s.strip('n') for s in keysPresentList]
+    if nDim == 1:
+        fd = Field1D(data, column=columns[0])
+    elif nDim == 2:
+        fd = Field2D(data, flip=flip, firstColumn=columns[0], secondColumn=columns[1])
+    elif nDim == 3:
+        fd = Field3D(data, flip=flip, firstColumn=columns[0], secondColumn=columns[1], thirdColumn=columns[2])
+    elif nDim == 4:
+        fd = Field4D(data, flip=flip)
+    else:
+        raise ValueError("Invalid number of dimensions")
+
+    return fd
+
+
+def MirrorDipoleQuadrant1(field2D):
+    """
+    +-------+-------+
+    |       |       |
+    |   2   |   1   |
+    |       |       |
+    +-------+-------+
+    |       |       |
+    |   3   |   4   |
+    |       |       |
+    +-------+-------+
+
+    :param field2D: field object
+    :type field2D: pybdsim.Field._Field.Field2D instance
+
+    returns an instance of the same type.
+    
+    For a 2D field (i.e. function of x,y but can include Bx,By,Bz),
+    for the quadrant \#1, mirror it and generate a bigger field for
+    all four quadrants.
+    
+    1. original data
+    2. data mirrored in x, (x,Bx) \*= -1
+    3. data mirrored in x,y, (x,y,By) \*= -1
+    4. data mirrored in y, (y,Bx) \*= -1
+
+    This is based on a dipole field.
+    """
+    d = field2D.data
+    ds = _np.shape(d)
+    sx = ds[0]
+    sy = ds[1]
+    result = _np.empty((2*sx, 2*sy, ds[2]))
+    # top right quadrant
+    result[sx:,sy:,:] = d
+    # top left quadrant
+    result[:sx,sy:,:] = d[::-1,:,:]
+    # bottom left quadrant
+    result[:sx,:sy] = d[::-1,::-1,:]
+    # bottom right quadrant
+    result[sx:,:sy,:] = d[:,::-1,:]
+
+    # each value is x,y,Bx,By,Bz
+    
+    # flip x,Bx for top left
+    result[:sx,sy:,_np.array([0,2])] *= -1
+    # flip x,y for bottom left
+    result[:sx,:sy,:2] *= -1
+    # flip y,Bx for bottom right
+    result[sx:,:sy,_np.array([1,2])] *= -1
+    
+    resultField = Field2D(result)
+    return resultField
+
