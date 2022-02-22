@@ -62,6 +62,7 @@ from . import ModelProcessing
 from . import Visualisation
 from . import XSecBias
 from . import _General
+from . import Optics
 
 __all__ = ['Beam',
            'Builder',
