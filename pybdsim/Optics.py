@@ -27,7 +27,6 @@ def _get_matrix_elements_block(m: _pd.DataFrame, twiss: Dict, block: int = 1) ->
 class Twiss:
     def __init__(self,
                  samplers_data=None,
-                 reference_energy: Optional[float] = None,
                  twiss_init: Optional[Dict] = None,
                  with_phase_unrolling: bool = True,
                  offsets: List = None):
@@ -42,13 +41,13 @@ class Twiss:
 
         """
         self._samplers_data = samplers_data
-        self._reference_energy = reference_energy
         self._twiss_init = twiss_init
         self._with_phase_unrolling = with_phase_unrolling
         self._offsets = offsets
 
     def __call__(self,
-                 end: Union[int, str] = -1
+                 end: Union[int, str] = -1,
+                 verbose: bool = False
                  ) -> _pd.DataFrame:
         """
         Uses a step-by-step transfer matrix to compute the Twiss parameters (uncoupled). The phase advance and the
@@ -60,7 +59,8 @@ class Twiss:
         Returns:
             the same DataFrame as the input, but with added columns for the computed quantities.
         """
-        matrix = self.compute_matrix_for_twiss()
+        self.verbose = verbose
+        matrix = self.compute_matrix_for_twiss(end=end)
 
         if self._twiss_init is None:
             twiss_init = self.compute_periodic_twiss(matrix, end)
@@ -105,22 +105,20 @@ class Twiss:
 
         return matrix
 
-    def compute_matrix_for_twiss(self) -> _pd.DataFrame:
+    def compute_matrix_for_twiss(self, end: Union[int, str] = None) -> _pd.DataFrame:
         samplers_data = self._samplers_data
         normalization = 2 * self._offsets
 
         step_by_step_matrix = _pd.DataFrame()
 
+        idx = 0
         for s in samplers_data.keys():
-            if self._reference_energy is None:
-                self._reference_energy = samplers_data[s].df['energy'][0]
 
-            p0 = _np.sqrt((self._reference_energy - 938.27203) * _ureg.MeV ** 2) / _ureg.c
-            df = samplers_data[s].df[['x', 'xp', 'y', 'yp', 'energy', 'S']].copy()
-            df['dpp'] = df['energy'].apply(
-                lambda x: ((_np.sqrt(x * _ureg.MeV ** 2 - 938.27203 * _ureg.MeV ** 2) / _ureg.c - p0) / p0).magnitude)
+            p0 = samplers_data[s].df['p'][0]
+            df = samplers_data[s].df[['x', 'xp', 'y', 'yp', 'p', 'S']].copy()
+            df['dpp'] = (df['p'] - p0) / p0
 
-            output_coordinates = df.drop(columns=['energy', 'S'])
+            output_coordinates = df.drop(columns=['p', 'S'])
             m = output_coordinates.values
             matrix = {
                 f'R{j + 1}{i + 1}': ((m[i + 1, j] - m[i + 1 + 5, j]) / normalization[i]) + m[0, j]
@@ -132,6 +130,14 @@ class Twiss:
             step_by_step_matrix = step_by_step_matrix.append(_pd.DataFrame.from_dict(matrix,
                                                                                      orient='index',
                                                                                      columns=[s]).T)
+            idx+=1
+
+            if s == end:
+                break
+
+            if self.verbose:
+                print(f"element {s} done. {idx} / {len(samplers_data.keys())}", end="\r")
+
         return step_by_step_matrix
 
     @staticmethod
