@@ -151,7 +151,7 @@ website (Look for "CERN ROOT TH1" in google) or TH2 or TH3:
 * https://root.cern.ch/doc/master/classTH2D.html
 * https://root.cern.ch/doc/master/classTH3D.html
 
-TH1 is, perhaps unintuitively, the base class for 2D and 3D histograms, so many functions
+TH1 is, perhaps nonintuitively, the base class for 2D and 3D histograms, so many functions
 are documented there. The 2D and 3D ones have some specialised methods.
 
 .. note:: The integral and its error are nicely provided as members in pybdsim.Data.THXD.
@@ -197,7 +197,7 @@ Some useful functions assuming a histogram :code:`h` of type TH1D or TH2D or TH3
   reduce it to the 1D histogram it effectively is.
 
   >>> h3d_raw = d.histograms['Event/MergedHistograms/PhantomDose']
-  >>> h1d = h3d_raw.PorjectionZ()
+  >>> h1d = h3d_raw.ProjectionZ()
   >>> h1py = pybdsim.Data.TH1(h1d)
   >>> pybdsim.Plot.Histogram1D(h1py)
 
@@ -206,6 +206,55 @@ Some useful functions assuming a histogram :code:`h` of type TH1D or TH2D or TH3
 
 * "Profile" histogram is an average in 1 dimension, not a 'profile' as per the real meaning of the word.
 * "Projection" means integral.
+
+3D Scoring Histograms
+---------------------
+
+When using scoring in BDSIM, 3D histograms are produced for 3D scoring meshes. In pybdsim,
+we have a few extra functions to help handle and inspect these. Plotting 3D is inherently
+difficult because it has to be viewed from multiple angles to be understood. A few small
+utility functions are provided to get individual slices and integrals along each dimension
+to save the user from the difficultly of using underlying ROOT histograms.
+
+The functions are members of an instance of :code:`pybdsim.Data.TH3`, the Python
+version of the histogram.
+
+* :code:`pybdsim.Data.TH3.IntegrateAlong1Dimension`
+* :code:`pybdsim.Data.TH3.IntegrateAlong2Dimensions`
+* :code:`pybdsim.Data.TH3.Slice2DXY`
+* :code:`pybdsim.Data.TH3.Slice2DXZ`
+* :code:`pybdsim.Data.TH3.Slice2DXY`
+
+Examples:
+
+::
+  
+   h3d # assume an pybdsim.Data.TH3 instance
+
+
+::
+   
+   h2dx = h3d.IntegrateAlong1Dimension('x')  # return type pybdsim.Data.TH2
+   pybdsim.Plot.Histogram2D(h2dx)
+
+
+::
+  
+   for i in range(h3d.nbinsz):
+       h2i = h3d.Slice2DXY(i)
+       pybdsim.Plot.Histogram2D(h2i)
+
+
+::
+   
+   h1dz = h3d.IntegrateAlong2Dimension('z')
+   pybdsim.Plot.Histogram1D(h1dz)
+
+
+Full documentation can be seen in the TH3 class documentation in the :ref:`pybdsim-data-module`
+documentation.
+  
+
 
 .. _data-load-manual:
 

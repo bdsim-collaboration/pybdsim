@@ -981,6 +981,94 @@ class TH3(TH2):
                     self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
                     self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
 
+    def IntegateAlong1Dimension(self, dimension):
+        """
+        Integrate along a dimension returning a new 2D histogram.
+        
+        :param dimension: 'x', 'y' or 'z' dimension to integrate along
+        :type  dimension: str
+
+        returns pybdsim.Data.TH2 instance.
+
+        If the projection is done in z, a 2D histogram of x,y is returned
+        that is the sum of the bins along z. The errors are also calculated.
+
+        For 'x', the 2D histogram is z,y.
+        For 'y', the 2D histogram is z,x.
+        For 'z', the 2D hsitogram is x,y.
+        """
+        if dimension == 'x':
+            h2d = self.hist.Project3D("yze")
+            return TH2(h2d)
+        elif dimension == 'y':
+            h2d = self.hist.Project3D("xze")
+            return TH2(h2d)
+        elif dimension == 'z':
+            h2d = self.hist.Project3D("yxe")
+            return TH2(h2d)
+        else:
+            raise ValueError("dimension can only be one of 'x', 'y', 'z'")
+
+    def IntegateAlong2Dimensions(self, resultDimension):
+        """
+        Integrate along 2 dimensions returning a new 1D histogram along the result dimension
+        
+        :param resultDimension: 'x', 'y' or 'z' dimension to produce 1D histogram along.
+        :type  resultDimension: str
+
+        returns pybdsim.Data.TH1 instance.
+        """
+        if resultDimension == 'x':
+            h1d = self.hist.Project3D('xe')
+            return TH1(h1d)
+        elif resultDimension == 'y':
+            h1d = self.hist.Project3D("ye")
+            return TH1(h1d)
+        elif resultDimension == 'z':
+            h1d = self.hist.Project3D("ze")
+            return TH1(h1d)
+        else:
+            raise ValueError("dimension can only be one of 'x', 'y', 'z'")
+
+    def Slice2DXY(self, index):
+        """
+        Extract a single 2D histogram from an index along the Z dimension.
+        
+        :param index: index in z array of bins to extract, e.g. 0 -> nbinsz-1
+        :type  index: int
+        """
+        if not (0 <= index < self.nbinsz):
+            raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        self.hist.GetZaxis().SetRange(index+1,index+2)
+        h2d = self.hist.Project3D("yxe")
+        return TH2(h2d)
+
+    def Slice2DXZ(self, index):
+        """
+        Extract a single 2D histogram from an index along the Y dimension.
+        
+        :param index: index in y array of bins to extract, e.g. 0 -> nbinsy-1
+        :type  index: int
+        """
+        if not (0 <= index < self.nbinsz):
+            raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        self.hist.GetYaxis().SetRange(index+1,index+2)
+        h2d = self.hist.Project3D("xze")
+        return TH2(h2d)
+
+    def Slice2DZY(self, index):
+        """
+        Extract a single 2D histogram from an index along the X dimension.
+        
+        :param index: index in x array of bins to extract, e.g. 0 -> nbinsx-1
+        :type  index: int
+        """
+        if not (0 <= index < self.nbinsz):
+            raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        self.hist.GetXaxis().SetRange(index+1,index+2)
+        h2d = self.hist.Project3D("yze")
+        return TH2(h2d)
+
 class BDSBH4D():
     """
     Wrapper for a BDSBH instance. Converts to numpy data.

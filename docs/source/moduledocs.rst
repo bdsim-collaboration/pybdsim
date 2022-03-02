@@ -82,6 +82,8 @@ pybdsim.Convert
 .. automodule:: pybdsim.Convert._MadxTfs2Gmad
 		:members:
 
+.. _pybdsim-data-module:
+		   
 pybdsim.Data module
 -------------------
 
