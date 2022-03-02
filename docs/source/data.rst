@@ -207,6 +207,8 @@ Some useful functions assuming a histogram :code:`h` of type TH1D or TH2D or TH3
 * "Profile" histogram is an average in 1 dimension, not a 'profile' as per the real meaning of the word.
 * "Projection" means integral.
 
+.. _data-3d-histograms:
+  
 3D Scoring Histograms
 ---------------------
 
