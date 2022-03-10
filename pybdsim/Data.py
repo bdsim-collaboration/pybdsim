@@ -1634,7 +1634,7 @@ class EventSummaryData(EventInfoData):
         self._getData(interface, info, eventTree)
 
 def GetApertureExtent(apertureType, aper1=0, aper2=0, aper3=0, aper4=0):
-    apertureType = apertureType.lower()
+    apertureType = str(apertureType).lower()
 
     if apertureType == "":
         return 0,0
@@ -1667,14 +1667,14 @@ class ApertureInfo(object):
     Simple class to hold aperture parameters and extents.
     """
     def __init__(self, apertureType, aper1, aper2=0, aper3=0, aper4=0, offsetX=0, offsetY=0):
-        self.apertureType = apertureType
+        self.apertureType = str(apertureType) # maybe not a python str type from data
         self.aper1    = aper1
         self.aper2    = aper2
         self.aper3    = aper3
         self.aper4    = aper4
         self.offsetX  = offsetX
         self.offsetY  = offsetY
-        self.x,self.y = GetApertureExtent(apertureType, aper1, aper2, aper3, aper4)
+        self.x,self.y = GetApertureExtent(self.apertureType, aper1, aper2, aper3, aper4)
 
 class ModelData(object):
     def __init__(self, data):
