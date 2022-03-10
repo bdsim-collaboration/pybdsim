@@ -43,6 +43,8 @@ Bug Fixes
 * Fix warning about "nonposy" in matplotlib version for log scales.
 * Fix check in Run of if it's a ROOT file or not. Simplify it to use file extension.
 * Tolerate no pytransport installation.
+* Fix loading of aperture data from a BDSIM output file.
+* Fix aperture plots from a BDSIM output file.
 
 General
 -------
