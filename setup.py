@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pybdsim',
-    version='2.3.0',
+    version='2.4.0',
     packages=find_packages(exclude=["docs", "tests", "obsolete"]),
     # Not sure how strict these need to be...
     install_requires=["future",

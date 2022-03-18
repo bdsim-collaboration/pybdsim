@@ -114,6 +114,13 @@ def _LoadData(bdsim, bdsimname, madx, madxname, ptctwiss, ptctwissname, ptc, ptc
             thisData, thisName = parsingfunction(data, name)
             datas.append(thisData)
             names.append(thisName)
+        elif isinstance(data, _pybdsim.Data.RebdsimFile):
+            try:
+                thisData, thisName = parsingfunction(data.optics, name)
+                datas.append(thisData)
+                names.append(thisName)
+            except AttributeError:
+                raise AttributeError("No optics data found in pybdsim.Data.RebdsimFile object")
         elif len(name) != len(data):
             print("Incorrect Number of "+datatype+" names supplied, ignoring supplied names...")
             for entryNumber, entry in enumerate(data):

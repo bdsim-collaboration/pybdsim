@@ -501,6 +501,9 @@ def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, 
     tfsopt = _pymadx.Data.CheckItsTfs(tfs)
     bdsopt = _pybdsim._General.CheckItsBDSAsciiData(bds)
 
+    if survey is None:
+        survey = tfsopt
+
     orbitPlot = _plt.figure('Orbit', figsize=figsize)
     
     #tfs
@@ -524,9 +527,9 @@ def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, 
         bds_x = bdsopt.GetColumn('Mean_x')
         bds_y = bdsopt.GetColumn('Mean_y')
     _plt.plot(bds_s, bds_x, 'b.', label='BDSIM x')
-    _plt.plot(bds_s, bds_x, 'b-', alpha=0.4)
+    #_plt.plot(bds_s, bds_x, 'b-', alpha=0.4)
     _plt.plot(bds_s, bds_y, 'g.', label='BDSIM y')
-    _plt.plot(bds_s, bds_y, 'g-', alpha=0.4)
+    #_plt.plot(bds_s, bds_y, 'g-', alpha=0.4)
     
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')

@@ -6,7 +6,6 @@ Once a BDSIM model has been prepared from another model, it is of interest
 to validate it to ensure the model has been prepared correctly.
 
 
-
 Preparing Optics with BDSIM
 ---------------------------
 
@@ -53,10 +52,10 @@ The `rebdsim` tool can be used with an input `analysisConfig.txt` that specifies
 the specially prepared optics tool `rebdsimOptics` can be used to achieve the
 same outcome - we recommend this. In the terminal::
 
-  $> rebdsimOptics myOutputFile.root optics.root
+  rebdsimOptics bdsimRawOutputFile.root optics.root
 
 This may take a few minutes to process. This analyses the file from the BDSIM run
-called 'myOutputFile.root' and produces another ROOT file called `optics.root` with
+called 'bdsimRawOutputFile.root' and produces another ROOT file called `optics.root` with
 a different structure. This output file contains only optical data.
 
 Comparing to MADX
@@ -106,7 +105,7 @@ this into a BDSIM-like ROOT output file. This can be easily accomplished with th
 however the particle species and nominal momentum is required to correctly convert to the BDSIM
 coordinate convention. An example terminal command::
 
-  $> ptc2bdsim trackone ptc.root proton 0.9999
+  ptc2bdsim trackone ptc.root proton 0.9999
 
 Once the ROOT file has been generated, the `rebdsimOptics` tool (see Analysing Optical Data) must
 be used to generate the ROOT file with the appropriate optical data. Finally, the two files can be
@@ -116,3 +115,7 @@ compared with the following command::
 
 Comparing to Transport
 ----------------------
+
+With the help of pytransport a TRANSPORT "FOR002" output file that has sigma matrices can be read and compared with BDSIM output::
+
+  >>> pybdsim.Compare.TransportVsBDSIM('FOR002.DAT', 'bdsim_optics.root')

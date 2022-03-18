@@ -271,10 +271,9 @@ class Element(ElementBase):
             split_elements.append(This(name, l=length, **other_kwargs))
         # Add the final element (for n points we have n+1 elements, so
         # we add the last one here "by hand").
-        split_elements.append(
-                This("{}_split_{}".format(self['name'], i + 1),
-                     l=round(total_length - accumulated_length, 15),
-                     **other_kwargs))
+        split_elements.append(This("{}_split_{}".format(self['name'], i + 1),
+                                   l=round(total_length - accumulated_length, 15),
+                                   **other_kwargs))
 
         return split_elements
 
@@ -386,7 +385,7 @@ class ApertureModel(dict):
     A class that produces the aperture representation of an element. Only non-zero
     values are written for the aperture parameters. Includes parameter checking.
     """
-    def __init__(self, apertureType='circular', aper1=0.1, aper2=0, aper3=0, aper4=0):
+    def __init__(self, apertureType='circular', aper1=0.1, aper2=0, aper3=0, aper4=0, warningName=""):
         dict.__init__(self)
         allowedTypes = [
             'circular',
@@ -414,7 +413,7 @@ class ApertureModel(dict):
         if atL not in allowedTypes and atL not in madxTypes.keys():
             print('Allowed BDSIM aperture types are: ', allowedTypes)
             print('Allowed MADX aperture types are: ',madxTypes.keys())
-            raise ValueError("Invalid aperture type: "+str(apertureType))
+            raise ValueError(str(warningName)+" Invalid aperture type: "+str(apertureType))
 
         if atL in list(madxTypes.keys()):
             self['apertureType'] = madxTypes[atL]
@@ -426,8 +425,9 @@ class ApertureModel(dict):
 
         if self['apertureType'] in allowedTypes[1:] and aper2 == 0:
             print('For aperture type "',self['apertureType'],'" at least aper1 and aper2 must be specified')
-            raise ValueError("Too few aperture parameters supplied")
-
+            print("apertures: ",aper1,aper2,aper3,aper4)
+            raise ValueError(str(warningName) + " Too few aperture parameters supplied")
+        
         self['aper1'] = aper1
         self['aper2'] = aper2
         self['aper3'] = aper3
@@ -511,7 +511,7 @@ class Multipole(Element):
             new_knl = tuple([integrated_strength * mp['l'] / self['l']
                              for integrated_strength in mp['knl']])
             new_ksl = tuple([integrated_strength * mp['l'] / self['l']
-                             for integrated_strength in mp['knl']])
+                             for integrated_strength in mp['ksl']])
             mp['knl'] = new_knl
             mp['ksl'] = new_ksl
         return split_mps
@@ -729,14 +729,14 @@ class Sampler(object):
         else:
             return 'sample, range='+self.name+';\n'
 
-class Crystal(_collections.MutableMapping):
+class GmadObject(_collections.MutableMapping):
     """
-    A crystal is unique in that it does not have a length unlike every
-    :class:`Element` hence it needs its own class to produce its
-    representation.
+    A gmad object does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
     """
-    def __init__(self,name,**kwargs):
+    def __init__(self,objecttype,name,**kwargs):
         self._store = dict()
+        self.objecttype   = objecttype
         self.name         = name
         self._keysextra   = set()
         for k, v in kwargs.items():
@@ -782,7 +782,7 @@ class Crystal(_collections.MutableMapping):
             pass
 
     def __repr__(self):
-        s = "{s.name}: ".format(s=self) + "crystal, "
+        s = "{s.name}: ".format(s=self) + self.objecttype + ", "
         for i,key in enumerate(self._keysextra):
             if i > 0: # Separate with commas
                 s += ", "
@@ -794,6 +794,31 @@ class Crystal(_collections.MutableMapping):
                 s += key + '=' + str(self[key])
         s += ';\n'
         return s
+
+class Crystal(GmadObject):
+    """
+    A crystal does not have a length unlike every
+    :class:`Element` hence it needs its own class to produce its
+    representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "crystal",name,**kwargs)
+
+class ScorerMesh(GmadObject):
+    """
+    A scorermesh does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "scorermesh",name,**kwargs)
+
+class Placement(GmadObject):
+    """
+    A placement does not have a length unlike every :class:`Element` hence it
+    needs its own class to produce its representation.
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "placement",name,**kwargs)
 
 class Machine(object):
     """
@@ -984,7 +1009,7 @@ class Machine(object):
         Update a parameter for a specified element name. Modifying element length will produce a warning.
         If a value for that parameter already exists, the value will be overwritten.
         """
-        if parameter is 'length':
+        if parameter == 'length':
             msg = 'Caution: modifying an element length will change the machine length.'
             print(msg)
             # update total machine length
@@ -1445,6 +1470,12 @@ class Machine(object):
     def AddCrystal(self, name, **kwargs):
         self.objects.append(Crystal(name, **kwargs))
 
+    def AddScorerMesh(self, name, **kwargs):
+        self.objects.append(ScorerMesh(name, **kwargs))
+
+    def AddPlacement(self, name, **kwargs):
+        self.objects.append(Placement(name, **kwargs))
+
     def AddRmat(self, name='rmat', length=0.1,
                 r11=1.0, r12=0, r13=0, r14=0,
                 r21=0, r22=1.0, r23=0, r24=0,
@@ -1473,7 +1504,7 @@ class Machine(object):
 
 # General scripts below this point
 
-def PrepareApertureModel(rowDictionary, default='circular'):
+def PrepareApertureModel(rowDictionary, default='circular', warningName=""):
     rd = rowDictionary # shortcut
     a1 = rd['APER_1']
     a2 = 0.0
@@ -1498,7 +1529,7 @@ def PrepareApertureModel(rowDictionary, default='circular'):
             a2 = a3 = a4 = 0 # set 0 to save writing needlessly
         else:
             aType = default
-    a = ApertureModel(aType,a1,a2,a3,a4)
+    a = ApertureModel(aType,a1,a2,a3,a4,warningName=warningName)
     return a
 
 def CreateDipoleRing(filename, ndipoles=60, circumference=100.0, samplers='first'):

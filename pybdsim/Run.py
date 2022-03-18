@@ -36,7 +36,7 @@ class ExecOptions(dict):
             if key in self._okFlags or key in self._okArgs:
                 self[key] = value
             else:
-                raise ValueError(key+'='+str(value)+' is not a valid BDISM executable option')
+                raise ValueError(key+'='+str(value)+' is not a valid BDSIM executable option')
         self.bdsimcommand = 'bdsim'
         if 'bdsimcommand' in self:
             self.bdsimcommand = self['bdsimcommand']

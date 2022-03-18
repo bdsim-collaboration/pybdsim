@@ -10,8 +10,11 @@ Data - read various output files
 from . import Constants as _Constants
 from . import _General
 
+from collections import defaultdict as _defaultdict
 import copy as _copy
 import glob as _glob
+import itertools as _itertools
+import math as _math
 import numpy as _np
 import os as _os
 import pickle as _pickle
@@ -59,9 +62,10 @@ def LoadROOTLibraries():
     # shared libraries
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
-    if reLoad is not 0:
+    # 0=ok, -1=fail, 1=already loaded
+    if reLoad < 0:
         raise Warning("librebdsim not found")
-    if bdsLoad is not 0:
+    if bdsLoad < 0:
         raise Warning("libbdsimRootEvent not found")
     _libsLoaded = True
 
@@ -71,7 +75,7 @@ def Load(filepath):
 
     ASCII file   - returns BDSAsciiData instance.
     BDSIM file   - uses ROOT, returns BDSIM DataLoader instance.
-    REBDISM file - uses ROOT, returns RebdsimFile instance.
+    REBDSIM file - uses ROOT, returns RebdsimFile instance.
 
     """
     if "*" not in filepath:
@@ -179,6 +183,9 @@ def _LoadRoot(filepath):
         print('BDSIM output file - using DataLoader')
         d = _ROOT.DataLoader(filepath)
         d.model = GetModelForPlotting(d) # attach BDSAsciiData instance for convenience
+        d.header = Header(HeaderTree=d.GetHeaderTree())
+        if d.header.nOriginalEvents == 0:
+            d.header.nOriginalEvents = int(d.GetEventTree().GetEntries())
         return d
     elif fileType == "REBDSIM":
         print('REBDSIM analysis file - using RebdsimFile')
@@ -263,9 +270,97 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
     [result.append(d) for d in data]
     return result
 
+class Header(object):
+    """
+    A simple Python version of a header in a (RE)BDSIM file for
+    easy access to the data.
+    """
+    def __init__(self, **kwargs):
+        self.bdsimVersion  = ""
+        self.geant4Version = ""
+        self.rootVersion   = ""
+        self.clhepVersion  = ""
+        self.timeStamp     = ""
+        self.fileType      = ""
+        self.dataVersion   = -1
+        self.analysedFiles = []
+        self.combinedFiles = []
+        self.trajectoryFilters = []
+        self.skimmedFile   = False
+        self.nOriginalEvents = 0
+        if 'TFile' in kwargs:
+            self._FillFromTFile(kwargs['TFile'])
+        elif 'Header' in kwargs:
+            self._Fill(kwargs['Header'])
+        elif 'HeaderTree' in kwargs:
+            self._FillFromHeaderTree(kwargs['HeaderTree'])
+
+    def _FillFromTFile(self, tfileInstance):
+        LoadROOTLibraries()
+        f = tfileInstance
+        ht = f.Get("Header")
+        self._FillFromHeaderTree(ht)
+
+    def _FillFromHeaderTree(self, headerTree):
+        ht = headerTree
+        if not ht:
+            pass
+        for hi in ht:
+            self._Fill(hi.Header)
+
+    def _Fill(self, headerInstance):
+        hi = headerInstance
+        self.bdsimVersion  = str(hi.bdsimVersion)
+        self.geant4Version = str(hi.geant4Version)
+        self.rootVersion   = str(hi.rootVersion)
+        self.clhepVersion  = str(hi.clhepVersion)
+        self.timeStamp     = str(hi.timeStamp).strip()
+        self.fileType      = str(hi.fileType)
+        self.dataVersion   = int(hi.dataVersion)
+        self.analysedFiles = [str(s) for s in hi.analysedFiles]
+        self.combinedFiles = [str(s) for s in hi.combinedFiles]
+        self.trajectoryFilters = [str(s) for s in hi.trajectoryFilters]
+        self.skimmedFile   = bool(hi.skimmedFile)
+        self.nOriginalEvents = int(hi.nOriginalEvents)
+
+class Spectra(object):
+    def __init__(self, nameIn=None):
+        self.name = nameIn
+        self.histograms = {}
+        self.histogramspy = {}
+        self.pdgids = set()
+        self.pdgidsSorted = []
+
+    def append(self, pdgid, hist, path, nameIn=None):
+        if nameIn:
+            self.name = nameIn
+        self.histograms[pdgid] = hist
+        self.histogramspy[pdgid] = TH1(hist)
+        self.pdgids.add(pdgid)
+        self._generateSortedList()
+
+    def _generateSortedList(self):
+        integrals = {pdgid:h.integral for pdgid,h in self.histogramspy.items()}
+        integralsSorted = sorted(integrals.items(), key=lambda item: item[1])
+        self.pdgidsSorted = [pdgid for pdgid,_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
+
+def ParseSpectraName(hname):
+    hn = hname.replace('Top_','')
+    hn = hn.replace('Spectra_','')
+    name,nth,pdgid = hn.split('_')
+    pdgid = int(pdgid)
+    return name+"_"+nth,pdgid
+
 class RebdsimFile(object):
     """
     Class to represent data in rebdsim output file.
+
+    :param filename: File to load
+    :type filename: str
+    :param convert: Whether to ROOT histograms to pybdsim ones as well
+    :type convert: bool
+    :param histogramsOnly: If true, then don't load rebdsim libraries and only load histograms.
+    :type histogramsOnly: bool
 
     Contains histograms as root objects. Conversion function converts
     to pybdsim.Rebdsim.THX classes holding numpy data.
@@ -275,18 +370,37 @@ class RebdsimFile(object):
 
     If convert=True (default), root histograms are automatically converted
     to classes provided here with numpy data.
+
+    If histogramsOnly is true, only the basic ROOT libraries are needed
+    (i.e. import ROOT) and no Model data will be loaded - only ROOT histograms.
     """
-    def __init__(self, filename, convert=True):
-        LoadROOTLibraries()
+    def __init__(self, filename, convert=True, histogramsOnly=False):
+        if not histogramsOnly:
+            LoadROOTLibraries()
         self.filename = filename
         self._f = _ROOT.TFile(filename)
-        self.histograms   = {}
+        if not histogramsOnly:
+            self.header = Header(TFile=self._f)
+        else:
+            self.header = Header()
+        self.histograms = {}
         self.histograms1d = {}
         self.histograms2d = {}
         self.histograms3d = {}
+        self.histograms4d = {}
+        self.histogramspy = {}
+        self.histograms1dpy = {}
+        self.histograms2dpy = {}
+        self.histograms3dpy = {}
+        self.histograms4dpy = {}
+        self.spectra = _defaultdict(Spectra)
         self._Map("", self._f)
         if convert:
             self.ConvertToPybdsimHistograms()
+
+        # even if the header isn't loaded, the default will be -1
+        if self.header.dataVersion > 7:
+            self._PopulateSpectraDictionaries()
 
         def _prepare_data(branches, treedata):
             data = BDSAsciiData()
@@ -300,19 +414,21 @@ class RebdsimFile(object):
                 data.append(elementlist)
             return data
 
-        trees = self.ListOfTrees()
-        # keep as optics (not Optics) to preserve data loading in Bdsim comparison plotting methods.
-        if 'Optics' in trees:
-            self.optics = _LoadVectorTree(self._f.Get("Optics"))
-        if 'Orbit' in trees:
-            self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
-        if 'Model' in trees or 'ModelTree' in trees:
-            self.model = GetModelForPlotting(self._f)
+        if not histogramsOnly:
+            trees = self.ListOfTrees()
+            # keep as optics (not Optics) to preserve data loading in Bdsim comparison plotting methods.
+            if 'Optics' in trees:
+                self.optics = _LoadVectorTree(self._f.Get("Optics"))
+            if 'Orbit' in trees:
+                self.orbit  = _LoadVectorTree(self._f.Get("Orbit"))
+            if 'Model' in trees or 'ModelTree' in trees:
+                self.model = GetModelForPlotting(self._f)
 
     def _Map(self, currentDirName, currentDir):
         h1d = self._ListType(currentDir, "TH1D")
         h2d = self._ListType(currentDir, "TH2D")
         h3d = self._ListType(currentDir, "TH3D")
+        h4d = self._ListType(currentDir, "BDSBH4D")
         for h in h1d:
             name = currentDirName + '/' + h
             name = name.strip('/') # protect against starting /
@@ -331,6 +447,12 @@ class RebdsimFile(object):
             hob = currentDir.Get(h)
             self.histograms[name] = hob
             self.histograms3d[name] = hob
+        for h in h4d:
+            name = currentDirName + '/' + h
+            name = name.strip('/')
+            hob = currentDir.Get(h)
+            self.histograms[name] = hob
+            self.histograms4d[name] = hob
         subDirs = self._ListType(currentDir, "Directory")
         for d in subDirs:
             dName = currentDirName + '/' + d
@@ -368,14 +490,16 @@ class RebdsimFile(object):
             result.append(str(leaves.At(i)))
         return result
 
+    def GetModelTree(self):
+        return self._f.Get('ModelTree')
+
+    def GetModel(self):
+        pass
+
     def ConvertToPybdsimHistograms(self):
         """
         Convert all root histograms into numpy arrays.
         """
-        self.histogramspy = {}
-        self.histograms1dpy = {}
-        self.histograms2dpy = {}
-        self.histograms3dpy = {}
         for path,hist in self.histograms1d.items():
             hpy = TH1(hist)
             self.histograms1dpy[path] = hpy
@@ -388,7 +512,50 @@ class RebdsimFile(object):
             hpy = TH3(hist)
             self.histograms3dpy[path] = hpy
             self.histogramspy[path] = hpy
+        for path,hist in self.histograms4d.items():
+            hpy = BDSBH4D(hist)
+            self.histograms4dpy[path] = hpy
+            self.histogramspy[path] = hpy
 
+    def _PopulateSpectraDictionaries(self):
+        for path,hist in self.histograms1d.items():
+            hname = str(hist.GetName())
+            if 'Spectra' in hname:
+                try:
+                    sname,pdgid = ParseSpectraName(hname)
+                    self.spectra[sname].append(pdgid, hist, path, sname)
+                except ValueError:
+                    pass # could be old data with the word "Spectra" in the name
+
+def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
+    """
+    Create an empty rebdsim format file with the layout of folders.
+    Returns the ROOT.TFile object.
+    """
+    if not outputfilename.endswith(".root"):
+        outputfilename += ".root"
+
+    dc = _ROOT.DataDummyClass()
+    f = dc.CreateEmptyRebdsimFile(outputfilename, nOriginalEvents)
+    return f
+
+def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
+    """
+    :param tfile: TFile object to write to.
+    :type  tfile: ROOT.TFile.
+    :param directoryName: Full path of directory you wish to write the histograms to.
+    :type  directoryName: str  (e.g. "Event/PerEntryHistograms" )
+    :param histograms:  List of ROOT histograms to write.
+    :type  histograms: [ROOT.TH1,..]
+    
+    Write a list of hitograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
+    """
+    tfile.cd(directoryName)
+    directory = tfile.Get(directoryName)
+    for hist in histograms:
+        directory.WriteObject(hist, hist.GetName())
+    
+            
 class BDSAsciiData(list):
     """
     General class representing simple 2 column data.
@@ -647,6 +814,8 @@ class ROOTHist(object):
         self.xlabel = hist.GetXaxis().GetTitle()
         self.ylabel = hist.GetYaxis().GetTitle()
         self.errorsAreErrorOnMean = True
+        self.entries = 0
+        self.errors  = _np.array([]) # avoid problems with error methods
 
     def __getstate__(self):
         """
@@ -696,6 +865,8 @@ class TH1(ROOTHist):
         self.xcentres   = _np.zeros(self.nbinsx)
         self.xlowedge   = _np.zeros(self.nbinsx)
         self.xhighedge  = _np.zeros(self.nbinsx)
+        self.xedges     = _np.zeros(self.nbinsx+1)
+        self.xrange     = (0,0)
 
         # data holders
         self.contents  = _np.zeros(self.nbinsx)
@@ -709,9 +880,15 @@ class TH1(ROOTHist):
             self.xlowedge[i]  = xaxis.GetBinLowEdge(i+1)
             self.xhighedge[i] = self.xlowedge[i] + self.xwidths[i]
             self.xcentres[i]  = xaxis.GetBinCenter(i+1)
+        self.xrange = (self.xlowedge[0],self.xhighedge[-1])
+        self.xedges = _np.append(self.xlowedge, self.xhighedge[-1])
 
         if extractData:
             self._GetContents()
+
+        self.integral = _np.sum(self.contents)
+        # this assumes uncorrelated
+        self.integralError = _np.sqrt((self.errors**2).sum())
 
     def _GetContents(self):
         for i in range(self.nbinsx):
@@ -732,6 +909,8 @@ class TH2(TH1):
         self.ycentres  = _np.zeros(self.nbinsy)
         self.ylowedge  = _np.zeros(self.nbinsy)
         self.yhighedge = _np.zeros(self.nbinsy)
+        self.yedges    = _np.zeros(self.nbinsy+1)
+        self.yrange    = (0,0)
 
         self.contents = _np.zeros((self.nbinsx,self.nbinsy))
         self.errors   = _np.zeros((self.nbinsx,self.nbinsy))
@@ -742,9 +921,15 @@ class TH2(TH1):
             self.ylowedge[i]  = yaxis.GetBinLowEdge(i+1)
             self.yhighedge[i] = self.ylowedge[i] + self.ywidths[i]
             self.ycentres[i]  = yaxis.GetBinCenter(i+1)
+        self.yrange = (self.ylowedge[0],self.yhighedge[-1])
+        self.yedges = _np.append(self.ylowedge, self.yhighedge[-1])
 
         if extractData:
             self._GetContents()
+
+        self.integral = _np.sum(self.contents)
+        # this assumes uncorrelated
+        self.integralError = _np.sqrt((self.errors**2).sum())
 
     def _GetContents(self):
         for i in range(self.nbinsx) :
@@ -767,6 +952,8 @@ class TH3(TH2):
         self.zcentres  = _np.zeros(self.nbinsz)
         self.zlowedge  = _np.zeros(self.nbinsz)
         self.zhighedge = _np.zeros(self.nbinsz)
+        self.zedges    = _np.zeros(self.nbinsz+1)
+        self.zrange    = (0,0)
 
         self.contents = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
         self.errors   = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
@@ -777,9 +964,15 @@ class TH3(TH2):
             self.zlowedge[i]  = zaxis.GetBinLowEdge(i+1)
             self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
             self.zcentres[i]  = zaxis.GetBinCenter(i+1)
+        self.zrange = (self.zlowedge[0],self.zhighedge[-1])
+        self.zedges = _np.append(self.zlowedge, self.zhighedge[-1])
 
         if extractData:
             self._GetContents()
+
+        self.integral = _np.sum(self.contents)
+        # this assumes uncorrelated
+        self.integralError = _np.sqrt((self.errors**2).sum())
 
     def _GetContents(self):
         for i in range(self.nbinsx):
@@ -787,6 +980,244 @@ class TH3(TH2):
                 for k in range(self.nbinsz):
                     self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
                     self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
+
+    def IntegateAlong1Dimension(self, dimension):
+        """
+        Integrate along a dimension returning a new 2D histogram.
+        
+        :param dimension: 'x', 'y' or 'z' dimension to integrate along
+        :type  dimension: str
+
+        returns pybdsim.Data.TH2 instance.
+
+        If the projection is done in z, a 2D histogram of x,y is returned
+        that is the sum of the bins along z. The errors are also calculated.
+
+        For 'x', the 2D histogram is z,y.
+        For 'y', the 2D histogram is z,x.
+        For 'z', the 2D hsitogram is x,y.
+        """
+        if dimension == 'x':
+            h2d = self.hist.Project3D("yze")
+            return TH2(h2d)
+        elif dimension == 'y':
+            h2d = self.hist.Project3D("xze")
+            return TH2(h2d)
+        elif dimension == 'z':
+            h2d = self.hist.Project3D("yxe")
+            return TH2(h2d)
+        else:
+            raise ValueError("dimension can only be one of 'x', 'y', 'z'")
+
+    def IntegateAlong2Dimensions(self, resultDimension):
+        """
+        Integrate along 2 dimensions returning a new 1D histogram along the result dimension
+        
+        :param resultDimension: 'x', 'y' or 'z' dimension to produce 1D histogram along.
+        :type  resultDimension: str
+
+        returns pybdsim.Data.TH1 instance.
+        """
+        if resultDimension == 'x':
+            h1d = self.hist.Project3D('xe')
+            return TH1(h1d)
+        elif resultDimension == 'y':
+            h1d = self.hist.Project3D("ye")
+            return TH1(h1d)
+        elif resultDimension == 'z':
+            h1d = self.hist.Project3D("ze")
+            return TH1(h1d)
+        else:
+            raise ValueError("dimension can only be one of 'x', 'y', 'z'")
+
+    def Slice2DXY(self, index):
+        """
+        Extract a single 2D histogram from an index along the Z dimension.
+        
+        :param index: index in z array of bins to extract, e.g. 0 -> nbinsz-1
+        :type  index: int
+        """
+        if not (0 <= index < self.nbinsz):
+            raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        self.hist.GetZaxis().SetRange(index+1,index+2)
+        h2d = self.hist.Project3D("yxe")
+        return TH2(h2d)
+
+    def Slice2DXZ(self, index):
+        """
+        Extract a single 2D histogram from an index along the Y dimension.
+        
+        :param index: index in y array of bins to extract, e.g. 0 -> nbinsy-1
+        :type  index: int
+        """
+        if not (0 <= index < self.nbinsz):
+            raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        self.hist.GetYaxis().SetRange(index+1,index+2)
+        h2d = self.hist.Project3D("xze")
+        return TH2(h2d)
+
+    def Slice2DZY(self, index):
+        """
+        Extract a single 2D histogram from an index along the X dimension.
+        
+        :param index: index in x array of bins to extract, e.g. 0 -> nbinsx-1
+        :type  index: int
+        """
+        if not (0 <= index < self.nbinsz):
+            raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        self.hist.GetXaxis().SetRange(index+1,index+2)
+        h2d = self.hist.Project3D("yze")
+        return TH2(h2d)
+
+class BDSBH4D():
+    """
+    Wrapper for a BDSBH instance. Converts to numpy data.
+
+    """
+    def __init__(self, hist, extractData=True):
+        # these members are made to be the same as our "ROOTHist" class
+        # even though it isn't inherited (can't be as data different)
+        self.hist   = hist
+        self.name   = hist.GetName()
+        self.title  = hist.GetTitle()
+        self.xlabel = ""
+        self.ylabel = ""
+        self.errorsAreErrorOnMean = True
+        
+        self.nbinsx = hist.GetNbinsX()
+        self.nbinsy = hist.GetNbinsY()
+        self.nbinsz = hist.GetNbinsZ()
+        self.nbinse = hist.GetNbinsE()
+
+        self.xwidths   = _np.zeros(self.nbinsx)
+        self.xcentres  = _np.zeros(self.nbinsx)
+        self.xlowedge  = _np.zeros(self.nbinsx)
+        self.xhighedge = _np.zeros(self.nbinsx)
+        self.xedges    = _np.zeros(self.nbinsx+1)
+
+        self.ywidths   = _np.zeros(self.nbinsy)
+        self.ycentres  = _np.zeros(self.nbinsy)
+        self.ylowedge  = _np.zeros(self.nbinsy)
+        self.yhighedge = _np.zeros(self.nbinsy)
+        self.yedges    = _np.zeros(self.nbinsy+1)
+
+        self.zwidths   = _np.zeros(self.nbinsz)
+        self.zcentres  = _np.zeros(self.nbinsz)
+        self.zlowedge  = _np.zeros(self.nbinsz)
+        self.zhighedge = _np.zeros(self.nbinsz)
+        self.zedges    = _np.zeros(self.nbinsz+1)
+
+        self.ewidths   = _np.zeros(self.nbinse)
+        self.ecentres  = _np.zeros(self.nbinse)
+        self.elowedge  = _np.zeros(self.nbinse)
+        self.ehighedge = _np.zeros(self.nbinse)
+        self.eedges    = _np.zeros(self.nbinse+1)
+
+        self.contents = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz,self.nbinse))
+        self.errors   = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz,self.nbinse))
+
+        self._GetBinsInfo(hist)
+
+        if extractData:
+            self._GetContents(hist)
+
+        self.integral = _np.sum(self.contents)
+        # this assumes uncorrelated
+        self.integralError = _np.sqrt((self.errors**2).sum())
+
+    def ErrorsToSTD(self):
+        """
+        Errors are by default the error on the mean. Call this function
+        to multiply by sqrt(N) to convert to the standard deviation.
+        Will automatically only apply itself once even if repeatedly called.
+        """
+        if self.errorsAreErrorOnMean:
+            self.errors *= _np.sqrt(self.entries)
+            self.errorsAreErrorOnMean = False
+        else:
+            pass # don't double apply calculation
+
+    def ErrorsToErrorOnMean(self):
+        """
+        Errors are by default the error on the mean. However, if you used
+        ErrorsToSTD, you can convert back to error on the mean with this
+        function, which divides by sqrt(N).
+        """
+        if self.errorsAreErrorOnMean:
+            pass # don't double apply calculation
+        else:
+            self.errors /= _np.sqrt(self.entries)
+            self.errorsAreErrorOnMean = True
+
+    def _GetBinsInfo(self, hist):
+        x_step = (hist.h_xmax - hist.h_xmin)/hist.h_nxbins
+        for i in range(hist.h_nxbins):
+            self.xwidths[i]   = x_step
+            self.xlowedge[i]  = hist.h_xmin + i*x_step
+            self.xhighedge[i] = self.xlowedge[i] + self.xwidths[i]
+            self.xcentres[i]  = self.xlowedge[i] + self.xwidths[i]/2
+        self.xrange = (self.xlowedge[0],self.xhighedge[-1])
+        self.xedges = _np.append(self.xlowedge, self.xhighedge[-1])
+
+        y_step = (hist.h_ymax - hist.h_ymin) / hist.h_nybins
+        for i in range(hist.h_nybins):
+            self.ywidths[i]   = y_step
+            self.ylowedge[i]  = hist.h_ymin + i*y_step
+            self.yhighedge[i] = self.ylowedge[i] + self.ywidths[i]
+            self.ycentres[i]  = self.ylowedge[i] + self.ywidths[i] / 2
+        self.yrange = (self.ylowedge[0],self.yhighedge[-1])
+        self.yedges = _np.append(self.ylowedge, self.yhighedge[-1])
+            
+        z_step = (hist.h_zmax - hist.h_zmin) / hist.h_nzbins
+        for i in range(hist.h_nzbins):
+            self.zwidths[i]   = z_step
+            self.zlowedge[i]  = hist.h_zmin + i*z_step
+            self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
+            self.zcentres[i]  = self.zlowedge[i] + self.zwidths[i] / 2
+        self.zrange = (self.zlowedge[0],self.zhighedge[-1])
+        self.zedges = _np.append(self.zlowedge, self.zhighedge[-1])
+
+        if hist.h_escale == 'log':
+            e_step = (_math.log10(hist.h_emax) - _math.log10(hist.h_emin)) / hist.h_nebins
+            for i in range(hist.h_nebins):
+                self.elowedge[i]  = hist.h_emin * 10 ** (i * e_step)
+                self.ehighedge[i] = hist.h_emin * 10 ** ((i+1) * e_step)
+                self.ewidths[i]   = self.ehighedge[i] - self.elowedge[i]
+                self.ecentres[i]  = self.elowedge[i] + self.ewidths[i] / 2
+
+        if hist.h_escale == 'linear':
+            e_step = (hist.h_emax - hist.h_emin) / hist.h_nebins
+            for i in range(hist.h_nebins):
+                self.ewidths[i]  = e_step
+                self.elowedge[i]  = hist.h_emin + i * e_step
+                self.ehighedge[i] = self.elowedge[i] + self.ewidths[i]
+                self.ecentres[i]  = self.elowedge[i] + self.ewidths[i] / 2
+
+        if hist.h_escale == 'user':
+            for i in range(hist.h_nebins):
+                self.elowedge[i]  = hist.h_ebinsedges.at(i)
+                self.ehighedge[i] = hist.h_ebinsedges.at(i+1)
+                self.ewidths[i]   = hist.h_ebinsedges.at(i+1)-hist.h_ebinsedges.at(i)
+                self.ecentres[i]  = self.elowedge[i] + 0.5*self.ewidths[i]
+
+        self.erange = (self.elowedge[0],self.ehighedge[-1])
+        self.eedges = _np.append(self.elowedge, self.ehighedge[-1])
+
+
+    def _ToNumpy(self, hist, hist_type="h"):
+        histo4d = _np.zeros((hist.h_nxbins, hist.h_nybins, hist.h_nzbins, hist.h_nebins))
+        ho = getattr(hist, hist_type)
+        for x, y, z, e in _itertools.product(range(hist.h_nxbins),
+                                             range(hist.h_nybins),
+                                             range(hist.h_nzbins),
+                                             range(hist.h_nebins)):
+            histo4d[x, y, z, e] = ho.at(x, y, z, e)
+
+        return histo4d
+
+    def _GetContents(self,hist):
+        self.contents = self._ToNumpy(hist)
+        self.errors   = self._ToNumpy(hist, hist_type="h_err")
 
 
 class _SamplerData(object):
@@ -803,7 +1234,10 @@ class _SamplerData(object):
                           "loaded with pybdsim.Data.Load")
         self._et           = data.GetEventTree()
         self._ev           = data.GetEvent()
-        self._samplerNames = list(data.GetSamplerNames())
+        # this two step assignment is stupid but to counter bad behaviour with
+        # root, python and our classes... this works, direct assignemnt doens't
+        sn = data.GetSamplerNames() 
+        self._samplerNames = list(sn)
         self._samplerNames.insert(0,'Primary')
         self._samplers     = list(self._ev.Samplers)
         self._samplers.insert(0,self._ev.GetPrimaries())
@@ -865,7 +1299,7 @@ class _SamplerData(object):
 
 class PhaseSpaceData(_SamplerData):
     """
-    Pull phase space data from a loaded DataLoader instance of raw data.
+    Pull phase space data from a loaded DataLoader instance of raw data for all events.
 
     Extracts only: 'x','xp','y','yp','z','zp','energy','T'
 
@@ -885,7 +1319,7 @@ class PhaseSpaceData(_SamplerData):
 
 class SamplerData(_SamplerData):
     """
-    Pull sampler data from a loaded DataLoader instance of raw data.
+    Pull sampler data from a loaded DataLoader instance of raw data for all events.
 
     Loads all data in a given sampler.
 
@@ -965,19 +1399,31 @@ class TrajectoryData(object):
             pyTrajectory['partID']   = int(self._trajectory.partID[i])
             pyTrajectory['parentID'] = int(self._trajectory.parentID[i])
 
-            prePT = self._trajectory.preProcessTypes[i]
-            prePST = self._trajectory.preProcessSubTypes[i]
-            postPT = self._trajectory.postProcessTypes[i]
-            postPST = self._trajectory.postProcessSubTypes[i]
 
             # Adding new parameters and updating trajectory names
             if self._dataVersion >= 5:
                 t = self._trajectory.XYZ[i]
                 ts = self._trajectory.S[i]
-                p = self._trajectory.PXPYPZ[i]
                 e = self._trajectory.energyDeposit[i]
-                time = self._trajectory.T[i]
 
+                try:
+                    p = self._trajectory.PXPYPZ[i]
+                    time = self._trajectory.T[i]
+                except:
+                    p = _np.zeros(len(t))
+                    time = _np.zeros(len(t))
+
+
+                try:
+                    prePT = self._trajectory.preProcessTypes[i]
+                    prePST = self._trajectory.preProcessSubTypes[i]
+                    postPT = self._trajectory.postProcessTypes[i]
+                    postPST = self._trajectory.postProcessSubTypes[i]
+                except:
+                    prePT = _np.zeros(len(t))
+                    prePST = _np.zeros(len(t))
+                    postPT = _np.zeros(len(t))
+                    postPST = _np.zeros(len(t))
                 try:
                     xyz = self._trajectory.xyz[i]
                     pxpypz = self._trajectory.pxpypz[i]
@@ -1013,7 +1459,6 @@ class TrajectoryData(object):
                 #from IPython import embed; embed()
                 t  = self._trajectory.trajectories[i]
                 #tS = self._trajectory.trajectoriesS[i]
-
 
                 p = self._trajectory.momenta[i]
                 e = self._trajectory.energies[i]
@@ -1061,15 +1506,20 @@ class TrajectoryData(object):
                 Z[j] = t[j].Z()
                 S[j] = S[j]
 
-                # momenta
-                PX[j] = p[j].X()
-                PY[j] = p[j].Y()
-                PZ[j] = p[j].Z()
-
                 EDeposit[j] = e[j]
 
                 if self._dataVersion >= 5:
                     T[j] = time[j]
+                     # momenta
+                    try:
+                        PX[j] = p[j].X()
+                        PY[j] = p[j].Y()
+                        PZ[j] = p[j].Z()
+                    except:
+                        PX[j] = 0
+                        PY[j] = 0
+                        PZ[j] = 0
+
                     try:
                         x[j] = xyz[j].X()
                         y[j] = xyz[j].Y()
@@ -1184,7 +1634,7 @@ class EventSummaryData(EventInfoData):
         self._getData(interface, info, eventTree)
 
 def GetApertureExtent(apertureType, aper1=0, aper2=0, aper3=0, aper4=0):
-    apertureType = apertureType.lower()
+    apertureType = str(apertureType).lower()
 
     if apertureType == "":
         return 0,0
@@ -1217,14 +1667,14 @@ class ApertureInfo(object):
     Simple class to hold aperture parameters and extents.
     """
     def __init__(self, apertureType, aper1, aper2=0, aper3=0, aper4=0, offsetX=0, offsetY=0):
-        self.apertureType = apertureType
+        self.apertureType = str(apertureType) # maybe not a python str type from data
         self.aper1    = aper1
         self.aper2    = aper2
         self.aper3    = aper3
         self.aper4    = aper4
         self.offsetX  = offsetX
         self.offsetY  = offsetY
-        self.x,self.y = GetApertureExtent(apertureType, aper1, aper2, aper3, aper4)
+        self.x,self.y = GetApertureExtent(self.apertureType, aper1, aper2, aper3, aper4)
 
 class ModelData(object):
     def __init__(self, data):
@@ -1241,6 +1691,8 @@ class ModelData(object):
         return cls(data)
 
     def _getData(self, interface, rootobj):
+        # remove when fixed this
+        _np.warnings.filterwarnings('ignore', category=_np.VisibleDeprecationWarning)
         for name in interface:
             try:
                 setattr(self, name, _np.array(getattr(rootobj, name)))
@@ -1253,6 +1705,18 @@ class ModelData(object):
                     pass # just ignore it
             except ValueError:
                 pass # just ignore it
+
+        possibleDicts = ["materialIDToName", "materialNameToID"]
+        for n in possibleDicts:
+            if hasattr(self, n):
+                try:
+                    setattr(self, n, dict(getattr(self,n)))
+                except ValueError:
+                    pass
+        if hasattr(self, 'materialIDToName'):
+            self.materialIDToName = {int(k):v for k,v in self.materialIDToName.items()}
+        if hasattr(self, 'materialNameToID'):
+            self.materialNameToID = {k:int(v) for k,v in self.materialNameToID.items()}
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
@@ -1274,7 +1738,7 @@ class ModelData(object):
                                         self.beamPipeAper2,
                                         self.beamPipeAper3,
                                         self.beamPipeAper4):
-            if removeZeroLength and l < lengthTolerance:
+            if removeZeroLength and ll < lengthTolerance:
                 continue # skip this entry
             elif removeZeroApertures and (a1 == 0 and a2 == 0 and a3 == 0 and a4 == 0):
                 continue

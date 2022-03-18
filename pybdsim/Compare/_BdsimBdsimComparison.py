@@ -132,6 +132,36 @@ PlotSigma  = _make_plotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma"
 PlotSigmaP = _make_plotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
 PlotMean   = _make_plotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 
+def PlotNPart(first, second, first_name, second_name, survey=None, **kwargs):
+    # options
+    tightLayout = True
+    if 'tightLayout' in kwargs:
+        tightLayout = kwargs['tightLayout']
+
+    # _ is a problem for latex rendering
+    first_name = first_name.replace("_","\_")
+    second_name = second_name.replace("_","\_")
+
+    plot = _plt.figure("Npart", figsize=(9,5), **kwargs)
+    # Loop over the variables in plot_info_tuples and draw the plots.
+    _plt.plot(first.GetColumn('S'),first.GetColumn('Npart'), 'k-', label=first_name, **kwargs)
+    _plt.plot(second.GetColumn('S'),second.GetColumn('Npart'), 'k.', label=second_name, **kwargs)
+
+    # Set axis labels and draw legend
+    axes = _plt.gcf().gca()
+    axes.set_ylabel(r'N Particles')
+    axes.set_xlabel('S / m')
+    axes.legend(loc='best')
+
+    if survey is not None:
+        try:
+            pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
+        except IOError:
+            pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
+    _plt.show(block=False)
+
+    return plot
+
 
 def BDSIMVsBDSIM(first, second, first_name=None,
                  second_name=None, survey=None, saveAll=True, 
@@ -156,6 +186,8 @@ def BDSIMVsBDSIM(first, second, first_name=None,
     PlotSigmaP(first, second, first_name=first_name,
                second_name=second_name, survey=survey, **kwargs),
     PlotMean(first, second, first_name=first_name,
+             second_name=second_name, survey=survey, **kwargs),
+    PlotNPart(first, second, first_name=first_name,
              second_name=second_name, survey=survey, **kwargs),
         ]
 

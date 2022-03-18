@@ -129,7 +129,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               |      (0.5, {"APERTYPE": "ELLIPSE",  "APER1": 0.3, "APER2": 0.4}), |
     |                               |      ...],                                                        |
     |                               |  2: [...],                                                        |
-    |                               |  ...}                                                             |
+    |                               | }                                                                 |
     |                               | This defines apertures in the element at index 1                  |
     |                               | starting with a CIRCULAR aper from 0.0m (i.e. the start) before   |
     |                               | changing to ELLIPSE 0.5m into the element, with possible further  |
@@ -168,7 +168,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
     | **flipmagnets**               | True \| False - flip the sign of all k values for magnets - MADX  |
     |                               | currently tracks particles agnostic of the particle charge -      |
-    |                               | BDISM however, follows the definition strictly -                  |
+    |                               | BDSIM however, follows the definition strictly -                  |
     |                               | positive k -> horizontal focussing for positive particles         |
     |                               | therefore, positive k -> vertical focussing for negative          |
     |                               | particles. Use this flag to flip the sign of all magnets.         |
@@ -290,8 +290,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
         elif name in collimatordict: # Don't add apertures to collimators
             machine.Append(gmadElement)
         elif aperlocalpositions: # split aperture if provided.
-            elements_split_with_aper = _GetElementSplitByAperture(
-                gmadElement, aperlocalpositions[i])
+            elements_split_with_aper = _GetElementSplitByAperture(gmadElement,
+                                                                  aperlocalpositions[i])
             for ele in elements_split_with_aper:
                 machine.Append(ele)
         else: # Get element with single aperture
@@ -306,9 +306,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     # Make beam file
     if beam:
-        bm = MadxTfs2GmadBeam(madx, startname, verbose)
-        for k, v in beamparamsdict.items():
-            bm[k] = v
+        bm = MadxTfs2GmadBeam(madx, startname, verbose, extraParamsDict=beamparamsdict)
         machine.AddBeam(bm)
 
     options = _Options()
@@ -478,13 +476,13 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return _Builder.Quadrupole(rname, l, k1, **kws)
     elif t == 'RBEND':
         angle = item['ANGLE']
-        e1 = item['E1']
-        e2 = item['E2']
-        fint = item['FINT']
-        fintx = item['FINTX']
-        h1 = item['H1']
-        h2 = item['H2']
-        hgap = item['HGAP']
+        e1 = item['E1'] if 'E1' in item else 0
+        e2 = item['E2'] if 'E2' in item else 0
+        fint = item['FINT'] if 'FINT' in item else 0
+        fintx = item['FINTX'] if 'FINTX' in item else -1 # madx convention -> -1 => same as FINT
+        h1 = item['H1'] if 'H1' in item else 0
+        h2 = item['H2'] if 'H2' in item else 0
+        hgap = item['HGAP'] if 'HGAP' in item else 0
         k1l = item['K1L']
         # set element length to be the chord length - tfs output rbend
         # length is arc length
@@ -518,13 +516,13 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return _Builder.RBend(rname, chordLength, angle=angle, **kws)
     elif t == 'SBEND':
         angle = item['ANGLE']
-        e1 = item['E1']
-        e2 = item['E2']
-        fint = item['FINT']
-        fintx = item['FINTX']
-        h1 = item['H1']
-        h2 = item['H2']
-        hgap = item['HGAP']
+        e1 = item['E1'] if 'E1' in item else 0
+        e2 = item['E2'] if 'E2' in item else 0
+        fint = item['FINT'] if 'FINT' in item else 0
+        fintx = item['FINTX'] if 'FINTX' in item else -1
+        h1 = item['H1'] if 'H1' in item else 0
+        h2 = item['H2'] if 'H2' in item else 0
+        hgap = item['HGAP'] if 'HGAP' in item else 0
         k1l = item['K1L']
         if e1 != 0:
             kws['e1'] = e1
@@ -633,8 +631,15 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
     raise ValueError("Unable to construct Element: {}, {}".format(t, name))
 
 def _GetElementSplitByAperture(gmadElement, localApertures):
-    apertures = [_Builder.PrepareApertureModel(aper)
-                 for point, aper in localApertures]
+    # tolerate any bad apertures - like only a few - and just don't append them
+    apertures = []
+    for point, aper in localApertures:
+        try:
+            arp = _Builder.PrepareApertureModel(aper, warningName=gmadElement.name)
+            apertures.append(arp)
+        except ValueError:
+            pass
+        
     if localApertures[0][0] != 0.0 :
         raise ValueError("No aperture defined at start of element.")
     if len(localApertures) > 1:
@@ -674,7 +679,7 @@ def _GetSingleElementWithAper(item, gmadElement,
     return gmadElement
 
 
-def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
+def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, extraParamsDict={}):
     """
     Takes a pymadx.Data.Tfs instance and extracts information from first line to
     create a BDSIM beam definition in a pybdsim.Beam object.  Note
@@ -707,6 +712,10 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     particle = tfs.header['PARTICLE']
     ex = tfs.header['EX']
     ey = tfs.header['EY']
+    if 'EX' in extraParamsDict:
+        ex = extraParamsDict['EX']
+    if 'EY' in extraParamsDict:
+        ey = extraParamsDict['EY']
     sigmae = float(tfs.header['SIGE'])
 
     if ex == 1:
@@ -735,8 +744,10 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     # so in this submodule when we do from .. import Beam it's actually the
     # already imported class that's being imported
     beam = _Beam.Beam(particle, energy, 'gausstwiss')
-    beam.SetEmittanceX(ex, 'm')
-    beam.SetEmittanceY(ey, 'm')
+    if ex != 0:
+        beam.SetEmittanceX(ex, 'm')
+    if ey != 0:
+        beam.SetEmittanceY(ey, 'm')
     beam.SetSigmaE(sigmae)
 
     beamparams = {"SetBetaX":'BETX',
@@ -755,5 +766,8 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False):
     for func,parameter in beamparams.items():
         if parameter in list(data.keys()):
             getattr(beam, func)(data[parameter])
+
+    for k, v in extraParamsDict.items():
+        beam[k] = v
 
     return beam

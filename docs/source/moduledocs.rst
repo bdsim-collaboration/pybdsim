@@ -82,6 +82,8 @@ pybdsim.Convert
 .. automodule:: pybdsim.Convert._MadxTfs2Gmad
 		:members:
 
+.. _pybdsim-data-module:
+		   
 pybdsim.Data module
 -------------------
 
@@ -104,6 +106,10 @@ pybdsim.Field module
 .. automodule:: pybdsim.Field._Field
 		:members:
 		:show-inheritance:
+
+.. automodule:: pybdsim.Field.FieldPlotter
+		:members:
+
 
 pybdsim.Gmad module
 -------------------
