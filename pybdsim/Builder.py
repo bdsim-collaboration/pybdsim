@@ -29,6 +29,7 @@ try: # Deprecated, removed in Python 3.10
     from collections import MutableMapping as _MutableMapping
 except ImportError: # Python 3.10 onwards.
     from collections.abc import MutableMapping as _MutableMapping
+from collections import OrderedDict as _OrderedDict
 import math as _math
 import time as _time
 import os as _os
@@ -851,7 +852,7 @@ class Machine(object):
     def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
         self.sequence  = []
-        self.elements  = _collections.OrderedDict()
+        self.elements  = _OrderedDict()
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0
