@@ -115,7 +115,7 @@ def Plot1DFxFyFz(filename):
     _plt.setp(axFy.get_xticklabels(), visible=False)
     _plt.tight_layout()
 
-def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal'):
+def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal',figsize=(6,5)):
     """
     Plot a bdsim field map file using the X,Y plane.
     
@@ -135,7 +135,7 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
     :type aspect: str
     """
     d = TwoDData(filename)
-    _plt.figure()
+    _plt.figure(figsize=figsize)
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
     if title:
         _plt.title(title)

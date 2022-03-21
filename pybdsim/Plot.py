@@ -17,8 +17,10 @@ import string as _string
 import datetime as _datetime
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 from scipy import constants as _con
+import os.path as _ospath
 
 from ._General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
+from ._General import CheckBdsimDataHasSurveyModel as _CheckBdsimDataHasSurveyModel
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
@@ -107,7 +109,13 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
 
     """
     from . import Data as _Data
-    sf = _CheckItsBDSAsciiData(surveyfile)
+    if isinstance(surveyfile, str) and not _ospath.isfile(surveyfile):
+        raise IOError("Survey not found: ", surveyfile)
+    if _CheckBdsimDataHasSurveyModel(surveyfile):
+        sf = _Data.Load(surveyfile).model
+    else:
+        sf = _CheckItsBDSAsciiData(surveyfile)
+
     # we don't need to check this has the required columns because we control a
     # BDSIM survey contents.
 
@@ -620,16 +628,15 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     xsf = xScalingFactor
     ysf = yScalingFactor
     ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
-    
-    if autovmin:
+    if autovmin or vmin is None:
         vmin = _np.min(h.contents[h.contents!=0])
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
-        #if vmin is not None:
-        #    d[d==0] = vmin
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
-        _plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
-        _plt.colorbar(label=zlabel)
+        ax = f.add_subplot(111)
+        im = ax.pcolormesh(h.xedges, h.yedges, d, norm=norm, rasterized=True)
+        #_plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
+        _plt.colorbar(im, label=zlabel)
     else:
         _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', **imshowKwargs)
         _plt.colorbar(format='%.0e', label=zlabel)
@@ -1655,26 +1662,26 @@ def BDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=True, r
     l,s,x,y,apers = md.GetApertureData(removeZeroLength, removeZeroApertures)
     
     if plotApertureType:
-        t = [ap.apertureType for ap in apers]
-        c = list(map(_ApertureTypeToColour, t))
+        apertureTypes = [ap.apertureType for ap in apers]
+        colours = list(map(_ApertureTypeToColour, apertureTypes))
         
     fig = _plt.figure(figsize=_defaultFigureSize)
         
     if "x" in plot.lower():
         line1, = _plt.plot(s, x, 'b-', label='X', alpha=0.6)
         if plotApertureType:
-            _plt.scatter(s, x, c=c, s=6)
+            _plt.scatter(s, x, c=colours, s=6)
 
     if "y" in plot.lower():
         line2, = _plt.plot(s, y, 'g-', label='Y', alpha=0.6)
         if plotApertureType:
-            _plt.scatter(s, y, c=c, s=6)
+            _plt.scatter(s, y, c=colours, s=6)
 
     _plt.xlabel('S (m)')
     _plt.ylabel('Aperture (m)')
 
     if plotApertureType:
-        _AddColourLegend(c)
+        _AddColourLegend(apertureTypes)
 
     _plt.legend(loc='best', numpoints=1, scatterpoints=1, fontsize='small')
 
@@ -1706,14 +1713,14 @@ def _ApertureTypeColourMap():
     typeToCol = dict(zip(_Data._bdsimApertureTypes, _colourCodes))
     return typeToCol
 
-def _AddColourLegend(colours, cmap=_ApertureTypeColourMap()):
+def _AddColourLegend(apertureTypes, cmap=_ApertureTypeColourMap()):
     """
     Make a legend with the set of colours used.
     """
-    foundCols = set(colours)
-    typemap = dict((v,k) for k,v in cmap.items()) #invert to get apertype from color
-    for col in foundCols:
-        _plt.scatter(None,None,color=col, label=typemap[col].lower())
+    apertureTypes = set(apertureTypes)
+    for apertureType in apertureTypes:
+        colour = cmap[apertureType]
+        _plt.scatter(None,None,color=colour, label=apertureType.lower())
 
 def _ApertureTypeToColour(apertureType, cmap=_ApertureTypeColourMap()):
     """

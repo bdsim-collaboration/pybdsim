@@ -25,10 +25,11 @@ from . import _General
 from ._General import IsFloat as _IsFloat
 
 import bisect as _bisect
-try:
-    import collections as _collections
-except ImportError:
-    import collections.abc as _collections
+try: # Deprecated, removed in Python 3.10
+    from collections import MutableMapping as _MutableMapping
+except ImportError: # Python 3.10 onwards.
+    from collections.abc import MutableMapping as _MutableMapping
+from collections import OrderedDict as _OrderedDict
 import math as _math
 import time as _time
 import os as _os
@@ -78,7 +79,7 @@ bdsimcategories = [
     'dump'
     ]
 
-class ElementBase(_collections.MutableMapping):
+class ElementBase(_MutableMapping):
     """
     A class that represents an element / item in an accelerator beamline.
     Printing or string conversion produces the BDSIM syntax.
@@ -742,8 +743,7 @@ class Sampler(object):
         else:
             return 'sample, range='+self.name+';\n'
 
-
-class GmadObject(_collections.MutableMapping):
+class GmadObject(_MutableMapping):
     """
     A gmad object does not have a length unlike every :class:`Element` hence it
     needs its own class to produce its representation.
@@ -879,7 +879,7 @@ class Machine(object):
     def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
         self.sequence  = []
-        self.elements  = _collections.OrderedDict()
+        self.elements  = _OrderedDict()
         self.samplers  = []
         self.length    = 0.0
         self.angint    = 0.0

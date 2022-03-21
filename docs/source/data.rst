@@ -122,6 +122,141 @@ histograms.
 	    :width: 100%
 	    :align: center
 
+Histogram Operations
+--------------------
+
+Loaded histograms from a rebdsim file are both wrapped in our pybdsim.Data.THX classes
+for nice numpy arrays for easy plotting, but also we retain the original ROOT objects.
+
+We can use the original ROOT objects to do many very useful things with the histogram,
+then wrap it again for plotting.
+
+#) Get the ROOT histogram from the loaded file in pybdsim
+#) Manipulate that ROOT object
+#) Wrap it yourself in a pybdsim.Data.THX class
+#) Plot using pybdsim.Plot.Histogram...
+
+e.g. ::
+
+  >>> d = pybdsim.Data.Load("run1-ana.root") # a rebdsim output file
+  >>> h1 = d.histograms['Event'/PerEntryHistograms/EnergyLossBeamline']
+  >>> h1rebin = h1.Rebin(2, h1->GetName()+"_rebin2")
+  >>> h1rebinpy = pybdsim.Data.TH1(h1rebin)
+  >>> pybdsim.Plot.Histogram1D(h1rebinpy)
+
+ROOT's histograms provide many (many...) functions. You can see them all at the ROOT
+website (Look for "CERN ROOT TH1" in google) or TH2 or TH3:
+
+* https://root.cern.ch/doc/master/classTH1.html
+* https://root.cern.ch/doc/master/classTH2D.html
+* https://root.cern.ch/doc/master/classTH3D.html
+
+TH1 is, perhaps nonintuitively, the base class for 2D and 3D histograms, so many functions
+are documented there. The 2D and 3D ones have some specialised methods.
+
+.. note:: The integral and its error are nicely provided as members in pybdsim.Data.THXD.
+	  Also, you can use the pybdsim.Plot.Histogram... functions with a scaling parameter
+	  for the data.
+
+Some useful functions assuming a histogram :code:`h` of type TH1D or TH2D or TH3D in Python:
+
+**TH1**
+
+* :code:`hnew = h.Rebin(N,h.GetName()+"_rebin"+str(N))` Join N bins into 1. e.g. Rebin(2) is merge 2 bins into 1.
+* :code:`h.Add(h2)` Changes :code:`h` by adding h2 to it.
+* :code:`h.Add(h2, -1)` Changes :code:`h` by subtracting h2 from it.
+* :code:`h.Divide(h2)` Change :code:`h` to h divided by h2.
+* :code:`h.Multiply(h2)` Change :code:`h` to h times h2.
+* :code:`h.Scale(number)` Change :code:`h` to multiply every bin by 'number'.
+
+
+**TH2**
+
+* :code:`hnew = h.Rebin2D(Nx, Ny, h.GetName()+"_rebin"+str(Nx)+str(Ny))` Join Nx bins in x and Ny bins in y into 1.
+* :code:`h.Scale(number)` Change :code:`h` to multiply every bin by 'number'.
+  
+
+**TH3**
+
+* :code:`h.Scale(number)` Change :code:`h` to multiply every bin by 'number'.
+* :code:`h2d = h.Project3D("yxe")` Integrate along z to give a TH2D x,y histogram and calculate errors ('e').
+  https://root.cern.ch/doc/v608/classTH3.html#a94dd0a21d42fd95756e906e7f50fa293
+
+  e.g. a 3D scoring mesh in x,y,z has N bins z = 1. We 'project' (i.e. integrate) in z given the same
+  answer (only function available in ROOT) to get a 2D xy histogram. We want the errors to be calculated
+  too rather than be 0.
+
+  >>> h3d_raw = d.histograms['Event/MergedHistograms/MyScoringMeshName']
+  >>> h2d = h3d_raw.Project3D("yxe")
+  >>> h2dpy = pybdsim.Data.TH2(h2d)
+  >>> pybdsim.Plot.Histogram2D(h2dphy)
+
+* :code:`h1d = h.ProjectionZ()` Integrate x and y to give a 1D histogram in z.
+
+  e.g. a 3D scoring mesh in x,y,z has only 1 bin in x and y, but N in Z. We use this function to
+  reduce it to the 1D histogram it effectively is.
+
+  >>> h3d_raw = d.histograms['Event/MergedHistograms/PhantomDose']
+  >>> h1d = h3d_raw.ProjectionZ()
+  >>> h1py = pybdsim.Data.TH1(h1d)
+  >>> pybdsim.Plot.Histogram1D(h1py)
+
+
+**ROOT Jargon**
+
+* "Profile" histogram is an average in 1 dimension, not a 'profile' as per the real meaning of the word.
+* "Projection" means integral.
+
+.. _data-3d-histograms:
+  
+3D Scoring Histograms
+---------------------
+
+When using scoring in BDSIM, 3D histograms are produced for 3D scoring meshes. In pybdsim,
+we have a few extra functions to help handle and inspect these. Plotting 3D is inherently
+difficult because it has to be viewed from multiple angles to be understood. A few small
+utility functions are provided to get individual slices and integrals along each dimension
+to save the user from the difficultly of using underlying ROOT histograms.
+
+The functions are members of an instance of :code:`pybdsim.Data.TH3`, the Python
+version of the histogram.
+
+* :code:`pybdsim.Data.TH3.IntegrateAlong1Dimension`
+* :code:`pybdsim.Data.TH3.IntegrateAlong2Dimensions`
+* :code:`pybdsim.Data.TH3.Slice2DXY`
+* :code:`pybdsim.Data.TH3.Slice2DXZ`
+* :code:`pybdsim.Data.TH3.Slice2DXY`
+
+Examples:
+
+::
+  
+   h3d # assume an pybdsim.Data.TH3 instance
+
+
+::
+   
+   h2dx = h3d.IntegrateAlong1Dimension('x')  # return type pybdsim.Data.TH2
+   pybdsim.Plot.Histogram2D(h2dx)
+
+
+::
+  
+   for i in range(h3d.nbinsz):
+       h2i = h3d.Slice2DXY(i)
+       pybdsim.Plot.Histogram2D(h2i)
+
+
+::
+   
+   h1dz = h3d.IntegrateAlong2Dimension('z')
+   pybdsim.Plot.Histogram1D(h1dz)
+
+
+Full documentation can be seen in the TH3 class documentation in the :ref:`pybdsim-data-module`
+documentation.
+  
+
 
 .. _data-load-manual:
 
