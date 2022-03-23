@@ -790,6 +790,8 @@ class GmadObject(_MutableMapping):
             # Write tuple (i.e. number + units) syntax
             if type(self[key]) == tuple:
                 s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            elif type(self[key]) == list:
+                s += key + '={' + ','.join(map(str,self[key])) + '}'
             # everything else (most things!)
             else:
                 s += key + '=' + str(self[key])
