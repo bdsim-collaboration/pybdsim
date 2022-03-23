@@ -1,9 +1,14 @@
+import logging
+import os.path
 from logging import warning
 import warnings
 import pandas as _pd
 import numpy as _np
 from typing import Optional, List, Dict, Tuple, Union
+
+import pandas as pd
 from pint import UnitRegistry
+from .Analysis import BDSimOutput
 
 _ureg = UnitRegistry()
 _ureg.define('electronvolt = e * volt = eV')
@@ -23,13 +28,19 @@ def _get_matrix_elements_block(m: _pd.DataFrame, twiss: Dict, block: int = 1) ->
 
     return r11, r12, r21, r22, alpha, beta, gamma
 
+class TwissException(Exception):
+    """Exception raised for errors in the Twiss module."""
+
+    def __init__(self, m):
+        self.message = m
 
 class Twiss:
     def __init__(self,
-                 samplers_data=None,
-                 twiss_init: Optional[Dict] = None,
-                 with_phase_unrolling: bool = True,
-                 offsets: List = None):
+                 filename: str = 'output.root',
+                 path: str = '.',
+                 beamline_end: str = None,
+                 with_uproot: bool = True
+                 ):
         """
 
         Args:
@@ -40,14 +51,13 @@ class Twiss:
         Returns:
 
         """
-        self._samplers_data = samplers_data
-        self._twiss_init = twiss_init
-        self._with_phase_unrolling = with_phase_unrolling
-        self._offsets = offsets
+        self.samplers_data = self.get_samplers_df(os.path.join(path, filename), beamline_end, with_uproot)
+        self._with_uproot = with_uproot
 
     def __call__(self,
-                 end: Union[int, str] = -1,
-                 verbose: bool = False
+                 twiss_init: Optional[Dict] = None,
+                 with_phase_unrolling: bool = True,
+                 offsets: List = None,
                  ) -> _pd.DataFrame:
         """
         Uses a step-by-step transfer matrix to compute the Twiss parameters (uncoupled). The phase advance and the
@@ -59,13 +69,10 @@ class Twiss:
         Returns:
             the same DataFrame as the input, but with added columns for the computed quantities.
         """
-        self.verbose = verbose
-        matrix = self.compute_matrix_for_twiss(end=end)
+        matrix = self.compute_matrix_for_twiss(offsets)
 
-        if self._twiss_init is None:
-            twiss_init = self.compute_periodic_twiss(matrix, end)
-        else:
-            twiss_init = self._twiss_init
+        if twiss_init is None:
+            twiss_init = self.compute_periodic_twiss(matrix)
 
         matrix['BETA11'] = self.compute_beta_from_matrix(matrix, twiss_init)
         matrix['BETA22'] = self.compute_beta_from_matrix(matrix, twiss_init, plane=2)
@@ -99,26 +106,42 @@ class Twiss:
         except ModuleNotFoundError:
             pass
 
-        if self._with_phase_unrolling:
+        if with_phase_unrolling:
             matrix['MU1U'] = phase_unrolling(matrix['MU1'].values)
             matrix['MU2U'] = phase_unrolling(matrix['MU2'].values)
 
         return matrix
 
-    def compute_matrix_for_twiss(self, end: Union[int, str] = None) -> _pd.DataFrame:
-        samplers_data = self._samplers_data
-        normalization = 2 * self._offsets
+    @staticmethod
+    def get_samplers_df(root_file: str=None, beamline_end:str=None, with_uproot: bool=True) -> pd.DataFrame:
+        # Load the root file
+        if with_uproot:
+            samplers = BDSimOutput(root_file).event.samplers
+            samplers_data = _pd.DataFrame()
+            for s in samplers:
+                if s == beamline_end:
+                    break
+                data_samplers = samplers[s].df
+                if data_samplers.empty or len(data_samplers) != 11:
+                    raise TwissException(f"Samplers {s} is empty or particles are missing. "
+                                         f"Size of sampler {s} = {len(data_samplers)}")
+                data_samplers['name'] = s
+                samplers_data = samplers_data.append(samplers[s].df)
+        else:
+            pass
+        return samplers_data
 
+    def compute_matrix_for_twiss(self, offsets) -> _pd.DataFrame:
+
+        normalization = 2 * offsets
         step_by_step_matrix = _pd.DataFrame()
+        for s in self.samplers_data['name'].unique():
 
-        idx = 0
-        for s in samplers_data.keys():
+            data_sampler = self.samplers_data.query(f"name == '{s}'")
+            p0 = data_sampler['p'][0]
+            data_sampler['dpp'] = (data_sampler['p'] - p0) / p0
 
-            p0 = samplers_data[s].df['p'][0]
-            df = samplers_data[s].df[['x', 'xp', 'y', 'yp', 'p', 'S']].copy()
-            df['dpp'] = (df['p'] - p0) / p0
-
-            output_coordinates = df.drop(columns=['p', 'S'])
+            output_coordinates = data_sampler.drop(columns=['p', 'S'])
             m = output_coordinates.values
             matrix = {
                 f'R{j + 1}{i + 1}': ((m[i + 1, j] - m[i + 1 + 5, j]) / normalization[i]) + m[0, j]
@@ -126,18 +149,10 @@ class Twiss:
                 for i in range(0, 5)
             }
 
-            matrix['S'] = df['S'].values[0]
+            matrix['S'] = data_sampler['S'].values[0]
             step_by_step_matrix = step_by_step_matrix.append(_pd.DataFrame.from_dict(matrix,
                                                                                      orient='index',
                                                                                      columns=[s]).T)
-            idx+=1
-
-            if s == end:
-                break
-
-            if self.verbose:
-                print(f"element {s} done. {idx} / {len(samplers_data.keys())}", end="\r")
-
         return step_by_step_matrix
 
     @staticmethod
@@ -280,21 +295,16 @@ class Twiss:
         return d0 * r21 + dp0 * r22 + r25
 
     @staticmethod
-    def compute_periodic_twiss(matrix: _pd.DataFrame, end: Union[int, str] = -1) -> Dict:
+    def compute_periodic_twiss(matrix: _pd.DataFrame) -> Dict:
         """
         Compute twiss parameters from a transfer matrix which is assumed to be a periodic transfer matrix.
 
         Args:
             matrix: the (periodic) transfer matrix
-            end:
 
         Returns:
             a Series object with the values of the periodic Twiss parameters.
         """
-        if isinstance(end, int):
-            m = matrix.iloc[end]
-        elif isinstance(end, str):
-            m = matrix[matrix.LABEL1 == end].iloc[-1]
         twiss = dict({
             'CMU1': (m['R11'] + m['R22']) / 2.0,
             'CMU2': (m['R33'] + m['R44']) / 2.0,
