@@ -469,6 +469,7 @@ def Mad8Twiss2Gmad(inputFileName,
             length   = float(c.data[i][c.keys['rben']['l']])
             angle    = float(c.data[i][c.keys['rben']['angle']])
             aper     = float(apertures.aper[i])
+            k1       = float(c.data[i][c.keys['sben']['k1']])
             e1in     = float(c.data[i][c.keys['rben']['e1']])
             e2in     = float(c.data[i][c.keys['rben']['e2']])
             tilt     = float(c.data[i][c.keys['rben']['tilt']])
@@ -478,6 +479,7 @@ def Mad8Twiss2Gmad(inputFileName,
                         length   = length,
                         angle    = angle,
                         aper     = aper,
+                        k1       = k1,
                         e1       = e1in,
                         e2       = e2in,
                         tilt     = tilt,
