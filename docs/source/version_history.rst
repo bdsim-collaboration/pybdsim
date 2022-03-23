@@ -13,7 +13,12 @@ New Features
 
 * Create a nice Python copy of the header information from any (re)bdsim file when
   loading with pybdsim using only Python types.
+* New slices for 3D histograms as well as integrating along a dimension ('projection').
+  See :ref:`data-3d-histograms`.
 * New ratio plot for 2x 1D histograms. See `pybdsim.Plot.Histogram1DRatio`.
+* New loading and handling of 4D histograms (from BDSIM with Boost). They can now be
+  loaded and handled similarly to 1,2,3D histograms. They are loaded automatically when
+  loading a rebdsim file.
 * pybdsim.Data.TH1,2,3 now have :code:`xrange`, :code:`yrange`, and :code:`zrange` members
   where approriate with a conveninent tuple of the range in each dimension. They also
   have the member :code:`integral` and :code:`integralError` taken from their ROOT objects.
@@ -28,6 +33,9 @@ New Features
 * Ability to load a rebdsim output file and only load the ROOT histograms without loading
   the BDSIM and rebdsim shared libraries, so it can be used on a separate computer with just
   ROOT.
+* Added classes to Builder for all GMAD objects. New ones include `aperture`, `atom`, `blm`,
+  `cavitymodel`, `crystal`, `field`, `material`, `newcolour`, `query`, `region`, `samplerplacement`,
+  `scorer`, `tunnel`, `xsecbias`.
 
 Bug Fixes
 ---------
@@ -38,6 +46,8 @@ Bug Fixes
 * Fix warning about "nonposy" in matplotlib version for log scales.
 * Fix check in Run of if it's a ROOT file or not. Simplify it to use file extension.
 * Tolerate no pytransport installation.
+* Fix loading of aperture data from a BDSIM output file.
+* Fix aperture plots from a BDSIM output file.
 
 General
 -------
