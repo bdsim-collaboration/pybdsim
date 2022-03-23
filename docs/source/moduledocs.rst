@@ -22,20 +22,11 @@ pybdsim.Beam module
 pybdsim.Builder module
 ----------------------
 
-.. autoclass:: pybdsim.Builder.Machine
-	       :members:
-	       :undoc-members:
-	       :show-inheritance:
+.. automodule:: pybdsim.Builder
+                :members:
+		:undoc-members:
+		:show-inheritance:	
 
-.. autoclass:: pybdsim.Builder.Line
-	       :members:
-	       :undoc-members:
-	       :show-inheritance:
-
-.. autoclass:: pybdsim.Builder.Element
-	       :members:
-	       :undoc-members:
-	       :show-inheritance:
 
 pybdsim.Compare
 ---------------
