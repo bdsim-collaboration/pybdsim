@@ -69,13 +69,23 @@ def Mad8Twiss2Gmad(inputFileName,
                    rmat                         = ""):
     """
     Convert MAD8 twiss output to a BDSIM model in GMAD syntax.
-    inputfilename        = mad8 TWISS output
-    outputfilename       = desired BDSIM .gmad output name
-    istart,iend          = integer number mad8 elements to begin and end conversion.
-    beam                 = desired BDSIM beamtype ("reference","nominal","halo")
-    gemit                = tuple of (emitx,emity) - default (1e-8,1e-8) - or filename of .txm with defined gemit and Esprd (and value, [name] declaration for each).
-    collimator,apertures =relevant .dat files generated from mad8 model using pybdsim.Convert.Mad8MakeApertureTemplate & pybdsim.Convert.Mad8MakeCollimatorTemplate.
-    rmat= mad8 r-matrix output.
+    
+    :param inputfilename: mad8 TWISS output
+    :type  inputfilename: str
+    :param outputfilename: desired BDSIM .gmad output name
+    :type  outputfilename: str
+    :param istart,iend: integer number mad8 elements to begin and end conversion.
+    :type istart,iden: int
+    :param beam: desired BDSIM beamtype 
+    :type beam: str, one of ("reference","nominal","halo")
+    :param gemit: geometry emittance tuple in x,y- default (1e-8,1e-8) - or filename of .txm with defined gemit and Esprd (and value, [name] declaration for each).
+    :type gemit: tuple(float, float)
+    :param collimator: relevant .dat files generated from mad8 model using `pybdsim.Convert.Mad8MakeCollimatorTemplate`.
+    :type  collimator: str
+    :param apertures: relevant .dat files generated from mad8 model using `pybdsim.Convert.Mad8MakeApertureTemplate`.
+    :type  aperturs: str
+    :param rmat: mad8 r-matrix output.
+    :type rmat: str
     """
 
     # open mad output
