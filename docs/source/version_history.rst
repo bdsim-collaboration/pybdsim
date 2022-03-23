@@ -33,6 +33,9 @@ New Features
 * Ability to load a rebdsim output file and only load the ROOT histograms without loading
   the BDSIM and rebdsim shared libraries, so it can be used on a separate computer with just
   ROOT.
+* Added classes to Builder for all GMAD objects. New ones include `aperture`, `atom`, `blm`,
+  `cavitymodel`, `crystal`, `field`, `material`, `newcolour`, `query`, `region`, `samplerplacement`,
+  `scorer`, `tunnel`, `xsecbias`.
 
 Bug Fixes
 ---------

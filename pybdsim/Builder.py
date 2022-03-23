@@ -796,31 +796,134 @@ class GmadObject(_MutableMapping):
         s += ';\n'
         return s
 
+class Aperture(GmadObject):
+    """
+    A crystal definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "aperture",name,**kwargs)
+
+class Atom(GmadObject):
+    """
+    A atom definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "atom",name,**kwargs)
+    
+class BLM(GmadObject):
+    """
+    A blmplacement definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "blm",name,**kwargs)
+    
+class CavityModel(GmadObject):
+    """
+    A cavitymodel definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "cavitymodel",name,**kwargs)
+    
 class Crystal(GmadObject):
     """
-    A crystal does not have a length unlike every
-    :class:`Element` hence it needs its own class to produce its
-    representation.
+    A crystal definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
         GmadObject.__init__(self, "crystal",name,**kwargs)
 
-class ScorerMesh(GmadObject):
+class Field(GmadObject):
     """
-    A scorermesh does not have a length unlike every :class:`Element` hence it
-    needs its own class to produce its representation.
+    A field definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
-        GmadObject.__init__(self, "scorermesh",name,**kwargs)
+        GmadObject.__init__(self, "field",name,**kwargs)
 
+class Material(GmadObject):
+    """
+    A material definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "material",name,**kwargs)
+
+class NewColour(GmadObject):
+    """
+    A newcolour definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "newcolour",name,**kwargs)
+        
 class Placement(GmadObject):
     """
-    A placement does not have a length unlike every :class:`Element` hence it
-    needs its own class to produce its representation.
+    A placement definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
         GmadObject.__init__(self, "placement",name,**kwargs)
 
+class Query(GmadObject):
+    """
+    A query definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "query",name,**kwargs)
+
+class Region(GmadObject):
+    """
+    A region definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "region",name,**kwargs)
+
+class SamplerPlacement(GmadObject):
+    """
+    A samplerplacement definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "samplerplacement",name,**kwargs)
+
+class Scorer(GmadObject):
+    """
+    A scorer definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "scorer",name,**kwargs)
+        
+class ScorerMesh(GmadObject):
+    """
+    A scorermesh definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "scorermesh",name,**kwargs)
+
+class Tunnel(GmadObject):
+    """
+    A tunnel definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "tunnel",name,**kwargs)
+
+class XSecBias(GmadObject):
+    """
+    A xsecbias definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "xsecbias",name,**kwargs)
+        
 class Machine(object):
     """
     A class represents an accelerator lattice as a sequence of
