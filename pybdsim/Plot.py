@@ -690,7 +690,7 @@ def Histogram3D(th3):
     ax.voxels(fill, facecolors=colours)
     #return colours
 
-def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, **errorbarKwargs):
+def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
     """
     Plot two histograms with their ratio (#1 / #2) in a subplot below.
 
@@ -698,7 +698,9 @@ def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=Fal
     :param histogram2: a `pybdsim.Data.TH1` instance
     :param label1: legend label for histogram1 (str or "" or None)
     :param label2: legend label for histogram2
-    :param ratio:  integer ratio of main plot to ratio plot (recommend 1 - 5)
+    :param ratio:  integer ratio of main plot height to ratio plot height (recommend 1 - 5)
+    :param ratioYAxisLimit: ylim upper for ratio subplot y axis
+    :type  ratioYAxisLimit: tuple(float, float)
 
     If the labels are "" then the histogram.title string will be used. If None, then
     no label will be added.
@@ -749,6 +751,8 @@ def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=Fal
             axHist.set_yscale('log', nonpositive='clip')
         else:
             axHist.set_yscale('log', nonposy='clip')
+    if xLogScale:
+        _plt.xscale('log')
     _plt.setp(axHist.get_xticklabels(), visible=False)
 
     colour = _plt.rcParams['axes.prop_cycle'].by_key()['color'][2] # 3rd colour
@@ -756,6 +760,8 @@ def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=Fal
         colour = ratioColour
     axRatio.axhline(1.0, c='grey', alpha=0.2)
     axRatio.errorbar(xsf*h1.xcentres, sf*ratio, yerr=sf*ratioErr, color=colour, drawstyle='steps-mid')
+    if ratioYAxisLimit:
+        axRatio.set_ylim(*ratioYAxisLimit)
 
     if xlabel is None:
         axRatio.set_xlabel(h1.xlabel)
