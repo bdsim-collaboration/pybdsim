@@ -9,6 +9,7 @@ from typing import Optional, List, Dict, Tuple, Union
 import pandas as pd
 from pint import UnitRegistry
 from .Analysis import BDSimOutput
+from .Data import SamplerData, Load
 
 _ureg = UnitRegistry()
 _ureg.define('electronvolt = e * volt = eV')
@@ -128,7 +129,21 @@ class Twiss:
                 data_samplers['name'] = s
                 samplers_data = samplers_data.append(samplers[s].df)
         else:
-            pass
+            samplers = Load(filepath=root_file)
+            sampler_name = list(map(str,list(samplers.GetSamplerNames())))
+            i = 1
+            samplers_data = _pd.DataFrame()
+            while True:
+                try:
+                    data = _pd.DataFrame(data=dict(
+                        (k, SamplerData(samplers, i).data[k]) for k in ('x', 'y', 'z', 'xp', 'yp', 'S', 'p')))
+                    data['name'] = sampler_name[i]
+                    samplers_data = _pd.concat([samplers_data, data])
+                    i += 1
+                    if sampler_name[i] == beamline_end:
+                        break
+                except IndexError:
+                    break
         return samplers_data
 
     def compute_matrix_for_twiss(self, offsets) -> _pd.DataFrame:
