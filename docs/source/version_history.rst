@@ -52,6 +52,8 @@ Bug Fixes
 General
 -------
 
+* The Beam class now takes `distrType` and not `distrtype` so as to match BDSIM syntax
+  and be less confusing.
 * Updated out of date documentation.
 * Better automatic ranges for Histogram1DMultiple plots by default.
 * Better field loading in `pybdsim.Field.Load`. Returns the same Field object
