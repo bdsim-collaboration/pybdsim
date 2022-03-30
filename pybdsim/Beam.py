@@ -56,20 +56,6 @@ class Beam(dict) :
 
     def SetEnergy(self,energy=1.0,unitsstring='GeV'):
         self['energy'] = str(energy) + '*' + unitsstring
-
-    def _MakeGaussTwiss(self):
-        setattr(self, 'SetBetaX',      self._SetBetaX)
-        setattr(self, 'SetBetaY',      self._SetBetaY)
-        setattr(self, 'SetAlphaX',     self._SetAlphaX)
-        setattr(self, 'SetAlphaY',     self._SetAlphaY)
-        setattr(self, 'SetEmittanceX', self._SetEmittanceX)
-        setattr(self, 'SetEmittanceY', self._SetEmittanceY)
-        setattr(self, 'SetSigmaE',     self._SetSigmaE)
-        setattr(self, 'SetSigmaT',     self._SetSigmaT)
-        setattr(self, 'SetDispX',      self._SetDispX)
-        setattr(self, 'SetDispY',      self._SetDispY)
-        setattr(self, 'SetDispXP',     self._SetDispXP)
-        setattr(self, 'SetDispYP',     self._SetDispYP)
         
     def SetDistributionType(self,distrType='reference'):
         if distrType not in BDSIMDistributionTypes:
@@ -150,6 +136,20 @@ class Beam(dict) :
         s4 = '\n'.join(s2[2:])
         st = s3+s4
         return st
+
+    def _MakeGaussTwiss(self):
+        setattr(self, 'SetBetaX',      self._SetBetaX)
+        setattr(self, 'SetBetaY',      self._SetBetaY)
+        setattr(self, 'SetAlphaX',     self._SetAlphaX)
+        setattr(self, 'SetAlphaY',     self._SetAlphaY)
+        setattr(self, 'SetEmittanceX', self._SetEmittanceX)
+        setattr(self, 'SetEmittanceY', self._SetEmittanceY)
+        setattr(self, 'SetSigmaE',     self._SetSigmaE)
+        setattr(self, 'SetSigmaT',     self._SetSigmaT)
+        setattr(self, 'SetDispX',      self._SetDispX)
+        setattr(self, 'SetDispY',      self._SetDispY)
+        setattr(self, 'SetDispXP',     self._SetDispXP)
+        setattr(self, 'SetDispYP',     self._SetDispYP)
 
     def SetX0(self,x0=0.0,unitsstring='m'):
         self['X0'] = str(x0) + '*' + unitsstring
