@@ -15,7 +15,14 @@ BDSIMDistributionTypes = [
     'halo',
     'composite',
     'userfile',
-    'ptc'
+    'ptc',
+    'sixtrack',
+    'eventgeneratorfile',
+    'sphere',
+    'compositesde',
+    'box',
+    'bdsimsampler',
+    'halosigma'
 ]
 
 BDSIMParticleTypes = [
@@ -23,6 +30,16 @@ BDSIMParticleTypes = [
     'e+',
     'proton',
     'gamma',
+    'antiproton',
+    'pi+',
+    'pi-',
+    'neutron',
+    'photon',
+    'mu+',
+    'mu-',
+    'kaon-',
+    'kaon+',
+    'kaon0L'
 ]
 
 class Beam(dict) :
