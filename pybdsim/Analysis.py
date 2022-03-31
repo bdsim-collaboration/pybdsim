@@ -111,10 +111,7 @@ class Histogram1d(Histogram):
     def centers(self):
         if self._centers is not None:
             return self._centers
-        self._centers = [
-            self.coordinates_normalization * (self._h.axes[0].edges()[i] + self._h.axes[0].edges()[i + 1]) / 2
-            for i in range(1, len(self._h.axes[0].edges()) - 2)
-        ]
+        self._centers = self.axes[0].centers()
         return self._centers
 
     @property
