@@ -741,7 +741,10 @@ class Output(metaclass=OutputType):
                 branches = [self.branch_name + b for b, _ in self._active_leaves.items() if _[0] is True]
             else:
                 branches = [self.branch_name + b for b in branches]
-            df = self.parent.tree.arrays(branches, library='pandas')[0]
+            try:
+                df = self.parent.tree.arrays(branches, library='pandas')[0]
+            except KeyError: # for the beam tree
+                df = self.parent.tree.arrays(branches, library='pandas')
             if strip_prefix:
                 import re
                 df.columns = [re.split(self.branch_name, c)[1] for c in df.columns]
