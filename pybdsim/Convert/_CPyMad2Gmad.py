@@ -224,7 +224,15 @@ class CPyMad2Gmad:
             self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
                               + f" - Setting the aperture from the aperture model for this element.")
             if self.aperture:
-                apertype, aper1, aper2, aper3, aper4 = self.aperture(element['NAME'])
+                if element['NAME'] in self.aperture.keys():
+                    apertype, aper1, aper2, aper3, aper4 = self.aperture[element['NAME']]
+                else:
+                    print(f"Attention, element {element['NAME']} not in aperture model")
+                    apertype = "elliptical"
+                    aper1 = 0.073
+                    aper2 = 0.035
+                    aper3 = 0.1
+                    aper4 = 0.1
             else:
                 apertype = "elliptical"
                 aper1 = 0.073
@@ -360,6 +368,9 @@ class CPyMad2Gmad:
         """
         parent_name = element['PARENT']
         if element['L'] == 0:
+            if element['BASE_PARENT'] == 'multipole':
+                element['LEVEL'] += 1
+
             if element['BASE_PARENT'] == 'multipole' \
                     and all(m == 0 for m in bdsim_properties.get('knl', ()) + bdsim_properties.get('ksl', ())) \
                     and element['LEVEL'] == 0:
@@ -448,8 +459,8 @@ class CPyMad2Gmad:
 
             bdsim_beam.SetEmittanceX(self.madx_beam['ex'])
             bdsim_beam.SetEmittanceY(self.madx_beam['ey'])
-            # bdsim_beam.SetSigmaE(self.madx_beam['sige'])
-            # bdsim_beam.SetSigmaT(self.madx_beam['sigt'])
+            bdsim_beam.SetSigmaE(self.madx_beam['sige'])
+            #bdsim_beam.SetSigmaT(self.madx_beam['sigt'])
             bdsim_input.AddBeam(bdsim_beam)
 
         if with_bdsim_options:
