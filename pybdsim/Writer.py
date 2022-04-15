@@ -267,7 +267,6 @@ class Writer():
         must be written BEFORE this function is called.
 
         """
-        self._machineCheck(machine)
 
         if filename == '':
             fn_main = self._mainFilename #default
@@ -321,7 +320,6 @@ class Writer():
         Write the machines components to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_components = self._getName(filename,'components')
         if self.Components._writeInMain:                #if _writeInMain, append strings to _mainFileLines list.
             for element in list(machine.elements.values()):
@@ -343,7 +341,6 @@ class Writer():
         Write the machines bias to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_bias = self._getName(filename,'bias')
 
         #write bias if it exists
@@ -375,7 +372,6 @@ class Writer():
         if isinstance(machine,_Beam.Beam):
             object = machine
         else:
-            self._machineCheck(machine)
             object = machine.beam
 
         fn_beam = self._getName(filename,'beam')
@@ -398,7 +394,6 @@ class Writer():
         Write the machines samplers to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_samplers = self._getName(filename,'samplers')
 
         #write samplers
@@ -424,7 +419,6 @@ class Writer():
         Write the machines objects (e.g. crystals) to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_objects = self._getName(filename,'objects')
 
         if self.Objects._writeInMain:
@@ -452,7 +446,6 @@ class Writer():
         if isinstance(machine,_Options.Options):
             object = machine
         else:
-            self._machineCheck(machine)
             object = machine.options
 
         fn_options = self._getName(filename,'options')
@@ -477,7 +470,6 @@ class Writer():
         Write the machines sequence to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_sequence = self._getName(filename,'sequence')
 
         # need to define the period before making sampler planes
@@ -547,11 +539,6 @@ class Writer():
             if (fn == fn_name) or (fn == self._mainFilename):
                 raise ValueError("Filename already used.")
         return fn_name
-
-    def _machineCheck(self,machine):
-        # this way of comparing avoids having to import Builder which is a circular import
-        if type(machine).__name__ != 'Machine':
-            raise TypeError("Not a machine instance")
 
     def _checkFiles(self,filename, overwrite=True):
         filename = self._checkExtensionAndPath(filename)
