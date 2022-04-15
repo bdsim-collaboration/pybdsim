@@ -12,6 +12,7 @@ setup(
                       "fortranformat",
                       "pymadx",
                       "pymad8",
+                      "pandas",
                       "pytransport"],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],

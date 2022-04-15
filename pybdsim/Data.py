@@ -18,6 +18,7 @@ import math as _math
 import numpy as _np
 import os as _os
 import pickle as _pickle
+import pandas as pd
 
 _useRoot      = True
 _libsLoaded   = False
@@ -766,6 +767,13 @@ class BDSAsciiData(list):
             return obj in self.GetColumn('name',ignoreCase=True)
         else:
             return False
+
+    def ToDF(self):
+        """Get this BDSAsciiData instance as a pandas.DataFrame instance."""
+        data = {}
+        for name in self.names:
+            data[name] = getattr(self, name)()
+        return pd.DataFrame.from_dict(data)
 
 def PadHistogram1D(hist, padValue=1e-20):
     """
