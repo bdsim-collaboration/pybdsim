@@ -18,7 +18,6 @@ import math as _math
 import numpy as _np
 import os as _os
 import pickle as _pickle
-import pandas as pd
 
 _useRoot      = True
 _libsLoaded   = False
@@ -771,6 +770,7 @@ class BDSAsciiData(list):
     def ToDF(self):
         """Get this BDSAsciiData instance as a pandas.DataFrame instance."""
         data = {}
+        import pandas as pd
         for name in self.names:
             data[name] = getattr(self, name)()
         return pd.DataFrame.from_dict(data)
