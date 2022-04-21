@@ -634,7 +634,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
         ax = f.add_subplot(111)
-        im = ax.pcolormesh(h.xedges, h.yedges, d, norm=norm, rasterized=True)
+        im = ax.pcolormesh(h.xedges, h.yedges, d, norm=norm, rasterized=True, **imshowKwargs)
         #_plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
         _plt.colorbar(im, label=zlabel)
     else:
