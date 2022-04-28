@@ -615,7 +615,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     scalingFactor  - multiplier for values
     xScalingFactor - multiplier for x coordinates
     yScalingFactor - multiplier for y coordinates
-    autovmin       - fill in the background (normally white) with minimum
+    autovmin       - automatically determin the lower limit of the colourbar from the data
     vmin           - explicitly control the vmin for the log normalisation
     vmax           - explicitly control the vmax for the log normalisation
 
@@ -666,11 +666,15 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         _plt.title(title)
     return f
 
-def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), **imshowKwargs):
+def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None, **imshowKwargs):
+    """
+    Similar to Histogram2D() but plot the errors from the histogram instead of the contents.
+    See pybdsim.Plot.Histogram2D for documentation of arguments.
+    """
     h2 = _copy.deepcopy(histogram)
     h2.contents = h2.errors # set contents as errors and just use regular plot
     return Histogram2D(h2, logNorm, xLogScale, yLogScale, xlabel, ylabel, zlabel, title, aspect, scalingFactor,
-                       xScalingFactor, yScalingFactor, figsize, **imshowKwargs)
+                       xScalingFactor, yScalingFactor, figsize, vmin, autovmin, vmax, **imshowKwargs)
 
 def Histogram3D(th3):
     """
