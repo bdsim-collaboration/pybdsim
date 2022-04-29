@@ -11,3 +11,4 @@ documentation and in the .rst files beside the each example.
 
    1_builder/1_builder
    2_convert/2_convert
+   3_optics/3_optics
