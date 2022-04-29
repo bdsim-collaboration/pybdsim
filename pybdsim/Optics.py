@@ -1,4 +1,5 @@
 import logging
+import itertools
 import os.path
 from logging import warning
 import warnings
@@ -6,9 +7,8 @@ import pandas as _pd
 import numpy as _np
 from typing import Optional, List, Dict, Tuple, Union
 
-import pandas as pd
 from pint import UnitRegistry
-from .Analysis import BDSimOutput
+from .DataUproot import BDSimOutput
 from .Data import SamplerData, Load
 
 _ureg = UnitRegistry()
@@ -37,28 +37,38 @@ class TwissException(Exception):
 
 class Twiss:
     def __init__(self,
-                 filename: str = 'output.root',
-                 path: str = '.',
-                 beamline_end: str = None,
-                 with_uproot: bool = True
+                 samplers_data: Dict[str, _pd.DataFrame] = None,
+                 first_sampler: str = None,
+                 last_sampler: str = None
                  ):
         """
-
         Args:
-            twiss_init: the initial values for the Twiss computation.
-            with_phase_unrolling:
-            offsets:
+            samplers_data: Dictionnary of Dataframe that contains all the samplers. {sampler's name: dataFrame}.
+                           The following coordinates must be in the DataFrame and in this order
+                           ['x', 'xp', 'y', 'yp', 'S', 'p']
+            first_sampler: First element where to compute the optics
+            last_sampler: Last element where to compute the optics
 
         Returns:
 
         """
-        self.samplers_data = self.get_samplers_df(os.path.join(path, filename), beamline_end, with_uproot)
-        self._with_uproot = with_uproot
+        samplers_name = list(samplers_data)
+        if first_sampler is None:
+            first_sampler = samplers_name[0]
+        if last_sampler is None:
+            last_sampler = samplers_name[-1]
+        if first_sampler not in samplers_name:
+            raise TwissException(f"{first_sampler} not in samplers_data")
+        if last_sampler not in samplers_name:
+            raise TwissException(f"{last_sampler} not in samplers_data")
+        self.samplers_data = dict(itertools.islice(samplers_data.items(),
+                                                   samplers_name.index(first_sampler),
+                                                   samplers_name.index(last_sampler)+1))
 
     def __call__(self,
                  twiss_init: Optional[Dict] = None,
                  with_phase_unrolling: bool = True,
-                 offsets: List = None,
+                 offsets: List = None, # -> Must be computed on the fly
                  ) -> _pd.DataFrame:
         """
         Uses a step-by-step transfer matrix to compute the Twiss parameters (uncoupled). The phase advance and the
@@ -113,46 +123,20 @@ class Twiss:
 
         return matrix
 
-    @staticmethod
-    def get_samplers_df(root_file: str=None, beamline_end:str=None, with_uproot: bool=True) -> pd.DataFrame:
-        # Get list of samplers
-        if with_uproot:
-            samplers = BDSimOutput(root_file).event.samplers
-            sampler_name = list(samplers.keys())
-        else:
-            samplers = Load(filepath=root_file)
-            sampler_name = list(map(str, list(samplers.GetSamplerNames())))
-
-        sampler_list = sampler_name[0:sampler_name.index(beamline_end)]
-        samplers_data = _pd.DataFrame()
-        for idx, sm in enumerate(sampler_list):
-            if with_uproot:
-                data_samplers = samplers[sm].df
-            else:
-                # Careful, order matters
-                data_samplers = _pd.DataFrame(data=dict(
-                    (k, SamplerData(samplers, sm).data[k]) for k in ('x', 'xp', 'y', 'yp', 'S', 'p')))
-
-            if data_samplers.empty or len(data_samplers) != 11:
-                raise TwissException(f"Samplers {s} is empty or particles are missing. "
-                                     f"Size of sampler {s} = {len(data_samplers)}")
-
-            data_samplers['name'] = sm
-            samplers_data = samplers_data.append(data_samplers)
-            print(f"Sampler {sm} processed. {idx+1} / {len(sampler_list)}", end="\r")
-        return samplers_data
 
     def compute_matrix_for_twiss(self, offsets) -> _pd.DataFrame:
 
         normalization = 2 * offsets
         step_by_step_matrix = _pd.DataFrame()
-        for s in self.samplers_data['name'].unique():
+        for sampler_name, data_sampler in self.samplers_data.items():
+            if data_sampler.empty or len(data_sampler) != 11:
+                raise TwissException(f"Samplers {sampler_name} is empty or particles are missing. "
+                                     f"Size of sampler {s} = {len(data_sampler)}")
 
-            data_sampler = self.samplers_data.query(f"name == '{s}'")
             p0 = data_sampler['p'][0]
             data_sampler['dpp'] = (data_sampler['p'] - p0) / p0
 
-            output_coordinates = data_sampler.drop(columns=['p', 'S', 'name'])
+            output_coordinates = data_sampler.drop(columns=['p', 'S'])
             m = output_coordinates.values
             matrix = {
                 f'R{j + 1}{i + 1}': ((m[i + 1, j] - m[i + 1 + 5, j]) / normalization[i]) + m[0, j]
@@ -160,10 +144,14 @@ class Twiss:
                 for i in range(0, 5)
             }
 
-            matrix['S'] = data_sampler['S'].values[0]
+            matrix['S'] = data_sampler.iloc[0]['S']
+            matrix['X0'] = data_sampler.iloc[0]['x']
+            matrix['XP0'] = data_sampler.iloc[0]['xp']
+            matrix['Y0'] = data_sampler.iloc[0]['y']
+            matrix['YP0'] = data_sampler.iloc[0]['yp']
             step_by_step_matrix = step_by_step_matrix.append(_pd.DataFrame.from_dict(matrix,
                                                                                      orient='index',
-                                                                                     columns=[s]).T)
+                                                                                     columns=[sampler_name]).T)
         return step_by_step_matrix
 
     @staticmethod
