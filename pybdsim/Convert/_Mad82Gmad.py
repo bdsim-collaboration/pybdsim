@@ -1,16 +1,20 @@
+from copy import deepcopy as _deepcopy
 import numpy as _np
+import math as _math
 import pymad8 as _m8
 from .. import Builder as _Builder
+from .. import Beam as _Beam
+from ..Options import Options as _Options
+import pybdsim._General
 
 # Constants
 # anything below this length is treated as a thin element
 _THIN_ELEMENT_THRESHOLD = 1e-6
 
 
-def Mad82Gmad(inputfilename,outputfilename
-		startname             = None,
-		stopname              = None,
-		stepsize              = 1,
+def Mad82Gmad(inputfilename,outputfilename,
+		startindex            = 0,
+		endindex              = -1,
 		ignorezerolengthitems = True,
 		samplers              = 'all',
 		aperturedict          = {},
@@ -30,24 +34,61 @@ def Mad82Gmad(inputfilename,outputfilename
 		linear                = False,
 		overwrite             = True,
 		write                 = True,
-		allNamesUnique        = False,
 		namePrepend           = ""):
 
-	twiss = _m8.OutputPandas(inputfilename)
-	if twiss.filetype != 'twiss':
-		return
+	if type(inputfilename) == str:
+		twiss = _m8.OutputPandas(inputfilename)
+		if twiss.filetype != 'twiss':
+			raise ValueError('Expect a twiss file to convert')
+	elif type(inputfilename) == dict:
+		twiss = inputfilename['twiss']
+		rmat = inputfilename['rmat']
+		if twiss.filetype != 'twiss' or rmat.filetype != 'rmat':
+			raise ValueError('Expect a twiss file and a rmat file to convert')
+	else :
+		raise TypeError('Expect either a twiss file string or a dictionary with twiss and rmat file strings')
 
 	machine = _Builder.Machine()
 	for item in twiss.data.iloc[startindex:endindex].iloc :
+		name = item['NAME']
+		t = item['TYPE']
+		l = item['L']
+		
+		zerolength = True if l < 1e-9 else False
 		gmadElement = _Mad82GmadElementFactory(item, allelementdict, verbose,
 							userdict, collimatordict, partnamedict, flipmagnets,
-							linear, zerolength, ignorezerolengthitems,
-							allNamesUnique, namePrepend="")
-		machine.Append(gmadElement)
+							linear, zerolength, ignorezerolengthitems,namePrepend="")
+		if gmadElement is None: # factory returned nothing, go to next item.
+			continue
+		elif gmadElement.length == 0.0 and isinstance(gmadElement,_Builder.Drift): # skip drifts of length 0
+			continue
+		elif l == 0 or name in collimatordict: # Don't add apertures to thin elements or collimators
+			machine.Append(gmadElement)
+		elif aperlocalpositions: # split aperture if provided
+			elements_split_with_aper = _GetElementSplitByAperture(gmadElement,aperlocalpositions[i])
+			for ele in elements_split_with_aper:
+				machine.Append(ele)
+		else: # Get element with single aperture
+			element_with_aper = _GetSingleElementWithAper(item,gmadElement,aperturedict,defaultAperture)
+			machine.Append(element_with_aper)
+
+	if (samplers is not None): # Add Samplers
+		machine.AddSampler(samplers)
+
+	if beam: # Add Beam
+		bm = Mad82GmadBeam(twiss, startindex, verbose, extraParamsDict=beamparamsdict)
+		machine.AddBeam(bm)
+
+	options = _Options() # Add Options
+	if optionsdict:
+		options.update(optionsdict)  # expand with user supplied bdsim options
+	machine.AddOptions(options)
 
 	machine.Write(outputfilename)
 
-def _Mad82GmadElementFactory(item):
+def _Mad82GmadElementFactory(item, allelementdict, verbose,
+				userdict, collimatordict, partnamedict, flipmagnets,
+				linear, zerolength, ignorezerolengthitems, namePrepend):
 	if isinstance(item, _Builder.Element):
 		return item
 
@@ -83,7 +124,7 @@ def _Mad82GmadElementFactory(item):
 		print('Full set of key word arguments:')
 		print(kws)
 
-	if tilt != 0:
+	if tilt != 0 and not _math.isnan(tilt):
 		kws['tilt'] = tilt
 
 	#######################################################################
@@ -236,7 +277,17 @@ def _Mad82GmadElementFactory(item):
 		return _Builder.RBend(rname, chordLength, angle=angle, **kws)
 	#######################################################################
 	elif Type == 'LCAV':
-		return _Builder.Drift(rname, l, **kws)
+		volt = item['VOLT']
+		freq = item['FREQ']
+		lag = item ['LAG']
+		gradient = volt/l
+		phase = lag * 2 * _np.pi
+
+		if freq != 0:
+			kws['freq'] = freq
+		if phase != 0:
+			kws['phase'] = phase
+		return _Builder.RFCavity(rname, l, gradient=gradient, **kws)
 	#######################################################################
 	elif Type in {'ECOL','RCOL'}:
 		if name in collimatordict:
@@ -267,10 +318,10 @@ def _Mad82GmadElementFactory(item):
 					kws['outerDiameter'] = colld['outerDiameter']
 				else:
 					kws['outerDiameter'] = max([0.5,xsize * 2.5,ysize * 2.5])
-                		if Type == 'RCOL':
-                    			return _Builder.RCol(rname, l, xsize, ysize, **kws)
-                		else:
-                    			return _Builder.ECol(rname, l, xsize, ysize, **kws)
+				if Type == 'RCOL':
+					return _Builder.RCol(rname, l, xsize, ysize, **kws)
+				else:
+					return _Builder.ECol(rname, l, xsize, ysize, **kws)
 		# dict is incomplete or the component is erroneously
 		# reffered to as a collimator even when it can be thought
 		# of as a drift (e.g. LHC TAS).
@@ -285,7 +336,56 @@ def _Mad82GmadElementFactory(item):
 			return _Builder.Drift(rname, l, **kws)
 	#######################################################################
 	elif Type == 'MATR':
-		pass
+		if 'rmat' not in inputfilename :
+			raise ValueError('No Rmat file to extract element')
+		index = item.name
+		item = rmat.data.iloc[index]
+		previtem = rmat.data.iloc[index-1]
+		POSTMATRIX = _np.matrix([[item['R11'],item['R12'],item['R13'],item['R14']],
+					[item['R21'],item['R22'],item['R23'],item['R24']],
+					[item['R31'],item['R32'],item['R33'],item['R34']],
+					[item['R41'],item['R42'],item['R43'],item['R44']]])
+		PRIORMATRIX = _np.matrix([[previtem['R11'],previtem['R12'],previtem['R13'],previtem['R14']],
+					[previtem['R21'],previtem['R22'],previtem['R23'],previtem['R24']],
+					[previtem['R31'],previtem['R32'],previtem['R33'],previtem['R34']],
+					[previtem['R41'],previtem['R42'],previtem['R43'],previtem['R44']]])
+
+		RMAT=(POSTMATRIX*PRIORMATRIX.I)
+		return _Builder.Rmat(rname, l, r11=RMAT[0,0], r12=RMAT[0,1], r13=RMAT[0,2], r14=RMAT[0,3],
+						r21=RMAT[1,0], r22=RMAT[1,1], r23=RMAT[1,2], r24=RMAT[1,3],
+						r31=RMAT[2,0], r32=RMAT[2,1], r33=RMAT[2,2], r34=RMAT[2,3],
+						r41=RMAT[3,0], r42=RMAT[3,1], r43=RMAT[3,2], r44=RMAT[3,3], **kws)
 	#######################################################################
 	else :
+		print('unknown element type:', t, 'for element named: ', name)
+		if zerolength and not ignorezerolengthitems:
+			print('putting marker in instead as its zero length')
+			return _Builder.Marker(rname)
+		print('putting drift in instead as it has a finite length')
+		return _Builder.Drift(rname, l)
 	#######################################################################
+
+def _GetSingleElementWithAper(item, gmadElement,aperturedict, defaultAperture):
+	"""Returns the raw aperture model (i.e. unsplit), and a list of split apertures."""
+	gmadElement = _deepcopy(gmadElement)
+	name = item["NAME"]
+	# note SORIGINAL not S.  This is so it works still after slicing.
+	sMid = item["S"] - item["L"] / 2.0
+	aper = {}
+	try:
+		aper = _Builder.PrepareApertureModel(aperturedict.GetApertureAtS(sMid), defaultAperture)
+	except AttributeError:
+		pass
+	try:
+		this_aperdict = aperturedict[name]
+	except KeyError:
+		pass
+	else:
+		aper = _Builder.PrepareApertureModel(this_aperdict, defaultAperture)
+
+	gmadElement.update(aper)
+	return gmadElement
+
+def Mad82GmadBeam(twiss, startname=None, verbose=False, extraParamsDict={}):
+	# return _Beam.Beam('e-',16.5,'gausstwiss')
+	return _Beam.Beam('e-',16.5,'reference')

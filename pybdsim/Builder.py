@@ -715,6 +715,17 @@ class Transform3D(Element):
         Element.__init__(self, name, 'transform3d', **kwargs)
 
 
+class Rmat(Element):
+    def __init__(self, name, l, r11, r12, r13, r14,
+				r21, r22, r23, r24,
+				r31, r32, r33, r34, 
+				r41, r42, r43, r44,  **kwargs):
+        Element.__init__(self, name, 'rmatrix', l=l, r11=r11, r12=r12, r13=r13, r14=r14,
+						r21=r21, r22=r22, r23=r23, r24=r24,
+						r31=r31, r32=r32, r33=r33, r34=r34,
+						r41=r41, r42=r42, r43=r43, r44=r44, **kwargs)
+
+
 class Sampler(object):
     """
     A sampler is unique in that it does not have a length unlike every
