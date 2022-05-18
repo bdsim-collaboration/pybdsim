@@ -2,6 +2,7 @@ from copy import deepcopy as _deepcopy
 import numpy as _np
 import math as _math
 import pymad8 as _m8
+import warnings as _warnings
 from .. import Builder as _Builder
 from .. import Beam as _Beam
 from ..Options import Options as _Options
@@ -40,16 +41,18 @@ def Mad82Gmad(inputfilename,outputfilename,
 		twiss = _m8.OutputPandas(inputfilename)
 		if twiss.filetype != 'twiss':
 			raise ValueError('Expect a twiss file to convert')
+		data = twiss.data
 	elif type(inputfilename) == dict:
 		twiss = inputfilename['twiss']
 		rmat = inputfilename['rmat']
 		if twiss.filetype != 'twiss' or rmat.filetype != 'rmat':
 			raise ValueError('Expect a twiss file and a rmat file to convert')
+		data = twiss.data.merge(rmat.data)
 	else :
 		raise TypeError('Expect either a twiss file string or a dictionary with twiss and rmat file strings')
 
 	machine = _Builder.Machine()
-	for item in twiss.data.iloc[startindex:endindex].iloc :
+	for item in data.iloc[startindex:endindex].iloc :
 		name = item['NAME']
 		t = item['TYPE']
 		l = item['L']
@@ -76,7 +79,7 @@ def Mad82Gmad(inputfilename,outputfilename,
 		machine.AddSampler(samplers)
 
 	if beam: # Add Beam
-		bm = Mad82GmadBeam(twiss, startindex, verbose, extraParamsDict=beamparamsdict)
+		bm = Mad82GmadBeam(data, startindex, verbose, extraParamsDict=beamparamsdict)
 		machine.AddBeam(bm)
 
 	options = _Options() # Add Options
@@ -386,6 +389,44 @@ def _GetSingleElementWithAper(item, gmadElement,aperturedict, defaultAperture):
 	gmadElement.update(aper)
 	return gmadElement
 
-def Mad82GmadBeam(twiss, startname=None, verbose=False, extraParamsDict={}):
+def Mad82GmadBeam(data, startindex=0, verbose=False, extraParamsDict={}):
+	# MADX defines parameters at the end of elements so need to go 1 element back if we can
+	if startindex > 0:
+		startindex -= 1
+
+	energy = data['E'][startindex]
+	if 'EX' not in extraParamsDict or 'EY' not in extraParamsDict:
+		raise ValueError('Missing emittance description in extraParamsDict')
+	if 'Esprd' not in extraParamsDict:
+		raise ValueError('Missing energy spread in extraParamsDict')
+	if 'particletype' not in extraParamsDict:
+		raise ValueError('Missing particle type in extraParamsDict')
+
+	ex = 		extraParamsDict.pop('EX')
+	ey = 		extraParamsDict.pop('EY')
+	sigmae = 	extraParamsDict.pop('Esprd')
+	particle = 	extraParamsDict.pop('particletype')
+
+	if particle != 'e-' and particle != 'e+' and particle != 'proton':
+		raise ValueError("Unsupported particle : " + particle)
+		
 	# return _Beam.Beam('e-',16.5,'gausstwiss')
-	return _Beam.Beam('e-',16.5,'reference')
+	beam =  _Beam.Beam(particle,energy,'gausstwiss')
+	if ex != 0:
+		beam.SetEmittanceX(ex, 'm')
+	if ey != 0:
+		beam.SetEmittanceY(ey, 'm')
+	beam.SetSigmaE(sigmae)
+
+	beamparams = {"SetBetaX":'BETX',"SetBetaY":'BETY',"SetAlphaX":'ALPHX',"SetAlphaY":'ALPHY',
+			"SetDispX":'DX',"SetDispY":'DY',"SetDispXP":'DPX',"SetDispYP":'DPY',
+			"SetXP0": 'PX',"SetYP0": 'PY',"SetX0": 'X',"SetY0": 'Y'}
+
+	for func,parameter in beamparams.items():
+		if parameter in list(data.keys()):
+			getattr(beam, func)(data[parameter][startindex])
+
+	for k, v in extraParamsDict.items():
+		beam[k] = v
+
+	return beam
