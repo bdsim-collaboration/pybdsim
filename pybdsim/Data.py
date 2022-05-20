@@ -923,6 +923,9 @@ class TH2(TH1):
         self.contents = _np.zeros((self.nbinsx,self.nbinsy))
         self.errors   = _np.zeros((self.nbinsx,self.nbinsy))
 
+        self.yunderflow = "not implemented"
+        self.yoverflow  = "not implemented"
+
         for i in range(self.nbinsy):
             yaxis = hist.GetYaxis()
             self.ywidths[i]   = yaxis.GetBinWidth(i+1)
@@ -938,6 +941,32 @@ class TH2(TH1):
         self.integral = _np.sum(self.contents)
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
+        
+    def SwapAxes(self):
+        """
+        Swap X and Y for all members. Returns a new copy of the histogram.
+        """
+        r = _copy.deepcopy(self)
+        r.nbinsy    = self.nbinsx
+        r.ywidths   = self.xwidths
+        r.ycentres  = self.xcentres
+        r.ylowedge  = self.xlowedge
+        r.yhighedge = self.xhighedge
+        r.yedges    = self.xedges
+        r.yrange    = self.xrange
+
+        r.nbinsx    = self.nbinsy
+        r.xwidths   = self.ywidths
+        r.xcentres  = self.ycentres
+        r.xlowedge  = self.ylowedge
+        r.xhighedge = self.yhighedge
+        r.xedges    = self.yedges
+        r.xrange    = self.yrange
+
+        r.contents = r.contents.transpose()
+        r.errors   = r.errors.transpose()
+
+        return r
 
     def _GetContents(self):
         for i in range(self.nbinsx) :
