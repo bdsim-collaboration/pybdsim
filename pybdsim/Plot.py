@@ -604,7 +604,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     
     return f
 
-def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None, **imshowKwargs):
+def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None, colourbar=True, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -636,10 +636,12 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         ax = f.add_subplot(111)
         im = ax.pcolormesh(h.xedges, h.yedges, d, norm=norm, rasterized=True, **imshowKwargs)
         #_plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
-        _plt.colorbar(im, label=zlabel)
+        if colourbar:
+            _plt.colorbar(im, label=zlabel)
     else:
         _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', **imshowKwargs)
-        _plt.colorbar(format='%.0e', label=zlabel)
+        if colourbar:
+            _plt.colorbar(format='%.0e', label=zlabel)
 
     if xLogScale:
         _plt.xscale('log')
