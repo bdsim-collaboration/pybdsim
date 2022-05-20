@@ -13,7 +13,7 @@ def _ArrowSize(d):
     h = d.header
     result = _np.inf
     for i in range(nDim):
-        key = d.columns[i]
+        key = d.columns[i].lower()
         step = (h[key+'max'] - h[key+'min']) / h['n'+key]
         result = _np.min([result, step])
     return result
