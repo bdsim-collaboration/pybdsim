@@ -116,7 +116,7 @@ def Plot1DFxFyFz(filename):
     _plt.setp(axFy.get_xticklabels(), visible=False)
     _plt.tight_layout()
 
-def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal',figsize=(6,5)):
+def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal', figsize=(6,5)):
     """
     Plot a bdsim field map file using the X,Y plane.
     
@@ -126,11 +126,11 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
     :type scale: float
     :param title: title for plot
     :type title: str
-    :param flipX: whether to plot x backwards to math the right hand coordinate system of Geant4.
+    :param flipX: whether to plot x backwards to match the right hand coordinate system of Geant4.
     :type flipX: bool
-    :param firstDimension: Name of first dimension, e.g. "X"
+    :param firstDimension: Label of first dimension, e.g. "X"
     :type firstDimension: str
-    :param secondDimension: Name of second dimension, e.g. "Z"
+    :param secondDimension: Label of second dimension, e.g. "Z"
     :type secondDimension: str
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
@@ -200,7 +200,7 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
     :type scale: float
     :param title: title for plot
     :type title: str
-    :param flipX: whether to plot x backwards to math the right hand coordinate system of Geant4.
+    :param flipX: whether to plot x backwards to match the right hand coordinate system of Geant4.
     :type flipX: bool
     :param firstDimension: Name of first dimension, e.g. "X"
     :type firstDimension: str
