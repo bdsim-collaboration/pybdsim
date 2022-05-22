@@ -162,13 +162,15 @@ def Plot2DXYMagnitude(filename, title=None, flipX=False, firstDimension="X", sec
     :param zlabel: Label for colour bar
     :type zlabel: str
     """
-
+    flip = False
     if type(filename) is str:
         doriginal = _pybdsim.Field.Load(filename)
         d = doriginal.data
+        flip = doriginal.flip
     elif isinstance(filename, _pybdsim.Field._Field.Field):
         doriginal = filename
         d = filename.data
+        flip = doriginal.flip
     else:
         raise ValueError("Invalid type of data")
     
@@ -179,7 +181,9 @@ def Plot2DXYMagnitude(filename, title=None, flipX=False, firstDimension="X", sec
 
     ext = [_np.min(d[:,:,0]), _np.max(d[:,:,0]), _np.min(d[:,:,1]), _np.max(d[:,:,1])]
 
-    _plt.imshow(bmag, extent=ext, origin='lower', aspect=aspect, interpolation='none')
+    # the data will write out flipped but we need to draw it the right way
+    theData = bmag.T if flip else bmag
+    _plt.imshow(theData, extent=ext, origin='lower', aspect=aspect, interpolation='none')
 
     if title:
         _plt.title(title)
