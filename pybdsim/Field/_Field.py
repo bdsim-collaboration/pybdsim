@@ -18,13 +18,28 @@ class Field(object):
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
         
-    def Write(self, fileName, writeLoopOrderReversed=False):
+    def Write(self, fileName, writeLoopOrderReversed=False, overrideLoopOrder=None):
+        """
+        :param writeLoopOrderReversed: Write this field map with the other loop order.
+        :type writeLoopOrderReversed: bool
+        :param overrideLoopOrder: string to write irrespective of internal data as the loop order.
+        :type overrideLoopOrder: str
+
+        For overrideLoopOrder it should be only 'xyzt' or 'tzyx'. This option is
+        provided in case a field is prepared in the other order somehow and you
+        want to control the writing of this header variable independently.
+        """
         f = open(fileName, 'w')
         
         for key,value in self.header.items():
             f.write(str(key)+'> '+ str(value) + '\n')
-        lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
-        f.write("loopOrder> "+lo+"\n")
+        if overrideLoopOrder:
+            if overrideLoopOrder not in ['xyzt', 'tzyx']:
+                raise ValueError("overrideLoopOrder must be one of 'xyzt', 'tzyx'")
+            f.write("loopOrder> "+overrideLoopOrder+"\n")
+        else:
+            lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
+            f.write("loopOrder> "+lo+"\n")
 
         if self.doublePrecision:
             colStrings = ['%23s' % s for s in self.columns]
