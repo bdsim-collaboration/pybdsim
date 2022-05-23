@@ -389,3 +389,36 @@ def MirrorDipoleQuadrant1(field2D):
     resultField = Field2D(result)
     return resultField
 
+def SortUnorderedFieldMap2D(field):
+    """
+    Rearrange the data in a 2D field map to be in a linearly
+    progressing loop of (x,y). In future this could be generalised
+    to more dimensions and also any two dimensions, not just x,y.
+
+    :param field: Incoming jumbled field map
+    :type  field: pybdsim.Field.Field2D
+
+    Returns a new Field2D object
+    """
+    d  = field.data
+    sh = _np.shape(d)
+    d2 = fd.data.reshape((sh[0]*sh[1],sh[2]))
+
+    # build a dict with key (x,y)
+    dmap = {}
+    for v in d2:
+        dmap[(v[0],v[1])] = v[2:]
+
+    # build up new array now in order
+    dnew = []
+    h = fd.header
+    for y in np.linspace(h['ymin'], h['ymax'], h['ny']):
+        r = []
+        for x in np.linspace(h['xmin'], h['xmax'], h['nx']):
+            fv = dmap[(x,y)]
+            r.append([x,y,*fv])
+        dnew.append(r)
+
+    dnew = _np.array(dnew)
+    fdnew = Field2D(dnew)
+    return fdnew
