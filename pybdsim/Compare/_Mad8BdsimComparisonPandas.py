@@ -140,15 +140,15 @@ def _make_plotter(plot_info_dict):
 		_CallUserFigureFunctions(functions)
 		_AddSurvey(plot, survey)
 		_CallUserFigureFunctions(postfunctions)
-		if xlim != (0, 0):
-			_plt.xlim(xlim)
 
 		plot.sca(plot.axes[0])
 		_plt.show(block=False)
 
-		#if survey is not None:
-		#	_pymad8.Plot.AddMachineLatticeToFigure(plot, survey)
+		if survey is not None:
+			_pymad8.PlotPandas.AddMachineLatticeToFigure(plot, survey)
 
+		if xlim != (0, 0):
+			_plt.xlim(xlim)
 		_plt.show(block=False)
 		return plot
 	return f_out
@@ -254,24 +254,24 @@ def Mad8VsBDSIMpandas(twiss, bdsim, survey=None, functions=None,
 	# energy and npart plotted with individual methods
 	figures = [PlotBeta(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
 			figsize=figsize,xlim=xlim,survey=survey),
-		#PlotAlpha(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey),
-		#PlotDisp(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey),
-		#PlotDispP(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey),
-		#PlotSigma(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey),
-		#PlotSigmaP(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey),
-		#PlotEnergy(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey),
-		#PlotMean(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey),
-		#PlotEmitt(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey),
-		#PlotNParticles(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
-		#	figsize=figsize,xlim=xlim,survey=survey)
+		PlotAlpha(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey),
+		PlotDisp(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey),
+		PlotDispP(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey),
+		PlotSigma(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey),
+		PlotSigmaP(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey),
+		PlotEnergy(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey),
+		PlotMean(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey),
+		PlotEmitt(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey),
+		PlotNParticles(mad8opt,bdsopt,functions=functions,postfunctions=postfunctions,
+			figsize=figsize,xlim=xlim,survey=survey)
 		]
 
 	if saveAll:
