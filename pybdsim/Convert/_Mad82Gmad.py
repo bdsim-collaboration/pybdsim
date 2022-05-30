@@ -5,8 +5,12 @@ import pymad8 as _m8
 import warnings as _warnings
 from .. import Builder as _Builder
 from .. import Beam as _Beam
+from .. import Data as _Data
 from ..Options import Options as _Options
 import pybdsim._General
+
+_ignoreableThinElements = {"MONI","IMON","BLMO","MARK","RCOL","ECOL","INST","WIRE"}
+
 
 # Constants
 # anything below this length is treated as a thin element
@@ -16,6 +20,7 @@ _THIN_ELEMENT_THRESHOLD = 1e-6
 def Mad82Gmad(inputfilename,outputfilename,
 		startindex            = 0,
 		endindex              = -1,
+		stepsize              = 1,
 		ignorezerolengthitems = True,
 		samplers              = 'all',
 		aperturedict          = {},
@@ -26,8 +31,8 @@ def Mad82Gmad(inputfilename,outputfilename,
 		verbose               = False,
 		beam                  = True,
 		flipmagnets           = None,
-		usemadxaperture       = False,
-		defaultAperture       = 'circular',
+		defaultAperSize       = 0.1,
+		defaultAperShape      = 'circular',
 		biases                = None,
 		allelementdict        = {},
 		optionsdict           = {},
@@ -37,27 +42,190 @@ def Mad82Gmad(inputfilename,outputfilename,
 		write                 = True,
 		namePrepend           = ""):
 
+	"""
+	**Mad82Gmad** convert a mad8 output file into a gmad tfs file for bdsim
+
+	Example:
+
+	>>> a,b = pybdsim.Convert.MadxTfs2Gmad('twissfile', 'mymachine')
+
+	returns Machine, [omittedItems]
+
+	Returns two pybdsim.Builder.Machine instances. The first desired full conversion.  The second is
+	the raw conversion that's not split by aperture. Thirdly, a list of the names of the omitted items
+	is returned.
+
+	+-------------------------------+-------------------------------------------------------------------+
+	| **inputfilename**             | Path to the Mad8 input file.                                      |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **outputfilename**            | Requested output file.                                            |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **startindex**                | Index of the lattice element to start the machine at.             |
+	|                               | This item is included in the lattice.                             |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **endindex**                  | Index of the lattice element to stop the machine at.              |
+	|                               | This item is not included in the lattice.                         |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **stepsize**                  | Slice step size. Default is 1, but -1 also useful for             |
+	|                               | reversed line.                                                    |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **ignorezerolengthitems**     | nothing can be zero length in bdsim as real objects of course     |
+	|                               | have some finite size.  Markers, etc are acceptable but for large |
+	|                               | lattices this can slow things down. True allows to ignore these   |
+	|                               | altogether, which doesn't affect the length of the machine.       |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **samplers**                  | can specify where to set samplers - options are None, 'all', or a |
+	|                               | list of names of elements (normal python list of strings). Note   |
+	|                               | default 'all' will generate separate outputfilename_samplers.gmad |
+	|                               | with all the samplers which will be included in the main .gmad    |
+	|                               | file - you can comment out the include to therefore exclude all   |
+	|                               | samplers and retain the samplers file.                            |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **aperturedict**              | Aperture information. Can either be a dictionary of dictionaries  |
+	|                               | with the the first key the exact name of the element and the      |
+	|                               | daughter dictionary containing the relevant bdsim parameters as   |
+	|                               | keys (must be valid bdsim syntax).                                |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **aperlocalpositions**        | Dictionary of element indices to local aperture definitions       |
+	|                               | of the form                                                       |
+	|                               | {1: [(0.0, {"APERTYPE": "circular",   "APER_1": 0.4}),            |
+	|                               |      (0.5, {"APERTYPE": "elliptical", "APER_1": 0.3,              |
+	|                               |                                       "APER_2": 0.4}),            |
+	|                               |      ...],                                                        |
+	|                               |  2: [...],                                                        |
+	|                               | }                                                                 |
+	|                               | This defines apertures in the element at index 1 starting with a  |
+	|                               | "circular" aperture from 0.0m (i.e. the start) before changing to |
+	|                               | "elliptical" after 0.5m in the element, with possible further     |
+	|                               | changes not displayed above.                                      |
+	|                               | As the aperture definition in GMAD is tied inseparable from its   |
+	|                               | aperture definition, and vice versa, this conversion function     |
+	|                               | will automatically split the element at the local aperture points |
+	|                               | whilst retaining optical correctness.                             |
+	|                               | This kwarg is mutually exclusive with "aperturedict".             |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **collimatordict**            | A dictionary of dictionaries with collimator information.         |
+	|                               | Keys should be exact string match of element name in Mad8 file.   |
+	|                               | Value should be dictionary with the following keys:               |
+	|                               | "bdsim_material"   - the material                                 |
+	|                               | "angle"            - rotation angle of collimator in radians      |
+	|                               | "xsize"            - x full width in metres                       |
+	|                               | "ysize"            - y full width in metres                       |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **userdict**                  | Dictionary that supply any additional information for an element. |
+	|                               | Keys should match the exact element name in the Mad8 file.        |
+	|                               | Value should be dictionary itself with key, value pairs of        |
+	|                               | parameters and values to be added to that particular element.     |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **partnamedict**              | Dictionary of dictionaries. The key is a substring of             |
+	|                               | that should be matched. ie add the parameter 'vhRatio' : 1 to all |
+	|                               | elements with 'MBVA' in their name.                               |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **verbose**                   | Print out lots of information when building the model.            |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **beam**                      | True \| False - generate an input gauss Twiss beam based on the   |
+	|                               | values of the twiss parameters at the beginning of the lattice    |
+	|                               | (startname) NOTE - we thoroughly recommend checking these         |
+	|                               | parameters and this functionality is only for partial convenience |
+	|                               | to have a model that works straight away.                         |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **flipmagnets**               | True \| False - flip the sign of all k values for magnets.        |
+	|                               | Mad8 currently tracks particles agnostic of the particle charge.  |
+	|                               | BDSIM however, follows the definition strictly :                  |
+	|                               | Positive k implies horizontal focussing for positive particles    |
+	|                               | therefore, vertical focussing for negative particles.             |
+	|                               | Use this flag to flip the sign of all magnets.                    |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **defaultAperSize**           | Aperture size to assu;e if none is specified. Default is 0.1m     |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **defaultAperShape**          | Aperture shape to assume if none is specified.                    |
+	|                               | Default is 'circular'.                                            |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **biases**                    | Optional list of bias objects to be defined in own _bias.gmad     |
+	|                               | file.  These can then be attached either with allelementdict for  |
+	|                               | all components or userdict for individual ones.                   |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **allelementdict**            | Dictionary of parameter/value pairs to be written to all elements |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **optionsdict**               | Optional dictionary of general options to be written to the       |
+	|                               | bdsim model options.                                              |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **beamparamsdict**            | Optional dictionary of parameters to be passed to the beam.       |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **linear**                    | Only linear optical components                                    |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **overwrite**                 | Do not append an integer to the base file name if it already      |
+	|                               | exists.  Instead overwrite the files.                             |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **write**                     | Whether to write the converted machine to file or not.            |
+	+-------------------------------+-------------------------------------------------------------------+
+	| **namePrepend**               | Optional string prepended to the name of every component.         |
+	+-------------------------------+-------------------------------------------------------------------+
+
+	"""
+
+	# test for inputfilename type
 	if type(inputfilename) == str:
 		twiss = _m8.OutputPandas(inputfilename)
 		if twiss.filetype != 'twiss':
 			raise ValueError('Expect a twiss file to convert')
 		data = twiss.data
 	elif type(inputfilename) == dict:
-		twiss = inputfilename['twiss']
-		rmat = inputfilename['rmat']
+		twiss = _m8.OutputPandas(inputfilename['twiss'])
+		rmat = _m8.OutputPandas(inputfilename['rmat'],'rmat')
 		if twiss.filetype != 'twiss' or rmat.filetype != 'rmat':
 			raise ValueError('Expect a twiss file and a rmat file to convert')
 		data = twiss.data.merge(rmat.data)
 	else :
 		raise TypeError('Expect either a twiss file string or a dictionary with twiss and rmat file strings')
 
+	# machine instance that will be added to
 	machine = _Builder.Machine()
-	for item in data.iloc[startindex:endindex].iloc :
+
+	# check if dictionaries are dictionaries
+	varnames = ['collimatordict','userdict','partnamedict','allelementdict','optionsdict','beamparamsdict']
+	vars     = [collimatordict,   userdict,  partnamedict,  allelementdict,  optionsdict,  beamparamsdict]
+	for var,varname in zip(vars,varnames):
+		typevar = type(var)
+		if typevar not in (dict, _Data.BDSAsciiData):
+			raise TypeError("Argument '" + varname + "' is not a dictionary")
+
+	# can't use 'aperturedict' and 'aperlocalpositions' at the same time
+	if aperturedict and aperlocalpositions:
+		raise TypeError("'aperturedict' and 'aperlocalpositions' are mutually exclusive.")
+
+	# try to check automatically if we need to flip magnets 
+	if "particletype" in beamparamsdict and flipmagnets is None:
+		particletype = beamparamsdict['particletype']
+		if particletype == "e-" or particletype == "electron":
+			flipmagnets = True
+			print('Detected electron in TFS file - changing flipmagnets to True')
+
+	# If we have collimators but no collimator dict then inform that they will be converted to drifts
+	if (("RCOL" in data['TYPE'] or "ECOL" in data['TYPE']) and not collimatordict):
+		_warnings.warn("No collimatordict provided.  ALL collimators will be converted to DRIFTs.")
+
+	if biases is not None:
+		machine.AddBias(biases)
+
+	# keep list of omitted zero length items
+	itemsomitted = []
+
+	### MAIN LOOP ###
+	for item in data.iloc[startindex:endindex][::stepsize].iloc :
+		index = item.name
 		name = item['NAME']
 		t = item['TYPE']
 		l = item['L']
 		
+		# skip ignorable thin elements of zero length
 		zerolength = True if l < 1e-9 else False
+		if zerolength and t in _ignoreableThinElements :
+			if verbose:
+				print('skipping zero-length item: {}'.format(name))
+			itemsomitted.append(name)
+			continue
+
 		gmadElement = _Mad82GmadElementFactory(item, allelementdict, verbose,
 							userdict, collimatordict, partnamedict, flipmagnets,
 							linear, zerolength, ignorezerolengthitems,namePrepend="")
@@ -67,12 +235,13 @@ def Mad82Gmad(inputfilename,outputfilename,
 			continue
 		elif l == 0 or name in collimatordict: # Don't add apertures to thin elements or collimators
 			machine.Append(gmadElement)
-		elif aperlocalpositions: # split aperture if provided
-			elements_split_with_aper = _GetElementSplitByAperture(gmadElement,aperlocalpositions[i])
+		elif aperlocalpositions and index in aperlocalpositions: # split aperture if provided
+			elements_split_with_aper = _GetElementSplitByAperture(gmadElement,aperlocalpositions[index])
 			for ele in elements_split_with_aper:
 				machine.Append(ele)
 		else: # Get element with single aperture
-			element_with_aper = _GetSingleElementWithAper(item,gmadElement,aperturedict,defaultAperture)
+			element_with_aper = _GetSingleElementWithAper(twiss, item, gmadElement, aperturedict,
+									defaultAperSize, defaultAperShape)
 			machine.Append(element_with_aper)
 
 	if (samplers is not None): # Add Samplers
@@ -87,11 +256,25 @@ def Mad82Gmad(inputfilename,outputfilename,
 		options.update(optionsdict)  # expand with user supplied bdsim options
 	machine.AddOptions(options)
 
-	machine.Write(outputfilename)
+	if verbose:
+		print('Total length: ', machine.GetIntegratedLength())
+		print('Total angle:  ', machine.GetIntegratedAngle())
+		print('items omitted: ')
+		print(itemsomitted)
+		print('number of omitted items: ', len(itemsomitted))
+
+	if write:
+		machine.Write(outputfilename, overwrite=overwrite)
+	# We return machine twice to not break old interface of returning two machines.
+	return machine, itemsomitted
 
 def _Mad82GmadElementFactory(item, allelementdict, verbose,
 				userdict, collimatordict, partnamedict, flipmagnets,
 				linear, zerolength, ignorezerolengthitems, namePrepend):
+	"""
+	Function which makes the correct GMAD element given a Mad8 element.
+	"""
+	# if it's already a prepared element, just return it
 	if isinstance(item, _Builder.Element):
 		return item
 
@@ -168,24 +351,15 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 			return _Builder.Marker(rname)
 	#######################################################################
 	elif Type == 'QUAD':
-		if zerolength or l < _THIN_ELEMENT_THRESHOLD:
-			k1 = item['K1'] * factor
-			return _Builder.ThinMultipole(rname, knl=(k1,), **kws)
-		k1 = item['K1'] / l * factor
+		k1 = item['K1'] * factor
 		return _Builder.Quadrupole(rname, l, k1, **kws)
 	#######################################################################
 	elif Type == 'SEXT':
-		if zerolength or l < _THIN_ELEMENT_THRESHOLD:
-			k2 = item['K2'] * factor if not linear else 0
-			return _Builder.ThinMultipole(rname, knl=(0, k2), **kws)
-		k2 = item['K2'] / l * factor if not linear else 0
+		k2 = item['K2'] * factor if not linear else 0
 		return _Builder.Sextupole(rname, l, k2, **kws)
 	#######################################################################
 	elif Type == 'OCTU':
-		if zerolength or l < _THIN_ELEMENT_THRESHOLD:
-			k3 = item['K3'] * factor if not linear else 0
-			return _Builder.ThinMultipole(rname, knl=(0, 0, k3), **kws)
-		k3 = item['K3'] / l * factor if not linear else 0
+		k3 = item['K3'] * factor if not linear else 0
 		return _Builder.Octupole(rname, l, k3=k3, **kws)
 	#######################################################################
 	elif Type == 'DECU':
@@ -207,7 +381,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		if not zerolength:
 			if l > _THIN_ELEMENT_THRESHOLD:
 				kws['l'] = l
-		return _Builder.HKicker(name,hkick=item['HKIC']*factor,**kws)
+		return _Builder.HKicker(rname,hkick=item['HKIC']*factor,**kws)
 	#######################################################################
 	elif Type == 'VKIC':
 		if verbose:
@@ -215,7 +389,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		if not zerolength:
 			if l > _THIN_ELEMENT_THRESHOLD:
 				kws['l'] = l
-		return _Builder.VKicker(name,vkick=item['VKIC']*factor,**kws)
+		return _Builder.VKicker(rname,vkick=item['VKIC']*factor,**kws)
 	#######################################################################
 	elif Type == 'KICK':
 		if verbose:
@@ -244,7 +418,6 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 			kws['h2'] = h2
 		if k1 != 0:
 			# NOTE we're not using factor for magnet flipping here
-			k1 = k1 / l
 			kws['k1'] = k1
 		return _Builder.SBend(rname, l, angle=angle, **kws)
 	#######################################################################
@@ -275,7 +448,6 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 			kws['h2'] = h2
 		if k1 != 0:
 			# NOTE we don't use factor here for magnet flipping
-			k1 = k1 / l
 			kws['k1'] = k1
 		return _Builder.RBend(rname, chordLength, angle=angle, **kws)
 	#######################################################################
@@ -368,28 +540,58 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		return _Builder.Drift(rname, l)
 	#######################################################################
 
-def _GetSingleElementWithAper(item, gmadElement,aperturedict, defaultAperture):
-	"""Returns the raw aperture model (i.e. unsplit), and a list of split apertures."""
+def _GetElementSplitByAperture(gmadElement, localApertures):
+	"""Return an element with splited aperture"""
+	# tolerate any bad apertures - like only a few - and just don't append them
+	apertures = []
+	for point, aper in localApertures:
+		try:
+			arp = _Builder.PrepareApertureModel(aper, warningName=gmadElement.name)
+			apertures.append(arp)
+		except ValueError:
+			pass
+
+	if localApertures[0][0] != 0.0 :
+		raise ValueError("No aperture defined at start of element.")
+	if len(localApertures) > 1:
+		split_points = [point for point, _  in localApertures[1:]]
+		split_elements = gmadElement.split(split_points)
+		for aper, split_element in zip(apertures, split_elements):
+			split_element.update(aper)
+		return split_elements
+	elif len(localApertures) == 1:
+		gmadElement = _deepcopy(gmadElement)
+		gmadElement.update(apertures[0])
+		return [gmadElement]
+	raise ValueError("Unable to split element by apertures.")
+
+def _GetSingleElementWithAper(twiss, item, gmadElement, aperturedict, defaultAperSize, defaultAperShape):
+	"""Return an element with unsplit aperture"""
 	gmadElement = _deepcopy(gmadElement)
 	name = item["NAME"]
-	# note SORIGINAL not S.  This is so it works still after slicing.
-	sMid = item["S"] - item["L"] / 2.0
+	index = item.name
 	aper = {}
-	try:
-		aper = _Builder.PrepareApertureModel(aperturedict.GetApertureAtS(sMid), defaultAperture)
-	except AttributeError:
-		pass
-	try:
-		this_aperdict = aperturedict[name]
-	except KeyError:
-		pass
+	if name in aperturedict:
+		aper = _Builder.PrepareApertureModel(aperturedict[name], defaultAperShape)
 	else:
-		aper = _Builder.PrepareApertureModel(this_aperdict, defaultAperture)
+		this_aperdict = {'APER_1' : twiss.getAperture(index,defaultAperSize)}
+		aper = _Builder.PrepareApertureModel(this_aperdict, defaultAperShape)
 
 	gmadElement.update(aper)
 	return gmadElement
 
 def Mad82GmadBeam(data, startindex=0, verbose=False, extraParamsDict={}):
+	"""
+	Takes a pymad8 dataframe and extracts beam information from extraParamsDict
+	to create a BDSIM beam definition in a pybdsim.Beam object.
+	Note that if kwarg startname is used, the optics are retrieved at the
+	start of the element, i.e. you do not need to get the optics of
+	the previous element, this function does that automatically.
+
+	Works for e+, e- and proton.
+
+	"""
+
 	# MADX defines parameters at the end of elements so need to go 1 element back if we can
 	if startindex > 0:
 		startindex -= 1
