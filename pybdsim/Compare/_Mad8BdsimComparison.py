@@ -424,6 +424,8 @@ def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=N
 def _AddSurvey(figure, survey):
     if survey is None:
         return 
+    elif survey[-5:] == ".root":
+        _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
     else:
         _pymad8.Plot.AddMachineLatticeToFigure(figure,survey)
 
