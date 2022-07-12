@@ -472,13 +472,13 @@ class GmadFileComponents(object) :
         # regular expressions used for matching
 
         # For finding elements
-        self.elementNameRe = "([a-zA-Z0-9._-]+)\s*:\s*([,a-zA-Z0-9=.\*\s-]+);"
+        self.elementNameRe = "([a-zA-Z0-9._-]+)\s*:\s*([,a-zA-Z0-9=.\*\s/-]+);"
         # For finding a known element
-        self.elementRe     = "\s*:\s*([,a-zA-Z0-9=.\*\s-]+);"
+        self.elementRe     = "\s*:\s*([,a-zA-Z0-9=.\*\s/-]+);"
         # For extracting the parameters for an element
-        self.elementValRe  = "([a-zA-Z0-9_-]+)=([a-zA-Z-0-9.eE\*]+)"
+        self.elementValRe  = "([a-zA-Z0-9_-]+)=([a-zA-Z-0-9.eE\*/]+)"
         # For extracting element type
-        self.elementNameRe1    = "([a-zA-Z0-9._-]+)\s*:\s*([,a-zA-Z0-9._-]+),([,a-zA-Z0-9=.\*\s-]+);"
+        self.elementNameRe1    = "([a-zA-Z0-9._-]+)\s*:\s*([,a-zA-Z0-9._-]+),([,a-zA-Z0-9=.\*\s/-]+);"
 
         # determine element names in file
         self.elementNames();
