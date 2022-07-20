@@ -107,8 +107,8 @@ def Mad82Gmad(inputfilename,outputfilename,
 	| **collimatordict**            | A dictionary of dictionaries with collimator information.         |
 	|                               | Keys should be exact string match of element name in Mad8 file.   |
 	|                               | Value should be dictionary with the following keys:               |
-	|                               | "bdsim_material"   - the material                                 |
-	|                               | "angle"            - rotation angle of collimator in radians      |
+	|                               | "material"         - the material                                 |
+	|                               | "tilt"             - rotation angle of collimator in radians      |
 	|                               | "xsize"            - x full width in metres                       |
 	|                               | "ysize"            - y full width in metres                       |
 	+-------------------------------+-------------------------------------------------------------------+
@@ -316,7 +316,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 	#######################################################################
 	if Type == '    ':
 		if not ignorezerolengthitems:
-                        return _Builder.Marker(rname)
+			return _Builder.Marker(rname)
 	#######################################################################
 	elif Type == 'DRIF':
 		return _Builder.Drift(rname,l,**kws)
@@ -485,8 +485,8 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 				tilt = colld.get('tilt', 0)
 				if tilt != 0:
 					kws['tilt'] = tilt
-				xsize = colld['XSIZE']
-				ysize = colld['YSIZE']
+				xsize = colld['xsize']
+				ysize = colld['ysize']
 				if verbose:
 					print('collimator x,y size ', xsize, ysize)
 				if 'outerDiameter' in colld:
@@ -503,7 +503,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		elif collimatordict != {}:
 			msg = ("{} {} not found in collimatordict."
 				" Will instead convert to a DRIFT!  This is not"
-				" necessarily wrong!".format(t, name))
+				" necessarily wrong!".format(Type, name))
 			_warnings.warn(msg)
 			return _Builder.Drift(rname, l, **kws)
 		# if user didn't provide a collimatordict at all.
@@ -511,7 +511,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 			return _Builder.Drift(rname, l, **kws)
 	#######################################################################
 	elif Type == 'MATR':
-		if 'rmat' not in inputfilename :
+		if not isinstance('R11',item):
 			raise ValueError('No Rmat file to extract element')
 		index = item.name
 		item = rmat.data.iloc[index]
@@ -532,7 +532,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 						r41=RMAT[3,0], r42=RMAT[3,1], r43=RMAT[3,2], r44=RMAT[3,3], **kws)
 	#######################################################################
 	else :
-		print('unknown element type:', t, 'for element named: ', name)
+		print('unknown element type:', Type, 'for element named: ', name)
 		if zerolength and not ignorezerolengthitems:
 			print('putting marker in instead as its zero length')
 			return _Builder.Marker(rname)
