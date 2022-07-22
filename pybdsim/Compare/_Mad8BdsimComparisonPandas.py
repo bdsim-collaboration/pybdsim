@@ -144,9 +144,6 @@ def _make_plotter(plot_info_dict):
 		plot.sca(plot.axes[0])
 		_plt.show(block=False)
 
-		if survey is not None:
-			_pymad8.PlotPandas.AddMachineLatticeToFigure(plot, survey)
-
 		if xlim != (0, 0):
 			_plt.xlim(xlim)
 		_plt.show(block=False)
