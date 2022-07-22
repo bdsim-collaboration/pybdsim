@@ -16,6 +16,7 @@ import glob as _glob
 import itertools as _itertools
 import math as _math
 import numpy as _np
+import re as _re
 import os as _os
 import pickle as _pickle
 
@@ -345,7 +346,10 @@ class Spectra(object):
         self.pdgidsSorted = [pdgid for pdgid,_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
 
 def ParseSpectraName(hname):
-    hn = hname.replace('Top_','')
+    # expects a string of the form
+    # Top10_Spectra_SamplerName_PDGID
+    hn = _re.sub("Top\d+_", "", hname)
+    #hn = hname.replace('Top_','')
     hn = hn.replace('Spectra_','')
     name,nth,pdgid = hn.split('_')
     pdgid = int(pdgid)
