@@ -34,6 +34,7 @@ def Mad82Gmad(inputfilename,outputfilename,
 		defaultAperSize       = 0.1,
 		defaultAperShape      = 'circular',
 		biases                = None,
+		materials			  = None,
 		allelementdict        = {},
 		optionsdict           = {},
 		beamparamsdict        = {},
@@ -145,6 +146,10 @@ def Mad82Gmad(inputfilename,outputfilename,
 	|                               | file.  These can then be attached either with allelementdict for  |
 	|                               | all components or userdict for individual ones.                   |
 	+-------------------------------+-------------------------------------------------------------------+
+	| **materials**                 | Optional list of material objects to be defined in own            |
+	|                               | _materials.gmad file.  These can then be attached either with     |
+	|                               | allelementdict for all components or userdict for individual ones.|
+	+---------------------------------------------------------------------------------------------------+
 	| **allelementdict**            | Dictionary of parameter/value pairs to be written to all elements |
 	+-------------------------------+-------------------------------------------------------------------+
 	| **optionsdict**               | Optional dictionary of general options to be written to the       |
@@ -207,6 +212,9 @@ def Mad82Gmad(inputfilename,outputfilename,
 
 	if biases is not None:
 		machine.AddBias(biases)
+
+	if materials is not None:
+		machine.AddMaterial(materials)
 
 	# keep list of omitted zero length items
 	itemsomitted = []
