@@ -863,7 +863,7 @@ class Material(GmadObject):
     parameteter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
-        GmadObject.__init__(self, "material",name,**kwargs)
+        GmadObject.__init__(self, "matdef",name,**kwargs)
 
 class NewColour(GmadObject):
     """
@@ -935,7 +935,7 @@ class XSecBias(GmadObject):
     parameteter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
-        GmadObject.__init__(self, "xsecbias",name,**kwargs)
+        GmadObject.__init__(self, "xsecBias",name,**kwargs)
         
 class Machine(object):
     """
@@ -973,6 +973,7 @@ class Machine(object):
         self.length    = 0.0
         self.angint    = 0.0
         self.bias      = []
+        self.material  = []
         self.beam      = _Beam.Beam()
         self.options   = None
         self.energy0   = energy0
@@ -1311,19 +1312,36 @@ class Machine(object):
 
     def AddBias(self, biases):
         """
-        Add a XSecBias.XSecBias instance or iterable of instances
+        Add a Builder.XSecBias instance or iterable of instances
         to this machine.
         """
         # If a single bias object
-        if isinstance(biases, pybdsim.XSecBias.XSecBias):
+        if isinstance(biases, pybdsim.Builder.XSecBias):
             self.bias.append(biases)
         else: # An iterable of biases.
             try:
                 for bias in biases:
                     self.AddBias(bias)
             except TypeError:
-                msg = ("Unknown biases!  Biases must be a XSecBias"
-                       "instance or an iterable of XSecBias instances.")
+                msg = ("Unknown biases!  Biases must be a Builder.XSecBias"
+                       "instance or an iterable of Builder.XSecBias instances.")
+                raise TypeError(msg)
+
+    def AddMaterial(self, materials):
+        """
+        Add a Builder.Material instance or iterable of instances
+        to this machine.
+        """
+        # If a single material object
+        if isinstance(materials, pybdsim.Builder.Material):
+            self.material.append(materials)
+        else: # An iterable of materials.
+            try:
+                for material in materials:
+                    self.AddMaterial(material)
+            except TypeError:
+                msg = ("Unknown material! Materials must be a Builder.Material"
+                       "instance or an iterable of Builder.Material instances.")
                 raise TypeError(msg)
 
     def AddBeam(self, beam=None):
