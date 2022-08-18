@@ -101,7 +101,7 @@ class Survey(object):
 
 
 def _LoadLib():
-    libname = 'gmadShared'
+    libname = 'gmad'
     libpath = '/usr/local/lib/'
     parserlib = None
 
@@ -237,8 +237,8 @@ class Lattice(object):
         Load the BDSIM input file and parse it using the
         BDSIM parser (GMAD).
         """
-        if ".gmad" not in filename:
-            raise IOError("Not .gmad file - incorrect file type")
+        #if ".gmad" not in filename:
+        #    raise IOError("Not .gmad file - incorrect file type")
         self._parserlib.GmadParser_c(filename)
         self.nelements        = self._parserlib.GetNElements()
         self.sequence         = self.GetAllNames()
