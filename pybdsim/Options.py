@@ -92,6 +92,7 @@ class Options(dict):
     def SetPhysicsList(self,physicslist=''):
         physicslistlist = [
             'all_particles',
+            'annihi_to_mumu',
             'charge_exchange',
             'cherenkov',
             'cuts_and_limits',
@@ -152,17 +153,18 @@ class Options(dict):
             'dna_5',
             'dna_6',
             'dna_7',
+            'radioactivation',
             'shielding_lend'
             ]
         if len(physicslist.split()) == 1 :
             if physicslist not in physicslistlist and not physicslist.startswith("g4"):
-                raise ValueError('Unknown physicslist: '+physicslist)
+                print('Warning: unknown physicslist: '+physicslist)
             self['physicsList'] = '"' + str(physicslist) + '"'
         else :
             splitphysicslist = physicslist.split()
             for token in splitphysicslist :
                 if token not in physicslistlist :
-                    raise ValueError('Unknown physicslist: ' + physicslist)
+                    print('Warning: unknown physicslist: '+physicslist)
 
             self['physicsList'] = '"' + str(physicslist) + '"'
 
