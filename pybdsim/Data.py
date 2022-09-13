@@ -197,6 +197,25 @@ def _LoadRoot(filepath):
     else:
         raise IOError("This file type "+fileType+" isn't supported")
 
+def GetNEventsInBDSIMFile(filename):
+    """
+    Utility function to extract the number of events in a file quickly without
+    fully loading it. Uses only ROOT to inspect the tree. Will raise an IOError 
+    exception if no Event tree is found. No check if it's a BDSIM format file or not.
+    """
+    f = _ROOT.TFile(filename)
+    if f.IsZombie():
+        f.Close()
+        raise IOError("Unable to open file")
+    eventTree = f.Get("Event")
+    if not eventTree:
+        f.Close()
+        raise IOError("No Event tree in file")
+    else:
+        result = int(eventTree.GetEntries())
+        f.Close()
+        return result
+
 def _ParseHeaderLine(line):
     names = []
     units = []
