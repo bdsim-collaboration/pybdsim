@@ -483,7 +483,8 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     ax = f.add_subplot(111)
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
-    ax.errorbar(xsf*h.xcentres, sf*h.contents, yerr=sf*h.errors,xerr=xsf*h.xwidths*0.5, **errorbarKwargs)
+    ht = _Data.PadHistogram1D(h)
+    ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,xerr=xsf*ht.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
