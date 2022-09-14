@@ -115,6 +115,13 @@ def PrepareReducedName(elementname):
     rname = _re.sub('[^a-zA-Z0-9_]+','',elementname)
     return rname
 
+def PrepareReducedName2(elementname):
+    """
+    Only allow alphanumeric characters and '_'
+    """
+    rname = _re.sub('[^a-zA-Z0-9_\.]+','',elementname)
+    return rname
+
 def GetLatestFileFromDir(dirpath='', extension='*'):
     return max(glob.iglob(dirpath+extension), key=os.path.getctime)
 
