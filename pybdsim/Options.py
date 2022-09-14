@@ -1,3 +1,8 @@
+"""
+See Options class inside this module.
+
+"""
+
 def ProtonColliderOptions():
     a = Options()
     a.SetPhysicsList('FTFP_BERT')
@@ -32,8 +37,26 @@ def ElectronColliderOptions():
     return a
 
 class Options(dict):
+    """
+    Inherits a dict. Converting to a string or using
+    ReturnOptionsString() will give a suitable GMAD
+    string to write out to a file.
+
+    o = pybdsim.Options.Options()
+    o["trajectoryConnect"] = 1
+    o["aper1"] = (5, 'm')
+    str(o)
+    'option,\ttrajectoryConnect=1,\n\taper1=5*m;'
+
+    There is no checking on the option if using []. A tuple
+    of (value, unitsString) can be used too resulting in
+    value*unitsString.
+    """
     def __init__(self,*args,**kwargs):
         dict.__init__(self,*args,**kwargs)
+
+    def __repr__(self):
+        return self.ReturnOptionsString()
 
     def SetGeneralOption(self, option, value):
         self[option] = value
@@ -46,7 +69,11 @@ class Options(dict):
         
         numOptions=0
         for k,v in self.items():
-            s += ', \n\t'+str(k)+'='+str(v)
+            if type(v) is tuple:
+                vs = str(v[0]) + "*" + v[1]
+            else:
+                vs = str(v)
+            s += ', \n\t'+str(k)+'='+vs
             numOptions += 1
         s += ';'
         s2 = s.split('\n')
@@ -65,6 +92,7 @@ class Options(dict):
     def SetPhysicsList(self,physicslist=''):
         physicslistlist = [
             'all_particles',
+            'annihi_to_mumu',
             'charge_exchange',
             'cherenkov',
             'cuts_and_limits',
@@ -125,17 +153,18 @@ class Options(dict):
             'dna_5',
             'dna_6',
             'dna_7',
+            'radioactivation',
             'shielding_lend'
             ]
         if len(physicslist.split()) == 1 :
             if physicslist not in physicslistlist and not physicslist.startswith("g4"):
-                raise ValueError('Unknown physicslist: '+physicslist)
+                print('Warning: unknown physicslist: '+physicslist)
             self['physicsList'] = '"' + str(physicslist) + '"'
         else :
             splitphysicslist = physicslist.split()
             for token in splitphysicslist :
                 if token not in physicslistlist :
-                    raise ValueError('Unknown physicslist: ' + physicslist)
+                    print('Warning: unknown physicslist: '+physicslist)
 
             self['physicsList'] = '"' + str(physicslist) + '"'
 

@@ -16,6 +16,7 @@ import glob as _glob
 import itertools as _itertools
 import math as _math
 import numpy as _np
+import re as _re
 import os as _os
 import pickle as _pickle
 
@@ -196,6 +197,25 @@ def _LoadRoot(filepath):
     else:
         raise IOError("This file type "+fileType+" isn't supported")
 
+def GetNEventsInBDSIMFile(filename):
+    """
+    Utility function to extract the number of events in a file quickly without
+    fully loading it. Uses only ROOT to inspect the tree. Will raise an IOError 
+    exception if no Event tree is found. No check if it's a BDSIM format file or not.
+    """
+    f = _ROOT.TFile(filename)
+    if f.IsZombie():
+        f.Close()
+        raise IOError("Unable to open file")
+    eventTree = f.Get("Event")
+    if not eventTree:
+        f.Close()
+        raise IOError("No Event tree in file")
+    else:
+        result = int(eventTree.GetEntries())
+        f.Close()
+        return result
+
 def _ParseHeaderLine(line):
     names = []
     units = []
@@ -345,7 +365,10 @@ class Spectra(object):
         self.pdgidsSorted = [pdgid for pdgid,_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
 
 def ParseSpectraName(hname):
-    hn = hname.replace('Top_','')
+    # expects a string of the form
+    # Top10_Spectra_SamplerName_PDGID
+    hn = _re.sub("Top\d+_", "", hname)
+    #hn = hname.replace('Top_','')
     hn = hn.replace('Spectra_','')
     name,nth,pdgid = hn.split('_')
     pdgid = int(pdgid)
@@ -1873,3 +1896,50 @@ def LoadPickledObject(filename):
         with open(filename, "rb") as f:
             return _pickle.load(f)
         
+
+def LoadSDDSColumnsToDict(filename):
+    """
+    Load columns from an SDDS file, e.g. twiss output.
+    
+    filename - str - path to file
+
+    returns dict{columnname:1d numpy array}
+    """
+    import sdds
+    s = sdds.SDDS(0)
+    s.load(filename)
+
+    d = {cn:_np.array(da) for cn,da in zip(s.columnName, s.columnData)}
+    d2 = {}
+    for k,v in d.items():
+        s = _np.shape(v)
+        if len(s) == 2:
+            if s[0] == 1:
+                d2[k] = v[0]
+            else:
+                d2[k] = v
+        else:
+            d2[k] = v
+    return d2
+
+def SDDSBuildParameterDicts(sddsColumnDict):
+    """
+    Use first the LoadSDDSColumnsToDict on a parameters file. Then
+    call this function to sort it into ElementName : {ParameterName:ParameterValue}.
+    An extra key will be added that is KEYWORD for the ElementType in the
+    inner dictionary.
+    """
+
+    elementName = sddsColumnDict['ElementName']
+    elementType = sddsColumnDict['ElementType']
+    parameterName = sddsColumnDict['ElementParameter']
+    parameterValue = sddsColumnDict['ParameterValue']
+
+    result = _defaultdict(lambda: _defaultdict(float))
+
+    # overwrite everything repeatedly for simplicity
+    for en,et,pn,pv in zip(elementName,elementType,parameterName,parameterValue):
+        result[en][pn] = pv
+        result[en]['KEYWORD'] = et
+
+    return result

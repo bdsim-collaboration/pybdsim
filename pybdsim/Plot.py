@@ -213,6 +213,8 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
             DrawRect(starts[i],lengths[i], u'#ff8800') #orange
         elif kw == 'shield':
             DrawRect(starts[i],lengths[i], u'#808080') #dark grey
+        elif kw == 'rf' or kw == 'rfcavity' or kw == 'cavity_pillbox':
+            DrawRect(starts[i],lengths[i], u'#768799') #srf grey
         else:
             #unknown so make light in alpha
             if lengths[i] > 1e-1:
@@ -464,7 +466,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
         print("Written ", output_filename)
 
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), log=False, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
 
@@ -473,6 +475,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     :param title:  plot title
     :param scalingFactor: multiplier for values
     :param xScalingFactor: multiplier for x axis coordinates
+    :param log: whether to automatically plot on a vertical log scale
 
     return figure instance
     """
@@ -483,7 +486,8 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     ax = f.add_subplot(111)
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
-    ax.errorbar(xsf*h.xcentres, sf*h.contents, yerr=sf*h.errors,xerr=xsf*h.xwidths*0.5, **errorbarKwargs)
+    ht = _Data.PadHistogram1D(h)
+    ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,xerr=xsf*ht.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
     else:
@@ -498,6 +502,24 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         pass
     else:
         ax.set_title(title)
+
+    yvl = h.contents-h.errors
+    yvh = h.contents+h.errors
+    ymin = _np.min(yvl)
+    ymax = _np.max(yvl)
+    try:
+        ymin = sf*_np.min(yvl[yvl>0])
+        ymax = sf*_np.max(yvl[yvl>0])
+    except:
+        pass
+    if log:
+        _plt.ylim(abs(ymin)*0.9,abs(ymax)*1.3)
+        if _matplotlib.__version__ >= '3.3':
+            _plt.yscale('log', nonpositive='clip')
+        else:
+            _plt.yscale('log', nonposy='clip')
+    else:
+        _plt.ylim(ymin*0.8, ymax*1.05)
 
     _plt.tight_layout()
     return f
@@ -560,7 +582,8 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         xmin = min(xmin, _np.min(xsf*h.xlowedge))
         xmax = max(xmax, _np.max(xsf*h.xhighedge))
         ht = _Data.PadHistogram1D(h)
-        ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors, xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
+        ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
+                    xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
         # for heuristic determination of ylim we use original unpadded histogram data
         ymin = min(ymin, sf*_np.min(h.contents-h.errors))
