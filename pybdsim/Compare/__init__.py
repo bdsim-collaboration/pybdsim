@@ -28,3 +28,5 @@ try:
     from ._SadComparison import SadComparison
 except ImportError:
     pass
+
+from ._ElegantBdsimComparison import ElegantVsBDSIM
