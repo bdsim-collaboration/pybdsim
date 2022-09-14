@@ -47,3 +47,4 @@ from ._BdsimPrimaries2Inrays import BdsimSampler2BdsimUserFile
 
 from ._BdsimElement2TransferMatrix import BdsimElement2TransferMatrix
 
+from ._ElegantParamToStrength import ElegantParam2GmadStrength
