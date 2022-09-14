@@ -1896,3 +1896,50 @@ def LoadPickledObject(filename):
         with open(filename, "rb") as f:
             return _pickle.load(f)
         
+
+def LoadSDDSColumnsToDict(filename):
+    """
+    Load columns from an SDDS file, e.g. twiss output.
+    
+    filename - str - path to file
+
+    returns dict{columnname:1d numpy array}
+    """
+    import sdds
+    s = sdds.SDDS(0)
+    s.load(filename)
+
+    d = {cn:_np.array(da) for cn,da in zip(s.columnName, s.columnData)}
+    d2 = {}
+    for k,v in d.items():
+        s = _np.shape(v)
+        if len(s) == 2:
+            if s[0] == 1:
+                d2[k] = v[0]
+            else:
+                d2[k] = v
+        else:
+            d2[k] = v
+    return d2
+
+def SDDSBuildParameterDicts(sddsColumnDict):
+    """
+    Use first the LoadSDDSColumnsToDict on a parameters file. Then
+    call this function to sort it into ElementName : {ParameterName:ParameterValue}.
+    An extra key will be added that is KEYWORD for the ElementType in the
+    inner dictionary.
+    """
+
+    elementName = sddsColumnDict['ElementName']
+    elementType = sddsColumnDict['ElementType']
+    parameterName = sddsColumnDict['ElementParameter']
+    parameterValue = sddsColumnDict['ParameterValue']
+
+    result = _defaultdict(lambda: _defaultdict(float))
+
+    # overwrite everything repeatedly for simplicity
+    for en,et,pn,pv in zip(elementName,elementType,parameterName,parameterValue):
+        result[en][pn] = pv
+        result[en]['KEYWORD'] = et
+
+    return result
