@@ -10,7 +10,8 @@ from pybdsim.Data import LoadSDDSColumnsToDict as _LoadSDDSColumnsToDict
 from pybdsim.Plot import AddMachineLatticeFromSurveyToFigure as _AddMachineLatticeFromSurveyToFigure
 
 def ElegantVsBDSIM(elegantTwiss, elegantSigma, elegantCentroid, bdsim, functions=None,
-                   postfunctions=None, figsize=(10, 5), saveAll=True, outputFileName=None):
+                   postfunctions=None, figsize=(10, 5), saveAll=True, outputFileName=None,
+                   particleType="e-"):
     """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
@@ -49,7 +50,7 @@ def ElegantVsBDSIM(elegantTwiss, elegantSigma, elegantCentroid, bdsim, functions
     eTwi = _LoadSDDSColumnsToDict(elegantTwiss)
     eSig = _LoadSDDSColumnsToDict(elegantSigma)
     eCen = _LoadSDDSColumnsToDict(elegantCentroid)
-    eleopt  = _GetElegantOptics(eTwi,eSig,eCen)
+    eleopt  = _GetElegantOptics(eTwi,eSig,eCen,particleType)
 
     figures = [PlotBeta(eleopt, bdsopt, survey=survey),
                PlotAlpha(eleopt, bdsopt, survey=survey),
@@ -57,9 +58,10 @@ def ElegantVsBDSIM(elegantTwiss, elegantSigma, elegantCentroid, bdsim, functions
                PlotDispP(eleopt, bdsopt, survey=survey),
                PlotSigma(eleopt, bdsopt, survey=survey),
                PlotSigmaP(eleopt, bdsopt, survey=survey),
-               PlotMean(eleopt, bdsopt, survey=survey)]
-    #PlotEmitt(eleopt, bdsopt, tfsinst.header, survey=survey)
-    #           PlotNParticles(bdsopt, survey=survey)
+               PlotMean(eleopt, bdsopt, survey=survey),
+               PlotEmitt(eleopt, bdsopt, survey=survey),
+               PlotNParticles(bdsopt, survey=survey),
+               PlotEnergy(eleopt, bdsopt, survey=survey)]
 
     if saveAll:
         tfsname = elegantTwiss.split('/')[-1].split('.')[0]
@@ -94,7 +96,7 @@ def _GetBDSIMOptics(optics):
         optvars[variable] = datum
     return optvars
 
-def _GetElegantOptics(twiss, sigma, centroid):
+def _GetElegantOptics(twiss, sigma, centroid, particleType="e-"):
     """
     Requires 3 dicts for twiss, sigma and centroid files from Elegant.
     """
@@ -113,11 +115,13 @@ def _GetElegantOptics(twiss, sigma, centroid):
                     'Sxp':'SIGMAXP',
                     'Syp':'SIGMAYP',
                     'ex':'EX',
-                    'ey':'EY'}
+                    'ey':'EY',
+                    'Sdelta':'SIGMAP'}
     eCentroidToMadx = {'Cx':'X',
                        'Cy':'Y',
                        'Cxp':'PX',
-                       'Cyp':'PY'}
+                       'Cyp':'PY',
+                       'pCentral':'P'}
     
     optvars = {}
     for kele,kmadx in eTwissToMadx.items():
@@ -126,6 +130,12 @@ def _GetElegantOptics(twiss, sigma, centroid):
         optvars[kmadx] = sigma[kele]
     for kele,kmadx in eCentroidToMadx.items():
         optvars[kmadx] = centroid[kele]
+
+    massDict = {"e-" : 0.00051099891,
+                "proton" : 0.938}
+    massDict["e+"] = massDict["e-"]
+
+    optvars['P'] *= massDict[particleType] # fix energy from lorentz gamma to E (yeah... P vs E..)
     return optvars
 
 def _GetTfsOrbit(optics):
@@ -167,6 +177,11 @@ _SIGMA_P = [("SIGMAXP", "Sigma_xp", "Sigma_Sigma_xp", r"$\sigma_{xp}$"),
 
 _MEAN = [("X", "Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
          ("Y", "Mean_y", "Sigma_Mean_y", r"$\bar{y}$")]
+
+_EMITT = [("EX", "Emitt_x", "Sigma_Emitt_x", r"$\eta_{x}$"),
+          ("EY", "Emitt_y", "Sigma_Emitt_y", r"$\eta_{y}$")]
+
+_ENERGY = [("P", "Mean_E", "Sigma_E", r"Energy")]
 
 def _MakePlotter(plot_info_tuples, x_label, y_label, title):
     def f_out(ele, bds, survey=None, **kwargs):
@@ -217,42 +232,14 @@ PlotDispP  = _MakePlotter(_DISP_P,  "S / m", r"$D_{p_{x},p_{y}}$ / m",  "Momentu
 PlotSigma  = _MakePlotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
 PlotSigmaP = _MakePlotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
 PlotMean   = _MakePlotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
+PlotEmitt  = _MakePlotter(_EMITT,   "S / m", r"$\eta_{x}, \eta_{y}$ / rad m", "Emittance")
+PlotEnergy = _MakePlotter(_ENERGY,  "S / m", r"Total Energy / GeV",     "Energy")
 
-
-def PlotEmitt(eleopt, bdsopt, header, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
-    N = str(int(bdsopt['Npart'][0]))  # number of primaries.
-    emittPlot = _plt.figure('Emittance', figsize=figsize)
-    ex = header['EX'] * _np.ones(len(eleopt['S']))
-    ey = header['EY'] * _np.ones(len(eleopt['S']))
-
-    # tfs
-    _plt.plot(eleopt['S'], ex, 'b', label=r'MADX $E_{x}$')
-    _plt.plot(eleopt['S'], ey, 'g', label=r'MADX $E_{x}$')
-    # bds
-    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_x'],
-                  yerr=bdsopt['Sigma_Emitt_x'],
-                  label=r'BDSIM $E_{x}$' + ' ; N = ' + N,
-                  fmt='b.', capsize=3)
-
-    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_y'],
-                  yerr=bdsopt['Sigma_Emitt_y'],
-                  label=r'BDSIM $E_{y}$' + ' ; N = ' + N,
-                  fmt='g.', capsize=3)
-
-    axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$E_{x,y} / m$')
-    axes.set_xlabel('S / m')
-    axes.legend(loc='best')
-
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(emittPlot, survey)
-    _CallUserFigureFunctions(postfunctions)
-
-    _plt.show(block=False)
-    return emittPlot
-
-def PlotNParticles(bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
-    npartPlot = _plt.figure('NParticles', figsize)
+def PlotNParticles(bdsopt, survey=None, **kwargs):
+    # options
+    tightLayout = kwargs['tightLayout'] if 'tightLayout' in kwargs else True
+    
+    npartPlot = _plt.figure('NParticles', figsize=(9,5), **kwargs)
 
     _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k-', label='BDSIM N Particles')
     _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k.')
@@ -261,9 +248,10 @@ def PlotNParticles(bdsopt, survey=None, functions=None, postfunctions=None, figs
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
-    _CallUserFigureFunctions(functions)
-    _AddSurvey(npartPlot, survey)
-    _CallUserFigureFunctions(postfunctions)
+    if survey is not None:
+        _AddMachineLatticeFromSurveyToFigure(npartPlot, survey, tightLayout)
+    else:
+        _plt.tight_layout()
 
     _plt.show(block=False)
     return npartPlot
