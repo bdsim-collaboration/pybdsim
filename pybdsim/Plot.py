@@ -213,6 +213,8 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
             DrawRect(starts[i],lengths[i], u'#ff8800') #orange
         elif kw == 'shield':
             DrawRect(starts[i],lengths[i], u'#808080') #dark grey
+        elif kw == 'rf' or kw == 'rfcavity' or kw == 'cavity_pillbox':
+            DrawRect(starts[i],lengths[i], u'#768799') #srf grey
         else:
             #unknown so make light in alpha
             if lengths[i] > 1e-1:
