@@ -50,7 +50,7 @@ bdsimcategories = [
     'decapole',
     'multipole',
     'thinmultipole',
-    'rfcavity',
+    'rf',
     'rcol',
     'ecol',
     "jcol",
@@ -599,7 +599,7 @@ class RBend(_Dipole):
 
 class RFCavity(Element):
     def __init__(self, name, l, gradient, **kwargs):
-        Element.__init__(self, name, 'rfcavity', l=l,
+        Element.__init__(self, name, 'rf', l=l,
                          gradient=gradient, **kwargs)
 
 
