@@ -1685,13 +1685,14 @@ def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfractio
     a.AddSampler(samplers)
     a.Write(filename)
 
-def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='first'):
+def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, ncellsToMake=None, samplers='first'):
     """
     Create a ring composed of fodo cells with 2 dipoles per fodo cell.
 
     filename
     ncells         - number of fodo+dipole cells to create
     circumference  - circumference of machine in metres
+    ncellsToMake   - number of cells to actually build for part of the machine (None = all)
     samplers       - 'first','last' or 'all'
 
     Hard coded to produce the following cell fractions:
@@ -1714,7 +1715,9 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     #naming
     nplaces  = len(str(ncells))
     basename = 'dfodo_'
-    for i in range(ncells):
+    if ncellsToMake is None:
+        ncellsToMake = ncells
+    for i in range(ncellsToMake):
         cellname = basename + str(i).zfill(nplaces)
         a.AddQuadrupole(cellname+'_qd_a',ql*0.5,k1)
         a.AddDrift(cellname+'_dr_a',drl)
