@@ -42,7 +42,7 @@ def MadxTfsBeta(tfsfile, title='', outputfilename=None):
     """
     _pymadx.Plot.Beta(tfsfile,title,outputfilename)
 
-def AddMachineLatticeToFigure(figure,tfsfile, tightLayout=True):
+def AddMachineLatticeToFigure(figure, tfsfile, tightLayout=True):
     """
     A forward to the pymadx.Plot.AddMachineLatticeToFigure function.
     """
@@ -1812,3 +1812,47 @@ def LossMap(ax, xcentres, y, ylow=None, **kwargs):
                     color=line.get_color(),
                     **kwargs)
 
+def ModelBDSIM(model, ax=None):
+
+    staPos = model.staRefPos
+    endPos = model.endRefPos
+
+    typ = model.componentType
+
+    #xr = (_np.min([_np.min(staPos[:,0]), _np.min(endPos[:,0])]), _np.max([_np.max(staPos[:,0]), _np.max(endPos[:,0])]))
+    #zr = (_np.min([_np.min(staPos[:,2]), _np.min(endPos[:,2])]), _np.max([_np.max(staPos[:,2]), _np.max(endPos[:,2])]))
+
+    if not ax:
+        f =  _plt.figure()
+        ax = f.add_subplot(111)
+
+    for t,s,e in zip(typ,staPos,endPos):
+        ax.plot(s[2],s[0], 'r.', alpha=0.2)
+        ax.plot(e[2],e[0], 'bo', alpha=0.2)
+        ax.plot([s[2],e[2]],[s[0],e[0]],'k-')
+
+    _plt.xlabel('Z (m)')
+    _plt.ylabel('X (m)')
+    _plt.tight_layout()
+
+def ModelElegant(model, ax=None):
+
+    X = model['X']
+    Z = model['Z']
+    XZ = _np.stack([X,Z],axis=1)
+
+    staPos = XZ[:-1]
+    endPos = XZ[1:]
+
+    if not ax:
+        f =  _plt.figure()
+        ax = f.add_subplot(111)
+
+    for s,e in zip(staPos,endPos):
+        ax.plot(s[1],s[0], 'g.', alpha=0.2)
+        ax.plot(e[1],e[0], 'mo', alpha=0.2)
+        ax.plot([s[1],e[1]],[s[0],e[0]],'c-')
+
+    _plt.xlabel('Z (m)')
+    _plt.ylabel('X (m)')
+    _plt.tight_layout()
