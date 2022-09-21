@@ -639,8 +639,8 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     xScalingFactor - multiplier for x coordinates
     yScalingFactor - multiplier for y coordinates
     autovmin       - automatically determin the lower limit of the colourbar from the data
-    vmin           - explicitly control the vmin for the log normalisation
-    vmax           - explicitly control the vmax for the log normalisation
+    vmin           - explicitly control the vmin for the colour normalisation
+    vmax           - explicitly control the vmax for the colour normalisation
 
     return figure instance
     """
@@ -662,7 +662,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         if colourbar:
             _plt.colorbar(im, label=zlabel)
     else:
-        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', **imshowKwargs)
+        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', vmin=vmin, vmax=vmax,**imshowKwargs)
         if colourbar:
             _plt.colorbar(format='%.0e', label=zlabel)
 
