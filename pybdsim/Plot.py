@@ -1835,10 +1835,14 @@ def ModelBDSIM(model, ax=None):
     _plt.ylabel('X (m)')
     _plt.tight_layout()
 
-def ModelElegant(model, ax=None):
+def ModelElegant(model, ax=None, transpose=False):
 
     X = model['X']
     Z = model['Z']
+    if transpose:
+        xi = X
+        X = Z
+        Z = xi
     XZ = _np.stack([X,Z],axis=1)
 
     staPos = XZ[:-1]
@@ -1853,6 +1857,10 @@ def ModelElegant(model, ax=None):
         ax.plot(e[1],e[0], 'mo', alpha=0.2)
         ax.plot([s[1],e[1]],[s[0],e[0]],'c-')
 
-    _plt.xlabel('Z (m)')
-    _plt.ylabel('X (m)')
+    if transpose:
+        _plt.xlabel('X (m)')
+        _plt.ylabel('Z (m)')
+    else:
+        _plt.xlabel('Z (m)')
+        _plt.ylabel('X (m)')
     _plt.tight_layout()
