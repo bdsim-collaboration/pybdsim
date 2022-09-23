@@ -12,6 +12,7 @@ from . import _General
 
 from collections import defaultdict as _defaultdict
 import copy as _copy
+import ctypes as _ctypes
 import glob as _glob
 import itertools as _itertools
 import math as _math
@@ -1744,6 +1745,7 @@ class ModelData(object):
         modelTree.GetEntry(0)
         interface = _filterROOTObject(model)
         self._getData(interface, model)
+        self.PrepareAxisAngleRotations()
 
     @classmethod
     def FromROOTFile(cls, path):
@@ -1810,6 +1812,25 @@ class ModelData(object):
                 y.append(result[-1].y)
         return _np.array(l),_np.array(s),_np.array(x),_np.array(y),result
 
+    def PrepareAxisAngleRotations(self):
+        for rot in ['staRot', 'midRot', 'endRot', 'staRefRot', 'midRefRot', 'endRefRot']:
+            newRots = list(map(TRotationToAxisAngle, getattr(self, rot)))
+            setattr(self, rot+"AA", _np.array(newRots))
+                
+def TRotationToAxisAngle(trot):
+    """
+    This will return a list of [Ax,Ay,Az,angle] from a ROOT.TRotation.
+
+    If not imported, it will return [0,0,0,0]
+    """
+    
+    if not _useRoot:
+        return [0,0,0,0]
+    else:
+        angle = _ctypes.c_double(0)
+        axis  = _ROOT.TVector3()
+        trot.AngleAxis(angle,axis)
+        return [float(axis.X()), float(axis.Y()), float(axis.Z()), angle.value]
 
 class OptionsData(object):
     def __init__(self, data):
