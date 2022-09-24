@@ -291,7 +291,7 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
     [result.append(d) for d in data]
     return result
 
-class Header(object):
+class Header:
     """
     A simple Python version of a header in a (RE)BDSIM file for
     easy access to the data.
@@ -344,7 +344,7 @@ class Header(object):
         self.skimmedFile   = bool(hi.skimmedFile)
         self.nOriginalEvents = int(hi.nOriginalEvents)
 
-class Spectra(object):
+class Spectra:
     def __init__(self, nameIn=None):
         self.name = nameIn
         self.histograms = {}
@@ -375,7 +375,7 @@ def ParseSpectraName(hname):
     pdgid = int(pdgid)
     return name+"_"+nth,pdgid
 
-class RebdsimFile(object):
+class RebdsimFile:
     """
     Class to represent data in rebdsim output file.
 
@@ -835,7 +835,7 @@ def ReplaceZeroWithMinimum(hist, value=1e-20):
     r.contents[hist.contents==0] = value
     return r
 
-class ROOTHist(object):
+class ROOTHist:
     """
     Base class for histogram wrappers.
     """
@@ -1281,7 +1281,7 @@ class BDSBH4D():
         self.errors   = self._ToNumpy(hist, hist_type="h_err")
 
 
-class _SamplerData(object):
+class _SamplerData:
     """
     Base class for loading a chosen set of sampler data from a file.
     data - is the DataLoader instance.
@@ -1400,7 +1400,7 @@ class SamplerData(_SamplerData):
                   'mass', 'rigidity','isIon','ionA','ionZ']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
 
-class TrajectoryData(object):
+class TrajectoryData:
     """
     Pull trajectory data from a loaded Dataloader instance of raw data
 
@@ -1650,7 +1650,7 @@ class TrajectoryData(object):
             self.trajectories.append(pyTrajectory)
 
 
-class EventInfoData(object):
+class EventInfoData:
     """
     Extract data from the Info branch of the Event tree.
     """
@@ -1723,7 +1723,7 @@ def GetApertureExtent(apertureType, aper1=0, aper2=0, aper3=0, aper4=0):
         
     return x,y
         
-class ApertureInfo(object):
+class ApertureInfo:
     """
     Simple class to hold aperture parameters and extents.
     """
@@ -1738,6 +1738,9 @@ class ApertureInfo(object):
         self.x,self.y = GetApertureExtent(self.apertureType, aper1, aper2, aper3, aper4)
 
 class CollimatorInfo:
+    """
+    Simple class to represent a collimator info instance. Construct from a root instance of the class.
+    """
     def __init__(self, rootInstance=None):
         self._strKeys = ["componentName", "componentType", "material"]
         self._floatKeys = ["length", "tilt", "offsetX", "offsetY", "xSizeIn", "ySizeIn", "xSizeOut", "ySizeOut"]
@@ -1754,7 +1757,15 @@ class CollimatorInfo:
         for n in self._floatKeys:
             setattr(self, n, float(getattr(ri,n)))
 
-class ModelData(object):
+class ModelData:
+    """
+    A python versio of the data held in a Model tree in BDSIM output.
+
+    d = pybdsim.Data.Load("output.root")
+    md = pybdsim.Data.ModelData(d)
+
+    Extracts this from a bdsim output file.
+    """
     def __init__(self, data):
         model = data.GetModel()
         modelTree = data.GetModelTree()
@@ -1860,7 +1871,7 @@ def TRotationToAxisAngle(trot):
         trot.AngleAxis(angle,axis)
         return [float(axis.X()), float(axis.Y()), float(axis.Z()), angle.value]
 
-class OptionsData(object):
+class OptionsData:
     def __init__(self, data):
         options = data.GetOptions()
         optionsTree = data.GetOptionsTree()
@@ -1879,7 +1890,7 @@ class OptionsData(object):
             setattr(self, name, getattr(rootobj, name))
 
 
-class BeamData(object):
+class BeamData:
     def __init__(self, data):
         beam = data.GetBeam()
         beamTree = data.GetBeamTree()
