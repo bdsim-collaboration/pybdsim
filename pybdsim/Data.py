@@ -1737,6 +1737,23 @@ class ApertureInfo(object):
         self.offsetY  = offsetY
         self.x,self.y = GetApertureExtent(self.apertureType, aper1, aper2, aper3, aper4)
 
+class CollimatorInfo:
+    def __init__(self, rootInstance=None):
+        self._strKeys = ["componentName", "componentType", "material"]
+        self._floatKeys = ["length", "tilt", "offsetX", "offsetY", "xSizeIn", "ySizeIn", "xSizeOut", "ySizeOut"]
+        for n in self._strKeys:
+            setattr(self, n, "")
+        for n in self._floatKeys:
+            setattr(self, n, 0.0)
+        if rootInstance:
+            self._UpdateFromROOTInstance(rootInstance)
+
+    def _UpdateFromROOTInstance(self, ri):
+        for n in self._strKeys:
+            setattr(self, n, str(getattr(ri,n)))
+        for n in self._floatKeys:
+            setattr(self, n, float(getattr(ri,n)))
+
 class ModelData(object):
     def __init__(self, data):
         model = data.GetModel()
@@ -1785,6 +1802,11 @@ class ModelData(object):
                     setattr(self, n, converted) # overwrite with converted one
                 except ValueError:
                     pass
+
+        if hasattr(self, "collimatorInfo"):
+            res = [CollimatorInfo(ob) for ob in self.collimatorInfo]
+            self.collimatorInfo = res
+            self.collimatorInfoByName = {o.componentName:o for o in self.collimatorInfo}
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
