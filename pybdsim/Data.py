@@ -1768,17 +1768,23 @@ class ModelData(object):
             except ValueError:
                 pass # just ignore it
 
-        possibleDicts = ["materialIDToName", "materialNameToID"]
-        for n in possibleDicts:
+        possibleDicts = {"collimatorIndicesByName" : (str,int),
+                         "scoringMeshTranslation"  : (str,list),
+                         "scoringMeshRotation"     : (str,TRotationToAxisAngle),
+                         "materialIDToName"        : (int,str),
+                         "materialNameToID"        : (str,int),
+                         "samplerCRadius"          : (str,float),
+                         "samplerSRadius"          : (str,float)
+                         }
+        for n,types in possibleDicts.items():
             if hasattr(self, n):
                 try:
-                    setattr(self, n, dict(getattr(self,n)))
+                    setattr(self, n, dict(getattr(self,n))) # just plonk it in a dictionary
+                    d = getattr(self,n)
+                    converted = dict(zip(map(types[0],d.keys()), map(types[1],d.values())))
+                    setattr(self, n, converted) # overwrite with converted one
                 except ValueError:
                     pass
-        if hasattr(self, 'materialIDToName'):
-            self.materialIDToName = {int(k):v for k,v in self.materialIDToName.items()}
-        if hasattr(self, 'materialNameToID'):
-            self.materialNameToID = {k:int(v) for k,v in self.materialNameToID.items()}
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
