@@ -572,7 +572,7 @@ def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     :param histograms:  List of ROOT histograms to write.
     :type  histograms: [ROOT.TH1,..]
     
-    Write a list of hitograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
+    Write a list of histograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
     """
     tfile.cd(directoryName)
     directory = tfile.Get(directoryName)
