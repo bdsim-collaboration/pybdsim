@@ -1281,6 +1281,76 @@ class BDSBH4D():
         self.errors   = self._ToNumpy(hist, hist_type="h_err")
 
 
+class Histogram1DSet:
+    """
+    Basic histogram for a categorical axis with a dict / map as the storage.
+
+    This is completely agnostic of the type of the value used as the axis.
+
+    It is ultimately a python dict[key] = (value, sumWeightsSq) where 'key'
+    is the 'x' used to file the histogram.
+
+    The bin errors can be accessed by calling Result() to return a dictionary
+    of key : (value, error)
+
+    h = Histogram1DSet("PDG_ID")
+    h.Fill(2212)
+    h.Fill(-13)
+
+    Histograms can be merged with the += operator:
+
+    h2 = Histogram1DSet()
+    h2.Fill(2212)
+    h2.Fill(13)
+
+    h2 += h1
+    """
+    def __init__(self, name=None):
+        self.name = name
+        self.bins = _defaultdict(float)
+        self.sumWeightsSq = _defaultdict(float)
+        self.n = 0
+
+    def Fill(self, x, weight=1.0):
+        self.bins[x] += weight
+        self.sumWeightsSq[x] += weight**2
+        self.n += 1
+
+    def Result(self):
+        """
+        return a dictionary of key : (value, error)
+
+        value is the bin value.
+        error is calculated as sqrt(sum(weights^2)/n) for the sum of
+        the weights squared in an individual bin.
+        """
+        result = _defaultdict(float)
+        for key in self.bins.keys():
+            result[key] = (self.bins[key], _np.sqrt(self.sumWeightsSq[key]/self.n))
+        return result
+
+    def ResultMean(self):
+        """
+        return a dictionary of key : (mean, error)
+
+        mean is the bin value / n
+        error is calculated as sqrt(1/n * sum(weights^2)/n) for the sum of
+        the weights squared in an individual bin.
+        """
+        resultMean = _defaultdict(float)
+        for key in self.bins.keys():
+            resultMean[key] = (self.bins[key]/self.n, _np.sqrt((self.sumWeightsSq[key]/self.n)/self.n))
+        return resultMean
+
+    def __iadd__(self, other):
+        if type(other) is not type(self):
+            raise TypeError('Operand of incongruous type')
+        for key in other.bins.keys():
+            self.bins[key] += other.bins[key]
+            self.sumWeightsSq[key] += other.sumWeightsSq[key]
+        self.n += other.n
+        return self
+
 class _SamplerData:
     """
     Base class for loading a chosen set of sampler data from a file.
