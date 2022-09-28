@@ -1819,6 +1819,10 @@ class ModelData:
             self.collimatorInfo = res
             self.collimatorInfoByName = {o.componentName:o for o in self.collimatorInfo}
 
+        # just fix the stupid 2d array of characters into names
+        if hasattr(self, "collimatorBranchNamesUnique"):
+            self.collimatorBranchNamesUnique = _np.array([''.join(x) for x in self.collimatorBranchNamesUnique])
+
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
         return a list of aperture instances along with coordinates:
