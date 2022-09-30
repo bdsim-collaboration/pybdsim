@@ -1332,6 +1332,14 @@ class Histogram1DSet:
         self.sumWeightsSq = _defaultdict(float)
         self.n = 0
 
+    def Flush(self):
+        """
+        Empy the bins and set the number of entries to 0.
+        """
+        self.bins.clear()
+        self.sumWeightsSq.clear()
+        self.n = 0
+
     def Fill(self, x, weight=1.0):
         self.bins[x] += weight
         self.sumWeightsSq[x] += weight**2
