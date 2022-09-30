@@ -927,6 +927,14 @@ class TH1(ROOTHist):
             self.contents[i] = self.hist.GetBinContent(i+1)
             self.errors[i]   = self.hist.GetBinError(i+1)
 
+    def Rebin(self, nBins):
+        if type(nBins) is not int or nBins < 0:
+            raise TypeError("nBins must be a positive integer")
+        if nBins == 1:
+            return self
+        htemp = self.hist.Rebin(nBins, self.name+"_rebin_"+str(nBins))
+        return TH1(htemp)
+
 class TH2(TH1):
     """
     Wrapper for a ROOT TH2 instance. Converts to numpy data.
@@ -997,6 +1005,19 @@ class TH2(TH1):
             for j in range(self.nbinsy) :
                 self.contents[i,j] = self.hist.GetBinContent(i+1,j+1)
                 self.errors[i,j]   = self.hist.GetBinError(i+1,j+1)
+
+    def Rebin(self, nBinsX, nBinsY=None):
+        if type(nBinsX) is not int or nBinsX < 0:
+            raise TypeError("nBinsX must be a positive integer")
+        if nBinsY is None:
+            nBinsY = nBinsX
+        else:
+            if type(nBinsY) is not int or nBinsY < 0:
+                raise TypeError("nBinsY must be a positive integer")
+        if nBinsX == 1 and nBinsY == 1:
+            return self
+        htemp = self.hist.Rebin2D(nBinsX, nBinsY, self.name+"_rebin_"+str(nBinsX)+"_"+str(nBinsY))
+        return TH2(htemp)
 
 class TH3(TH2):
     """
