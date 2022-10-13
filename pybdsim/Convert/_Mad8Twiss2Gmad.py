@@ -172,6 +172,7 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 	# test for inputfilename type
 	if type(inputfilename) == str:
 		twiss = _m8.Output(inputfilename)
+		rmat = None
 		if twiss.filetype != 'twiss':
 			raise ValueError('Expect a twiss file to convert')
 		data = twiss.data
@@ -236,7 +237,7 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 
 		gmadElement = _Mad82GmadElementFactory(item, allelementdict, verbose,
 							userdict, collimatordict, partnamedict, flipmagnets,
-							linear, zerolength, ignorezerolengthitems,namePrepend="")
+							linear, zerolength, ignorezerolengthitems, namePrepend="", rmat=rmat)
 		if gmadElement is None: # factory returned nothing, go to next item.
 			continue
 		elif gmadElement.length == 0.0 and isinstance(gmadElement,_Builder.Drift): # skip drifts of length 0
@@ -278,7 +279,7 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 
 def _Mad82GmadElementFactory(item, allelementdict, verbose,
 				userdict, collimatordict, partnamedict, flipmagnets,
-				linear, zerolength, ignorezerolengthitems, namePrepend):
+				linear, zerolength, ignorezerolengthitems, namePrepend, rmat=None):
 	"""
 	Function which makes the correct GMAD element given a Mad8 element.
 	"""
