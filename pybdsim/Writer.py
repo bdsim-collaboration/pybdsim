@@ -373,7 +373,6 @@ class Writer():
         Write the machines material to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_material = self._getName(filename,'material')
 
         #write matrial if it exists
