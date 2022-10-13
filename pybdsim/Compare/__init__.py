@@ -11,6 +11,7 @@ except ImportError:
     pass
 
 from ._Mad8BdsimComparison import Mad8VsBDSIM
+from ._Mad8BdsimComparisonPandas import Mad8VsBDSIMpandas
 
 from ._BdsimBdsimComparison import BDSIMVsBDSIM
 from ._BdsimBdsimComparison import PTCVsBDSIM

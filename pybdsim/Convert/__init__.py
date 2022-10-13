@@ -14,6 +14,7 @@ try:
     from ._Mad8Twiss2Gmad import Mad8MakeOptions
     from ._Mad8Twiss2Gmad import Mad8MakeApertureTemplate
     from ._Mad8Twiss2Gmad import Mad8MakeCollimatorTemplate
+    from ._Mad82Gmad import Mad82Gmad
 except ImportError:
     import warnings
     msg = "Missing pymad8 dependency.  MAD8 conversion facilities excluded."
