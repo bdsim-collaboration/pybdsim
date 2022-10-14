@@ -17,7 +17,7 @@ except ImportError:
 import re as _re
 
 
-class Survey(object):
+class Survey:
     """
     Survey - load a gmad lattice and have a look
 
@@ -192,7 +192,7 @@ def _LoadLib():
         return parserlib
 from pymadx.Data import GetApertureExtent
 
-class Lattice(object):
+class Lattice:
     """
     BDSIM Gmad parser lattice.
 
@@ -444,7 +444,7 @@ class Lattice(object):
 
         return s, x, y
 
-class GmadFile(object) :
+class GmadFile:
     """
     Class to determine parameters and gmad include structure
     """
@@ -453,7 +453,7 @@ class GmadFile(object) :
         pass
 
 
-class GmadFileBeam(object) :
+class GmadFileBeam:
     """
     Class to load a gmad options file to a buffer and modify the contents
     """
@@ -461,16 +461,16 @@ class GmadFileBeam(object) :
     def __init__(self, fileName) :
         pass
 
-class GmadFileOptions(object) :
+class GmadFileOptions:
     """
     Class to load a gmad options file to a buffer and modify the contents
     """
 
-    def __init__(self, fileName) :
+    def __init__(self, fileName):
         pass
 
 
-class GmadFileComponents(object) :
+class GmadFileComponents:
     """
     Class to load a gmad components file to a buffer and modify the contents
 

@@ -9,9 +9,15 @@ PDGind = {
     22    : ('Photon',                r'$\gamma$'),
     12    : ('Electron Neutrino',     r'$\nu_{e}$'),
     -12   : ('Electron Antineutrino', r'$\=\nu_{e}$'),
-    -13   : ('Antimuon',              r'$\mu^{+}$'),
-#LIGHT MESONS I=1
     13    : ('Muon',                  r'$\mu^{-}$'),
+    -13   : ('Antimuon',              r'$\mu^{+}$'),
+    14    : ('Muon Neutrino',         r'$\nu_{\mu}$'),
+    -14   : ('Muon Antineutrino',     r'$\=\nu_{\mu}$'),
+    15    : ('Tau',                   r'$\tau^{-}$'),
+    -15   : ('Anti Tau',              r'$\tau^{+}$'),
+    16    : ('Tau Neutrino',          r'$\nu_{\tau}$'),
+    -16   : ('Tau Antineutrino ',     r'$\=\nu_{\tau}$'),
+#LIGHT MESONS
     111   : ('Pion0',                 r'$\pi^{0}$'),
     211   : ('Pion+',                 r'$\pi^{+}$'),
     -211  : ('Pion-',                 r'$\pi^{-}$'),
