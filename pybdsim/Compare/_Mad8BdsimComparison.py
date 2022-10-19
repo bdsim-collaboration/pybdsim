@@ -1,7 +1,7 @@
 import pickle as _pkl
 import pylab as _pl
-import pymad8 as _pymad8
-import pybdsim as _pybdsim
+import pymad8 as _m8
+import pybdsim as _bd
 import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile as _isfile
@@ -78,7 +78,7 @@ _EMITT = {"bdsimdata": ("Emitt_x", "Emitt_y"),
 
 # use closure to avoid tonnes of boilerplate code as happened with MadxBdsimComparison.py
 def _make_plotter(plot_info_dict):
-    def f_out(mad8opt, bdsopt, functions=None, postfunctions=None, survey=None, figsize=(9, 5), xlim=(0, 0), **kwargs):
+    def f_out(mad8opt, bdsopt, beamParams, functions=None, postfunctions=None, survey=None, figsize=(9, 5), xlim=(0, 0), **kwargs):
 
         # Get the initial N for the bdsim
         N = str(int(bdsopt['Npart'][0]))  # number of primaries.
@@ -91,30 +91,30 @@ def _make_plotter(plot_info_dict):
 
         # mad8 data from correct source
         if plot_info_dict["title"] == "Sigma":
-            mad8opt['twiss'].calcBeamSize(mad8opt['beam']['ex'], mad8opt['beam']['ey'], mad8opt['beam']['esprd'])
-            mad8Xdata = mad8opt['twiss'].getColumnsByKeys('SIGX')
-            mad8Ydata = mad8opt['twiss'].getColumnsByKeys('SIGY')
+            mad8opt.calcBeamSize(beamParams['ex'], beamParams['ey'], beamParams['esprd'])
+            mad8Xdata = mad8opt.getColumnsByKeys('SIGX')
+            mad8Ydata = mad8opt.getColumnsByKeys('SIGY')
 
-            mad8s = mad8opt['twiss'].getColumnsByKeys('S')
+            mad8s = mad8opt.getColumnsByKeys('S')
             mad8legendx += '(calculated)'
             mad8legendy += '(calculated)'
         elif plot_info_dict["title"] == "SigmaP":
-            mad8opt['twiss'].calcBeamSize(mad8opt['beam']['ex'], mad8opt['beam']['ey'], mad8opt['beam']['esprd'])
-            mad8Xdata = mad8opt['twiss'].getColumnsByKeys('SIGXP')
-            mad8Ydata = mad8opt['twiss'].getColumnsByKeys('SIGYP')
+            mad8opt.calcBeamSize(beamParams['ex'], beamParams['ey'], beamParams['esprd'])
+            mad8Xdata = mad8opt.getColumnsByKeys('SIGXP')
+            mad8Ydata = mad8opt.getColumnsByKeys('SIGYP')
 
-            mad8s = mad8opt['twiss'].getColumnsByKeys('S')
+            mad8s = mad8opt.getColumnsByKeys('S')
             mad8legendx += '(calculated)'
             mad8legendy += '(calculated)'
         elif plot_info_dict["title"] == "Emittance":
-            emitX, emitY = _CalculateEmittance(mad8opt)
+            emitX, emitY = _CalculateEmittance(mad8opt, beamParams)
             mad8Xdata = emitX
             mad8Ydata = emitY
-            mad8s = mad8opt['twiss'].getColumnsByKeys('S')
+            mad8s = mad8opt.getColumnsByKeys('S')
         else:
-            mad8Xdata = mad8opt['twiss'].getColumnsByKeys(plot_info_dict['mad8'][0])
-            mad8Ydata = mad8opt['twiss'].getColumnsByKeys(plot_info_dict['mad8'][1])
-            mad8s = mad8opt['twiss'].getColumnsByKeys('S')
+            mad8Xdata = mad8opt.getColumnsByKeys(plot_info_dict['mad8'][0])
+            mad8Ydata = mad8opt.getColumnsByKeys(plot_info_dict['mad8'][1])
+            mad8s = mad8opt.getColumnsByKeys('S')
 
         # the figure
         plot = _plt.figure(plot_info_dict["title"], figsize=figsize, **kwargs)
@@ -163,10 +163,10 @@ PlotMean = _make_plotter(_MEAN)
 PlotEmitt = _make_plotter(_EMITT)
 
 
-def _CalculateEmittance(mad8opt):
-    emitX0 = mad8opt['beam']['ex']
-    emitY0 = mad8opt['beam']['ey']
-    particle = mad8opt['beam']['particle']
+def _CalculateEmittance(mad8opt, beamParams):
+    emitX0 = beamParams['ex']
+    emitY0 = beamParams['ey']
+    particle = beamParams['particle']
     if particle == 'electron' or particle == 'positron':
         mass = 0.5109989461
     elif particle == 'proton':
@@ -174,7 +174,7 @@ def _CalculateEmittance(mad8opt):
     else:  # default is mad8 default particle mass.
         mass = 0.5109989461
 
-    e = mad8opt['twiss'].getColumnsByKeys('E')
+    e = mad8opt.getColumnsByKeys('E')
     rgamma = e / (mass / 1e3)
     rbeta = _np.sqrt(1 - 1.0 / rgamma ** 2)
 
@@ -199,70 +199,69 @@ def _AddSurvey(figure, survey):
     if survey is None:
         return
     else:
-        _pymad8.Plot.AddMachineLatticeToFigure(figure, survey)
+        _m8.Plot.AddMachineLatticeToFigure(figure, survey)
 
 
 def Mad8VsBDSIM(twiss, bdsim, survey=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
                 saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
     """ Compares Mad8 and BDSIM optics variables.
 
-	+-----------------+---------------------------------------------------------+
-	| **Parameters**  | **Description**                                         |
-	+-----------------+---------------------------------------------------------+
-	| twiss           | Mad8 twiss file                                         |
-	+-----------------+---------------------------------------------------------+
-	| bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
-	+-----------------+---------------------------------------------------------+
-	| functions       | Hook for users to add their functions that are called   |
-	|                 | immediately prior to the addition of the plot. Use a    |
-	|                 | lambda function to add functions with arguments. Can    |
-	|                 | be a function or a list of functions.                   |
-	+-----------------+---------------------------------------------------------+
-	| figsize         | Figure size for all figures - default is (12,5)         |
-	+-----------------+---------------------------------------------------------+
-	| xlim            | Set xlimit for all figures                              |
-	+-----------------+---------------------------------------------------------+
-	| particle        | Beam particle type to determine particle mass, required |
-	|                 | for beam size calculation - default is electron.        |
-	+-----------------+---------------------------------------------------------+
-	| energySpread    | Energy spread used in beam size calculation - default   |
-	|                 | is 1e-4.                                                |
-	+-----------------+---------------------------------------------------------+
-	| ex / ey         | Horizontal / vertical emittance used in beam size       |
-	|                 | calculation - default is 1e-8.                          |
-	+-----------------+---------------------------------------------------------+"""
+    +-----------------+---------------------------------------------------------+
+    | **Parameters**  | **Description**
+    +-----------------+---------------------------------------------------------+
+    | twiss           | Mad8 twiss file                                         |
+    +-----------------+---------------------------------------------------------+
+    | bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
+    +-----------------+---------------------------------------------------------+
+    | functions       | Hook for users to add their functions that are called   |
+    |                 | immediately prior to the addition of the plot. Use a    |
+    |                 | lambda function to add functions with arguments. Can    |
+    |                 | be a function or a list of functions.                   |
+    +-----------------+---------------------------------------------------------+
+    | figsize         | Figure size for all figures - default is (12,5)         |
+    +-----------------+---------------------------------------------------------+
+    | xlim            | Set xlimit for all figures                              |
+    +-----------------+---------------------------------------------------------+
+    | particle        | Beam particle type to determine particle mass, required |
+    |                 | for beam size calculation - default is electron.        |
+    +-----------------+---------------------------------------------------------+
+    | energySpread    | Energy spread used in beam size calculation - default   |
+    |                 | is 1e-4.                                                |
+    +-----------------+---------------------------------------------------------+
+    | ex / ey         | Horizontal / vertical emittance used in beam size       |
+    |                 | calculation - default is 1e-8.                          |
+    +-----------------+---------------------------------------------------------+
+    """
 
     if not _isfile(twiss):
         raise IOError("File not found: ", twiss)
     if isinstance(bdsim, str) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
 
-    fname = _pybdsim._General.GetFileName(bdsim)  # cache file name
+    fname = _bd._General.GetFileName(bdsim)  # cache file name
     if fname == "":
         fname = "optics_report"
 
     # load mad8 optics and bdsim optics
-    twissL = _pymad8.Output(twiss)
-    bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim)
+    mad8opt = _m8.Output(twiss)
+    bdsinst = _bd._General.CheckItsBDSAsciiData(bdsim)
     bdsopt = _GetBDSIMOptics(bdsinst)
 
     # parameters required for calculating beam sizes, not written in mad8 output so have to supply manually.
     beamParams = {'esprd': energySpread, 'particle': particle, 'ex': ex, 'ey': ey}
 
     # make plots
-    mad8opt = {'twiss': twissL, 'beam': beamParams}
-
     # energy and npart plotted with individual methods
-    figures = [PlotBeta(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotAlpha(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotDisp(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotDispP(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotSigma(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotSigmaP(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotEnergy(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotMean(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotEmitt(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               PlotNParticles(mad8opt, bdsopt, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey)]
+    figures = [PlotBeta(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotAlpha(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotDisp(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotDispP(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotSigma(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotSigmaP(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotEnergy(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotMean(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotEmitt(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               PlotNParticles(mad8opt, bdsopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey)]
 
     if saveAll:
         tfsname = repr(twiss)
@@ -286,12 +285,12 @@ def Mad8VsBDSIM(twiss, bdsim, survey=None, functions=None, postfunctions=None, f
     return mad8opt
 
 
-def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0, 0)):
+def PlotEnergy(mad8opt, bdsopt, beamParams, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0, 0)):
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
     energyPlot = _plt.figure('Energy', figsize)
 
     # one missing energy due to initial
-    _plt.plot(mad8opt['twiss'].getColumnsByKeys('S'), mad8opt['twiss'].getColumnsByKeys('E'), 'b--', label=r'MAD8 $E$')
+    _plt.plot(mad8opt.getColumnsByKeys('S'), mad8opt.getColumnsByKeys('E'), 'b--', label=r'MAD8 $E$')
 
     _plt.errorbar(bdsopt['S'], bdsopt['Mean_E'], yerr=bdsopt['Sigma_Mean_E'], label=r'BDSIM $E$' + ' ; N = ' + N, marker='x', ls='', color='b')
 
@@ -314,7 +313,7 @@ def PlotEnergy(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None,
     return energyPlot
 
 
-def PlotNParticles(mad8opt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0, 0)):
+def PlotNParticles(mad8opt, bdsopt, beamParams, survey=None, functions=None, postfunctions=None, figsize=(12, 5), xlim=(0, 0)):
     npartPlot = _plt.figure('NParticles', figsize)
 
     _plt.plot(bdsopt['S'], bdsopt['Npart'], 'k-', label='BDSIM N Particles')

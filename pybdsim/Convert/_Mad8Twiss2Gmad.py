@@ -9,7 +9,7 @@ from .. import Data as _Data
 from ..Options import Options as _Options
 import pybdsim._General
 
-_ignoreableThinElements = {"MONI","IMON","BLMO","MARK","RCOL","ECOL","INST","WIRE"}
+_ignoreableThinElements = {"MONI", "IMON", "BLMO", "MARK", "RCOL", "ECOL", "INST", "WIRE"}
 
 
 # Constants
@@ -17,31 +17,31 @@ _ignoreableThinElements = {"MONI","IMON","BLMO","MARK","RCOL","ECOL","INST","WIR
 _THIN_ELEMENT_THRESHOLD = 1e-6
 
 
-def Mad8Twiss2Gmad(inputfilename,outputfilename,
-		startindex            = 0,
-		endindex              = -1,
-		stepsize              = 1,
-		ignorezerolengthitems = True,
-		samplers              = 'all',
-		aperturedict          = {},
-		aperlocalpositions    = {},
-		collimatordict        = {},
-		userdict              = {},
-		partnamedict          = {},
-		verbose               = False,
-		beam                  = True,
-		flipmagnets           = None,
-		defaultAperSize       = 0.1,
-		defaultAperShape      = 'circular',
-		biases                = None,
-		materials			  = None,
-		allelementdict        = {},
-		optionsdict           = {},
-		beamparamsdict        = {},
-		linear                = False,
-		overwrite             = True,
-		write                 = True,
-		namePrepend           = ""):
+def Mad8Twiss2Gmad(inputfilename, outputfilename,
+				   startindex            = 0,
+				   endindex              = -1,
+				   stepsize              = 1,
+				   ignorezerolengthitems = True,
+				   samplers              = 'all',
+				   aperturedict          = {},
+				   aperlocalpositions    = {},
+				   collimatordict        = {},
+				   userdict              = {},
+				   partnamedict          = {},
+				   verbose               = False,
+				   beam                  = True,
+				   flipmagnets           = None,
+				   defaultAperSize       = 0.1,
+				   defaultAperShape      = 'circular',
+				   biases                = None,
+				   materials			  = None,
+				   allelementdict        = {},
+				   optionsdict           = {},
+				   beamparamsdict        = {},
+				   linear                = False,
+				   overwrite             = True,
+				   write                 = True,
+				   namePrepend           = ""):
 
 	"""
 	**Mad82Gmad** convert a mad8 output file into a gmad tfs file for bdsim
@@ -124,13 +124,13 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 	+-------------------------------+-------------------------------------------------------------------+
 	| **verbose**                   | Print out lots of information when building the model.            |
 	+-------------------------------+-------------------------------------------------------------------+
-	| **beam**                      | True \| False - generate an input gauss Twiss beam based on the   |
+	| **beam**                      | True / False - generate an input gauss Twiss beam based on the    |
 	|                               | values of the twiss parameters at the beginning of the lattice    |
 	|                               | (startname) NOTE - we thoroughly recommend checking these         |
 	|                               | parameters and this functionality is only for partial convenience |
 	|                               | to have a model that works straight away.                         |
 	+-------------------------------+-------------------------------------------------------------------+
-	| **flipmagnets**               | True \| False - flip the sign of all k values for magnets.        |
+	| **flipmagnets**               | True / False - flip the sign of all k values for magnets.         |
 	|                               | Mad8 currently tracks particles agnostic of the particle charge.  |
 	|                               | BDSIM however, follows the definition strictly :                  |
 	|                               | Positive k implies horizontal focussing for positive particles    |
@@ -178,20 +178,20 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 		data = twiss.data
 	elif type(inputfilename) == dict:
 		twiss = _m8.Output(inputfilename['twiss'])
-		rmat = _m8.Output(inputfilename['rmat'],'rmat')
+		rmat = _m8.Output(inputfilename['rmat'], 'rmat')
 		if twiss.filetype != 'twiss' or rmat.filetype != 'rmat':
 			raise ValueError('Expect a twiss file and a rmat file to convert')
 		data = twiss.data.merge(rmat.data)
-	else :
+	else:
 		raise TypeError('Expect either a twiss file string or a dictionary with twiss and rmat file strings')
 
 	# machine instance that will be added to
 	machine = _Builder.Machine()
 
 	# check if dictionaries are dictionaries
-	varnames = ['collimatordict','userdict','partnamedict','allelementdict','optionsdict','beamparamsdict']
+	varnames = ['collimatordict', 'userdict', 'partnamedict', 'allelementdict', 'optionsdict', 'beamparamsdict']
 	vars     = [collimatordict,   userdict,  partnamedict,  allelementdict,  optionsdict,  beamparamsdict]
-	for var,varname in zip(vars,varnames):
+	for var, varname in zip(vars, varnames):
 		typevar = type(var)
 		if typevar not in (dict, _Data.BDSAsciiData):
 			raise TypeError("Argument '" + varname + "' is not a dictionary")
@@ -200,7 +200,7 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 	if aperturedict and aperlocalpositions:
 		raise TypeError("'aperturedict' and 'aperlocalpositions' are mutually exclusive.")
 
-	# try to check automatically if we need to flip magnets 
+	# try to check automatically if we need to flip magnets
 	if "particletype" in beamparamsdict and flipmagnets is None:
 		particletype = beamparamsdict['particletype']
 		if particletype == "e-" or particletype == "electron":
@@ -208,7 +208,7 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 			print('Detected electron in TFS file - changing flipmagnets to True')
 
 	# If we have collimators but no collimator dict then inform that they will be converted to drifts
-	if (("RCOL" in data['TYPE'] or "ECOL" in data['TYPE']) and not collimatordict):
+	if ("RCOL" in data['TYPE'] or "ECOL" in data['TYPE']) and not collimatordict:
 		_warnings.warn("No collimatordict provided.  ALL collimators will be converted to DRIFTs.")
 
 	if biases is not None:
@@ -220,8 +220,8 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 	# keep list of omitted zero length items
 	itemsomitted = []
 
-	### MAIN LOOP ###
-	for item in data.iloc[startindex:endindex][::stepsize].iloc :
+	# ==MAIN LOOP== #
+	for item in data.iloc[startindex:endindex][::stepsize].iloc:
 		index = item.name
 		name = item['NAME']
 		t = item['TYPE']
@@ -229,38 +229,38 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 		
 		# skip ignorable thin elements of zero length
 		zerolength = True if l < 1e-9 else False
-		if zerolength and t in _ignoreableThinElements :
+		if zerolength and t in _ignoreableThinElements:
 			if verbose:
 				print('skipping zero-length item: {}'.format(name))
 			itemsomitted.append(name)
 			continue
 
-		gmadElement = _Mad82GmadElementFactory(item, allelementdict, verbose,
-							userdict, collimatordict, partnamedict, flipmagnets,
-							linear, zerolength, ignorezerolengthitems, namePrepend="", rmat=rmat)
-		if gmadElement is None: # factory returned nothing, go to next item.
+		gmadElement = _Mad82GmadElementFactory(item, allelementdict, verbose,userdict, collimatordict, partnamedict,
+									flipmagnets, linear, zerolength, ignorezerolengthitems, namePrepend="", rmat=rmat)
+
+		if gmadElement is None:  # factory returned nothing, go to next item.
 			continue
-		elif gmadElement.length == 0.0 and isinstance(gmadElement,_Builder.Drift): # skip drifts of length 0
+		elif gmadElement.length == 0.0 and isinstance(gmadElement, _Builder.Drift):  # skip drifts of length 0
 			continue
-		elif l == 0 or name in collimatordict: # Don't add apertures to thin elements or collimators
+		elif l == 0 or name in collimatordict:  # Don't add apertures to thin elements or collimators
 			machine.Append(gmadElement)
-		elif aperlocalpositions and index in aperlocalpositions: # split aperture if provided
-			elements_split_with_aper = _GetElementSplitByAperture(gmadElement,aperlocalpositions[index])
+		elif aperlocalpositions and index in aperlocalpositions:  # split aperture if provided
+			elements_split_with_aper = _GetElementSplitByAperture(gmadElement, aperlocalpositions[index])
 			for ele in elements_split_with_aper:
 				machine.Append(ele)
-		else: # Get element with single aperture
+		else:  # Get element with single aperture
 			element_with_aper = _GetSingleElementWithAper(twiss, item, gmadElement, aperturedict,
-									defaultAperSize, defaultAperShape)
+														  defaultAperSize, defaultAperShape)
 			machine.Append(element_with_aper)
 
-	if (samplers is not None): # Add Samplers
+	if samplers is not None:  # Add Samplers
 		machine.AddSampler(samplers)
 
-	if beam: # Add Beam
+	if beam:  # Add Beam
 		bm = Mad82GmadBeam(data, startindex, verbose, extraParamsDict=beamparamsdict)
 		machine.AddBeam(bm)
 
-	options = _Options() # Add Options
+	options = _Options()  # Add Options
 	if optionsdict:
 		options.update(optionsdict)  # expand with user supplied bdsim options
 	machine.AddOptions(options)
@@ -277,9 +277,9 @@ def Mad8Twiss2Gmad(inputfilename,outputfilename,
 	# We return machine twice to not break old interface of returning two machines.
 	return machine, itemsomitted
 
-def _Mad82GmadElementFactory(item, allelementdict, verbose,
-				userdict, collimatordict, partnamedict, flipmagnets,
-				linear, zerolength, ignorezerolengthitems, namePrepend, rmat=None):
+
+def _Mad82GmadElementFactory(item, allelementdict, verbose,userdict, collimatordict, partnamedict,
+							 flipmagnets, linear, zerolength, ignorezerolengthitems, namePrepend, rmat=None):
 	"""
 	Function which makes the correct GMAD element given a Mad8 element.
 	"""
@@ -291,8 +291,8 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 	if flipmagnets is not None:
 		factor = -1 if flipmagnets else 1  # flipping magnets
 
-	kws = {} # ensure empty
-	kws = _deepcopy(allelementdict) # deep copy as otherwise allelementdict gets irreparably changed!
+	kws = {}  # ensure empty
+	kws = _deepcopy(allelementdict)  # deep copy as otherwise allelementdict gets irreparably changed!
 	if verbose:
 		print('Starting key word arguments from all element dict')
 		print(kws)
@@ -306,7 +306,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 	rname = namePrepend + rname
 	
 	# append any user defined parameters for this element into the kws dictionary
-	if name in userdict: # name appears in the madx.  try this first.
+	if name in userdict:  # name appears in the madx.  try this first.
 		kws.update(userdict[name])
 	elif rname in userdict:  # rname appears in the gmad
 		kws.update(userdict[rname])
@@ -328,7 +328,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 			return _Builder.Marker(rname)
 	#######################################################################
 	elif Type == 'DRIF':
-		return _Builder.Drift(rname,l,**kws)
+		return _Builder.Drift(rname, l, **kws)
 	#######################################################################
 	elif Type == 'MARK':
 		if not ignorezerolengthitems:
@@ -337,7 +337,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 	elif Type == 'SOLE':
 		if l == 0.0 :
 			return None # thin solenoid is omitted
-		return _Builder.Solenoid(rname,l,ks=item['KS']/l,**kws)
+		return _Builder.Solenoid(rname, l, ks=item['KS']/l, **kws)
 	#######################################################################
 	elif Type == 'INST':
 		if zerolength and not ignorezerolengthitems:
@@ -380,9 +380,9 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		k3 = item['K3'] * factor if not linear else 0
 		ks = item['KS'] * factor
 		if zerolength or l < _THIN_ELEMENT_THRESHOLD:
-			return _Builder.ThinMultipole(rname, knl=(k1,k2,k3), ksl=ks, **kws)
+			return _Builder.ThinMultipole(rname, knl=(k1, k2, k3), ksl=ks, **kws)
 		else:
-			return _Builder.Multipole(rname, l, knl=(k1,k2,k3), ksl=ks, **kws)
+			return _Builder.Multipole(rname, l, knl=(k1, k2, k3), ksl=ks, **kws)
 	#######################################################################
 	elif Type == 'HKIC':
 		if verbose:
@@ -390,7 +390,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		if not zerolength:
 			if l > _THIN_ELEMENT_THRESHOLD:
 				kws['l'] = l
-		return _Builder.HKicker(rname,hkick=item['HKIC']*factor,**kws)
+		return _Builder.HKicker(rname, hkick=item['HKIC']*factor, **kws)
 	#######################################################################
 	elif Type == 'VKIC':
 		if verbose:
@@ -398,7 +398,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		if not zerolength:
 			if l > _THIN_ELEMENT_THRESHOLD:
 				kws['l'] = l
-		return _Builder.VKicker(rname,vkick=item['VKIC']*factor,**kws)
+		return _Builder.VKicker(rname, vkick=item['VKIC']*factor, **kws)
 	#######################################################################
 	elif Type == 'KICK':
 		if verbose:
@@ -438,7 +438,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		h2 = item['H2'] if 'H2' in item else 0
 		k1 = item['K1']
 
-		if angle != 0: #protect against 0 angle rbends
+		if angle != 0:  #protect against 0 angle rbends
 			chordLength = 2 * (l / angle) * _np.sin(angle / 2.)
 		else :
 			# set element length to be the chord length - tfs output rbend length is arc length
@@ -463,7 +463,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 	elif Type == 'LCAV':
 		volt = item['VOLT']
 		freq = item['FREQ']
-		lag = item ['LAG']
+		lag = item['LAG']
 		gradient = volt/l
 		phase = lag * 2 * _np.pi
 
@@ -473,7 +473,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 			kws['phase'] = phase
 		return _Builder.RFCavity(rname, l, gradient=gradient, **kws)
 	#######################################################################
-	elif Type in {'ECOL','RCOL'}:
+	elif Type in {'ECOL', 'RCOL'}:
 		if name in collimatordict:
 			# gets a dictionary then extends kws dict with that dictionary
 			colld = collimatordict[name]
@@ -501,7 +501,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 				if 'outerDiameter' in colld:
 					kws['outerDiameter'] = colld['outerDiameter']
 				else:
-					kws['outerDiameter'] = max([0.5,xsize * 2.5,ysize * 2.5])
+					kws['outerDiameter'] = max([0.5, xsize * 2.5, ysize * 2.5])
 				if Type == 'RCOL':
 					return _Builder.RCol(rname, l, xsize, ysize, **kws)
 				else:
@@ -520,27 +520,27 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 			return _Builder.Drift(rname, l, **kws)
 	#######################################################################
 	elif Type == 'MATR':
-		if not isinstance('R11',item):
+		if not isinstance('R11', item):
 			raise ValueError('No Rmat file to extract element')
 		index = item.name
 		item = rmat.data.iloc[index]
 		previtem = rmat.data.iloc[index-1]
-		POSTMATRIX = _np.matrix([[item['R11'],item['R12'],item['R13'],item['R14']],
-					[item['R21'],item['R22'],item['R23'],item['R24']],
-					[item['R31'],item['R32'],item['R33'],item['R34']],
-					[item['R41'],item['R42'],item['R43'],item['R44']]])
-		PRIORMATRIX = _np.matrix([[previtem['R11'],previtem['R12'],previtem['R13'],previtem['R14']],
-					[previtem['R21'],previtem['R22'],previtem['R23'],previtem['R24']],
-					[previtem['R31'],previtem['R32'],previtem['R33'],previtem['R34']],
-					[previtem['R41'],previtem['R42'],previtem['R43'],previtem['R44']]])
+		POSTMATRIX = _np.matrix([[item['R11'], item['R12'], item['R13'], item['R14']],
+								 [item['R21'], item['R22'], item['R23'], item['R24']],
+								 [item['R31'], item['R32'], item['R33'], item['R34']],
+								 [item['R41'], item['R42'], item['R43'], item['R44']]])
+		PRIORMATRIX = _np.matrix([[previtem['R11'], previtem['R12'], previtem['R13'], previtem['R14']],
+								  [previtem['R21'], previtem['R22'], previtem['R23'], previtem['R24']],
+								  [previtem['R31'], previtem['R32'], previtem['R33'], previtem['R34']],
+								  [previtem['R41'], previtem['R42'], previtem['R43'], previtem['R44']]])
 
-		RMAT=(POSTMATRIX*PRIORMATRIX.I)
-		return _Builder.Rmat(rname, l, r11=RMAT[0,0], r12=RMAT[0,1], r13=RMAT[0,2], r14=RMAT[0,3],
-						r21=RMAT[1,0], r22=RMAT[1,1], r23=RMAT[1,2], r24=RMAT[1,3],
-						r31=RMAT[2,0], r32=RMAT[2,1], r33=RMAT[2,2], r34=RMAT[2,3],
-						r41=RMAT[3,0], r42=RMAT[3,1], r43=RMAT[3,2], r44=RMAT[3,3], **kws)
+		RMAT = (POSTMATRIX*PRIORMATRIX.I)
+		return _Builder.Rmat(rname, l, r11=RMAT[0, 0], r12=RMAT[0, 1], r13=RMAT[0, 2], r14=RMAT[0, 3],
+							 		   r21=RMAT[1, 0], r22=RMAT[1, 1], r23=RMAT[1, 2], r24=RMAT[1, 3],
+							 		   r31=RMAT[2, 0], r32=RMAT[2, 1], r33=RMAT[2, 2], r34=RMAT[2, 3],
+							 		   r41=RMAT[3, 0], r42=RMAT[3, 1], r43=RMAT[3, 2], r44=RMAT[3, 3], **kws)
 	#######################################################################
-	else :
+	else:
 		print('unknown element type:', Type, 'for element named: ', name)
 		if zerolength and not ignorezerolengthitems:
 			print('putting marker in instead as its zero length')
@@ -548,6 +548,7 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		print('putting drift in instead as it has a finite length')
 		return _Builder.Drift(rname, l)
 	#######################################################################
+
 
 def _GetElementSplitByAperture(gmadElement, localApertures):
 	"""Return an element with splited aperture"""
@@ -560,10 +561,10 @@ def _GetElementSplitByAperture(gmadElement, localApertures):
 		except ValueError:
 			pass
 
-	if localApertures[0][0] != 0.0 :
+	if localApertures[0][0] != 0.0:
 		raise ValueError("No aperture defined at start of element.")
 	if len(localApertures) > 1:
-		split_points = [point for point, _  in localApertures[1:]]
+		split_points = [point for point, _ in localApertures[1:]]
 		split_elements = gmadElement.split(split_points)
 		for aper, split_element in zip(apertures, split_elements):
 			split_element.update(aper)
@@ -574,6 +575,7 @@ def _GetElementSplitByAperture(gmadElement, localApertures):
 		return [gmadElement]
 	raise ValueError("Unable to split element by apertures.")
 
+
 def _GetSingleElementWithAper(twiss, item, gmadElement, aperturedict, defaultAperSize, defaultAperShape):
 	"""Return an element with unsplit aperture"""
 	gmadElement = _deepcopy(gmadElement)
@@ -583,11 +585,12 @@ def _GetSingleElementWithAper(twiss, item, gmadElement, aperturedict, defaultApe
 	if name in aperturedict:
 		aper = _Builder.PrepareApertureModel(aperturedict[name], defaultAperShape)
 	else:
-		this_aperdict = {'APER_1' : twiss.getAperture(index,defaultAperSize)}
+		this_aperdict = {'APER_1' : twiss.getAperture(index, defaultAperSize)}
 		aper = _Builder.PrepareApertureModel(this_aperdict, defaultAperShape)
 
 	gmadElement.update(aper)
 	return gmadElement
+
 
 def Mad82GmadBeam(data, startindex=0, verbose=False, extraParamsDict={}):
 	"""
@@ -613,27 +616,27 @@ def Mad82GmadBeam(data, startindex=0, verbose=False, extraParamsDict={}):
 	if 'particletype' not in extraParamsDict:
 		raise ValueError('Missing particle type in extraParamsDict')
 
-	ex = 		extraParamsDict.pop('EX')
-	ey = 		extraParamsDict.pop('EY')
-	sigmae = 	extraParamsDict.pop('Esprd')
-	particle = 	extraParamsDict.pop('particletype')
+	ex =		extraParamsDict.pop('EX')
+	ey =		extraParamsDict.pop('EY')
+	sigmae =	extraParamsDict.pop('Esprd')
+	particle =	extraParamsDict.pop('particletype')
 
 	if particle != 'e-' and particle != 'e+' and particle != 'proton':
 		raise ValueError("Unsupported particle : " + particle)
 		
 	# return _Beam.Beam('e-',16.5,'gausstwiss')
-	beam =  _Beam.Beam(particle,energy,'gausstwiss')
+	beam = _Beam.Beam(particle, energy, 'gausstwiss')
 	if ex != 0:
-		beam.SetEmittanceX(ex, 'm')
+		beam._SetEmittanceX(ex, 'm')
 	if ey != 0:
-		beam.SetEmittanceY(ey, 'm')
-	beam.SetSigmaE(sigmae)
+		beam._SetEmittanceY(ey, 'm')
+	beam._SetSigmaE(sigmae)
 
-	beamparams = {"SetBetaX":'BETX',"SetBetaY":'BETY',"SetAlphaX":'ALPHX',"SetAlphaY":'ALPHY',
-			"SetDispX":'DX',"SetDispY":'DY',"SetDispXP":'DPX',"SetDispYP":'DPY',
-			"SetXP0": 'PX',"SetYP0": 'PY',"SetX0": 'X',"SetY0": 'Y'}
+	beamparams = {"SetBetaX": 'BETX', "SetBetaY": 'BETY', "SetAlphaX": 'ALPHX', "SetAlphaY": 'ALPHY',
+				  "SetDispX":'DX', "SetDispY": 'DY', "SetDispXP": 'DPX', "SetDispYP": 'DPY',
+				  "SetXP0": 'PX', "SetYP0": 'PY', "SetX0": 'X', "SetY0": 'Y'}
 
-	for func,parameter in beamparams.items():
+	for func, parameter in beamparams.items():
 		if parameter in list(data.keys()):
 			getattr(beam, func)(data[parameter][startindex])
 
