@@ -556,6 +556,8 @@ def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
     Create an empty rebdsim format file with the layout of folders.
     Returns the ROOT.TFile object.
     """
+    LoadROOTLibraries()
+
     if not outputfilename.endswith(".root"):
         outputfilename += ".root"
 

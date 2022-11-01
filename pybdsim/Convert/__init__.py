@@ -9,11 +9,12 @@ from ._MadxTfs2GmadStrength import MadxTfs2GmadStrength
 from ._MadxTfs2Gmad import MadxTfs2GmadBeam
 
 try:
-    from ._Mad8Saveline2Gmad import Mad8Saveline2Gmad
+    # from ._Mad8Saveline2Gmad import Mad8Saveline2Gmad
+    # from ._Mad8Twiss2Gmad import Mad8Twiss2Gmad
+    # from ._Mad8Twiss2Gmad import Mad8MakeOptions
+    # from ._Mad8Twiss2Gmad import Mad8MakeApertureTemplate
+    # from ._Mad8Twiss2Gmad import Mad8MakeCollimatorTemplate
     from ._Mad8Twiss2Gmad import Mad8Twiss2Gmad
-    from ._Mad8Twiss2Gmad import Mad8MakeOptions
-    from ._Mad8Twiss2Gmad import Mad8MakeApertureTemplate
-    from ._Mad8Twiss2Gmad import Mad8MakeCollimatorTemplate
 except ImportError:
     import warnings
     msg = "Missing pymad8 dependency.  MAD8 conversion facilities excluded."
