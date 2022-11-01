@@ -13,6 +13,33 @@ from . import Builder as _Builder
 import time as _time
 
 
+def GetAxisAlignedBoundingBoxOfCollimator(modelData, collimatorName):
+    """
+    Inspect pybdsim.Data.ModelData assuming collimator info was stored
+    to give an axis aligned bounding box set of ranges in global coordinates.
+    """
+    if type(modelData) is not pybdsim.Data.ModelData:
+        raise TypeError("not pybdsim.Data.ModelData instance")
+
+    ci = modelData.collimatorInfo[collimatorName]
+    gi = modelData.collimatorIndicesByName[collimatorName]
+
+    midPos = modelData.midRefPos[gi]
+    midRot = modelData.midRefRot[gi]
+
+    localRanges = [[-0.1,0.1], [-0.1,0.1], [-ci.length*0.5, ci.length*0.5]]
+    
+    
+def GetMaterialIDOfCollimator(modelData, collimatorName):
+    """
+    Inspect pybdsim.Data.ModelData assuming collimator info was stored
+    to give an axis aligned bounding box set of ranges in global coordinates.
+    """
+    if type(modelData) is not pybdsim.Data.ModelData:
+        raise TypeError("not pybdsim.Data.ModelData instance")
+    ci = modelData.collimatorInfo[collimatorName]
+    return modelData.materialNameToID[ci.material]    
+
 def GenerateFullListOfSamplers(inputfile, outputfile):
     """
     inputfile - path to main gmad input file
