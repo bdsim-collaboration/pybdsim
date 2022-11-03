@@ -1812,6 +1812,12 @@ def LossMap(ax, xcentres, y, ylow=None, **kwargs):
                     color=line.get_color(),
                     **kwargs)
 
+"""
+The ModelBDSIMXZ and ModelBDSIMYZ functions add the possibility to plot a survey
+done in BDSIM. The results can be found in the BDSIM output file in the Model tree.
+The functions can plot the start and end positions of each element in the sequence.
+"""
+
 def ModelBDSIMXZ(model, ax=None):
 
     staPos = model.staRefPos
