@@ -1812,7 +1812,13 @@ def LossMap(ax, xcentres, y, ylow=None, **kwargs):
                     color=line.get_color(),
                     **kwargs)
 
-def ModelBDSIM(model, ax=None):
+"""
+The ModelBDSIMXZ and ModelBDSIMYZ functions add the possibility to plot a survey
+done in BDSIM. The results can be found in the BDSIM output file in the Model tree.
+The functions can plot the start and end positions of each element in the sequence.
+"""
+
+def ModelBDSIMXZ(model, ax=None):
 
     staPos = model.staRefPos
     endPos = model.endRefPos
@@ -1835,7 +1841,30 @@ def ModelBDSIM(model, ax=None):
     _plt.ylabel('X (m)')
     _plt.tight_layout()
 
-def ModelElegant(model, ax=None, transpose=False):
+def ModelBDSIMYZ(model, ax=None):
+
+    staPos = model.staRefPos
+    endPos = model.endRefPos
+
+    typ = model.componentType
+
+    #xr = (_np.min([_np.min(staPos[:,0]), _np.min(endPos[:,0])]), _np.max([_np.max(staPos[:,0]), _np.max(endPos[:,0])]))
+    #zr = (_np.min([_np.min(staPos[:,2]), _np.min(endPos[:,2])]), _np.max([_np.max(staPos[:,2]), _np.max(endPos[:,2])]))
+
+    if not ax:
+        f =  _plt.figure()
+        ax = f.add_subplot(111)
+
+    for t,s,e in zip(typ,staPos,endPos):
+        ax.plot(s[2],s[1], 'r.', alpha=0.2)
+        ax.plot(e[2],e[1], 'bo', alpha=0.2)
+        ax.plot([s[2],e[2]],[s[1],e[1]],'k-')
+
+    _plt.xlabel('Z (m)')
+    _plt.ylabel('Y (m)')
+    _plt.tight_layout()
+
+def ModelElegantXZ(model, ax=None, transpose=False):
 
     X = model['X']
     Z = model['Z']
@@ -1863,4 +1892,34 @@ def ModelElegant(model, ax=None, transpose=False):
     else:
         _plt.xlabel('Z (m)')
         _plt.ylabel('X (m)')
+    _plt.tight_layout()
+
+def ModelElegantYZ(model, ax=None, transpose=False):
+
+    Y = model['Y']
+    Z = model['Z']
+    if transpose:
+        yi = Y
+        Y = Z
+        Z = yi
+    YZ = _np.stack([Y,Z],axis=1)
+
+    staPos = YZ[:-1]
+    endPos = YZ[1:]
+
+    if not ax:
+        f =  _plt.figure()
+        ax = f.add_subplot(111)
+
+    for s,e in zip(staPos,endPos):
+        ax.plot(s[1],s[0], 'g.', alpha=0.2)
+        ax.plot(e[1],e[0], 'mo', alpha=0.2)
+        ax.plot([s[1],e[1]],[s[0],e[0]],'c-')
+
+    if transpose:
+        _plt.xlabel('Y (m)')
+        _plt.ylabel('Z (m)')
+    else:
+        _plt.xlabel('Z (m)')
+        _plt.ylabel('Y (m)')
     _plt.tight_layout()

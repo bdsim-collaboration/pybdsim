@@ -1382,6 +1382,17 @@ class Histogram1DSet:
         self.n += other.n
         return self
 
+    def __repr__(self):
+        r = self.Result()
+        s = self.name + "\t" + r.__repr__()
+        return s
+
+    def SortByBin(self):
+        newBins = sorted(self.bins.items(), key=lambda item: item[1], reverse=True)
+        self.bins = _defaultdict(float, **newBins)
+        newSumWeightsSq = {key:self.sumWeightsSq[key] for key in newBins.keys()}
+        self.sumWeightsSq = _defaultdict(float, **newSumWeightsSq)
+
 class _SamplerData:
     """
     Base class for loading a chosen set of sampler data from a file.
