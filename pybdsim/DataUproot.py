@@ -161,6 +161,13 @@ class Histogram3d(Histogram):
                           list(self._h.axes[2].edges())])
 
     @property
+    def bins(self):
+        bins_x = _np.diff(self.bh.axes[0].edges)[0]
+        bins_y = _np.diff(self.bh.axes[1].edges)[0]
+        bins_z = _np.diff(self.bh.axes[2].edges)[0]
+        return _np.array([bins_x, bins_y, bins_z], dtype=object)
+
+    @property
     def centers(self):
         if self._centers is not None:
             return self._centers
@@ -266,7 +273,7 @@ class Histogram4d:
                     i = 1
                     for value in spectrum:
                         f.write("  {:.4E}".format(value))
-                        if i % 6 == 0:
+                        if i % 6 == 0 and i != len(spectrum):
                             f.write('\n')
                         i += 1
                     f.write('\n 1.000\n')
@@ -296,7 +303,7 @@ class Histogram4d:
                     i = 1
                     for value in spectrum:
                         f.write("  {:.4E}".format(value))
-                        if i % 6 == 0:
+                        if i % 6 == 0 and i != len(spectrum):
                             f.write('\n')
                         i += 1
                     f.write('\n 1.000\n')
