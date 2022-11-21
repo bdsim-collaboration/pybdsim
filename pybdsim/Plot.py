@@ -486,7 +486,11 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     ax = f.add_subplot(111)
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
-    ht = _Data.PadHistogram1D(h)
+    histEmpty = len(h.contents[h.contents!=0]) == 0
+    if not histEmpty:
+        ht = _Data.PadHistogram1D(h)
+    else:
+        ht = h
     ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,xerr=xsf*ht.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
@@ -512,7 +516,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         ymax = sf*_np.max(yvl[yvl>0])
     except:
         pass
-    if log:
+    if log and not histEmpty:
         _plt.ylim(abs(ymin)*0.9,abs(ymax)*1.3)
         if _matplotlib.__version__ >= '3.3':
             _plt.yscale('log', nonpositive='clip')
@@ -577,11 +581,17 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     yminpos = _np.inf
     xmin = _np.inf
     xmax = -_np.inf
+    allHistsEmpty = True  # true until one hist isn't empty
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
+        histEmpty = len(h.contents[h.contents != 0]) == 0
         # x range heuristic - do before padding
         xmin = min(xmin, _np.min(xsf*h.xlowedge))
         xmax = max(xmax, _np.max(xsf*h.xhighedge))
-        ht = _Data.PadHistogram1D(h)
+        if not histEmpty:
+            allHistsEmpty = False
+            ht = _Data.PadHistogram1D(h)
+        else:
+            ht = h
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
                     xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
@@ -606,7 +616,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         pass
     else:
         ax.set_title(title)
-    if log:
+    if log and not allHistsEmpty:
         _plt.ylim(abs(yminpos)*0.9,abs(ymax)*1.1)
         if _matplotlib.__version__ >= '3.3':
             _plt.yscale('log', nonpositive='clip')
@@ -651,8 +661,11 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     xsf = xScalingFactor
     ysf = yScalingFactor
     ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
-    if autovmin or vmin is None:
+    histEmpty = len(h.contents[h.contents!=0]) == 0
+    if autovmin or vmin is None and not histEmpty:
         vmin = _np.min(h.contents[h.contents!=0])
+    else:
+        vmin = 0
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
@@ -707,6 +720,11 @@ def Histogram3D(th3):
     """
     print('Not written yet - best take a slice or projection and plot a 2D histogram')
     from mpl_toolkits.mplot3d import axes3d, Axes3D
+
+    histEmpty = len(th3.contents[th3.contents!=0]) == 0
+    if histEmpty:
+        raise ValueError("th3 contents empty for histogram "+th3.name)
+
     f = _plt.figure()
     ax = f.gca(projection='3d')
 
