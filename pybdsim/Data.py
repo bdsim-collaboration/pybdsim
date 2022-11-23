@@ -1869,6 +1869,29 @@ class CollimatorInfo:
         for n in self._floatKeys:
             setattr(self, n, float(getattr(ri,n)))
 
+class CavityInfo:
+    """
+    Simple class to represent a cavity info instance. Construct from a root instance of the class.
+    """
+    def __init__(self, rootInstance=None):
+        self._strKeys = ["componentName", "componentType", "material", "cavityType"]
+        self._floatKeys = ["length", "tilt", "efield", "gradient", "frequency", "phase", "irisRadius",
+                           "thickness", "equatorRadius", "halfCellLength", "numberOfPoints", "numberOfCells",
+                           "equatorHorizontalAxis", "equatorVerticalAxis", "irisHorizontalAxis", "irisVerticalAxis",
+                           "tangentLineAngle"]
+        for n in self._strKeys:
+            setattr(self, n, "")
+        for n in self._floatKeys:
+            setattr(self, n, 0.0)
+        if rootInstance:
+            self._UpdateFromROOTInstance(rootInstance)
+
+    def _UpdateFromROOTInstance(self, ri):
+        for n in self._strKeys:
+            setattr(self, n, str(getattr(ri,n)))
+        for n in self._floatKeys:
+            setattr(self, n, float(getattr(ri,n)))
+
 class ModelData:
     """
     A python versio of the data held in a Model tree in BDSIM output.
@@ -1909,6 +1932,7 @@ class ModelData:
                 pass # just ignore it
 
         possibleDicts = {"collimatorIndicesByName" : (str,int),
+                         "cavityIndicesByName"     : (str,int),
                          "scoringMeshTranslation"  : (str,list),
                          "scoringMeshRotation"     : (str,TRotationToAxisAngle),
                          "materialIDToName"        : (int,str),
@@ -1931,9 +1955,16 @@ class ModelData:
             self.collimatorInfo = res
             self.collimatorInfoByName = {o.componentName:o for o in self.collimatorInfo}
 
+        if hasattr(self, "cavityInfo"):
+            res = [CavityInfo(ob) for ob in self.cavityInfo]
+            self.cavityInfo = res
+            self.cavityInfoByName = {o.componentName:o for o in self.cavityInfo}
+
         # just fix the stupid 2d array of characters into names
         if hasattr(self, "collimatorBranchNamesUnique"):
             self.collimatorBranchNamesUnique = _np.array([''.join(x) for x in self.collimatorBranchNamesUnique])
+        if hasattr(self, "cavityBranchNamesUnique"):
+            self.cavityBranchNamesUnique = _np.array([''.join(x) for x in self.cavityBranchNamesUnique])
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
