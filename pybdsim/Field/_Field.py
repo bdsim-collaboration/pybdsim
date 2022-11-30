@@ -83,6 +83,32 @@ class Field(object):
 
         f.close()
 
+    def WriteFLUKA2DFormat1(self, fileName):
+        """
+        Write one of the FLUKA formats (x,y,Bx,by) in cm,T with no header.
+    
+        Very simple and only works for Field2D - can be improved.
+        """
+        if self.nDimensions != 2:
+            raise LogicError("This field map is not 2D - it's ",self.nDimensions,"D")
+
+        f = open(fileName, "w")
+        
+        # flatten all but last dimension - 3 field components
+        nvalues = _np.shape(self.data)[-1] # number of values in last dimension
+
+        flipLocal = self.flip
+
+        dt = self.data.reshape(-1,nvalues)
+        for xi in range(self.header['nx']):
+            for yi in range(self.header['ny']):
+                v = self.data[xi][yi]
+                v = [v[index] for index in [0,1,2,3]] # [x,y,Bx,By]
+                strings   = ['%.7E' % x for x in v]
+                #stringsFW = ['%14s' % s for s in strings]
+                f.write(','.join(strings) + '\n')
+        
+        f.close()
 
 class Field1D(Field):
     """
