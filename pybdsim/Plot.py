@@ -486,7 +486,11 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     ax = f.add_subplot(111)
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
-    ht = _Data.PadHistogram1D(h)
+    histEmpty = len(h.contents[h.contents!=0]) == 0
+    if not histEmpty:
+        ht = _Data.PadHistogram1D(h)
+    else:
+        ht = h
     ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,xerr=xsf*ht.xwidths*0.5, **errorbarKwargs)
     if xlabel is None:
         ax.set_xlabel(h.xlabel)
@@ -512,7 +516,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         ymax = sf*_np.max(yvl[yvl>0])
     except:
         pass
-    if log:
+    if log and not histEmpty:
         _plt.ylim(abs(ymin)*0.9,abs(ymax)*1.3)
         if _matplotlib.__version__ >= '3.3':
             _plt.yscale('log', nonpositive='clip')
@@ -577,11 +581,17 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     yminpos = _np.inf
     xmin = _np.inf
     xmax = -_np.inf
+    allHistsEmpty = True  # true until one hist isn't empty
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
+        histEmpty = len(h.contents[h.contents != 0]) == 0
         # x range heuristic - do before padding
         xmin = min(xmin, _np.min(xsf*h.xlowedge))
         xmax = max(xmax, _np.max(xsf*h.xhighedge))
-        ht = _Data.PadHistogram1D(h)
+        if not histEmpty:
+            allHistsEmpty = False
+            ht = _Data.PadHistogram1D(h)
+        else:
+            ht = h
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
                     xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
@@ -606,7 +616,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         pass
     else:
         ax.set_title(title)
-    if log:
+    if log and not allHistsEmpty:
         _plt.ylim(abs(yminpos)*0.9,abs(ymax)*1.1)
         if _matplotlib.__version__ >= '3.3':
             _plt.yscale('log', nonpositive='clip')
@@ -651,8 +661,11 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     xsf = xScalingFactor
     ysf = yScalingFactor
     ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
-    if autovmin or vmin is None:
+    histEmpty = len(h.contents[h.contents!=0]) == 0
+    if autovmin or vmin is None and not histEmpty:
         vmin = _np.min(h.contents[h.contents!=0])
+    else:
+        vmin = 0
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
@@ -707,6 +720,11 @@ def Histogram3D(th3):
     """
     print('Not written yet - best take a slice or projection and plot a 2D histogram')
     from mpl_toolkits.mplot3d import axes3d, Axes3D
+
+    histEmpty = len(th3.contents[th3.contents!=0]) == 0
+    if histEmpty:
+        raise ValueError("th3 contents empty for histogram "+th3.name)
+
     f = _plt.figure()
     ax = f.gca(projection='3d')
 
@@ -1812,7 +1830,13 @@ def LossMap(ax, xcentres, y, ylow=None, **kwargs):
                     color=line.get_color(),
                     **kwargs)
 
-def ModelBDSIM(model, ax=None):
+"""
+The ModelBDSIMXZ and ModelBDSIMYZ functions add the possibility to plot a survey
+done in BDSIM. The results can be found in the BDSIM output file in the Model tree.
+The functions can plot the start and end positions of each element in the sequence.
+"""
+
+def ModelBDSIMXZ(model, ax=None):
 
     staPos = model.staRefPos
     endPos = model.endRefPos
@@ -1835,7 +1859,30 @@ def ModelBDSIM(model, ax=None):
     _plt.ylabel('X (m)')
     _plt.tight_layout()
 
-def ModelElegant(model, ax=None, transpose=False):
+def ModelBDSIMYZ(model, ax=None):
+
+    staPos = model.staRefPos
+    endPos = model.endRefPos
+
+    typ = model.componentType
+
+    #xr = (_np.min([_np.min(staPos[:,0]), _np.min(endPos[:,0])]), _np.max([_np.max(staPos[:,0]), _np.max(endPos[:,0])]))
+    #zr = (_np.min([_np.min(staPos[:,2]), _np.min(endPos[:,2])]), _np.max([_np.max(staPos[:,2]), _np.max(endPos[:,2])]))
+
+    if not ax:
+        f =  _plt.figure()
+        ax = f.add_subplot(111)
+
+    for t,s,e in zip(typ,staPos,endPos):
+        ax.plot(s[2],s[1], 'r.', alpha=0.2)
+        ax.plot(e[2],e[1], 'bo', alpha=0.2)
+        ax.plot([s[2],e[2]],[s[1],e[1]],'k-')
+
+    _plt.xlabel('Z (m)')
+    _plt.ylabel('Y (m)')
+    _plt.tight_layout()
+
+def ModelElegantXZ(model, ax=None, transpose=False):
 
     X = model['X']
     Z = model['Z']
@@ -1863,4 +1910,34 @@ def ModelElegant(model, ax=None, transpose=False):
     else:
         _plt.xlabel('Z (m)')
         _plt.ylabel('X (m)')
+    _plt.tight_layout()
+
+def ModelElegantYZ(model, ax=None, transpose=False):
+
+    Y = model['Y']
+    Z = model['Z']
+    if transpose:
+        yi = Y
+        Y = Z
+        Z = yi
+    YZ = _np.stack([Y,Z],axis=1)
+
+    staPos = YZ[:-1]
+    endPos = YZ[1:]
+
+    if not ax:
+        f =  _plt.figure()
+        ax = f.add_subplot(111)
+
+    for s,e in zip(staPos,endPos):
+        ax.plot(s[1],s[0], 'g.', alpha=0.2)
+        ax.plot(e[1],e[0], 'mo', alpha=0.2)
+        ax.plot([s[1],e[1]],[s[0],e[0]],'c-')
+
+    if transpose:
+        _plt.xlabel('Y (m)')
+        _plt.ylabel('Z (m)')
+    else:
+        _plt.xlabel('Z (m)')
+        _plt.ylabel('Y (m)')
     _plt.tight_layout()

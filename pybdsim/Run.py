@@ -219,6 +219,30 @@ def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=No
     else:
         return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
 
+def RebdsimCombine(rootpath, outpath, silent=False, rebdsimHistoExecutable=None):
+    """Run rebdsimHistoMerge"""
+    if not rebdsimHistoExecutable:
+        rebdsimHistoExecutable = "rebdsimCombine"
+    if not _General.IsROOTFile(rootpath):
+        raise IOError("Not a ROOT file")
+    if silent:
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath],
+                               stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
+
+def RebdsimOrbit(rootpath, outpath, index='1', silent=False, rebdsimHistoExecutable=None):
+    """Run rebdsimHistoMerge"""
+    if not rebdsimHistoExecutable:
+        rebdsimHistoExecutable = "rebdsimOrbit"
+    if not _General.IsROOTFile(rootpath):
+        raise IOError("Not a ROOT file")
+    if silent:
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath, index],
+                               stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath, index])
+
 def GetOpticsFromGMAD(gmad, keep_optics=False):
     """
     Get the optical functions as a BDSAsciiData instance from this
