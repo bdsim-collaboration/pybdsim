@@ -26,13 +26,10 @@ except ImportError: # Python 3.10 onwards.
     from collections.abc import MutableMapping as _MutableMapping
 from collections import OrderedDict as _OrderedDict
 import math as _math
-import time as _time
-import os as _os
 import numpy as _np
 import copy as _copy
 import textwrap as _textwrap
 import numbers
-import string as _string
 
 # these are written to match the order in the manual - http://www.pp.rhul.ac.uk/bdsim/manual-develop/model_construction.html#beamline-elements
 bdsimcategories = [
@@ -1171,11 +1168,11 @@ class Machine(object):
         """
         # TODO: better method for name matching. Keep basic for now.
         if isinstance(names, str):
-            if _string.lower(namelocation) == 'all':
+            if namelocation.lower() == 'all':
                 elements = [name for name in list(self.elements.keys()) if names in name]
-            elif _string.lower(namelocation) == 'start':
+            elif namelocation.lower() == 'start':
                 elements = [name for name in list(self.elements.keys()) if names in name[:len(names)]]
-            elif _string.lower(namelocation) == 'end':
+            elif namelocation.lower() == 'end':
                 elements = [name for name in list(self.elements.keys()) if names in name[-len(names):]]
             else:
                 msg = 'Unknown string location {}'.format(namelocation)
