@@ -61,11 +61,6 @@ pybdsim.Convert
 		.. autofunction:: BdsimPrimaries2Mad8
 		.. autofunction:: BdsimPrimaries2Madx
 		.. autofunction:: BdsimPrimaries2Ptc
-		.. autofunction:: Mad8MakeApertureTemplate
-		.. autofunction:: Mad8MakeCollimatorTemplate
-		.. autofunction:: Mad8MakeOptions
-		.. autofunction:: Mad8Twiss2Gmad
-		.. autofunction:: Mad8Saveline2Gmad
 		.. autofunction:: MadxTfs2Gmad
 		.. autofunction:: MadxTfs2GmadStrength
 				  

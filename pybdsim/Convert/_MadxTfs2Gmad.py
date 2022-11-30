@@ -138,15 +138,15 @@ def MadxTfs2Gmad(tfs, outputfilename,
     |                               | this conversion function will automatically split the element     |
     |                               | at the provided local aperture points whilst retaining optical    |
     |                               | correctness.                                                      |
-    |                               | This kwarg is mutually exclusive with "aperturedict".             |
+    |                               | This kwarg is mutually exclusive with 'aperturedict'.             |
     +-------------------------------+-------------------------------------------------------------------+
     | **collimatordict**            | A dictionary of dictionaries with collimator information keys     |
     |                               | should be exact string match of element name in tfs file value    |
     |                               | should be dictionary with the following keys:                     |
-    |                               | "bdsim_material"   - the material                                 |
-    |                               | "angle"            - rotation angle of collimator in radians      |
-    |                               | "xsize"            - x full width in metres                       |
-    |                               | "ysize"            - y full width in metres                       |
+    |                               | 'bdsim_material'   - the material                                 |
+    |                               | 'angle'            - rotation angle of collimator in radians      |
+    |                               | 'xsize'            - x full width in metres                       |
+    |                               | 'ysize'            - y full width in metres                       |
     +-------------------------------+-------------------------------------------------------------------+
     | **userdict**                  | A python dictionary the user can supply with any additional       |
     |                               | information for that particular element. The dictionary should    |
