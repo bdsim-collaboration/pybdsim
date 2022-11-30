@@ -42,33 +42,36 @@ bdsimcategories = [
     'decapole',
     'multipole',
     'thinmultipole',
-    'rfcavity',
-    'rcol',
-    'ecol',
-    "jcol",
-    'muspoiler',
-    'solenoid',
-    'hkicker',
     'vkicker',
+    'hkicker',
     'kicker',
     'tkicker',
+    'rfcavity',
+    'target',
+    'rcol',
+    'jcol',
+    "ecol",
+    'degrader',
+    'muspoiler',
+    'shield',
+    'dump',
+    'solenoid',
+    'laser',
+    'gap',
+    'crystalcol',
+    'undulator',
     'transform3d',
+    'rmatrix',
+    'thinrmatrix',
     'element',
+    'marker',
+    'wirescanner',
+    'ct',
     'line',
     'matdef',
-    'laser',
     'gas',
     'spec',
-    'degrader',
-    'shield',
-    'gap',
-    'thinrmatrix',
     'paralleltransporter',
-    'rmatrix',
-    'undulator',
-    'wirescanner',
-    'crystalcol',
-    'dump'
     ]
 
 
@@ -1391,14 +1394,6 @@ class Machine(object):
         """
         self.includesPost.append(include)
 
-    def AddMarker(self, name='mk'):
-        """
-        Add a marker to the beam line.
-        """
-        if self.verbose:
-            print('AddMarker> ',name)
-        self.Append(Element(name,'marker'))
-
     def AddDrift(self, name='dr', length=0.1, **kwargs):
         """
         Add a drift to the beam line
@@ -1425,7 +1420,13 @@ class Machine(object):
         elif angle != None:
             self.Append(Element(name, category, l=length, angle=angle, **kwargs))
         else:
-            self.Append(Element(name,category,l=length,B=b,**kwargs))
+            self.Append(Element(name, category, l=length, B=b, **kwargs))
+
+    def AddRBend(self, name="rb", length=0.1, angle=None, b=None, **kwargs):
+        self.AddDipole(name, 'rbend', length, angle, b, **kwargs)
+
+    def AddSBend(self, name="sb", length=0.1, angle=None, b=None, **kwargs):
+            self.AddDipole(name, 'sbend', length, angle, b, **kwargs)
 
     def AddQuadrupole(self, name='qd', length=0.1, k1=0.0, **kwargs):
         self.Append(Element(name, 'quadrupole', l=length, k1=k1, **kwargs))
@@ -1448,22 +1449,44 @@ class Machine(object):
     def AddThinMultipole(self, name='mp', knl=(0,0), ksl=(0,0), **kwargs):
         self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, **kwargs))
 
-    def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
-        self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
+    def AddVKicker(self, name='vk', vkick=0.0, **kwargs):
+        self.Append(Element(name, 'vkicker', vkick=vkick, **kwargs))
+
+    def AddHKicker(self, name='hk', hkick=0.0, **kwargs):
+        self.Append(Element(name, 'hkicker', hkick=hkick, **kwargs))
+
+    def AddKicker(self, name='kk', hkick=0.0, vkick=0.0, **kwargs):
+        self.Append(Element(name, 'kicker', hkick=hkick, vkick=hkick, **kwargs))
+
+    def AddTKicker(self, name='tk', hkick=0.0, vkick=0.0, **kwargs):
+        self.Append(Element(name, 'tkicker', hkick=hkick, vkick=vkick, **kwargs))
+
+    def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs):
+        self.Append(Element(name, 'rfcavity', l=length, gradient=gradient, **kwargs))
+
+    def AddTarget(self, name='trg', length=0.1, material="Cu", **kwargs):
+        self.Append(Element(name, 'target', l=length, material=material, **kwargs))
 
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
         for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
-        self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
+        self.Append(Element(name, 'rcol', l=length, xsize=xsize, ysize=ysize, **d))
 
     def AddJCol(self, name='jc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
         for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
-        self.Append(Element(name,'jcol',l=length,xsize=xsize,ysize=ysize,**d))
+        self.Append(Element(name, 'jcol', l=length, xsize=xsize, ysize=ysize, **d))
+
+    def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
+        d = {}
+        for k,v in kwargs.items():
+            if 'aper' not in str(k).lower():
+                d[k] = v
+        self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
 
     def AddDegrader(self, length=0.1, name='deg', nWedges=1, wedgeLength=0.1, degHeight=0.1, materialThickness=None, degraderOffset=None, **kwargs):
         if (materialThickness==None) and (degraderOffset==None):
@@ -1476,22 +1499,22 @@ class Machine(object):
                                 degraderHeight=degHeight, degraderOffset=degraderOffset,**kwargs))
 
     def AddMuSpoiler(self, name='mu', length=0.1, b=0.0, **kwargs):
-        self.Append(Element(name,'muspoiler',l=length,B=b,**kwargs))
-
-    def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
-        self.Append(Element(name,'solenoid',l=length,ks=ks,**kwargs))
+        self.Append(Element(name, 'muspoiler', l=length, B=b, **kwargs))
 
     def AddShield(self, name='sh', length=0.1, **kwargs):
-        self.Append(Element(name,'shield',l=length,**kwargs))
-
-    def AddLaser(self, length=0.1, name='lsr', x=1, y=0, z=0, waveLength=532e-9, **kwargs):
-        self.Append(Element(name,'laser',l=length,x=x,y=y,z=z,waveLength=waveLength,**kwargs))
+        self.Append(Element(name, 'shield', l=length, **kwargs))
 
     def AddDump(self, name='du', length=0.1, **kwargs):
-        self.Append(Element(name,'dump',l=length,**kwargs))
+        self.Append(Element(name, 'dump', l=length, **kwargs))
 
-    def AddWireScanner(self, name='ws', length=0.1, wireDiameter=1e-3, wireLength=0.1, **kwargs):
-        self.Append(Element(name,'dump',l=length,wireLength=wireLength,wireDiameter=wireDiameter,**kwargs))
+    def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
+        self.Append(Element(name, 'solenoid', l=length, ks=ks, **kwargs))
+
+    def AddLaser(self, length=0.1, name='lsr', x=1, y=0, z=0, waveLength=532e-9, **kwargs):
+        self.Append(Element(name, 'laser', l=length, x=x, y=y, z=z, waveLength=waveLength, **kwargs))
+
+    def AddGap(self, name='gp', length=1.0, **kwargs):
+        self.Append(Element(name, 'gap', l=length, **kwargs))
 
     def AddCrystalCol(self, name='cc', length=0.01, xsize=1e-3, **kwargs):
         objNames = [obj.name for obj in self.objects]
@@ -1513,30 +1536,44 @@ class Machine(object):
         else:
             self.Append(Element(name,'transform3d',**kwargs))
 
-    def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
-        d = {}
-        for k,v in kwargs.items():
-            if 'aper' not in str(k).lower():
-                d[k] = v
-        self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
+    def AddRmat(self, name='rmat', length=0.1,
+                r11=1.0, r12=0, r13=0, r14=0,
+                r21=0, r22=1.0, r23=0, r24=0,
+                r31=0, r32=0, r33=1.0, r34=0,
+                r41=0, r42=0, r43=0, r44=1.0,
+                **kwargs):
+        self.Append(Element(name, 'rmatrix', l=length,
+                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
+                            **kwargs))
 
-    def AddHKicker(self, name='hk', hkick=0.0, **kwargs):
-        self.Append(Element(name,'hkicker', hkick=hkick, **kwargs))
-
-    def AddVKicker(self, name='vk', vkick=0.0, **kwargs):
-        self.Append(Element(name,'vkicker', vkick=vkick, **kwargs))
-
-    def AddKicker(self, name='kk', hkick=0.0, vkick=0.0, **kwargs):
-        self.Append(Element(name,'kicker', hkick=hkick, vkick=hkick, **kwargs))
-
-    def AddTKicker(self, name='tk', hkick=0.0, vkick=0.0, **kwargs):
-        self.Append(Element(name,'tkicker', hkick=hkick, vkick=vkick, **kwargs))
+    def AddThinRmat(self, name='rmatthin',
+                    r11=1.0, r12=0, r13=0, r14=0,
+                    r21=0, r22=1.0, r23=0, r24=0,
+                    r31=0, r32=0, r33=1.0, r34=0,
+                    r41=0, r42=0, r43=0, r44=1.0,
+                    **kwargs):
+        self.Append(Element(name, 'thinrmatrix',
+                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
+                            **kwargs))
 
     def AddElement(self, name='el', length=0.1, outerDiameter=1, geometryFile="geometry.gdml", **kwargs):
         self.Append(Element(name, 'element',l=length,outerDiameter=outerDiameter,geometryFile=geometryFile, **kwargs))
 
-    def AddGap(self, name='gp', length=1.0, **kwargs):
-        self.Append(Element(name, 'gap', l=length, **kwargs))
+    def AddMarker(self, name='mk'):
+        self.Append(Element(name, 'marker'))
+
+    def AddWireScanner(self, name='ws', length=0.1, wireDiameter=1e-3, wireLength=0.1, **kwargs):
+        self.Append(Element(name, 'dump', l=length, wireLength=wireLength, wireDiameter=wireDiameter, **kwargs))
+
+    def AddCT(self, name="ctscan", length=1.0, dicomDataFile="", dicomDataPath="", **kwargs):
+        self.Append(Element(name, 'ct', l=length, dicomDataFile=dicomDataFile, dicomDataPath=dicomDataPath, **kwargs))
+
 
     def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=0.2,**kwargs):
         """
@@ -1625,32 +1662,6 @@ class Machine(object):
 
     def AddPlacement(self, name, **kwargs):
         self.objects.append(Placement(name, **kwargs))
-
-    def AddRmat(self, name='rmat', length=0.1,
-                r11=1.0, r12=0, r13=0, r14=0,
-                r21=0, r22=1.0, r23=0, r24=0,
-                r31=0, r32=0, r33=1.0, r34=0,
-                r41=0, r42=0, r43=0, r44=1.0,
-                **kwargs):
-        self.Append(Element(name, 'rmatrix', l=length,
-                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
-                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
-                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
-                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
-                            **kwargs))
-
-    def AddThinRmat(self, name='rmatthin',
-                    r11=1.0, r12=0, r13=0, r14=0,
-                    r21=0, r22=1.0, r23=0, r24=0,
-                    r31=0, r32=0, r33=1.0, r34=0,
-                    r41=0, r42=0, r43=0, r44=1.0,
-                    **kwargs):
-        self.Append(Element(name, 'thinrmatrix',
-                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
-                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
-                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
-                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
-                            **kwargs))
 
 # General scripts below this point
 
