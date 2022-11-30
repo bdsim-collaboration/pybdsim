@@ -1329,22 +1329,34 @@ class Machine(object):
         writer = _Writer.Writer()
         writer.WriteMachine(self,filename,verboseresult)
 
+    def AddObject(self, obj):
+        """
+        Add an object or definition to be written to the model. An 'object'
+        is a definition that isn't part of a sequence such as a Field, Crystal,
+        or Placement. Anything that has a string representation can be added to
+        the list.
+
+        For an iterable object, tuple, list, and dict are accepted. For a dict,
+        the value (not the key) is added to the internal list without the key.
+
+        Objects:
+        Aperture, Atom, BLM, CavityModel, Crystal, Field, Laser, Material, NewColour
+        Placement, Query, Region, SamplerPlacement, Scorer, ScorerMesh, XSecBias.
+        """
+        if type(obj) in [list, tuple]:
+            for ob in obj:
+                self.AddObject(ob)
+        elif type(obj) is dict:
+            for k,v in obj.items():
+                self.AddObject(v)
+        else:
+            self.objects.append(obj)
+
     def AddBias(self, biases):
         """
-        Add a Builder.XSecBias instance or iterable of instances
-        to this machine.
+        Add a Builder.XSecBias instance or iterable of instances to this machine.
         """
-        # If a single bias object
-        if isinstance(biases, pybdsim.Builder.XSecBias):
-            self.bias.append(biases)
-        else: # An iterable of biases.
-            try:
-                for bias in biases:
-                    self.AddBias(bias)
-            except TypeError:
-                msg = ("Unknown biases!  Biases must be a Builder.XSecBias"
-                       "instance or an iterable of Builder.XSecBias instances.")
-                raise TypeError(msg)
+        self.AddObject(biases)
 
     def AddMaterial(self, materials):
         """
