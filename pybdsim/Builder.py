@@ -340,6 +340,7 @@ class Line(list):
 
     """
     def __init__(self,name,*args):
+        self.category = "line" # for compatibility with Element(s)
         for item in args[0]:
             if type(item) != Element:
                 raise TypeError("Line is a list of Elements")
