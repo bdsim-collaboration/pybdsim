@@ -1408,7 +1408,7 @@ class Machine(object):
         if length < 1e-12:
             self.AddMarker(name)
         else:
-            self.Append(Element(name,'drift',l=length,**kwargs))
+            self.Append(Element(name, 'drift', l=length ,**kwargs))
 
     def AddDipole(self, name='dp', category='sbend', length=0.1,
                   angle=None, b=None, **kwargs):
@@ -1416,7 +1416,6 @@ class Machine(object):
         AddDipole(category='sbend')
 
         category - 'sbend' or 'rbend' - sector or rectangular bend
-
         """
         if category not in ['sbend','rbend']:
             s = 'Invalid category ' + category
@@ -1424,25 +1423,25 @@ class Machine(object):
         if angle is None and b is None:
             raise TypeError('angle or b must be specified for a dipole')
         elif angle != None:
-            self.Append(Element(name,category,l=length,angle=angle,**kwargs))
+            self.Append(Element(name, category, l=length, angle=angle, **kwargs))
         else:
             self.Append(Element(name,category,l=length,B=b,**kwargs))
 
     def AddQuadrupole(self, name='qd', length=0.1, k1=0.0, **kwargs):
-        self.Append(Element(name,'quadrupole',l=length,k1=k1,**kwargs))
+        self.Append(Element(name, 'quadrupole', l=length, k1=k1, **kwargs))
 
     def AddSextupole(self, name='sx', length=0.1, k2=0.0, **kwargs):
-        self.Append(Element(name,'sextupole',l=length,k2=k2,**kwargs))
+        self.Append(Element(name, 'sextupole', l=length, k2=k2, **kwargs))
 
     def AddOctupole(self, name='oc', length=0.1, k3=0.0, **kwargs):
-        self.Append(Element(name,'octupole',l=length,k3=k3,**kwargs))
+        self.Append(Element(name, 'octupole', l=length, k3=k3 ,**kwargs))
 
     def AddDecapole(self, name='dc', length=0.1, k4=0.0, **kwargs):
-        self.Append(Element(name,'decapole',l=length,k4=k4,**kwargs))
+        self.Append(Element(name, 'decapole', l=length,k4=k4,**kwargs))
 
     def AddMultipole(self, name='mp', length=0.1, knl=(0,0), ksl=(0,0), **kwargs):
         if length > 1e-12:
-            self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, **kwargs))
+            self.Append(Element(name,'multipole', l=length, knl=knl, ksl=ksl, **kwargs))
         else:
             self.AddThinMultipole(name, knl, ksl, **kwargs)
 
