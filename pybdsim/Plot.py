@@ -662,10 +662,11 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     ysf = yScalingFactor
     ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
     histEmpty = len(h.contents[h.contents!=0]) == 0
-    if autovmin or vmin is None and not histEmpty:
-        vmin = _np.min(h.contents[h.contents!=0])
-    else:
-        vmin = 0
+    if vmin is None:
+        if autovmin and vmin is None and not histEmpty:
+            vmin = _np.min(h.contents[h.contents!=0])
+        else:
+            vmin = 0
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
