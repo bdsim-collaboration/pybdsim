@@ -16,6 +16,8 @@ Copyright Royal Holloway, University of London 2020.
 +-----------------+----------------------------------------------------------+
 | Gmad            | Create bdsim input files - lattices & options.           |
 +-----------------+----------------------------------------------------------+
+| Geant4          | Dictionary that contains process and subprocess IDs      |
++-----------------+----------------------------------------------------------+
 | ModelProcessing | Tools to process existing BDSIM models and generate      |
 |                 | other versions of them.                                  |
 +-----------------+----------------------------------------------------------+
@@ -53,6 +55,7 @@ from . import Convert
 from . import Compare
 from . import Data
 from . import Field
+from . import Geant4
 from . import Gmad
 from . import Options
 from . import Plot
@@ -70,6 +73,7 @@ __all__ = ['Beam',
            'Data',
            'Field',
            'Gmad',
+           'Geant4',
            'Options',
            'Plot',
            'Run',
