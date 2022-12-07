@@ -603,15 +603,15 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         ymax = max(ymax, sf*_np.max(h.contents+h.errors))
         
     if xlabel is None:
-        ax.set_xlabel(h.xlabel)
+        ax.set_xlabel(histograms[0].xlabel)
     else:
         ax.set_xlabel(xlabel)
     if ylabel is None:
-        ax.set_ylabel(h.ylabel)
+        ax.set_ylabel(histograms[0].ylabel)
     else:
         ax.set_ylabel(ylabel)
     if title == "":
-        ax.set_title(h.title) # default to one in histogram
+        ax.set_title(histograms[0].title) # default to one in histogram
     elif title is None:
         pass
     else:
