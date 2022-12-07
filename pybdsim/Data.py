@@ -1021,6 +1021,21 @@ class TH2(TH1):
         htemp = self.hist.Rebin2D(nBinsX, nBinsY, self.name+"_rebin_"+str(nBinsX)+"_"+str(nBinsY))
         return TH2(htemp)
 
+    def IntegrateAlongX(self):
+        """
+        Integrate along the x axis returning a TH1 in y.
+        """
+        h1d = self.hist.ProjectionX(self.name+"_int_x", 0, -1, "e")
+        return TH1(h1d)
+
+    def IntegrateAlongY(self):
+        """
+        Integrate along the y axis returning a TH1 in x.
+        """
+        h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
+        return TH1(h1d)
+
+
 class TH3(TH2):
     """
     Wrapper for a ROOT TH3 instance. Converts to numpy data.
