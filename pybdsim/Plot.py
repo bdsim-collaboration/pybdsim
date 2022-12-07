@@ -513,7 +513,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     ymax = _np.max(yvl)
     try:
         ymin = sf*_np.min(yvl[yvl>0])
-        ymax = sf*_np.max(yvl[yvl>0])
+        ymax = sf*_np.max(yvh[yvh>0])
     except:
         pass
     if log and not histEmpty:
