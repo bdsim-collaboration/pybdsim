@@ -13,6 +13,7 @@ New Features
 
 * Create a nice Python copy of the header information from any (re)bdsim file when
   loading with pybdsim using only Python types.
+* New integration for 2D histograms along each axis to 1D histograms.
 * New slices for 3D histograms as well as integrating along a dimension ('projection').
   See :ref:`data-3d-histograms`.
 * New ratio plot for 2x 1D histograms. See `pybdsim.Plot.Histogram1DRatio`.
