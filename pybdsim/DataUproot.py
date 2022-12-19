@@ -17,7 +17,7 @@ import numpy as _np
 import pandas as _pd
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
-from . import Data as _Data
+import awkward as ak
 
 try:
     import uproot as _uproot
@@ -27,18 +27,15 @@ except (ImportError, ImportWarning):
 
 _WITH_ROOT = False
 try:
-    try:
-        import warnings
+    import warnings
 
-        warnings.simplefilter("ignore")
-        import ROOT
+    warnings.simplefilter("ignore")
+    import ROOT
 
-        ROOT.gSystem.Load('librebdsim')
-        warnings.simplefilter("default")
-    except (ImportError, UserWarning):
-        pass
+    ROOT.gSystem.Load('librebdsim')
+    warnings.simplefilter("default")
     _WITH_ROOT = True
-except (ImportError, ImportWarning):
+except ImportError:
     logging.warning("ROOT is required for this module to have full functionalities.\n"
                     "Not all methods will be available.")
 
@@ -515,7 +512,9 @@ class Output(metaclass=OutputType):
         self._file = os.path.join(path, filename)
         if open_file:
             self._root_directory: _uproot.rootio.ROOTDirectory = _uproot.open(self._file)
-            self._rootfile = ROOT.TFile.Open(self._file)
+            if _WITH_ROOT:
+                self._rootfile = ROOT.TFile.Open(self._file)
+
 
     @classmethod
     def from_root_directory(cls, directory: _uproot.rootio.ROOTDirectory) -> Output:
@@ -545,14 +544,14 @@ class Output(metaclass=OutputType):
     @property
     def filename(self):
         return self._filename
+    @property
+    def rootfile(self):
+        return self._rootfile
 
     @property
     def path(self):
         return self._path
 
-    @property
-    def rootfile(self):
-        return self._rootfile
 
     class Directory:
         def __init__(self, parent: Union[Output, Output.Directory], directory: _uproot.rootio.ROOTDirectory):
@@ -587,7 +586,10 @@ class Output(metaclass=OutputType):
                 return Histogram3d(item, self.parent, n)
             elif c.startswith('BDSBH4D'):
                 name = n.split(';')[0]
-                return Histogram4d(self.parent, self.parent.rootfile.Get('Event/MergedHistograms/' + name), name)
+                if not _WITH_ROOT:
+                    logging.error("ROOT must be installed to use Histogram4D.")
+                else:
+                    return Histogram4d(self.parent, self.parent.rootfile.Get('Event/MergedHistograms/' + name), name)
             else:
                 return self._directory[n]
 
@@ -748,10 +750,9 @@ class Output(metaclass=OutputType):
                 branches = [self.branch_name + b for b, _ in self._active_leaves.items() if _[0] is True]
             else:
                 branches = [self.branch_name + b for b in branches]
-            try:
-                df = self.parent.tree.arrays(branches, library='pandas')[0]
-            except KeyError: # for the beam tree
-                df = self.parent.tree.arrays(branches, library='pandas')
+
+            df = ak.to_dataframe(self.parent.tree.arrays(branches, library='ak'),
+                                 how='outer') # Use ak instead of pandas
             if strip_prefix:
                 import re
                 df.columns = [re.split(self.branch_name, c)[1] for c in df.columns]
@@ -1400,32 +1401,21 @@ class BDSimOutput(Output):
                 model_geometry_df[name] = self.array(branch=branch)
 
             # Collimators
-            # Check that the option storeCollimator is set in BDSIM
-            """
-            We must use DataLoader because in BDSIM, the model tree has a splitLevel of 1. If we update to 2, we can use
-            uproot but it breaks the DataLoader of pybdsim, this is not backward compatible. It generates warnings and
-            we should not display them.
-            """
-            data = _Data.Load(self.parent._file)
-            try:
-                model = data.GetModel()  # Keep this line here otherwise it doesn t work
-                collimator_infos = _pd.DataFrame()
-                for i in range(model.model.collimatorInfo.size()):
-                    collimator_infos.at[i, "NAME"] = model.model.collimatorInfo.at(i).componentName
-                    collimator_infos.at[i, "APERTURE1"] = model.model.collimatorInfo.at(i).xSizeIn
-                    collimator_infos.at[i, "APERTURE2"] = model.model.collimatorInfo.at(i).ySizeIn
+            if not self.array(branch='storeCollimatorInfo'):
+                logging.warning("Informations for collimators are empty, you shoud set storeCollimatorInfo=1")
 
-                if not collimator_infos.empty:
-                    for _, j in collimator_infos.iterrows():
-                        model_geometry_df.loc[model_geometry_df.query("NAME == @j['NAME']").index, 'APERTURE1'] = j[
-                            'APERTURE1']
-                        model_geometry_df.loc[model_geometry_df.query("NAME == @j['NAME']").index, 'APERTURE2'] = j[
-                            'APERTURE2']
-                else:
-                    logging.warning("Informations for collimators are empty, you shoud set storeCollimatorInfo=1")
+            collimator_df = _pd.DataFrame()
+            branches = ['collimatorInfo/Model.collimatorInfo.componentName',
+                        'collimatorInfo/Model.collimatorInfo.xSizeIn',
+                        'collimatorInfo/Model.collimatorInfo.ySizeIn']
+            collimator_df = _pd.DataFrame(self.arrays(branches)).T
+            collimator_df.columns=['NAME', 'APERTURE1', 'APERTURE2']
 
-            except AttributeError:
-                logging.critical("Get Model function must be changed for RebdsimOutputFile")
+            for _, line in collimator_df.iterrows():
+                col_name = line['NAME']
+                idx = model_geometry_df.query(f"NAME == @col_name").index.values[0]
+                model_geometry_df.at[idx, 'APERTURE1'] = line['APERTURE1']
+                model_geometry_df.at[idx, 'APERTURE2'] = line['APERTURE2']
 
             # Vectors
             geometry_branches = {'staPos': 'ENTRY_',
