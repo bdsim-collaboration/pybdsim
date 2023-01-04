@@ -14,6 +14,7 @@ of BDSIM models.
    convert
    compare	     
    data
+   data_uproot
    fieldmaps
    classes
    support

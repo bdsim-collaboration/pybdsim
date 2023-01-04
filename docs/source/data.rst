@@ -307,3 +307,4 @@ variables most interesting for tracking ('x','xp','y','yp','z','zp','energy','t'
   >>> psd1 = pybdsim.Data.PhaseSpaceData(d)
   >>> psd2 = pybdsim.Data.PhaseSpaceData(d, fq15x)
   >>> psd3 = pybdsim.Data.PhaseSpaceData(d, 3)
+

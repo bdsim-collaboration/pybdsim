@@ -11,6 +11,8 @@ setup(
                       "scipy",
                       "fortranformat",
                       "uproot",
+                      "pandas",
+                      "pint",
                       "pymadx",
                       "pymad8",
                       "pytransport"],

@@ -11,6 +11,7 @@ V2.5.0 - 2022 / 02 / XX
 New Features
 ------------
 
+* Add a module to load BDSIM output file, included rebdsim files with uproot.
 * Create a nice Python copy of the header information from any (re)bdsim file when
   loading with pybdsim using only Python types.
 * New slices for 3D histograms as well as integrating along a dimension ('projection').

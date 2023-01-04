@@ -648,8 +648,11 @@ class Output(metaclass=OutputType):
 
         def arrays(self, branches=None, **kwargs):
             """A proxy for the `uproot` `arrays` method."""
-            return [self._tree[self.__class__.__name__ + '.'][self.__class__.__name__ + '.' + b].array().tolist()[0] for
-                    b in branches]
+            if self._tree_name != 'Optics':
+                return [self._tree[self.__class__.__name__ + '.'][self.__class__.__name__ + '.' + b].array().tolist()[0] for
+                        b in branches]
+            else:
+                return [self._tree[b].array().tolist() for b in branches]
 
         def pandas(self, branches=None, **kwargs):
             """A proxy for the `uproot` `pandas` method."""
@@ -1769,26 +1772,27 @@ class ReBDSimOutput(Output):
         return getattr(self, item)
 
 
-class ReBDSimOpticsOutput(ReBDSimOutput):
+class ReBDSimOpticsOutput(Output):
     def __getattr__(self, item):
         try:
             self._root_directory.get(item.title())
         except KeyError:
             raise BDSimOutputException(f"Key {item} is invalid.")
 
-        if item.rstrip('_') in (
+        if item in (
                 'optics',
         ):
             setattr(self,
-                    item.rstrip('_'),
-                    getattr(ReBDSimOpticsOutput, item.rstrip('_').title())(parent=self)
+                    item,
+                    getattr(ReBDSimOpticsOutput, item.title())(parent=self)
                     )
-            if item.endswith('_'):
-                return getattr(self, item.rstrip('_'))
-            else:
-                return getattr(getattr(self, item.rstrip('_')), item.rstrip('_'))
+            return getattr(self, item)
         else:
-            return getattr(super(), item)
+            setattr(self,
+                    item,
+                    getattr(BDSimOutput, item.title())(parent=self)
+                    )
+        return getattr(self, item)
 
     class Optics(Output.Tree):
 
@@ -1847,6 +1851,17 @@ class ReBDSimOpticsOutput(ReBDSimOutput):
                 'Sigma_Sigma_t': [True, None],
                 'xyCorrelationCoefficent': [True, None],
             }
+
+        # Override the method to_df as rebsdimOptics as not the same structure
+        def to_df(self) -> _pd.DataFrame:
+            """
+
+            Returns:
+
+            """
+            optics_df = _pd.DataFrame(self.arrays(branches=self.Optics.DEFAULT_LEAVES.keys())).T
+            optics_df.columns = self.Optics.DEFAULT_LEAVES.keys()
+            return optics_df
 
 
 class ReBDSimCombineOutput(ReBDSimOutput):
