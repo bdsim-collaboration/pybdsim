@@ -18,7 +18,7 @@ class ExecOptions(dict):
 
         Based on python dictionary but with parameter checking.
         """
-        self.__dict__.__init__()
+        super().__init__()
         self._okFlags = ['batch',
                          'circular',
                          'generatePrimariesOnly',
@@ -159,7 +159,6 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
     Runs in batch mode by default, with 10,000 particles.  Any extra
     options should be provided as a string or iterable of strings of
     the form "--vis_debug" or "--vis_mac=vis.mac", etc.
-
     """
     if not bdsimExecutable:
         bdsimExecutable = "bdsim"
@@ -198,7 +197,9 @@ def Rebdsim(rootpath, inpath, outpath,silent=False, rebdsimExecutable=None):
         return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
     
 def RebdsimOptics(rootpath, outpath, silent=False):
-    """Run rebdsimOptics"""
+    """
+    Run rebdsimOptics
+    """
     if not _General.IsROOTFile(rootpath):
         raise IOError("Not a ROOT file")
     if silent:
@@ -208,7 +209,9 @@ def RebdsimOptics(rootpath, outpath, silent=False):
         return _subprocess.call(["rebdsimOptics", rootpath, outpath])
 
 def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=None):
-    """Run rebdsimHistoMerge"""
+    """
+    Run rebdsimHistoMerge
+    """
     if not rebdsimHistoExecutable:
         rebdsimHistoExecutable = "rebdsimHistoMerge"
     if not _General.IsROOTFile(rootpath):
@@ -218,6 +221,34 @@ def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=No
                                stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
+
+def RebdsimCombine(rootpath, outpath, silent=False, rebdsimHistoExecutable=None):
+    """
+    Run rebdsimCombine
+    """
+    if not rebdsimHistoExecutable:
+        rebdsimHistoExecutable = "rebdsimCombine"
+    if not _General.IsROOTFile(rootpath):
+        raise IOError("Not a ROOT file")
+    if silent:
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath],
+                               stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
+
+def RebdsimOrbit(rootpath, outpath, index='1', silent=False, rebdsimHistoExecutable=None):
+    """
+    Run rebdsimOrbit
+    """
+    if not rebdsimHistoExecutable:
+        rebdsimHistoExecutable = "rebdsimOrbit"
+    if not _General.IsROOTFile(rootpath):
+        raise IOError("Not a ROOT file")
+    if silent:
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath, index],
+                               stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath, index])
 
 def GetOpticsFromGMAD(gmad, keep_optics=False):
     """

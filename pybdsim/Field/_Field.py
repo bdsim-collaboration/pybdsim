@@ -18,13 +18,28 @@ class Field(object):
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
         
-    def Write(self, fileName, writeLoopOrderReversed=False):
+    def Write(self, fileName, writeLoopOrderReversed=False, overrideLoopOrder=None):
+        """
+        :param writeLoopOrderReversed: Write this field map with the other loop order.
+        :type writeLoopOrderReversed: bool
+        :param overrideLoopOrder: string to write irrespective of internal data as the loop order.
+        :type overrideLoopOrder: str
+
+        For overrideLoopOrder it should be only 'xyzt' or 'tzyx'. This option is
+        provided in case a field is prepared in the other order somehow and you
+        want to control the writing of this header variable independently.
+        """
         f = open(fileName, 'w')
         
         for key,value in self.header.items():
             f.write(str(key)+'> '+ str(value) + '\n')
-        lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
-        f.write("loopOrder> "+lo+"\n")
+        if overrideLoopOrder:
+            if overrideLoopOrder not in ['xyzt', 'tzyx']:
+                raise ValueError("overrideLoopOrder must be one of 'xyzt', 'tzyx'")
+            f.write("loopOrder> "+overrideLoopOrder+"\n")
+        else:
+            lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
+            f.write("loopOrder> "+lo+"\n")
 
         if self.doublePrecision:
             colStrings = ['%23s' % s for s in self.columns]
@@ -68,6 +83,32 @@ class Field(object):
 
         f.close()
 
+    def WriteFLUKA2DFormat1(self, fileName):
+        """
+        Write one of the FLUKA formats (x,y,Bx,by) in cm,T with no header.
+    
+        Very simple and only works for Field2D - can be improved.
+        """
+        if self.nDimensions != 2:
+            raise LogicError("This field map is not 2D - it's ",self.nDimensions,"D")
+
+        f = open(fileName, "w")
+        
+        # flatten all but last dimension - 3 field components
+        nvalues = _np.shape(self.data)[-1] # number of values in last dimension
+
+        flipLocal = self.flip
+
+        dt = self.data.reshape(-1,nvalues)
+        for xi in range(self.header['nx']):
+            for yi in range(self.header['ny']):
+                v = self.data[xi][yi]
+                v = [v[index] for index in [0,1,2,3]] # [x,y,Bx,By]
+                strings   = ['%.7E' % x for x in v]
+                #stringsFW = ['%14s' % s for s in strings]
+                f.write(','.join(strings) + '\n')
+        
+        f.close()
 
 class Field1D(Field):
     """
@@ -374,3 +415,36 @@ def MirrorDipoleQuadrant1(field2D):
     resultField = Field2D(result)
     return resultField
 
+def SortUnorderedFieldMap2D(field):
+    """
+    Rearrange the data in a 2D field map to be in a linearly
+    progressing loop of (x,y). In future this could be generalised
+    to more dimensions and also any two dimensions, not just x,y.
+
+    :param field: Incoming jumbled field map
+    :type  field: pybdsim.Field.Field2D
+
+    Returns a new Field2D object
+    """
+    d  = field.data
+    sh = _np.shape(d)
+    d2 = fd.data.reshape((sh[0]*sh[1],sh[2]))
+
+    # build a dict with key (x,y)
+    dmap = {}
+    for v in d2:
+        dmap[(v[0],v[1])] = v[2:]
+
+    # build up new array now in order
+    dnew = []
+    h = fd.header
+    for y in np.linspace(h['ymin'], h['ymax'], h['ny']):
+        r = []
+        for x in np.linspace(h['xmin'], h['xmax'], h['nx']):
+            fv = dmap[(x,y)]
+            r.append([x,y,*fv])
+        dnew.append(r)
+
+    dnew = _np.array(dnew)
+    fdnew = Field2D(dnew)
+    return fdnew

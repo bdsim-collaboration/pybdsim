@@ -22,20 +22,11 @@ pybdsim.Beam module
 pybdsim.Builder module
 ----------------------
 
-.. autoclass:: pybdsim.Builder.Machine
-	       :members:
-	       :undoc-members:
-	       :show-inheritance:
+.. automodule:: pybdsim.Builder
+                :members:
+		:undoc-members:
+		:show-inheritance:	
 
-.. autoclass:: pybdsim.Builder.Line
-	       :members:
-	       :undoc-members:
-	       :show-inheritance:
-
-.. autoclass:: pybdsim.Builder.Element
-	       :members:
-	       :undoc-members:
-	       :show-inheritance:
 
 pybdsim.Compare
 ---------------
@@ -70,11 +61,6 @@ pybdsim.Convert
 		.. autofunction:: BdsimPrimaries2Mad8
 		.. autofunction:: BdsimPrimaries2Madx
 		.. autofunction:: BdsimPrimaries2Ptc
-		.. autofunction:: Mad8MakeApertureTemplate
-		.. autofunction:: Mad8MakeCollimatorTemplate
-		.. autofunction:: Mad8MakeOptions
-		.. autofunction:: Mad8Twiss2Gmad
-		.. autofunction:: Mad8Saveline2Gmad
 		.. autofunction:: MadxTfs2Gmad
 		.. autofunction:: MadxTfs2GmadStrength
 				  

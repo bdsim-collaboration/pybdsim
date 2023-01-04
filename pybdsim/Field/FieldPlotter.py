@@ -2,6 +2,7 @@ import matplotlib.pyplot as _plt
 import numpy as _np
 
 import pybdsim as _pybdsim
+import pybdsim.Field._Field
 
 def _ArrowSize(d):
     """
@@ -12,7 +13,7 @@ def _ArrowSize(d):
     h = d.header
     result = _np.inf
     for i in range(nDim):
-        key = d.columns[i]
+        key = d.columns[i].lower()
         step = (h[key+'max'] - h[key+'min']) / h['n'+key]
         result = _np.min([result, step])
     return result
@@ -115,7 +116,7 @@ def Plot1DFxFyFz(filename):
     _plt.setp(axFy.get_xticklabels(), visible=False)
     _plt.tight_layout()
 
-def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal',figsize=(6,5)):
+def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal', figsize=(6,5)):
     """
     Plot a bdsim field map file using the X,Y plane.
     
@@ -125,11 +126,11 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
     :type scale: float
     :param title: title for plot
     :type title: str
-    :param flipX: whether to plot x backwards to math the right hand coordinate system of Geant4.
+    :param flipX: whether to plot x backwards to match the right hand coordinate system of Geant4.
     :type flipX: bool
-    :param firstDimension: Name of first dimension, e.g. "X"
+    :param firstDimension: Label of first dimension, e.g. "X"
     :type firstDimension: str
-    :param secondDimension: Name of second dimension, e.g. "Z"
+    :param secondDimension: Label of second dimension, e.g. "Z"
     :type secondDimension: str
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
@@ -140,6 +141,56 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
     if title:
         _plt.title(title)
     _Niceties(firstDimension+' (cm)', secondDimension+' (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX, aspect=aspect)
+
+
+def Plot2DXYMagnitude(filename, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect="equal", zlabel="|$B_{x,y}$| (T)", figsize=(6,5)):
+    """
+    Plot a the magnitude of a 2D bdsim field map file using any two planes.
+
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field2D instance
+    :param title: title for plot
+    :type title: str, None
+    :param flipX: whether to plot x backwards to match the right hand coordinate system of Geant4.
+    :type flipX: bool
+    :param firstDimension: Name of first dimension, e.g. "X"
+    :type firstDimension: str
+    :param secondDimension: Name of second dimension, e.g. "Z"
+    :type secondDimension: str
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
+    :param zlabel: Label for colour bar
+    :type zlabel: str
+    """
+    flip = False
+    if type(filename) is str:
+        doriginal = _pybdsim.Field.Load(filename)
+        d = doriginal.data
+        flip = doriginal.flip
+    elif isinstance(filename, _pybdsim.Field._Field.Field):
+        doriginal = filename
+        d = filename.data
+        flip = doriginal.flip
+    else:
+        raise ValueError("Invalid type of data")
+    
+    _plt.figure(figsize=figsize)
+
+    # assumes the columns are X Y Fx Fy Fz
+    bmag = _np.sqrt(d[:,:,2]**2 + d[:,:,3]**2)
+
+    ext = [_np.min(d[:,:,0]), _np.max(d[:,:,0]), _np.min(d[:,:,1]), _np.max(d[:,:,1])]
+
+    # the data will write out flipped but we need to draw it the right way
+    theData = bmag.T if flip else bmag
+    _plt.imshow(theData, extent=ext, origin='lower', aspect=aspect, interpolation='none')
+
+    if title:
+        _plt.title(title)
+
+    fd = firstDimension
+    sd = secondDimension
+    _Niceties(fd+' (cm)', sd+' (cm)', zlabel=zlabel, flipX=flipX, aspect=aspect)
 
 
 def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDimension="X", secondDimension="Y", aspect="equal"):
@@ -153,7 +204,7 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
     :type scale: float
     :param title: title for plot
     :type title: str
-    :param flipX: whether to plot x backwards to math the right hand coordinate system of Geant4.
+    :param flipX: whether to plot x backwards to match the right hand coordinate system of Geant4.
     :type flipX: bool
     :param firstDimension: Name of first dimension, e.g. "X"
     :type firstDimension: str

@@ -15,13 +15,18 @@ import time
 import pybdsim.Data as _Data
 
 def BdsimPrimaries2Ptc(inputfile, outfile=None, start=0, ninrays=-1):
-    """"
+    """
     Takes .root file generated from a BDSIM run an an input and creates
     a PTC inrays file from the primary particle tree.
-    inputfile - <str> root format output from BDSIM run
-    outfile   - <str> filename for the inrays file
-    start     - <int> starting primary particle index
-    ninrays   - <int> total number of inrays to generate
+    
+    :param inputfile: root format output from BDSIM run
+    :type  inputfile: str
+    :param outfile: filename for the inrays file
+    :type  outfile: str
+    :param start: starting primary particle index
+    :type  start: int
+    :param ninrays: total number of inrays to generate
+    :type  ninrays: int
     """
     if outfile is None:
         outfile = inputfile.rstrip(".root")
@@ -30,14 +35,20 @@ def BdsimPrimaries2Ptc(inputfile, outfile=None, start=0, ninrays=-1):
     BdsimSampler2Ptc(inputfile, outfile, "Primary", start, ninrays)
 
 def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
-    """"
+    """
     Takes .root file generated from a BDSIM run an an input and creates
     a PTC inrays file from the sampler particle tree. Converts primary particles only.
-    inputfile   - <str> root format output from BDSIM run
-    outfile     - <str> filename for the inrays file
-    samplername - <str> sampler name in BDSIM root file
-    start       - <int> starting sampler particle index
-    ninrays     - <int> total number of inrays to generate
+    
+    :param inputfile: root format output from BDSIM run
+    :type  inputfile: str
+    :param outfile: filename for the inrays file
+    :type  outfile: str
+    :param samplername: sampler name in BDSIM root file
+    :type  samplername: str
+    :param start: starting primary particle index
+    :type  start: int
+    :param ninrays: total number of inrays to generate
+    :type  ninrays: int
     """
     if not (outfile[-5:] == ".madx"):
         outfile = outfile + ".madx"
@@ -72,13 +83,19 @@ def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
     outfile.close()
 
 def BdsimPrimaries2BdsimUserFile(inputfile, outfile, start=0, ninrays=-1):
-    """"
+    """
     Takes .root file generated from a BDSIM run and creates
     a BDSIM userFile file from the primary particle tree.
-    inputfile   - <str> root format output from BDSIM run
-    outfile     - <str> filename for the inrays file
-    start       - <int> starting sampler particle index
-    ninrays     - <int> total number of inrays to generate
+    
+    :param inputfile: root format output from BDSIM run
+    :type  inputfile: str
+    :param outfile: filename for the inrays file
+    :type  outfile: str
+    :param start: starting primary particle index
+    :type  start: int
+    :param ninrays: total number of inrays to generate
+    :type  ninrays: int
+    
     Writes the following columns to file:
       x[m] xp[rad] y[m] yp[rad] t[ns] E[GeV]
     E is the total particle energy.
@@ -86,19 +103,27 @@ def BdsimPrimaries2BdsimUserFile(inputfile, outfile, start=0, ninrays=-1):
     BdsimSampler2BdsimUserFile(inputfile, outfile, "Primary", start, ninrays)
 
 def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays=-1):
-    """"
+    """
     Takes .root file generated from a BDSIM run and creates
     a BDSIM userFile file from the sampler particle tree.
-    inputfile   - <str> root format output from BDSIM run
-    outfile     - <str> filename for the inrays file
-    samplername - <str> sampler name in BDSIM root file
-    start       - <int> starting sampler particle index
-    ninrays     - <int> total number of inrays to generate
+    
+    :param inputfile: root format output from BDSIM run
+    :type  inputfile: str
+    :param outfile: filename for the inrays file
+    :type  outfile: str
+    :param samplername: sampler name in BDSIM root file
+    :type  samplername: str
+    :param start: starting primary particle index
+    :type  start: int
+    :param ninrays: total number of inrays to generate
+    :type  ninrays: int
+    
     Writes the following columns to file:
       x[m] xp[rad] y[m] yp[rad] t[ns] E[GeV]
-    E is the total particle energy.
-    The t column is the time in the given sampler minus the mean time for that sampler.
-    If not mean subtracted, the particles may be significantly offset from the primary position.
+    
+    E is the total particle energy. The t column is the time in the given 
+    sampler minus the mean time for that sampler. If not mean subtracted, 
+    the particles may be significantly offset from the primary position.
     """
     if not (outfile[-4:] == ".dat"):
         outfile = outfile + ".dat"
@@ -134,13 +159,18 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
     outfile.close()
 
 def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
-    """"
+    """
     Takes .root file generated from a BDSIM run an an input and creates
     a MADX inrays file from the primary particle tree.
-    inputfile - <str> root format output from BDSIM run
-    outfile   - <str> filename for the inrays file
-    start     - <int>  starting primary particle index
-    ninrays   - <int> total number of inrays to generate, default is all available
+
+    :param inputfile: root format output from BDSIM run
+    :type  inputfile: str
+    :param outfile: filename for the inrays file
+    :type  outfile: str
+    :param start: starting primary particle index
+    :type  start: int
+    :param ninrays: total number of inrays to generate, default is all available
+    :type  ninrays: int
     """
     if not (outfile[-5:] == ".madx"):
         outfile = outfile+".madx"
@@ -168,13 +198,18 @@ def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
     outfile.close()
 
 def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
-    """"
+    """
     Takes .root file generated from a BDSIM run an an input and creates
     a MAD8 inrays file from the primary particle tree.
-    inputfile - <str> root format output from BDSIM run
-    outfile   - <str> filename for the inrays file
-    start     - <int>  starting primary particle index
-    ninrays   - <int> total number of inrays to generate
+
+    :param inputfile: root format output from BDSIM run
+    :type  inputfile: str
+    :param outfile: filename for the inrays file
+    :type  outfile: str
+    :param start: starting primary particle index
+    :type  start: int
+    :param ninrays: total number of inrays to generate
+    :type  ninrays: int
     """
     if not (outfile[-5:] == ".mad8"):
         outfile = outfile+".mad8"
@@ -203,7 +238,9 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
     outfile.close()
 
 def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimaries):
-    """ Load BDSIM coordinates and convert to PTC format."""
+    """
+    Load BDSIM coordinates and convert to PTC format.
+    """
     if isinstance(inputfile, str):
         if not _path.isfile(inputfile):
             raise IOError("file \"{}\" not found!".format(inputfile))
@@ -268,7 +305,9 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
     return coords
 
 def _ExtractSamplerCoords(data, samplername):
-    """ Extract sampler coordinates."""
+    """
+    Extract sampler coordinates.
+    """
     if samplername != "Primary":
         # add . to the sampler name to match branch names from file
         if samplername[-1] != ".":

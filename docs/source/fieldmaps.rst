@@ -82,6 +82,8 @@ information. However, a small example script is shown below here (in Python lang
 	  dimension first, i.e. x. Therefore, the loop above is with x on the outside.
 	  See below for purposely handling the other order of looping.
 
+.. note:: See :ref:`field-order`.
+
 This minimal example creates a 2D 'box' of 4 points in space each with the same field
 value of [0,1,0] (unit Y direction with magnitude 1). The box is :math:`\pm 30 cm` in
 size. Units aren't used explicitly - just numbers - but the units of BDSIM field map
@@ -229,14 +231,24 @@ using Matplotlib. These functions are inside the :code:`pybdsim.Field` module an
 start with :code:`Plot`. A list is:
 
 * :code:`pybdsim.Field.Plot1DFxFyFz`
-* :code:`pybdsim.Field.Plot2DXYConnectionOrder`
+* :code:`pybdsim.Field.Plot2D`
 * :code:`pybdsim.Field.Plot2DXY`
-* :code:`pybdsim.Field.Plot2DXYFxFyFz`
-* :code:`pybdsim.Field.Plot2DXYBz`
+* :code:`pybdsim.Field.Plot2DXYMagnitude`
+* :code:`pybdsim.Field.Plot2DXYConnectionOrder`
 * :code:`pybdsim.Field.Plot2DXYStream`
+* :code:`pybdsim.Field.Plot2DXYComponent`
+* :code:`pybdsim.Field.Plot2DXYFxFyFz`
+* :code:`pybdsim.Field.Plot2DXYBx`
+* :code:`pybdsim.Field.Plot2DXYBy`
+* :code:`pybdsim.Field.Plot2DXYBz`
 * :code:`pybdsim.Field.Plot3DXY`
 * :code:`pybdsim.Field.Plot3DXZ`
 
+.. warning:: Plots that use arrows or stream plots do **not** depend on the order
+	     of the points so they cannot be relied upon to tell if the field map
+	     being prepared is in the correct order. Use `Plot2DXYMagnitude` or
+	     `Plot2DXYConnectionOrder` to verify the order of the points.
+  
 A (guaranteed) complete list can be found in :ref:`pybdsim-field-module`.
 
 Each can be inspected (in IPython, which is recommended) with a question mark to see its description: ::
@@ -257,6 +269,8 @@ Each can be inspected (in IPython, which is recommended) with a question mark to
 Conversion
 ----------
 
+**your data** -> **numpy array** -> **pybdsim.Field.FieldND(data) class**
+
 To convert a field map, you should first write a loader from your own format
 to the field map into a numpy array with a structure described in :ref:`field-map-creation`.
 Then, this array can be *wrapped* in an instance of one of the pybdsim Field classes. This
@@ -275,3 +289,43 @@ like: ::
       bd.Write(outputfilename)
 
 
+The source of a field map data should represent an equally spaced grid of points
+and provided in order, such that it can be converted easily to BDSIM's format with
+the various classes.
+
+.. note:: See :ref:`field-order`. Make sure to validate the order with plots before
+	  using in a simulation in BDSIM. You can also visualise the fields in BDSIM
+	  to check. It is recommended to do this with a single component before using
+	  in a bigger model.
+
+
+Sorting Points
+--------------
+
+If the data points for the field map correspond to a rectilinear grid but are not
+provided in order (sometimes can happen from finite-element programs), you should
+ideally try to get a field map in order. Failing that, you can try to sort the data
+into an ordered array. An example implementation is given in
+:code:`pybdsim.Field.SortUnorderedFieldMap2D`. Although, this is provided there is
+no guarantee the implementation will work depending on the numerical precision of
+the coordinates. It is still recommended to go back to the origin field program
+and get a correct grid of points.
+
+.. _field-order:
+
+Importance of Order
+-------------------
+
+In a BDSIM field map file, the coordinates at each point are written but BDSIM itself
+does not use these. BDSIM reads the header information and loops over the data
+assuming the number of points specified in the header. Therefore if the data is
+provided in the wrong order the field map will appear scrambled in BDSIM. This can
+happen with hand-preparation and editing of files.
+
+It is **recommended** to use the pybdsim.Field classes as these are guaranteed to
+write the data out correctly.
+
+Plots that use arrows or stream plots do **not** depend on the order
+of the points so they cannot be relied upon to tell if the field map
+being prepared is in the correct order. Use `Plot2DXYMagnitude` or
+`Plot2DXYConnectionOrder` to verify the order of the points.

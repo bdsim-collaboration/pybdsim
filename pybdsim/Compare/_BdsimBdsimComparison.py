@@ -47,8 +47,7 @@ def _parse_bdsim_input(bdsim_in, name):
    if isinstance(bdsim_in, str):
        if not _path.isfile(bdsim_in):
            raise IOError("file \"{}\" not found!".format(bdsim_in))
-       name = (_path.splitext(_path.basename(bdsim_in))[0]
-               if name is None else name)
+       name = (_path.splitext(_path.basename(bdsim_in))[0] if name is None else name)
        data = pybdsim.Data.Load(bdsim_in)
        if hasattr(data, 'optics'):
            data = data.optics

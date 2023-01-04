@@ -25,6 +25,7 @@ sections = ['components',
             'beam',
             'options',
             'bias',
+            'material',
             'objects']
 
 class FileSection():
@@ -38,6 +39,8 @@ class FileSection():
     * Beam
     * Options
     * Bias
+    * Material
+
 
     The class contains booleans and strings relating to the location of
     that sections data. The section can set to be:
@@ -168,6 +171,7 @@ class Writer():
         self.Options    = FileSection('options')
         self.Objects    = FileSection('options')
         self.Bias       = FileSection('bias')
+        self.Material   = FileSection('material')
 
         self._mainFileLines   = []        #lines that will be written to the main file.
         self._elementsperline = 100       #number of machine elements per bdsim line (not text line)
@@ -205,6 +209,8 @@ class Writer():
         +---------------------------+----------------------------------------+
         | filename_bias.gmad        | machine biases (if defined)            |
         +---------------------------+----------------------------------------+
+        | filename_material.gmad    | machine materials (if defined)         |
+        +---------------------------+----------------------------------------+
         | filename.gmad             | suitable main file with all sub        |
         |                           | files in correct order                 |
         +---------------------------+----------------------------------------+
@@ -231,6 +237,7 @@ class Writer():
             self.Options.WriteInMain()
             self.Samplers.WriteInMain()
             self.Bias.WriteInMain()
+            self.Material.WriteInMain()
             if len(machine.objects) > 0:
                 self.Objects.WriteInMain()
 
@@ -241,6 +248,7 @@ class Writer():
         self.WriteBeam(machine)
         self.WriteOptions(machine)
         self.WriteBias(machine)
+        self.WriteMaterial(machine)
         if len(machine.objects) > 0:
             self.WriteObjects(machine)
 
@@ -263,11 +271,10 @@ class Writer():
         Write the main gmad file:
         filename.gmad
 
-        The functions for the other sections of the machine (components,sequence,beam,options,samplers,bias)
+        The functions for the other sections of the machine (components,sequence,beam,options,samplers,bias,material)
         must be written BEFORE this function is called.
 
         """
-        self._machineCheck(machine)
 
         if filename == '':
             fn_main = self._mainFilename #default
@@ -321,7 +328,6 @@ class Writer():
         Write the machines components to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_components = self._getName(filename,'components')
         if self.Components._writeInMain:                #if _writeInMain, append strings to _mainFileLines list.
             for element in list(machine.elements.values()):
@@ -343,7 +349,6 @@ class Writer():
         Write the machines bias to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_bias = self._getName(filename,'bias')
 
         #write bias if it exists
@@ -363,6 +368,30 @@ class Writer():
             self._sectionsToBeWritten.append('Bias')
         self.Bias._hasBeenWritten = True
 
+    def WriteMaterial(self,machine,filename=''):
+        """
+        Write the machines material to disk:
+        filename.gmad
+        """
+        fn_material = self._getName(filename,'material')
+
+        #write matrial if it exists
+        if len(machine.material) > 0:
+            if self.Material._writeInMain:
+                for material in machine.material:
+                    self._mainFileLines.append(str(material))
+                self._mainFileLines.append('\r\n')
+            elif self.Material._isWrittenSeparately:
+                with open(fn_material, 'w') as f:
+                    self._writeFileheader(f, ["! MATERIAL DEFINITION"])
+                    for material in machine.material:
+                        f.write(str(material))
+                self.Material._filePath = fn_material
+                self._sectionsToBeWritten.append('Material')
+        elif self.Material._isUserDefined:
+            self._sectionsToBeWritten.append('Material')
+        self.Material._hasBeenWritten = True
+
     def WriteBeam(self,machine,filename=''):
         """
         Write a machines beam to disk:
@@ -375,7 +404,6 @@ class Writer():
         if isinstance(machine,_Beam.Beam):
             object = machine
         else:
-            self._machineCheck(machine)
             object = machine.beam
 
         fn_beam = self._getName(filename,'beam')
@@ -398,7 +426,6 @@ class Writer():
         Write the machines samplers to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_samplers = self._getName(filename,'samplers')
 
         #write samplers
@@ -424,7 +451,6 @@ class Writer():
         Write the machines objects (e.g. crystals) to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_objects = self._getName(filename,'objects')
 
         if self.Objects._writeInMain:
@@ -452,7 +478,6 @@ class Writer():
         if isinstance(machine,_Options.Options):
             object = machine
         else:
-            self._machineCheck(machine)
             object = machine.options
 
         fn_options = self._getName(filename,'options')
@@ -477,7 +502,6 @@ class Writer():
         Write the machines sequence to disk:
         filename.gmad
         """
-        self._machineCheck(machine)
         fn_sequence = self._getName(filename,'sequence')
 
         # need to define the period before making sampler planes
@@ -548,11 +572,6 @@ class Writer():
                 raise ValueError("Filename already used.")
         return fn_name
 
-    def _machineCheck(self,machine):
-        # this way of comparing avoids having to import Builder which is a circular import
-        if type(machine).__name__ != 'Machine':
-            raise TypeError("Not a machine instance")
-
     def _checkFiles(self,filename, overwrite=True):
         filename = self._checkExtensionAndPath(filename)
 
@@ -571,6 +590,7 @@ class Writer():
         self._defaultSectionFilenames['beam']       = basefilename + '_beam.gmad'
         self._defaultSectionFilenames['options']    = basefilename + '_options.gmad'
         self._defaultSectionFilenames['bias']       = basefilename + '_bias.gmad'
+        self._defaultSectionFilenames['material']   = basefilename + '_material.gmad'
         self._defaultSectionFilenames['objects']    = basefilename + '_objects.gmad'
         self._mainFilename = basefilename + '.gmad'
         self._basefilename = basefilename

@@ -11,15 +11,32 @@ programmatically in Python and finally written out to BDSIM input syntax
 Creating A Model
 ----------------
 
-The :code:`Machine` class provides the functionality to create a BDSIM model.
-This would instantiated and a sequence is defined by adding accelerator
-elements in order to that instance by calling functions such as
-:code:`AddDipole()`. Extra information can then be associated with that
-Machine instance and finally, it can be written out to a series of gmad
-files as input to BDSIM. For example::
+The :code:`Machine` class provides the functionality to create a BDSIM model. ::
 
   >>> a = pybdsim.Builder.Machine()
-  >>> a.AddDrift()
+
+
+First, we construct an instance of the Machine class, then call various
+functions to add components to the beam line. As each one is added, it
+is appended to the sequence. There is one function for each beam line
+element in BDSIM. Each of these functions begins with "Add".  e.g. ::
+
+  >>> a.AddDrift("d1", length=0.1)
+
+Each function has a different set of arguments depending on what is required
+for that element. (e.g. "k1" is required for a quadrupole). Every function
+takes a set of keyword arguments ('kwargs' - see :ref:`kwargs`) that will be
+added to the definition: ::
+
+  >>> a.AddDrift("d2", length=1.2, aper1=0.3, aper2=0.4, apertureType="rectangular")
+
+No checking is done on these parameters and they are simply written out.
+
+Extra definition objects (e.g. a field map definition) can be constructed
+and added to the machine so that they are written out with it. ::
+
+  >>> fm1 = pybdsim.Builder.Field("f1", magneticFile="../maps/QNL.dat")
+  >>> a.AddObject(fm1)
 
 
 The arguments can generally be found by using a question mark on a function.::
@@ -30,14 +47,15 @@ The arguments can generally be found by using a question mark on a function.::
   File:      ~/physics/reps/pybdsim/Builder.py
   Type:      instancemethod
 
+
 Adding Options
 --------------
 
 No options are required to run the most basic BDSIM model. However, it is often
-advantageous to specify at leat a few options such as the physics list and default
+advantageous to specify at least a few options such as the physics list and default
 aperture. To add options programmatically, there is an options class. This is
 instantiated and then 'setter' methods are used to set values of parameters.
-This options instance can then be assocated with a machine instance. For example::
+This options instance can then be associated with a machine instance. For example::
 
   >>> o = pybdsim.Options.Options()
   >>> o.SetPhysicsList('em hadronic decay muon hadronic_elastic')
@@ -102,12 +120,13 @@ This will result in the following gmad syntax::
 .. note:: There is no checking on the string supplied, so it is the users
 	  responsibility to supply a valid unit string that BDSIM will accept.
 
+.. _kwargs:
   
 kwargs - Flexibility
 --------------------
 
 'kwargs' are optional keyword arguments in Python. This allows the user to
-supply arbitrary options to a function that can be instpected inside the
+supply arbitrary options to a function that can be inspected inside the
 function as a dictionary. BDSIM gmad syntax to define an element generally
 follows the pattern::
 

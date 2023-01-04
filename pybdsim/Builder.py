@@ -1,8 +1,3 @@
-# pybdsim.Builder - tools to build bdsim lattices
-# Version 1.0
-# L. Nevay
-# laurie.nevay@rhul.ac.uk
-
 """
 Builder
 
@@ -31,16 +26,13 @@ except ImportError: # Python 3.10 onwards.
     from collections.abc import MutableMapping as _MutableMapping
 from collections import OrderedDict as _OrderedDict
 import math as _math
-import time as _time
-import os as _os
 import numpy as _np
 import copy as _copy
 import textwrap as _textwrap
 import numbers
-import string as _string
 
+# these are written to match the order in the manual - http://www.pp.rhul.ac.uk/bdsim/manual-develop/model_construction.html#beamline-elements
 bdsimcategories = [
-    'marker',
     'drift',
     'rbend',
     'sbend',
@@ -50,34 +42,38 @@ bdsimcategories = [
     'decapole',
     'multipole',
     'thinmultipole',
-    'rfcavity',
-    'rcol',
-    'ecol',
-    "jcol",
-    'muspoiler',
-    'solenoid',
-    'hkicker',
     'vkicker',
+    'hkicker',
     'kicker',
     'tkicker',
+    'rfcavity',
+    'target',
+    'rcol',
+    'jcol',
+    "ecol",
+    'degrader',
+    'muspoiler',
+    'shield',
+    'dump',
+    'solenoid',
+    'laser',
+    'gap',
+    'crystalcol',
+    'undulator',
     'transform3d',
+    'rmatrix',
+    'thinrmatrix',
     'element',
+    'marker',
+    'wirescanner',
+    'ct',
     'line',
     'matdef',
-    'laser',
     'gas',
     'spec',
-    'degrader',
-    'shield',
-    'gap',
-    'thinrmatrix',
     'paralleltransporter',
-    'rmatrix',
-    'undulator',
-    'wirescanner',
-    'crystalcol',
-    'dump'
     ]
+
 
 class ElementBase(_MutableMapping):
     """
@@ -159,10 +155,10 @@ class ElementBase(_MutableMapping):
         return s
 
 def _scale_element_parameters_by_length(parameters, elements, total_length):
-    """Scale a list of elements' parameters by their length.  So if
+    """
+    Scale a list of elements' parameters by their length.  So if
     you have a list of hkickers you want to rescale based on their
-    length:
-    - _scale_element_parameters_by_length([('hkick', 0.5)], [hk1, hk2, hk3])
+    length: _scale_element_parameters_by_length([('hkick', 0.5)], [hk1, hk2, hk3])
     """
     total_length = sum([element['l'] for element in elements])
     for parameter, total_parameter in parameters:
@@ -341,6 +337,7 @@ class ElementModifier(ElementBase):
             raise ValueError("Error: must specify at least 1 keyword argument")
         ElementBase.__init__(self, name, isMultipole, **kwargs)
 
+
 class Line(list):
     """
     A class that represents a :class:`list` of :class:`Elements`
@@ -356,6 +353,7 @@ class Line(list):
 
     """
     def __init__(self,name,*args):
+        self.category = "line" # for compatibility with Element(s)
         for item in args[0]:
             if type(item) != Element:
                 raise TypeError("Line is a list of Elements")
@@ -385,14 +383,14 @@ class Line(list):
 
         >>> l = Line([d1,q1])
         >>> f = open("file.txt", "w")
-        >>> f.write(DefineConsituentElements())
-        >>> f.write(l)
+        >>> f.write(l.DefineConsituentElements())
         >>> f.close()
         """
         s = ''
         for item in self:
             s += str(item) #uses elements __repr__ function
         return s
+
 
 class ApertureModel(dict):
     """
@@ -473,6 +471,7 @@ class HKicker(Element):
         return self._split_length_with_length_scaled_parameters(points,
                                                                 ['hkick'])
 
+
 class VKicker(Element):
     def __init__(self, name, vkick, **kwargs):
         Element.__init__(self, name, 'vkicker', vkick=vkick, **kwargs)
@@ -481,6 +480,7 @@ class VKicker(Element):
     def split(self, points):
         return self._split_length_with_length_scaled_parameters(points,
                                                                 ['vkick'])
+
 
 class Kicker(Element):
     def __init__(self, name, hkick, vkick, **kwargs):
@@ -600,6 +600,7 @@ class _Dipole(Element):
 
         return split_bends
 
+
 class SBend(_Dipole):
     def __init__(self, name, l, angle=None, B=None, **kwargs):
         _Dipole.__init__(self, name, 'sbend', l, angle=angle, B=B, **kwargs)
@@ -637,10 +638,12 @@ class ECol(_Col):
         _Col.__init__(self, name, "ecol", l,
                       xsize, ysize, **kwargs)
 
+
 class JCol(_Col):
     def __init__(self, name, l, xsize, ysize, **kwargs):
         _Col.__init__(self, name, "jcol", l,
                       xsize, ysize, **kwargs)
+
 
 class Degrader(Element):
     def __init__(self, name, l, nWedges,
@@ -728,6 +731,17 @@ class Transform3D(Element):
         Element.__init__(self, name, 'transform3d', **kwargs)
 
 
+class Rmat(Element):
+    def __init__(self, name, l, r11, r12, r13, r14,
+                 r21, r22, r23, r24,
+                 r31, r32, r33, r34,
+                 r41, r42, r43, r44,  **kwargs):
+        Element.__init__(self, name, 'rmatrix', l=l, r11=r11, r12=r12, r13=r13, r14=r14,
+                         r21=r21, r22=r22, r23=r23, r24=r24,
+                         r31=r31, r32=r32, r33=r33, r34=r34,
+                         r41=r41, r42=r42, r43=r43, r44=r44, **kwargs)
+
+
 class Sampler(object):
     """
     A sampler is unique in that it does not have a length unlike every
@@ -742,6 +756,7 @@ class Sampler(object):
             return 'sample, all;\n'
         else:
             return 'sample, range='+self.name+';\n'
+
 
 class GmadObject(_MutableMapping):
     """
@@ -803,6 +818,8 @@ class GmadObject(_MutableMapping):
             # Write tuple (i.e. number + units) syntax
             if type(self[key]) == tuple:
                 s += key + '=' + str(self[key][0]) + '*' + str(self[key][1])
+            elif type(self[key]) == list:
+                s += key + '={' + ','.join(map(str,self[key])) + '}'
             # everything else (most things!)
             else:
                 s += key + '=' + str(self[key])
@@ -810,42 +827,148 @@ class GmadObject(_MutableMapping):
         return s
 
 
+class Aperture(GmadObject):
+    """
+    A crystal definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "aperture",name,**kwargs)
+
+
+class Atom(GmadObject):
+    """
+    A atom definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "atom",name,**kwargs)
+
+
 class BLM(GmadObject):
     """
-    A blm does not have a length unlike every
-    :class:`Element` hence it needs its own class to produce its
-    representation.
+    A blmplacement definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
         GmadObject.__init__(self, "blm",name,**kwargs)
 
 
+class CavityModel(GmadObject):
+    """
+    A cavitymodel definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "cavitymodel",name,**kwargs)
+
+
 class Crystal(GmadObject):
     """
-    A crystal does not have a length unlike every
-    :class:`Element` hence it needs its own class to produce its
-    representation.
+    A crystal definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
         GmadObject.__init__(self, "crystal",name,**kwargs)
 
 
+class Field(GmadObject):
+    """
+    A field definition. Any kwargs will be written as parameter=value.
+    parameteter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "field",name,**kwargs)
+
+
+class Material(GmadObject):
+    """
+    A material definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "matdef",name,**kwargs)
+
+
+class NewColour(GmadObject):
+    """
+    A newcolour definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "newcolour",name,**kwargs)
+
+
+class Placement(GmadObject):
+    """
+    A placement definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "placement",name,**kwargs)
+
+
+class Query(GmadObject):
+    """
+    A query definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "query",name,**kwargs)
+
+
+class Region(GmadObject):
+    """
+    A region definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "region",name,**kwargs)
+
+
+class SamplerPlacement(GmadObject):
+    """
+    A samplerplacement definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "samplerplacement",name,**kwargs)
+
+
+class Scorer(GmadObject):
+    """
+    A scorer definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "scorer",name,**kwargs)
+
+
 class ScorerMesh(GmadObject):
     """
-    A scorermesh does not have a length unlike every :class:`Element` hence it
-    needs its own class to produce its representation.
+    A scorermesh definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
         GmadObject.__init__(self, "scorermesh",name,**kwargs)
 
 
-class Placement(GmadObject):
+class Tunnel(GmadObject):
     """
-    A placement does not have a length unlike every :class:`Element` hence it
-    needs its own class to produce its representation.
+    A tunnel definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
     """
     def __init__(self,name,**kwargs):
-        GmadObject.__init__(self, "placement",name,**kwargs)
+        GmadObject.__init__(self, "tunnel",name,**kwargs)
+
+
+class XSecBias(GmadObject):
+    """
+    A xsecbias definition. Any kwargs will be written as parameter=value.
+    parameter=(value,unit) -> parameter=value*unit
+    """
+    def __init__(self,name,**kwargs):
+        GmadObject.__init__(self, "xsecBias",name,**kwargs)
 
 
 class Machine(object):
@@ -865,16 +988,15 @@ class Machine(object):
     Example with Sychrotron rescaling:
 
     >>> a = Machine(sr=True, energy0=250,charge=-1)
-    >>> a.AddDipole('sb1','sbend',length=1.0,1e-5)
+    >>> a.AddDipole('sb1','sbend',length=1.0,angle=1e-5)
     >>> a.AddDrift('dr1',length=1)
-    >>> a.AddDipole('sb2','sbend',length=1.0,1e-5)
+    >>> a.AddDipole('sb2','sbend',length=1.0,angle=1e-5)
     >>> a.AddDrift("dr2",length=1)
 
     Caution: adding an element of the same name twice will result the
     element being added only to the sequence again and not being
     redefined - irrespective of if the parameters are different. If
     verbose is used (True), then a warning will be issued.
-
     """
     def __init__(self,verbose=False, sr=False, energy0=0.0, charge=-1.0):
         self.verbose   = verbose
@@ -884,6 +1006,7 @@ class Machine(object):
         self.length    = 0.0
         self.angint    = 0.0
         self.bias      = []
+        self.material  = []
         self.beam      = _Beam.Beam()
         self.options   = None
         self.energy0   = energy0
@@ -1063,11 +1186,11 @@ class Machine(object):
         """
         # TODO: better method for name matching. Keep basic for now.
         if isinstance(names, str):
-            if _string.lower(namelocation) == 'all':
+            if namelocation.lower() == 'all':
                 elements = [name for name in list(self.elements.keys()) if names in name]
-            elif _string.lower(namelocation) == 'start':
+            elif namelocation.lower() == 'start':
                 elements = [name for name in list(self.elements.keys()) if names in name[:len(names)]]
-            elif _string.lower(namelocation) == 'end':
+            elif namelocation.lower() == 'end':
                 elements = [name for name in list(self.elements.keys()) if names in name[-len(names):]]
             else:
                 msg = 'Unknown string location {}'.format(namelocation)
@@ -1221,21 +1344,50 @@ class Machine(object):
         writer = _Writer.Writer()
         writer.WriteMachine(self,filename,verboseresult)
 
+    def AddObject(self, obj):
+        """
+        Add an object or definition to be written to the model. An 'object'
+        is a definition that isn't part of a sequence such as a Field, Crystal,
+        or Placement. Anything that has a string representation can be added to
+        the list.
+
+        For an iterable object, tuple, list, and dict are accepted. For a dict,
+        the value (not the key) is added to the internal list without the key.
+
+        Objects:
+        Aperture, Atom, BLM, CavityModel, Crystal, Field, Laser, Material, NewColour
+        Placement, Query, Region, SamplerPlacement, Scorer, ScorerMesh, XSecBias.
+        """
+        if type(obj) in [list, tuple]:
+            for ob in obj:
+                self.AddObject(ob)
+        elif type(obj) is dict:
+            for k,v in obj.items():
+                self.AddObject(v)
+        else:
+            self.objects.append(obj)
+
     def AddBias(self, biases):
         """
-        Add a XSecBias.XSecBias instance or iterable of instances
+        Add a Builder.XSecBias instance or iterable of instances to this machine.
+        """
+        self.AddObject(biases)
+
+    def AddMaterial(self, materials):
+        """
+        Add a Builder.Material instance or iterable of instances
         to this machine.
         """
-        # If a single bias object
-        if isinstance(biases, pybdsim.XSecBias.XSecBias):
-            self.bias.append(biases)
-        else: # An iterable of biases.
+        # If a single material object
+        if isinstance(materials, pybdsim.Builder.Material):
+            self.material.append(materials)
+        else: # An iterable of materials.
             try:
-                for bias in biases:
-                    self.AddBias(bias)
+                for material in materials:
+                    self.AddMaterial(material)
             except TypeError:
-                msg = ("Unknown biases!  Biases must be a XSecBias"
-                       "instance or an iterable of XSecBias instances.")
+                msg = ("Unknown material! Materials must be a Builder.Material"
+                       "instance or an iterable of Builder.Material instances.")
                 raise TypeError(msg)
 
     def AddBeam(self, beam=None):
@@ -1269,14 +1421,6 @@ class Machine(object):
         """
         self.includesPost.append(include)
 
-    def AddMarker(self, name='mk'):
-        """
-        Add a marker to the beam line.
-        """
-        if self.verbose:
-            print('AddMarker> ',name)
-        self.Append(Element(name,'marker'))
-
     def AddDrift(self, name='dr', length=0.1, **kwargs):
         """
         Add a drift to the beam line
@@ -1286,7 +1430,7 @@ class Machine(object):
         if length < 1e-12:
             self.AddMarker(name)
         else:
-            self.Append(Element(name,'drift',l=length,**kwargs))
+            self.Append(Element(name, 'drift', l=length ,**kwargs))
 
     def AddDipole(self, name='dp', category='sbend', length=0.1,
                   angle=None, b=None, **kwargs):
@@ -1294,7 +1438,6 @@ class Machine(object):
         AddDipole(category='sbend')
 
         category - 'sbend' or 'rbend' - sector or rectangular bend
-
         """
         if category not in ['sbend','rbend']:
             s = 'Invalid category ' + category
@@ -1302,47 +1445,75 @@ class Machine(object):
         if angle is None and b is None:
             raise TypeError('angle or b must be specified for a dipole')
         elif angle != None:
-            self.Append(Element(name,category,l=length,angle=angle,**kwargs))
+            self.Append(Element(name, category, l=length, angle=angle, **kwargs))
         else:
-            self.Append(Element(name,category,l=length,B=b,**kwargs))
+            self.Append(Element(name, category, l=length, B=b, **kwargs))
+
+    def AddRBend(self, name="rb", length=0.1, angle=None, b=None, **kwargs):
+        self.AddDipole(name, 'rbend', length, angle, b, **kwargs)
+
+    def AddSBend(self, name="sb", length=0.1, angle=None, b=None, **kwargs):
+            self.AddDipole(name, 'sbend', length, angle, b, **kwargs)
 
     def AddQuadrupole(self, name='qd', length=0.1, k1=0.0, **kwargs):
-        self.Append(Element(name,'quadrupole',l=length,k1=k1,**kwargs))
+        self.Append(Element(name, 'quadrupole', l=length, k1=k1, **kwargs))
 
     def AddSextupole(self, name='sx', length=0.1, k2=0.0, **kwargs):
-        self.Append(Element(name,'sextupole',l=length,k2=k2,**kwargs))
+        self.Append(Element(name, 'sextupole', l=length, k2=k2, **kwargs))
 
     def AddOctupole(self, name='oc', length=0.1, k3=0.0, **kwargs):
-        self.Append(Element(name,'octupole',l=length,k3=k3,**kwargs))
+        self.Append(Element(name, 'octupole', l=length, k3=k3 ,**kwargs))
 
     def AddDecapole(self, name='dc', length=0.1, k4=0.0, **kwargs):
-        self.Append(Element(name,'decapole',l=length,k4=k4,**kwargs))
+        self.Append(Element(name, 'decapole', l=length,k4=k4,**kwargs))
 
     def AddMultipole(self, name='mp', length=0.1, knl=(0,0), ksl=(0,0), **kwargs):
         if length > 1e-12:
-            self.Append(Element(name,'multipole',l=length, knl=knl, ksl=ksl, **kwargs))
+            self.Append(Element(name,'multipole', l=length, knl=knl, ksl=ksl, **kwargs))
         else:
             self.AddThinMultipole(name, knl, ksl, **kwargs)
 
     def AddThinMultipole(self, name='mp', knl=(0,0), ksl=(0,0), **kwargs):
         self.Append(Element(name,'thinmultipole', knl=knl, ksl=ksl, **kwargs))
 
-    def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs) :
-        self.Append(Element(name,'rfcavity',l=length, gradient=gradient, **kwargs))
+    def AddVKicker(self, name='vk', vkick=0.0, **kwargs):
+        self.Append(Element(name, 'vkicker', vkick=vkick, **kwargs))
+
+    def AddHKicker(self, name='hk', hkick=0.0, **kwargs):
+        self.Append(Element(name, 'hkicker', hkick=hkick, **kwargs))
+
+    def AddKicker(self, name='kk', hkick=0.0, vkick=0.0, **kwargs):
+        self.Append(Element(name, 'kicker', hkick=hkick, vkick=hkick, **kwargs))
+
+    def AddTKicker(self, name='tk', hkick=0.0, vkick=0.0, **kwargs):
+        self.Append(Element(name, 'tkicker', hkick=hkick, vkick=vkick, **kwargs))
+
+    def AddRFCavity(self, name='arreff', length=0.1, gradient=10, **kwargs):
+        self.Append(Element(name, 'rfcavity', l=length, gradient=gradient, **kwargs))
+
+    def AddTarget(self, name='trg', length=0.1, material="Cu", **kwargs):
+        self.Append(Element(name, 'target', l=length, material=material, **kwargs))
 
     def AddRCol(self, name='rc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
         for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
-        self.Append(Element(name,'rcol',l=length,xsize=xsize,ysize=ysize,**d))
+        self.Append(Element(name, 'rcol', l=length, xsize=xsize, ysize=ysize, **d))
 
     def AddJCol(self, name='jc', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
         d = {}
         for k,v in kwargs.items():
             if 'aper' not in str(k).lower():
                 d[k] = v
-        self.Append(Element(name,'jcol',l=length,xsize=xsize,ysize=ysize,**d))
+        self.Append(Element(name, 'jcol', l=length, xsize=xsize, ysize=ysize, **d))
+
+    def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
+        d = {}
+        for k,v in kwargs.items():
+            if 'aper' not in str(k).lower():
+                d[k] = v
+        self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
 
     def AddDegrader(self, length=0.1, name='deg', nWedges=1, wedgeLength=0.1, degHeight=0.1, materialThickness=None, degraderOffset=None, **kwargs):
         if (materialThickness==None) and (degraderOffset==None):
@@ -1355,22 +1526,22 @@ class Machine(object):
                                 degraderHeight=degHeight, degraderOffset=degraderOffset,**kwargs))
 
     def AddMuSpoiler(self, name='mu', length=0.1, b=0.0, **kwargs):
-        self.Append(Element(name,'muspoiler',l=length,B=b,**kwargs))
-
-    def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
-        self.Append(Element(name,'solenoid',l=length,ks=ks,**kwargs))
+        self.Append(Element(name, 'muspoiler', l=length, B=b, **kwargs))
 
     def AddShield(self, name='sh', length=0.1, **kwargs):
-        self.Append(Element(name,'shield',l=length,**kwargs))
-
-    def AddLaser(self, length=0.1, name='lsr', x=1, y=0, z=0, waveLength=532e-9, **kwargs):
-        self.Append(Element(name,'laser',l=length,x=x,y=y,z=z,waveLength=waveLength,**kwargs))
+        self.Append(Element(name, 'shield', l=length, **kwargs))
 
     def AddDump(self, name='du', length=0.1, **kwargs):
-        self.Append(Element(name,'dump',l=length,**kwargs))
+        self.Append(Element(name, 'dump', l=length, **kwargs))
 
-    def AddWireScanner(self, name='ws', length=0.1, wireDiameter=1e-3, wireLength=0.1, **kwargs):
-        self.Append(Element(name,'dump',l=length,wireLength=wireLength,wireDiameter=wireDiameter,**kwargs))
+    def AddSolenoid(self, name='sl', length=0.1, ks=0.0, **kwargs):
+        self.Append(Element(name, 'solenoid', l=length, ks=ks, **kwargs))
+
+    def AddLaser(self, length=0.1, name='lsr', x=1, y=0, z=0, waveLength=532e-9, **kwargs):
+        self.Append(Element(name, 'laser', l=length, x=x, y=y, z=z, waveLength=waveLength, **kwargs))
+
+    def AddGap(self, name='gp', length=1.0, **kwargs):
+        self.Append(Element(name, 'gap', l=length, **kwargs))
 
     def AddCrystalCol(self, name='cc', length=0.01, xsize=1e-3, **kwargs):
         objNames = [obj.name for obj in self.objects]
@@ -1392,30 +1563,44 @@ class Machine(object):
         else:
             self.Append(Element(name,'transform3d',**kwargs))
 
-    def AddECol(self, name='ec', length=0.1, xsize=0.1, ysize=0.1, **kwargs):
-        d = {}
-        for k,v in kwargs.items():
-            if 'aper' not in str(k).lower():
-                d[k] = v
-        self.Append(Element(name,'ecol',l=length,xsize=xsize,ysize=ysize,**d))
+    def AddRmat(self, name='rmat', length=0.1,
+                r11=1.0, r12=0, r13=0, r14=0,
+                r21=0, r22=1.0, r23=0, r24=0,
+                r31=0, r32=0, r33=1.0, r34=0,
+                r41=0, r42=0, r43=0, r44=1.0,
+                **kwargs):
+        self.Append(Element(name, 'rmatrix', l=length,
+                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
+                            **kwargs))
 
-    def AddHKicker(self, name='hk', hkick=0.0, **kwargs):
-        self.Append(Element(name,'hkicker', hkick=hkick, **kwargs))
-
-    def AddVKicker(self, name='vk', vkick=0.0, **kwargs):
-        self.Append(Element(name,'vkicker', vkick=vkick, **kwargs))
-
-    def AddKicker(self, name='kk', hkick=0.0, vkick=0.0, **kwargs):
-        self.Append(Element(name,'kicker', hkick=hkick, vkick=hkick, **kwargs))
-
-    def AddTKicker(self, name='tk', hkick=0.0, vkick=0.0, **kwargs):
-        self.Append(Element(name,'tkicker', hkick=hkick, vkick=vkick, **kwargs))
+    def AddThinRmat(self, name='rmatthin',
+                    r11=1.0, r12=0, r13=0, r14=0,
+                    r21=0, r22=1.0, r23=0, r24=0,
+                    r31=0, r32=0, r33=1.0, r34=0,
+                    r41=0, r42=0, r43=0, r44=1.0,
+                    **kwargs):
+        self.Append(Element(name, 'thinrmatrix',
+                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
+                            **kwargs))
 
     def AddElement(self, name='el', length=0.1, outerDiameter=1, geometryFile="geometry.gdml", **kwargs):
         self.Append(Element(name, 'element',l=length,outerDiameter=outerDiameter,geometryFile=geometryFile, **kwargs))
 
-    def AddGap(self, name='gp', length=1.0, **kwargs):
-        self.Append(Element(name, 'gap', l=length, **kwargs))
+    def AddMarker(self, name='mk'):
+        self.Append(Element(name, 'marker'))
+
+    def AddWireScanner(self, name='ws', length=0.1, wireDiameter=1e-3, wireLength=0.1, **kwargs):
+        self.Append(Element(name, 'dump', l=length, wireLength=wireLength, wireDiameter=wireDiameter, **kwargs))
+
+    def AddCT(self, name="ctscan", length=1.0, dicomDataFile="", dicomDataPath="", **kwargs):
+        self.Append(Element(name, 'ct', l=length, dicomDataFile=dicomDataFile, dicomDataPath=dicomDataPath, **kwargs))
+
 
     def AddFodoCell(self, basename='fodo', magnetlength=1.0, driftlength=4.0,kabs=0.2,**kwargs):
         """
@@ -1611,13 +1796,14 @@ def CreateDipoleDriftRing(filename, ncells=60, circumference=100.0, driftfractio
     a.AddSampler(samplers)
     a.Write(filename)
 
-def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='first'):
+def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, ncellsToMake=None, samplers='first'):
     """
     Create a ring composed of fodo cells with 2 dipoles per fodo cell.
 
     filename
     ncells         - number of fodo+dipole cells to create
     circumference  - circumference of machine in metres
+    ncellsToMake   - number of cells to actually build for part of the machine (None = all)
     samplers       - 'first','last' or 'all'
 
     Hard coded to produce the following cell fractions:
@@ -1640,7 +1826,9 @@ def CreateDipoleFodoRing(filename, ncells=60, circumference=200.0, samplers='fir
     #naming
     nplaces  = len(str(ncells))
     basename = 'dfodo_'
-    for i in range(ncells):
+    if ncellsToMake is None:
+        ncellsToMake = ncells
+    for i in range(ncellsToMake):
         cellname = basename + str(i).zfill(nplaces)
         a.AddQuadrupole(cellname+'_qd_a',ql*0.5,k1)
         a.AddDrift(cellname+'_dr_a',drl)

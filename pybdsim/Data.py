@@ -12,10 +12,12 @@ from . import _General
 
 from collections import defaultdict as _defaultdict
 import copy as _copy
+import ctypes as _ctypes
 import glob as _glob
 import itertools as _itertools
 import math as _math
 import numpy as _np
+import re as _re
 import os as _os
 import pickle as _pickle
 
@@ -196,6 +198,25 @@ def _LoadRoot(filepath):
     else:
         raise IOError("This file type "+fileType+" isn't supported")
 
+def GetNEventsInBDSIMFile(filename):
+    """
+    Utility function to extract the number of events in a file quickly without
+    fully loading it. Uses only ROOT to inspect the tree. Will raise an IOError 
+    exception if no Event tree is found. No check if it's a BDSIM format file or not.
+    """
+    f = _ROOT.TFile(filename)
+    if f.IsZombie():
+        f.Close()
+        raise IOError("Unable to open file")
+    eventTree = f.Get("Event")
+    if not eventTree:
+        f.Close()
+        raise IOError("No Event tree in file")
+    else:
+        result = int(eventTree.GetEntries())
+        f.Close()
+        return result
+
 def _ParseHeaderLine(line):
     names = []
     units = []
@@ -270,7 +291,7 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
     [result.append(d) for d in data]
     return result
 
-class Header(object):
+class Header:
     """
     A simple Python version of a header in a (RE)BDSIM file for
     easy access to the data.
@@ -323,7 +344,7 @@ class Header(object):
         self.skimmedFile   = bool(hi.skimmedFile)
         self.nOriginalEvents = int(hi.nOriginalEvents)
 
-class Spectra(object):
+class Spectra:
     def __init__(self, nameIn=None):
         self.name = nameIn
         self.histograms = {}
@@ -345,13 +366,16 @@ class Spectra(object):
         self.pdgidsSorted = [pdgid for pdgid,_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
 
 def ParseSpectraName(hname):
-    hn = hname.replace('Top_','')
+    # expects a string of the form
+    # Top10_Spectra_SamplerName_PDGID
+    hn = _re.sub("Top\d+_", "", hname)
+    #hn = hname.replace('Top_','')
     hn = hn.replace('Spectra_','')
     name,nth,pdgid = hn.split('_')
     pdgid = int(pdgid)
     return name+"_"+nth,pdgid
 
-class RebdsimFile(object):
+class RebdsimFile:
     """
     Class to represent data in rebdsim output file.
 
@@ -532,6 +556,8 @@ def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
     Create an empty rebdsim format file with the layout of folders.
     Returns the ROOT.TFile object.
     """
+    LoadROOTLibraries()
+
     if not outputfilename.endswith(".root"):
         outputfilename += ".root"
 
@@ -548,7 +574,7 @@ def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     :param histograms:  List of ROOT histograms to write.
     :type  histograms: [ROOT.TH1,..]
     
-    Write a list of hitograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
+    Write a list of histograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
     """
     tfile.cd(directoryName)
     directory = tfile.Get(directoryName)
@@ -767,6 +793,14 @@ class BDSAsciiData(list):
         else:
             return False
 
+    def ToDF(self):
+        """Get this BDSAsciiData instance as a pandas.DataFrame instance."""
+        data = {}
+        import pandas as pd
+        for name in self.names:
+            data[name] = getattr(self, name)()
+        return pd.DataFrame.from_dict(data)
+
 def PadHistogram1D(hist, padValue=1e-20):
     """
     Pad a 1D histogram with padValue.
@@ -803,7 +837,7 @@ def ReplaceZeroWithMinimum(hist, value=1e-20):
     r.contents[hist.contents==0] = value
     return r
 
-class ROOTHist(object):
+class ROOTHist:
     """
     Base class for histogram wrappers.
     """
@@ -895,6 +929,14 @@ class TH1(ROOTHist):
             self.contents[i] = self.hist.GetBinContent(i+1)
             self.errors[i]   = self.hist.GetBinError(i+1)
 
+    def Rebin(self, nBins):
+        if type(nBins) is not int or nBins < 0:
+            raise TypeError("nBins must be a positive integer")
+        if nBins == 1:
+            return self
+        htemp = self.hist.Rebin(nBins, self.name+"_rebin_"+str(nBins))
+        return TH1(htemp)
+
 class TH2(TH1):
     """
     Wrapper for a ROOT TH2 instance. Converts to numpy data.
@@ -915,6 +957,9 @@ class TH2(TH1):
         self.contents = _np.zeros((self.nbinsx,self.nbinsy))
         self.errors   = _np.zeros((self.nbinsx,self.nbinsy))
 
+        self.yunderflow = "not implemented"
+        self.yoverflow  = "not implemented"
+
         for i in range(self.nbinsy):
             yaxis = hist.GetYaxis()
             self.ywidths[i]   = yaxis.GetBinWidth(i+1)
@@ -930,12 +975,66 @@ class TH2(TH1):
         self.integral = _np.sum(self.contents)
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
+        
+    def SwapAxes(self):
+        """
+        Swap X and Y for all members. Returns a new copy of the histogram.
+        """
+        r = _copy.deepcopy(self)
+        r.nbinsy    = self.nbinsx
+        r.ywidths   = self.xwidths
+        r.ycentres  = self.xcentres
+        r.ylowedge  = self.xlowedge
+        r.yhighedge = self.xhighedge
+        r.yedges    = self.xedges
+        r.yrange    = self.xrange
+
+        r.nbinsx    = self.nbinsy
+        r.xwidths   = self.ywidths
+        r.xcentres  = self.ycentres
+        r.xlowedge  = self.ylowedge
+        r.xhighedge = self.yhighedge
+        r.xedges    = self.yedges
+        r.xrange    = self.yrange
+
+        r.contents = r.contents.transpose()
+        r.errors   = r.errors.transpose()
+
+        return r
 
     def _GetContents(self):
         for i in range(self.nbinsx) :
             for j in range(self.nbinsy) :
                 self.contents[i,j] = self.hist.GetBinContent(i+1,j+1)
                 self.errors[i,j]   = self.hist.GetBinError(i+1,j+1)
+
+    def Rebin(self, nBinsX, nBinsY=None):
+        if type(nBinsX) is not int or nBinsX < 0:
+            raise TypeError("nBinsX must be a positive integer")
+        if nBinsY is None:
+            nBinsY = nBinsX
+        else:
+            if type(nBinsY) is not int or nBinsY < 0:
+                raise TypeError("nBinsY must be a positive integer")
+        if nBinsX == 1 and nBinsY == 1:
+            return self
+        htemp = self.hist.Rebin2D(nBinsX, nBinsY, self.name+"_rebin_"+str(nBinsX)+"_"+str(nBinsY))
+        return TH2(htemp)
+
+    def IntegrateAlongX(self):
+        """
+        Integrate along the x axis returning a TH1 in y.
+        """
+        h1d = self.hist.ProjectionX(self.name+"_int_x", 0, -1, "e")
+        return TH1(h1d)
+
+    def IntegrateAlongY(self):
+        """
+        Integrate along the y axis returning a TH1 in x.
+        """
+        h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
+        return TH1(h1d)
+
 
 class TH3(TH2):
     """
@@ -1220,7 +1319,96 @@ class BDSBH4D():
         self.errors   = self._ToNumpy(hist, hist_type="h_err")
 
 
-class _SamplerData(object):
+class Histogram1DSet:
+    """
+    Basic histogram for a categorical axis with a dict / map as the storage.
+
+    This is completely agnostic of the type of the value used as the axis.
+
+    It is ultimately a python dict[key] = (value, sumWeightsSq) where 'key'
+    is the 'x' used to file the histogram.
+
+    The bin errors can be accessed by calling Result() to return a dictionary
+    of key : (value, error)
+
+    h = Histogram1DSet("PDG_ID")
+    h.Fill(2212)
+    h.Fill(-13)
+
+    Histograms can be merged with the += operator:
+
+    h2 = Histogram1DSet()
+    h2.Fill(2212)
+    h2.Fill(13)
+
+    h2 += h1
+    """
+    def __init__(self, name=None):
+        self.name = name
+        self.bins = _defaultdict(float)
+        self.sumWeightsSq = _defaultdict(float)
+        self.n = 0
+
+    def Flush(self):
+        """
+        Empy the bins and set the number of entries to 0.
+        """
+        self.bins.clear()
+        self.sumWeightsSq.clear()
+        self.n = 0
+
+    def Fill(self, x, weight=1.0):
+        self.bins[x] += weight
+        self.sumWeightsSq[x] += weight**2
+        self.n += 1
+
+    def Result(self):
+        """
+        return a dictionary of key : (value, error)
+
+        value is the bin value.
+        error is calculated as sqrt(sum(weights^2)/n) for the sum of
+        the weights squared in an individual bin.
+        """
+        result = _defaultdict(float)
+        for key in self.bins.keys():
+            result[key] = (self.bins[key], _np.sqrt(self.sumWeightsSq[key]/self.n))
+        return result
+
+    def ResultMean(self):
+        """
+        return a dictionary of key : (mean, error)
+
+        mean is the bin value / n
+        error is calculated as sqrt(1/n * sum(weights^2)/n) for the sum of
+        the weights squared in an individual bin.
+        """
+        resultMean = _defaultdict(float)
+        for key in self.bins.keys():
+            resultMean[key] = (self.bins[key]/self.n, _np.sqrt((self.sumWeightsSq[key]/self.n)/self.n))
+        return resultMean
+
+    def __iadd__(self, other):
+        if type(other) is not type(self):
+            raise TypeError('Operand of incongruous type')
+        for key in other.bins.keys():
+            self.bins[key] += other.bins[key]
+            self.sumWeightsSq[key] += other.sumWeightsSq[key]
+        self.n += other.n
+        return self
+
+    def __repr__(self):
+        r = self.Result()
+        s = self.name + "\t" + r.__repr__()
+        return s
+
+    def SortByBin(self):
+        newBins = sorted(self.bins.items(), key=lambda item: item[1], reverse=True)
+        self.bins = _defaultdict(float, **newBins)
+        newSumWeightsSq = {key:self.sumWeightsSq[key] for key in newBins.keys()}
+        self.sumWeightsSq = _defaultdict(float, **newSumWeightsSq)
+
+class _SamplerData:
     """
     Base class for loading a chosen set of sampler data from a file.
     data - is the DataLoader instance.
@@ -1339,7 +1527,7 @@ class SamplerData(_SamplerData):
                   'mass', 'rigidity','isIon','ionA','ionZ']
         super(SamplerData, self).__init__(data, params, samplerIndexOrName)
 
-class TrajectoryData(object):
+class TrajectoryData:
     """
     Pull trajectory data from a loaded Dataloader instance of raw data
 
@@ -1589,7 +1777,7 @@ class TrajectoryData(object):
             self.trajectories.append(pyTrajectory)
 
 
-class EventInfoData(object):
+class EventInfoData:
     """
     Extract data from the Info branch of the Event tree.
     """
@@ -1662,7 +1850,7 @@ def GetApertureExtent(apertureType, aper1=0, aper2=0, aper3=0, aper4=0):
         
     return x,y
         
-class ApertureInfo(object):
+class ApertureInfo:
     """
     Simple class to hold aperture parameters and extents.
     """
@@ -1676,7 +1864,58 @@ class ApertureInfo(object):
         self.offsetY  = offsetY
         self.x,self.y = GetApertureExtent(self.apertureType, aper1, aper2, aper3, aper4)
 
-class ModelData(object):
+class CollimatorInfo:
+    """
+    Simple class to represent a collimator info instance. Construct from a root instance of the class.
+    """
+    def __init__(self, rootInstance=None):
+        self._strKeys = ["componentName", "componentType", "material"]
+        self._floatKeys = ["length", "tilt", "offsetX", "offsetY", "xSizeIn", "ySizeIn", "xSizeOut", "ySizeOut"]
+        for n in self._strKeys:
+            setattr(self, n, "")
+        for n in self._floatKeys:
+            setattr(self, n, 0.0)
+        if rootInstance:
+            self._UpdateFromROOTInstance(rootInstance)
+
+    def _UpdateFromROOTInstance(self, ri):
+        for n in self._strKeys:
+            setattr(self, n, str(getattr(ri,n)))
+        for n in self._floatKeys:
+            setattr(self, n, float(getattr(ri,n)))
+
+class CavityInfo:
+    """
+    Simple class to represent a cavity info instance. Construct from a root instance of the class.
+    """
+    def __init__(self, rootInstance=None):
+        self._strKeys = ["componentName", "componentType", "material", "cavityType"]
+        self._floatKeys = ["length", "tilt", "efield", "gradient", "frequency", "phase", "irisRadius",
+                           "thickness", "equatorRadius", "halfCellLength", "numberOfPoints", "numberOfCells",
+                           "equatorHorizontalAxis", "equatorVerticalAxis", "irisHorizontalAxis", "irisVerticalAxis",
+                           "tangentLineAngle"]
+        for n in self._strKeys:
+            setattr(self, n, "")
+        for n in self._floatKeys:
+            setattr(self, n, 0.0)
+        if rootInstance:
+            self._UpdateFromROOTInstance(rootInstance)
+
+    def _UpdateFromROOTInstance(self, ri):
+        for n in self._strKeys:
+            setattr(self, n, str(getattr(ri,n)))
+        for n in self._floatKeys:
+            setattr(self, n, float(getattr(ri,n)))
+
+class ModelData:
+    """
+    A python versio of the data held in a Model tree in BDSIM output.
+
+    d = pybdsim.Data.Load("output.root")
+    md = pybdsim.Data.ModelData(d)
+
+    Extracts this from a bdsim output file.
+    """
     def __init__(self, data):
         model = data.GetModel()
         modelTree = data.GetModelTree()
@@ -1684,6 +1923,7 @@ class ModelData(object):
         modelTree.GetEntry(0)
         interface = _filterROOTObject(model)
         self._getData(interface, model)
+        self.PrepareAxisAngleRotations()
 
     @classmethod
     def FromROOTFile(cls, path):
@@ -1706,17 +1946,40 @@ class ModelData(object):
             except ValueError:
                 pass # just ignore it
 
-        possibleDicts = ["materialIDToName", "materialNameToID"]
-        for n in possibleDicts:
+        possibleDicts = {"collimatorIndicesByName" : (str,int),
+                         "cavityIndicesByName"     : (str,int),
+                         "scoringMeshTranslation"  : (str,list),
+                         "scoringMeshRotation"     : (str,TRotationToAxisAngle),
+                         "materialIDToName"        : (int,str),
+                         "materialNameToID"        : (str,int),
+                         "samplerCRadius"          : (str,float),
+                         "samplerSRadius"          : (str,float)
+                         }
+        for n,types in possibleDicts.items():
             if hasattr(self, n):
                 try:
-                    setattr(self, n, dict(getattr(self,n)))
+                    setattr(self, n, dict(getattr(self,n))) # just plonk it in a dictionary
+                    d = getattr(self,n)
+                    converted = dict(zip(map(types[0],d.keys()), map(types[1],d.values())))
+                    setattr(self, n, converted) # overwrite with converted one
                 except ValueError:
                     pass
-        if hasattr(self, 'materialIDToName'):
-            self.materialIDToName = {int(k):v for k,v in self.materialIDToName.items()}
-        if hasattr(self, 'materialNameToID'):
-            self.materialNameToID = {k:int(v) for k,v in self.materialNameToID.items()}
+
+        if hasattr(self, "collimatorInfo"):
+            res = [CollimatorInfo(ob) for ob in self.collimatorInfo]
+            self.collimatorInfo = res
+            self.collimatorInfoByName = {o.componentName:o for o in self.collimatorInfo}
+
+        if hasattr(self, "cavityInfo"):
+            res = [CavityInfo(ob) for ob in self.cavityInfo]
+            self.cavityInfo = res
+            self.cavityInfoByName = {o.componentName:o for o in self.cavityInfo}
+
+        # just fix the stupid 2d array of characters into names
+        if hasattr(self, "collimatorBranchNamesUnique"):
+            self.collimatorBranchNamesUnique = _np.array([''.join(x) for x in self.collimatorBranchNamesUnique])
+        if hasattr(self, "cavityBranchNamesUnique"):
+            self.cavityBranchNamesUnique = _np.array([''.join(x) for x in self.cavityBranchNamesUnique])
 
     def GetApertureData(self, removeZeroLength=False, removeZeroApertures=True, lengthTolerance=1e-6):
         """
@@ -1750,8 +2013,27 @@ class ModelData(object):
                 y.append(result[-1].y)
         return _np.array(l),_np.array(s),_np.array(x),_np.array(y),result
 
+    def PrepareAxisAngleRotations(self):
+        for rot in ['staRot', 'midRot', 'endRot', 'staRefRot', 'midRefRot', 'endRefRot']:
+            newRots = list(map(TRotationToAxisAngle, getattr(self, rot)))
+            setattr(self, rot+"AA", _np.array(newRots))
+                
+def TRotationToAxisAngle(trot):
+    """
+    This will return a list of [Ax,Ay,Az,angle] from a ROOT.TRotation.
 
-class OptionsData(object):
+    If not imported, it will return [0,0,0,0]
+    """
+    
+    if not _useRoot:
+        return [0,0,0,0]
+    else:
+        angle = _ctypes.c_double(0)
+        axis  = _ROOT.TVector3()
+        trot.AngleAxis(angle,axis)
+        return [float(axis.X()), float(axis.Y()), float(axis.Z()), angle.value]
+
+class OptionsData:
     def __init__(self, data):
         options = data.GetOptions()
         optionsTree = data.GetOptionsTree()
@@ -1770,7 +2052,7 @@ class OptionsData(object):
             setattr(self, name, getattr(rootobj, name))
 
 
-class BeamData(object):
+class BeamData:
     def __init__(self, data):
         beam = data.GetBeam()
         beamTree = data.GetBeamTree()
@@ -1836,3 +2118,50 @@ def LoadPickledObject(filename):
         with open(filename, "rb") as f:
             return _pickle.load(f)
         
+
+def LoadSDDSColumnsToDict(filename):
+    """
+    Load columns from an SDDS file, e.g. twiss output.
+    
+    filename - str - path to file
+
+    returns dict{columnname:1d numpy array}
+    """
+    import sdds
+    s = sdds.SDDS(0)
+    s.load(filename)
+
+    d = {cn:_np.array(da) for cn,da in zip(s.columnName, s.columnData)}
+    d2 = {}
+    for k,v in d.items():
+        s = _np.shape(v)
+        if len(s) == 2:
+            if s[0] == 1:
+                d2[k] = v[0]
+            else:
+                d2[k] = v
+        else:
+            d2[k] = v
+    return d2
+
+def SDDSBuildParameterDicts(sddsColumnDict):
+    """
+    Use first the LoadSDDSColumnsToDict on a parameters file. Then
+    call this function to sort it into ElementName : {ParameterName:ParameterValue}.
+    An extra key will be added that is KEYWORD for the ElementType in the
+    inner dictionary.
+    """
+
+    elementName = sddsColumnDict['ElementName']
+    elementType = sddsColumnDict['ElementType']
+    parameterName = sddsColumnDict['ElementParameter']
+    parameterValue = sddsColumnDict['ParameterValue']
+
+    result = _defaultdict(lambda: _defaultdict(float))
+
+    # overwrite everything repeatedly for simplicity
+    for en,et,pn,pv in zip(elementName,elementType,parameterName,parameterValue):
+        result[en][pn] = pv
+        result[en]['KEYWORD'] = et
+
+    return result

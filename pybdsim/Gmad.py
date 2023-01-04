@@ -17,7 +17,7 @@ except ImportError:
 import re as _re
 
 
-class Survey(object):
+class Survey:
     """
     Survey - load a gmad lattice and have a look
 
@@ -101,11 +101,11 @@ class Survey(object):
 
 
 def _LoadLib():
-    libname = 'gmadShared'
+    libname = 'gmad'
     libpath = '/usr/local/lib/'
     parserlib = None
 
-    test0,test1,test2,test3 = False, False, False, False
+    test0,test1,test2,test3, test4,test5 = False, False, False, False, False, False
 
     #test0 - try general find function
     libpath0 = _find_library(libname)
@@ -123,7 +123,7 @@ def _LoadLib():
         parserlib = _ctypes.cdll.LoadLibrary(libpath1+'.so')
         test1 = True
 
-    #test2 - try /usr/local/lib/libgmadShared.so
+    #test2 - try /usr/local/lib/libgmad.so
     try:
         fulllibname = 'lib'+libname+'.so'
         parserlib   = _ctypes.cdll.LoadLibrary(libpath+fulllibname)
@@ -131,7 +131,7 @@ def _LoadLib():
     except OSError:
         pass
 
-    #test3 - try /usr/local/lib/libgmadShared.dylib
+    #test3 - try /usr/local/lib/libgmad.dylib
     try:
         fulllibname = 'lib'+libname+'.dylib'
         parserlib   = _ctypes.cdll.LoadLibrary(libpath+fulllibname)
@@ -139,10 +139,30 @@ def _LoadLib():
     except OSError:
         pass
 
-    tests = [test0,test1,test2,test3]
+    #test4 - try dyld_library_path (mac)
+    try:
+        dyldpaths = _os.environ["DYLD_LIBRARY_PATH"]
+        for path in dyldpaths:
+            fulllibname = 'lib'+libname+'.dylib'
+            parserlib   = _ctypes.cdll.LoadLibrary(path+fulllibname)
+            test4 = True
+    except OSError:
+        pass
+
+    #test5 - try ld_library_path (linux)
+    try:
+        ldpaths = _os.environ["LD_LIBRARY_PATH"]
+        for path in ldpaths:
+            fulllibname = 'lib'+libname+'.so'
+            parserlib   = _ctypes.cdll.LoadLibrary(path+fulllibname)
+            test5 = True
+    except OSError:
+        pass
+
+    tests = [test0,test1,test2,test3,test4,test5]
     if tests.count(True) == 0:
-        print('LoadLib - cannot find libgmadShared - check paths')
-        raise OSError('LoadLib - cannot find libgmadShared - check paths')
+        print('LoadLib - cannot find libgmad - check paths')
+        raise OSError('LoadLib - cannot find libgmad - check paths')
     else:
         parserlib.GetNElements.restype   = _ctypes.c_int
         parserlib.GetNElements.argstypes = []
@@ -172,7 +192,7 @@ def _LoadLib():
         return parserlib
 from pymadx.Data import GetApertureExtent
 
-class Lattice(object):
+class Lattice:
     """
     BDSIM Gmad parser lattice.
 
@@ -239,7 +259,7 @@ class Lattice(object):
         """
         if ".gmad" not in filename:
             raise IOError("Not .gmad file - incorrect file type")
-        self._parserlib.GmadParser_c(filename)
+        self._parserlib.GmadParser_c(filename.encode())
         self.nelements        = self._parserlib.GetNElements()
         self.sequence         = self.GetAllNames()
         self.names            = list(set(self.sequence))
@@ -424,7 +444,7 @@ class Lattice(object):
 
         return s, x, y
 
-class GmadFile(object) :
+class GmadFile:
     """
     Class to determine parameters and gmad include structure
     """
@@ -433,7 +453,7 @@ class GmadFile(object) :
         pass
 
 
-class GmadFileBeam(object) :
+class GmadFileBeam:
     """
     Class to load a gmad options file to a buffer and modify the contents
     """
@@ -441,16 +461,16 @@ class GmadFileBeam(object) :
     def __init__(self, fileName) :
         pass
 
-class GmadFileOptions(object) :
+class GmadFileOptions:
     """
     Class to load a gmad options file to a buffer and modify the contents
     """
 
-    def __init__(self, fileName) :
+    def __init__(self, fileName):
         pass
 
 
-class GmadFileComponents(object) :
+class GmadFileComponents:
     """
     Class to load a gmad components file to a buffer and modify the contents
 
@@ -472,13 +492,13 @@ class GmadFileComponents(object) :
         # regular expressions used for matching
 
         # For finding elements
-        self.elementNameRe = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9=.\*\s-]+);"
+        self.elementNameRe = "([a-zA-Z0-9._-]+)\s*:\s*([,a-zA-Z0-9=.\*\s/-]+);"
         # For finding a known element
-        self.elementRe     = "\s*:\s*([,a-zA-Z0-9=.\*\s-]+);"
+        self.elementRe     = "\s*:\s*([,a-zA-Z0-9=.\*\s/-]+);"
         # For extracting the parameters for an element
-        self.elementValRe  = "([a-zA-Z0-9_-]+)=([a-zA-Z-0-9.eE\*]+)"
+        self.elementValRe  = "([a-zA-Z0-9_-]+)=([a-zA-Z-0-9.eE\*/]+)"
         # For extracting element type
-        self.elementNameRe1    = "([a-zA-Z0-9_-]+)\s*:\s*([,a-zA-Z0-9._-]+),([,a-zA-Z0-9=.\*\s-]+);"
+        self.elementNameRe1    = "([a-zA-Z0-9._-]+)\s*:\s*([,a-zA-Z0-9._-]+),([,a-zA-Z0-9=.\*\s/-]+);"
 
         # determine element names in file
         self.elementNames();

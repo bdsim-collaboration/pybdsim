@@ -14,6 +14,7 @@ New Features
 * Add a module to load BDSIM output file, included rebdsim files with uproot.
 * Create a nice Python copy of the header information from any (re)bdsim file when
   loading with pybdsim using only Python types.
+* New integration for 2D histograms along each axis to 1D histograms.
 * New slices for 3D histograms as well as integrating along a dimension ('projection').
   See :ref:`data-3d-histograms`.
 * New ratio plot for 2x 1D histograms. See `pybdsim.Plot.Histogram1DRatio`.
@@ -34,6 +35,9 @@ New Features
 * Ability to load a rebdsim output file and only load the ROOT histograms without loading
   the BDSIM and rebdsim shared libraries, so it can be used on a separate computer with just
   ROOT.
+* Added classes to Builder for all GMAD objects. New ones include `aperture`, `atom`, `blm`,
+  `cavitymodel`, `crystal`, `field`, `material`, `newcolour`, `query`, `region`, `samplerplacement`,
+  `scorer`, `tunnel`, `xsecbias`.
 
 Bug Fixes
 ---------
@@ -50,6 +54,8 @@ Bug Fixes
 General
 -------
 
+* The Beam class now takes `distrType` and not `distrtype` so as to match BDSIM syntax
+  and be less confusing.
 * Updated out of date documentation.
 * Better automatic ranges for Histogram1DMultiple plots by default.
 * Better field loading in `pybdsim.Field.Load`. Returns the same Field object
