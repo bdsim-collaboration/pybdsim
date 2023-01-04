@@ -2,31 +2,31 @@
 Data loading using uproot
 =========================
 
-Utilities to load BDSIM output data using `uproot`. This is intended for optical function plotting
-and small scale data extraction - not general analysis of BDSIM output.
+Utilities to load BDSIM output data using `uproot`. It is intended for small-scale
+data extraction - not a general analysis of BDSIM output.
 
 
 Loading ROOT Data
 -----------------
 
-pybdsim can load several different ROOT files produced by BDSIM, rebdsim, rebdsimCombine,
-bdskim, rebdsimOptics, rebdsimHistoMerge. Depending the type of the file, you can load the file using::
+pybdsim can load several different ROOT files produced by BDSIM, rebdsim,
+rebdsimCombine, bdskim, rebdsimOptics, rebdsimHistoMerge.
+Depending on the type of the file, you can load the file using::
 
     >>> bdsim_data = pybdsim.DataUproot.BDSimOutput("output.root")
     >>> rebdsim_data = pybdsim.DataUproot.ReBDSimOutput("rebdsim_output.root")
     >>> rebdsim_optics_data = pybdsim.DataUproot.ReBDSimOpticsOutput("rebdsim_optics_output.root")
-    >>> rebdsim_combine_data = pybdsim.DataUproot.ReBDSimCombineOutput("rebdsim_combine_output.root")
 
 Model
 *****
-The model can be accessed from any files using one of theses commands::
+The model can be accessed from any file using one of these commands::
 
     >>> model = bdsim_data.model.df
     >>> model = rebdsim_data.model.df
     >>> model = rebdsim_optics_data.model.df
     >>> model = rebdsim_combine_data.model.df
 
-It returns a `pandas.DataFrame` with the informations of the model.
+It returns a `pandas.DataFrame` with the information of the model.
 
 .. note::
 
