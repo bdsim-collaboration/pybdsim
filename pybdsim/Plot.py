@@ -431,8 +431,8 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
     if type(bdsdata) is str:
         bdsdata = _Data.Load(bdsdata)
     optics  = bdsdata.optics
-    if survey is None:
-        if hasattr(bdsdata, "model"):
+    if survey is None and hasattr(bdsdata, "model"):
+        if len(bdsdata.model) > 0:
             survey = bdsdata.model
 
     # overwrite with none to prevent plotting individual optical functions as well as combined pdf
