@@ -103,10 +103,11 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
     return d
 
 def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
-                                        tightLayout=True, sOffset=0.):
+                                        tightLayout=True, sOffset=0., fraction=0.9):
     """
     Add a machine diagram to the top of the plot in a current figure
-
+    sOffset offsets survey along s
+    fraction controls fraction of the figure for the plot, the remainder being used for the survey
     """
     from . import Data as _Data
     if isinstance(surveyfile, str) and not _ospath.isfile(surveyfile):
@@ -120,7 +121,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     # BDSIM survey contents.
 
     axoptics  = figure.get_axes()
-    _AdjustExistingAxes(figure, tightLayout=tightLayout)
+    _AdjustExistingAxes(figure, fraction=fraction, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
     axmachine.margins(x=0.02)
 
