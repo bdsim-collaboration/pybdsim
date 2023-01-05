@@ -17,6 +17,10 @@ Depending on the type of the file, you can load the file using::
     >>> rebdsim_data = pybdsim.DataUproot.ReBDSimOutput("rebdsim_output.root")
     >>> rebdsim_optics_data = pybdsim.DataUproot.ReBDSimOpticsOutput("rebdsim_optics_output.root")
 
+.. note::
+
+    To use methods in this module, the user must run :code:`BDSIM` with the option :code:`uprootCompatible=1`.
+
 Model
 *****
 The model can be accessed from any file using one of these commands::
@@ -66,17 +70,22 @@ Histograms
 After loading the file using :code:`pybdsim.DataUproot.ReBDSimOutput`, histograms can be
 accessed using::
 
-    >>> histos = rebdsim_data.event.MergedHistograms.ElossHisto
-    >>> values = histos.values
-    >>> centers = histos.centers
+    >>> histo = rebdsim_data.event.MergedHistograms.ElossHisto
+    >>> values = histo.values
+    >>> centers = histo.centers
+    >>> errors = histos.errors()
 
-4D histograms are stored into a `boost histogram` and can be accessed using::
-
-    >>> histo = rebdsim_data.event.MergedHistograms.4d_hist_name
-    >>> bh = histo.bh
-
+4D histograms are stored in a `boost histogram` and can be accessed using :code:`histo.bh`. The methods to use to access
+the data (values, errors, centers) are the same as above.
 You can compute the Ambient dose H10 with a method that takes as input the conversion
 factor file for the particle::
 
-    >>>  h10 = histo.compute_h10("neutrons.dat")
+    >>>  h10 = histo.compute_h10("conversion_factor.dat")
 
+The `conversion_factor` file is a table that contains the energy and the conversion factor for a given particle. This
+method returns a 3D histograms over the form `X, Y, Z, H10`.
+
+..  note::
+
+    There is no filter in this method therefore, the user must specify a filter for a given particle (see BDSIM
+    documentation).
