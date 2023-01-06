@@ -1,6 +1,4 @@
-import logging
 import itertools
-import os.path
 from logging import warning
 import warnings
 import pandas as _pd
@@ -8,8 +6,6 @@ import numpy as _np
 from typing import Optional, List, Dict, Tuple, Union
 
 from pint import UnitRegistry
-from .DataUproot import BDSimOutput
-from .Data import SamplerData, Load
 
 _ureg = UnitRegistry()
 _ureg.define('electronvolt = e * volt = eV')
@@ -130,8 +126,8 @@ class Twiss:
         step_by_step_matrix = _pd.DataFrame()
         for sampler_name, data_sampler in self.samplers_data.items():
             if data_sampler.empty or len(data_sampler) != 11:
-                raise TwissException(f"Samplers {sampler_name} is empty or particles are missing. "
-                                     f"Size of sampler {s} = {len(data_sampler)}")
+                raise TwissException(f"Sampler {sampler_name} is empty or particles are missing. "
+                                     f"Size of sampler {sampler_name} = {len(data_sampler)}")
 
             p0 = data_sampler['p'][0]
             data_sampler['dpp'] = (data_sampler['p'] - p0) / p0
@@ -230,6 +226,7 @@ class Twiss:
 
         Args:
             m: the step-by-step transfer matrix for which the jacobians should be computed
+            twiss: initial values for the Twiss parameters
             plane: an integer representing the block (1 or 2)
 
         Returns:
@@ -305,8 +302,8 @@ class Twiss:
             a Series object with the values of the periodic Twiss parameters.
         """
         twiss = dict({
-            'CMU1': (m['R11'] + m['R22']) / 2.0,
-            'CMU2': (m['R33'] + m['R44']) / 2.0,
+            'CMU1': (matrix['R11'] + matrix['R22']) / 2.0,
+            'CMU2': (matrix['R33'] + matrix['R44']) / 2.0,
         })
         if twiss['CMU1'] < -1.0 or twiss['CMU1'] > 1.0:
             warning(f"Horizontal motion is unstable; proceed with caution (cos(mu) = {twiss['CMU1']}).")
@@ -318,23 +315,23 @@ class Twiss:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             twiss['MU2'] = _np.arccos(twiss['CMU2'])
-        twiss['BETA11'] = m['R12'] / _np.sin(twiss['MU1']) * _ureg.m
+        twiss['BETA11'] = matrix['R12'] / _np.sin(twiss['MU1']) * _ureg.m
         if twiss['BETA11'] < 0.0:
             twiss['BETA11'] *= -1
             twiss['MU1'] *= -1
-        twiss['BETA22'] = m['R34'] / _np.sin(twiss['MU2']) * _ureg.m
+        twiss['BETA22'] = matrix['R34'] / _np.sin(twiss['MU2']) * _ureg.m
         if twiss['BETA22'] < 0.0:
             twiss['BETA22'] *= -1
             twiss['MU2'] *= -1
-        twiss['ALPHA11'] = (m['R11'] - m['R22']) / (2.0 * _np.sin(twiss['MU1']))
-        twiss['ALPHA22'] = (m['R33'] - m['R44']) / (2.0 * _np.sin(twiss['MU2']))
-        twiss['GAMMA11'] = -m['R21'] / _np.sin(twiss['MU1']) * _ureg.m ** -1
-        twiss['GAMMA22'] = -m['R43'] / _np.sin(twiss['MU2']) * _ureg.m ** -1
-        m44 = m[['R11', 'R12', 'R13', 'R14',
+        twiss['ALPHA11'] = (matrix['R11'] - matrix['R22']) / (2.0 * _np.sin(twiss['MU1']))
+        twiss['ALPHA22'] = (matrix['R33'] - matrix['R44']) / (2.0 * _np.sin(twiss['MU2']))
+        twiss['GAMMA11'] = -matrix['R21'] / _np.sin(twiss['MU1']) * _ureg.m ** -1
+        twiss['GAMMA22'] = -matrix['R43'] / _np.sin(twiss['MU2']) * _ureg.m ** -1
+        m44 = matrix[['R11', 'R12', 'R13', 'R14',
                  'R21', 'R22', 'R23', 'R24',
                  'R31', 'R32', 'R33', 'R34',
                  'R41', 'R42', 'R43', 'R44']].apply(float).values.reshape(4, 4)
-        r6 = m[['R15', 'R25', 'R35', 'R45']].apply(float).values.reshape(4, 1)
+        r6 = matrix[['R15', 'R25', 'R35', 'R45']].apply(float).values.reshape(4, 1)
         disp = _np.dot(_np.linalg.inv(_np.identity(4) - m44), r6).reshape(4)
         twiss['DY'] = disp[0] * _ureg.m
         twiss['DYP'] = disp[1] * _ureg.radians
