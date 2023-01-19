@@ -103,10 +103,11 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
     return d
 
 def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
-                                        tightLayout=True, sOffset=0.):
+                                        tightLayout=True, sOffset=0., fraction=0.9):
     """
     Add a machine diagram to the top of the plot in a current figure
-
+    sOffset offsets survey along s
+    fraction controls fraction of the figure for the plot, the remainder being used for the survey
     """
     from . import Data as _Data
     if isinstance(surveyfile, str) and not _ospath.isfile(surveyfile):
@@ -120,7 +121,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     # BDSIM survey contents.
 
     axoptics  = figure.get_axes()
-    _AdjustExistingAxes(figure, tightLayout=tightLayout)
+    _AdjustExistingAxes(figure, fraction=fraction, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
     axmachine.margins(x=0.02)
 
@@ -431,8 +432,8 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
     if type(bdsdata) is str:
         bdsdata = _Data.Load(bdsdata)
     optics  = bdsdata.optics
-    if survey is None:
-        if hasattr(bdsdata, "model"):
+    if survey is None and hasattr(bdsdata, "model"):
+        if len(bdsdata.model) > 0:
             survey = bdsdata.model
 
     # overwrite with none to prevent plotting individual optical functions as well as combined pdf
@@ -513,7 +514,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     ymax = _np.max(yvl)
     try:
         ymin = sf*_np.min(yvl[yvl>0])
-        ymax = sf*_np.max(yvl[yvl>0])
+        ymax = sf*_np.max(yvh[yvh>0])
     except:
         pass
     if log and not histEmpty:
@@ -603,15 +604,15 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         ymax = max(ymax, sf*_np.max(h.contents+h.errors))
         
     if xlabel is None:
-        ax.set_xlabel(h.xlabel)
+        ax.set_xlabel(histograms[0].xlabel)
     else:
         ax.set_xlabel(xlabel)
     if ylabel is None:
-        ax.set_ylabel(h.ylabel)
+        ax.set_ylabel(histograms[0].ylabel)
     else:
         ax.set_ylabel(ylabel)
     if title == "":
-        ax.set_title(h.title) # default to one in histogram
+        ax.set_title(histograms[0].title) # default to one in histogram
     elif title is None:
         pass
     else:
@@ -662,10 +663,11 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     ysf = yScalingFactor
     ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
     histEmpty = len(h.contents[h.contents!=0]) == 0
-    if autovmin or vmin is None and not histEmpty:
-        vmin = _np.min(h.contents[h.contents!=0])
-    else:
-        vmin = 0
+    if vmin is None:
+        if autovmin and vmin is None and not histEmpty:
+            vmin = _np.min(h.contents[h.contents!=0])
+        else:
+            vmin = 0
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)

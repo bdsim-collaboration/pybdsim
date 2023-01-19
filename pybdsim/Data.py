@@ -265,9 +265,9 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
         print("No 'Model.' tree in file")
         return
 
-    leaves = ['componentName', 'componentType', 'length',    'staS',   'endS', 'k1']
-    names  = ['Name',          'Type',          'ArcLength', 'SStart', 'SEnd', 'k1']
-    types  = [str,              str,             float,       float,    float,  float]
+    leaves = ['componentName', 'componentType', 'length',    'staS',   'midS', 'endS', 'k1']
+    names  = ['Name',          'Type',          'ArcLength', 'SStart', 'SMid', 'SEnd', 'k1']
+    types  = [str,              str,             float,       float,    float,  float,  float]
 
     if mt.GetEntries() == 0:
         return None
@@ -1020,6 +1020,21 @@ class TH2(TH1):
             return self
         htemp = self.hist.Rebin2D(nBinsX, nBinsY, self.name+"_rebin_"+str(nBinsX)+"_"+str(nBinsY))
         return TH2(htemp)
+
+    def IntegrateAlongX(self):
+        """
+        Integrate along the x axis returning a TH1 in y.
+        """
+        h1d = self.hist.ProjectionX(self.name+"_int_x", 0, -1, "e")
+        return TH1(h1d)
+
+    def IntegrateAlongY(self):
+        """
+        Integrate along the y axis returning a TH1 in x.
+        """
+        h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
+        return TH1(h1d)
+
 
 class TH3(TH2):
     """
