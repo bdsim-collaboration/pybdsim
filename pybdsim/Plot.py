@@ -103,10 +103,11 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
     return d
 
 def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
-                                        tightLayout=True, sOffset=0.):
+                                        tightLayout=True, sOffset=0., fraction=0.9):
     """
     Add a machine diagram to the top of the plot in a current figure
-
+    sOffset offsets survey along s
+    fraction controls fraction of the figure for the plot, the remainder being used for the survey
     """
     from . import Data as _Data
     if isinstance(surveyfile, str) and not _ospath.isfile(surveyfile):
@@ -120,7 +121,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
     # BDSIM survey contents.
 
     axoptics  = figure.get_axes()
-    _AdjustExistingAxes(figure, tightLayout=tightLayout)
+    _AdjustExistingAxes(figure, fraction=fraction, tightLayout=tightLayout)
     axmachine = _PrepareMachineAxes(figure)
     axmachine.margins(x=0.02)
 
@@ -431,8 +432,8 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
     if type(bdsdata) is str:
         bdsdata = _Data.Load(bdsdata)
     optics  = bdsdata.optics
-    if survey is None:
-        if hasattr(bdsdata, "model"):
+    if survey is None and hasattr(bdsdata, "model"):
+        if len(bdsdata.model) > 0:
             survey = bdsdata.model
 
     # overwrite with none to prevent plotting individual optical functions as well as combined pdf

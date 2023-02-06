@@ -96,8 +96,8 @@ class FileSection():
             s += (self._filePath+'\n')
         return s
 
-    def CallExternalFile(self,filepath=''):
-        if not isinstance(filepath,_np.str):
+    def CallExternalFile(self, filepath=''):
+        if not isinstance(filepath, str):
             raise TypeError("Filepath must be a string.")
         self._isUserDefined       = True
         self._isWrittenSeparately = False
@@ -542,9 +542,9 @@ class Writer():
 
     def _getName(self,filename,sectiontype=''):
         #check input types are strings
-        if not isinstance(filename,_np.str):
+        if not isinstance(filename, str):
             raise TypeError("Filename not a string")
-        if not isinstance(sectiontype,_np.str):
+        if not isinstance(sectiontype, str):
             raise TypeError("Sectiontype not a string")
 
         if filename == '' and sectiontype == '':
@@ -559,7 +559,7 @@ class Writer():
         else:
             if (filename == '') or (filename == self._basefilename):    #no section but filename clashes with basefilename
                 errorString =  "Unknown section type - filename cannot be an empty string "
-                errorString += "or match the basefilename ("+_np.str(self._basefilename)+")."
+                errorString += "or match the basefilename ("+str(self._basefilename)+")."
                 raise ValueError(errorString)
             else:
                 fn_name = self._checkExtensionAndPath(filename)         #override filename

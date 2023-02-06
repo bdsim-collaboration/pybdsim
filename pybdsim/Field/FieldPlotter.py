@@ -350,6 +350,14 @@ def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True, aspect='eq
     _Niceties('X (cm)', 'Z (cm)', zlabel="|$B_{x,z}$| (T)", aspect=aspect)
 
 def Plot2DXYConnectionOrder(filename):
+    """
+    Plot a point in orange and a line in blue (default matplotlib colours)
+    for each locationin the field map. If the field map is constructed
+    correctly, this should show a set of lines with diagonals between them.
+    The other plots with the arrows are independent of order unlike when
+    BDSIM loads the fields. So you might see an OK field map, but it could
+    be wrong if hand written.
+    """
     d = TwoDData(filename)
     _plt.figure()
     _plt.plot(d.x,d.y)
@@ -357,8 +365,6 @@ def Plot2DXYConnectionOrder(filename):
     _plt.xlabel('X (cm)')
     _plt.ylabel('Y (cm)')
     _plt.tight_layout()
-    ax = _plt.gca()
-    ax.set_aspect('equal')
 
 def Plot2DXYComponent(filename, componentIndex=2, scale=None, title=None, flipX=False, aspect='equal'):
     """

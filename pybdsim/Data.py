@@ -265,9 +265,9 @@ def GetModelForPlotting(rootFile, beamlineIndex=0):
         print("No 'Model.' tree in file")
         return
 
-    leaves = ['componentName', 'componentType', 'length',    'staS',   'endS', 'k1']
-    names  = ['Name',          'Type',          'ArcLength', 'SStart', 'SEnd', 'k1']
-    types  = [str,              str,             float,       float,    float,  float]
+    leaves = ['componentName', 'componentType', 'length',    'staS',   'midS', 'endS', 'k1']
+    names  = ['Name',          'Type',          'ArcLength', 'SStart', 'SMid', 'SEnd', 'k1']
+    types  = [str,              str,             float,       float,    float,  float,  float]
 
     if mt.GetEntries() == 0:
         return None
