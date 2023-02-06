@@ -13,7 +13,7 @@ setup(
                       "pytransport"],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
-    python_requires=">=3.7.*",
+    python_requires=">=3.7",
     author='JAI@RHUL',
     author_email='laurie.nevay@rhul.ac.uk',
     description="Python utilities for the Monte Carlo Particle accelerator code BDSIM.",
