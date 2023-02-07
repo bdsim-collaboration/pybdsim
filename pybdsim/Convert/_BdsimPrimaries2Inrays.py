@@ -252,7 +252,7 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
     x,xp,y,yp,tof,E,pid = _ExtractSamplerCoords(data, samplername)
 
     #Get particle pdg number
-    pid  =  _np.int(_np.mean(pid))  #cast to int to match pdg id
+    pid  =  int(_np.mean(pid))  #cast to int to match pdg id
 
     #Particle mass needed for calculating momentum, in turn needed for dE.
     mass = 0
