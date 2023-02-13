@@ -17,7 +17,8 @@ import pybdsim.Data as _Data
 def BdsimPrimaries2Ptc(inputfile, outfile=None, start=0, ninrays=-1):
     """
     Takes .root file generated from a BDSIM run an an input and creates
-    a PTC inrays file from the primary particle tree.
+    a PTC inrays file from the primary particle tree. If no output file
+    name is given, it will be <inputfile>.madx (stripping off the .root).
     
     :param inputfile: root format output from BDSIM run
     :type  inputfile: str
@@ -25,7 +26,7 @@ def BdsimPrimaries2Ptc(inputfile, outfile=None, start=0, ninrays=-1):
     :type  outfile: str
     :param start: starting primary particle index
     :type  start: int
-    :param ninrays: total number of inrays to generate
+    :param ninrays: total number of inrays to generate (-1 means all)
     :type  ninrays: int
     """
     if outfile is None:
