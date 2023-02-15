@@ -20,6 +20,7 @@ import numpy as _np
 import re as _re
 import os as _os
 import pickle as _pickle
+import warnings as _warnings
 
 _useRoot      = True
 _libsLoaded   = False
@@ -1932,7 +1933,7 @@ class ModelData:
 
     def _getData(self, interface, rootobj):
         # remove when fixed this
-        _np.warnings.filterwarnings('ignore', category=_np.VisibleDeprecationWarning)
+        _warnings.filterwarnings('ignore', category=_np.VisibleDeprecationWarning)
         for name in interface:
             try:
                 setattr(self, name, _np.array(getattr(rootobj, name)))
