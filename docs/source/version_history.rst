@@ -2,7 +2,7 @@
 Version History
 ===============
 
-V2.5.0 - 2022 / 02 / XX
+V2.5.0 - 2023 / XX / XX
 =======================
 
 * Field classes no longer have :code:`flip=True` as the default - it is now :code:`False`.
@@ -48,6 +48,7 @@ Bug Fixes
 * Fix check in Run of if it's a ROOT file or not. Simplify it to use file extension.
 * Tolerate no pytransport installation.
 * Fix loading of aperture data from a BDSIM output file.
+* Fix loading of model data.
 * Fix aperture plots from a BDSIM output file.
 
 General
