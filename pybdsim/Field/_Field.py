@@ -83,6 +83,71 @@ class Field(object):
 
         f.close()
 
+    def WriteCompressed(self, fileName, writeLoopOrderReversed=False, overrideLoopOrder=None):
+        """
+        :param writeLoopOrderReversed: Write this field map with the other loop order.
+        :type writeLoopOrderReversed: bool
+        :param overrideLoopOrder: string to write irrespective of internal data as the loop order.
+        :type overrideLoopOrder: str
+
+        For overrideLoopOrder it should be only 'xyzt' or 'tzyx'. This option is
+        provided in case a field is prepared in the other order somehow and you
+        want to control the writing of this header variable independently.
+        """
+        f = _gzip.open(fileName, 'wb')
+        
+        for key,value in self.header.items():
+            f.write((str(key)+'> '+ str(value) + '\n').encode('ascii'))
+        if overrideLoopOrder:
+            if overrideLoopOrder not in ['xyzt', 'tzyx']:
+                raise ValueError("overrideLoopOrder must be one of 'xyzt', 'tzyx'")
+            f.write(("loopOrder> "+overrideLoopOrder+"\n").encode('ascii'))
+        else:
+            lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
+            f.write(("loopOrder> "+lo+"\n").encode('ascii'))
+
+        if self.doublePrecision:
+            colStrings = ['%23s' % s for s in self.columns]
+        else:
+            colStrings = ['%14s' % s for s in self.columns]
+        colStrings[0] = colStrings[0].strip() # don't pad the first column title
+        # a '!' denotes the column header line
+        f.write(('! '+ '\t'.join(colStrings)+'\n').encode('ascii'))
+        
+        # flatten all but last dimension - 3 field components
+        nvalues = _np.shape(self.data)[-1] # number of values in last dimension
+
+
+        flipLocal = self.flip
+        if writeLoopOrderReversed:
+            flipLocal = not flipLocal
+        
+        if not flipLocal:
+            # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
+            # [x,y,z,values]   -> [z,y,x,values]   for 3D
+            # [x,y,values]     -> [y,x,values]     for 2D
+            # [x,values]       -> [x,values]       for 1D
+            if (self.data.ndim == 2):
+                pass # do nothin for 1D
+            inds = list(range(self.data.ndim))       # indices for dimension [0,1,2] etc
+            # keep the last value the same but reverse all indices before then
+            inds[:(self.data.ndim - 1)] = reversed(inds[:(self.data.ndim - 1)])
+            datal = _np.transpose(self.data, inds)
+        else:
+            datal = self.data
+
+        datal = datal.reshape(-1,nvalues)
+        for value in datal:
+            if self.doublePrecision:
+                strings   = ['%.16E' % x for x in value]
+                stringsFW = ['%23s' % s for s in strings]
+            else:
+                strings   = ['%.8E' % x for x in value]
+                stringsFW = ['%14s' % s for s in strings]
+            f.write(('\t'.join(stringsFW) + '\n').encode('ascii'))
+
+        f.close()
+
     def WriteFLUKA2DFormat1(self, fileName):
         """
         Write one of the FLUKA formats (x,y,Bx,by) in cm,T with no header.
