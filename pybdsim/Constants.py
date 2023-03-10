@@ -28,9 +28,16 @@ PDGind = {
     310   : ('K-Short',               r'$K_{S}^{0}$'),
 #STRANGE BARYONS
     3122  : ('Lambda',                r'$\Lambda$'),
+    -3122 : ('Anti Lambda',           r'$\={\Lambda}$'),
     3222  : ('Sigma+',                r'$\Sigma^{+}$'),
+    -3222 : ('Anti Sigma+',           r'$\={\Sigma^{+}}$'),
     3212  : ('Sigma0',                r'$\Sigma^{0}$'),
     3112  : ('Sigma-',                r'$\Sigma^{-}$'),
+    -3112 : ('Anti Sigma-',           r'$\={\Sigma^{-}}$'),
+    3322  : ('Xi0',                   r'$\Xi^{0}$'),
+    -3322 : ('Anti Xi0',              r'$\={\Xi^{0}$}'),
+    3312  : ('Xi-',                   r'$\Xi^{-}$'),
+    -3312 : ('Anti Xi-',              r'$\={\Xi^{-}}$')
 }
 
 PDGname = {}
