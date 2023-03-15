@@ -47,6 +47,9 @@ bdsimcategories = [
     'kicker',
     'tkicker',
     'rfcavity',
+    'rf',
+    'rfx',
+    'rfy'
     'target',
     'rcol',
     'jcol',
