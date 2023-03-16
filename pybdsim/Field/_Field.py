@@ -90,7 +90,7 @@ class Field(object):
             else:
                 strings   = ['%.8E' % x for x in value]
                 stringsFW = ['%14s' % s for s in strings]
-            write(fn, '\t'.join(stringsFW) + '\n')
+            write(f, '\t'.join(stringsFW) + '\n')
 
         f.close()
 
