@@ -39,7 +39,7 @@ class Field(object):
 
         def write(fn, s):
             if compressed:
-                fn.write(s).encode('ascii')
+                fn.write(s.encode('ascii'))
             else:
                 fn.write(s)
         
