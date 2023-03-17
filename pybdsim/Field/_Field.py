@@ -25,21 +25,33 @@ class Field(object):
         :param overrideLoopOrder: string to write irrespective of internal data as the loop order.
         :type overrideLoopOrder: str
 
+        gzip - if the file ends with ".gz" the file will be compressed automatically.
+
         For overrideLoopOrder it should be only 'xyzt' or 'tzyx'. This option is
         provided in case a field is prepared in the other order somehow and you
         want to control the writing of this header variable independently.
         """
-        f = open(fileName, 'w')
+        compressed = fileName.endswith(".gz")
+        if compressed:
+            f = _gzip.open(fileName, 'wb')
+        else:
+            f = open(fileName, 'w')
+
+        def write(fn, s):
+            if compressed:
+                fn.write(s.encode('ascii'))
+            else:
+                fn.write(s)
         
         for key,value in self.header.items():
-            f.write(str(key)+'> '+ str(value) + '\n')
+            write(f, str(key)+'> '+ str(value) + '\n')
         if overrideLoopOrder:
             if overrideLoopOrder not in ['xyzt', 'tzyx']:
                 raise ValueError("overrideLoopOrder must be one of 'xyzt', 'tzyx'")
-            f.write("loopOrder> "+overrideLoopOrder+"\n")
+            write(f, "loopOrder> "+overrideLoopOrder+"\n")
         else:
             lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
-            f.write("loopOrder> "+lo+"\n")
+            write(f, "loopOrder> "+lo+"\n")
 
         if self.doublePrecision:
             colStrings = ['%23s' % s for s in self.columns]
@@ -47,11 +59,10 @@ class Field(object):
             colStrings = ['%14s' % s for s in self.columns]
         colStrings[0] = colStrings[0].strip() # don't pad the first column title
         # a '!' denotes the column header line
-        f.write('! '+ '\t'.join(colStrings)+'\n')
+        write(f, '! '+ '\t'.join(colStrings)+'\n')
         
         # flatten all but last dimension - 3 field components
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
-
 
         flipLocal = self.flip
         if writeLoopOrderReversed:
@@ -79,7 +90,7 @@ class Field(object):
             else:
                 strings   = ['%.8E' % x for x in value]
                 stringsFW = ['%14s' % s for s in strings]
-            f.write('\t'.join(stringsFW) + '\n')
+            write(f, '\t'.join(stringsFW) + '\n')
 
         f.close()
 
@@ -110,6 +121,7 @@ class Field(object):
         
         f.close()
 
+
 class Field1D(Field):
     """
     Utility class to write a 1D field map array to BDSIM field format.
@@ -133,6 +145,7 @@ class Field1D(Field):
         self.header[column.lower() + 'max'] = _np.max(self.data[:,0])
         self.header['n' + column.lower()]   = _np.shape(self.data)[0]
         self.nDimensions = 1
+
 
 class Field2D(Field):
     """
@@ -167,6 +180,7 @@ class Field2D(Field):
         self.header[scl+'max'] = _np.max(self.data[:,:,1])
         self.header['n'+scl]   = _np.shape(self.data)[inds[1]]
         self.nDimensions = 2
+
 
 class Field3D(Field):
     """
@@ -205,6 +219,7 @@ class Field3D(Field):
         self.header[tcl+'max'] = _np.max(self.data[:,:,:,2])
         self.header['n'+tcl]   = _np.shape(self.data)[inds[2]]
         self.nDimensions = 3
+
 
 class Field4D(Field):
     """
@@ -414,6 +429,7 @@ def MirrorDipoleQuadrant1(field2D):
     
     resultField = Field2D(result)
     return resultField
+
 
 def SortUnorderedFieldMap2D(field):
     """

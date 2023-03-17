@@ -47,6 +47,9 @@ bdsimcategories = [
     'kicker',
     'tkicker',
     'rfcavity',
+    'rf',
+    'rfx',
+    'rfy'
     'target',
     'rcol',
     'jcol',
@@ -1125,7 +1128,7 @@ class Machine(object):
         """
         return [k for k,e in self.elements.items() if e.category == category]
 
-    def ReplaceWithElement(self, name, newelement):
+    def ReplaceWithElement(self, name, newelement, warnAboutLengthDifference=True):
         """
         Replace an element in the machine with a new element object (one of the individual
         element pybdsim.Builder classes that inherit the Element class).
@@ -1134,10 +1137,10 @@ class Machine(object):
             msg = "{} not found in machine sequence.".format(name)
             raise ValueError(msg)
         if not isinstance(newelement, Element):
-            msg = "newelement is not a pybdsim.Builder.Element instance."
+            msg = "new element is not a pybdsim.Builder.Element instance."
             raise TypeError(msg)
-        if self.elements[name].length != newelement.length:
-            msg = "Warning: Length of newelement is not the same length as existing element {}".format(name)
+        if self.elements[name].length != newelement.length and warnAboutLengthDifference:
+            msg = "Warning: Length of new element is not the same length as existing element {}".format(name)
             print(msg)
             currlength = self.elements[name].length
             self.length -= currlength

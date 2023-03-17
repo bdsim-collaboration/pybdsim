@@ -20,6 +20,7 @@ import numpy as _np
 import re as _re
 import os as _os
 import pickle as _pickle
+import warnings as _warnings
 
 _useRoot      = True
 _libsLoaded   = False
@@ -1931,21 +1932,19 @@ class ModelData:
         return cls(data)
 
     def _getData(self, interface, rootobj):
-        # remove when fixed this
-        _np.warnings.filterwarnings('ignore', category=_np.VisibleDeprecationWarning)
-        for name in interface:
-            try:
-                setattr(self, name, _np.array(getattr(rootobj, name)))
-            except TypeError:
-                # could be a map or a vector of our classes which wouldn't work
-                try:
-                    # try converting map to a dictionary - TBC
-                    setattr(self, name, dict(getattr(rootobj, name)))
-                except:
-                    pass # just ignore it
-            except ValueError:
-                pass # just ignore it
-
+        possibleVectorStrings = ["componentName",
+                                 "placementName",
+                                 "componentType",
+                                 "beamPipeType",
+                                 "material",
+                                 "cavityBranchNamesUnique",
+                                 "collimatorBranchNamesUnique",
+                                 "scoringMeshName",
+                                 "samplerNamesUnique",
+                                 "samplerCNamesUnique",
+                                 "samplerSNamesUnique"]
+        possibleVectorVectorStrings = ["pvName",
+                                       "pvNameWPointer"]
         possibleDicts = {"collimatorIndicesByName" : (str,int),
                          "cavityIndicesByName"     : (str,int),
                          "scoringMeshTranslation"  : (str,list),
@@ -1955,15 +1954,26 @@ class ModelData:
                          "samplerCRadius"          : (str,float),
                          "samplerSRadius"          : (str,float)
                          }
-        for n,types in possibleDicts.items():
-            if hasattr(self, n):
-                try:
-                    setattr(self, n, dict(getattr(self,n))) # just plonk it in a dictionary
-                    d = getattr(self,n)
-                    converted = dict(zip(map(types[0],d.keys()), map(types[1],d.values())))
-                    setattr(self, n, converted) # overwrite with converted one
-                except ValueError:
-                    pass
+        try:
+            for name in interface:
+                ob = getattr(rootobj, name)
+                if name in possibleVectorStrings:
+                    obl = list(ob)
+                    obls = list(map(str,obl))
+                    setattr(self, name, _np.array(obls, dtype=str))
+                elif name in possibleVectorVectorStrings:
+                    t = [[str(x) for x in a] for a in ob]
+                    setattr(self, name, t)
+                elif name in possibleDicts:
+                    types = possibleDicts[name]
+                    setattr(self, name, dict(ob)) # just plonk it in a dictionary
+                    d = getattr(self, name) # get it back and prepare a new one by iterating over it converting the types
+                    converted = dict(zip(map(types[0], d.keys()), map(types[1], d.values())))
+                    setattr(self, name, converted)  # overwrite with converted one
+                else:
+                    setattr(self, name, _np.array(ob))
+        except:
+            pass # just tolerate any errors - take this out for development, so we know it really loads everything
 
         if hasattr(self, "collimatorInfo"):
             res = [CollimatorInfo(ob) for ob in self.collimatorInfo]

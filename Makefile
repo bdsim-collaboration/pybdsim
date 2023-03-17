@@ -1,17 +1,17 @@
 install:
 	pip install . --user
 
+install_venv:
+	pip install . --user
+
 uninstall:
 	pip uninstall pybdsim
 
 develop:
 	pip install --editable . --user
 
-venv:
+develop_venv:
 	pip install --editable .
-
-venv-shared:
-	pip install .
 
 # bumpversion is a python utility available via pip.  Make sure to add
 # your pip user install location's bin directory to your PATH.
