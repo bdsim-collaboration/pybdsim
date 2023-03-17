@@ -204,7 +204,7 @@ class Beam(dict) :
     def _SetSigmaT(self,sigmat=1.0,unitsstring='s'):
         self['sigmaT'] = str(sigmat)
 
-    def _SetBetaX(self,betx=1.0,unitsstring='m'):
+    def _SetBetaX(self, betx=1.0, unitsstring='m'):
         self['betx'] = str(betx) + '*' + unitsstring
 
     def _SetBetaY(self,bety=1.0,unitsstring='m'):

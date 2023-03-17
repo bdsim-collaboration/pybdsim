@@ -204,16 +204,24 @@ class Element(ElementBase):
     capabilities.  It adds the requirement of type / category (because 'type' is
     a protected keyword in python) as well as checking for valid BDSIM types.
     """
-    def __init__(self, name, category, **kwargs):
+    def __init__(self, name, category, isMultipole=False, **kwargs):
+        """
+        is Multipole is a flag to take into account the inheritance of multipole in a sequence
+        This is important to correctly write the knl in the gmad file
+        m1: multipole, l=0.0;
+        m2: m1, knl ={};
+        """
+
         if category not in bdsimcategories:
             raise ValueError("Not a valid BDSIM element type: {}".format(category))
 
-        if (category == 'thinmultipole') or (category == 'multipole'):
-            ElementBase.__init__(self,name,isMultipole=True,**kwargs)
+        if (category == 'thinmultipole') or (category == 'multipole') or isMultipole:
+            ElementBase.__init__(self, name, isMultipole=True, **kwargs)
         else:
             ElementBase.__init__(self,name,**kwargs)
         self['category'] = category
         self.category    = category
+        self._isMultipole = isMultipole
         self.length      = 0.0 #for book keeping only
         self._UpdateLength()
 
@@ -231,13 +239,14 @@ class Element(ElementBase):
             for key in sorted(self._keysextra):
                 if (type(self[key]) == tuple
                     and (self.category != 'thinmultipole')
-                    and (self.category != 'multipole')):
+                    and (self.category != 'multipole') and self._isMultipole==False):
                     s += (', ' + key + '=' + str(self[key][0])
                           + '*' + str(self[key][1]))
                 elif (type(self[key]) == tuple
                       and ((self.category == 'thinmultipole')
-                           or (self.category == 'multipole'))):
-                    s += (', ' + key + '=' + '{' + (','.join([str(s) for s in self[key]]))+'}')
+                           or (self.category == 'multipole') or self._isMultipole)):
+                    s += (', ' + key + '=' + '{'
+                          + (','.join([str(s) for s in self[key]]))+'}')
                 else:
                     s += ", {}={}".format(key, self[key])
         s += ';\n'
@@ -293,10 +302,15 @@ class Element(ElementBase):
         return self._split_length(points)
 
     @classmethod
-    def from_element(cls, element):
-        parameters = _copy.copy(dict(element))
-        del parameters["category"] # don't set category explicitly..
-        return cls(**parameters)
+    def from_element(cls, parent_element_name: str, isMultipole=False, **kwargs):
+        # parameters = _copy.copy(dict(element))
+        parameters = {}
+        for key, value in kwargs.items():
+            parameters[key] = value
+        parameters["category"] = parent_element_name
+        if parent_element_name not in bdsimcategories:
+            bdsimcategories.append(parent_element_name)
+        return cls(isMultipole=isMultipole, **parameters)
 
 
 class ElementModifier(ElementBase):
@@ -1052,7 +1066,7 @@ class Machine(object):
         """
         return self.length
 
-    def Append(self, item):
+    def Append(self, item, is_component=False):
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
@@ -1066,11 +1080,12 @@ class Machine(object):
         else:
             if self.verbose:
                 print("Element of name: ",item.name," already defined, simply adding to sequence")
-        #finally add it to the sequence
-        self.sequence.append(item.name)
+        # finally add it to the sequence if this is not a base component of the sequence.
+        if not is_component:
+            self.sequence.append(item.name)
 
-        self.length += item.length
-        self.lenint.append(self.length)
+            self.length += item.length
+            self.lenint.append(self.length)
 
         # list of elements that produce SR
         elementsSR = ["sbend", "rbend"]
@@ -1677,6 +1692,35 @@ class Machine(object):
 
     def AddPlacement(self, name, **kwargs):
         self.objects.append(Placement(name, **kwargs))
+
+    def AddBLM(self, name, **kwargs):
+        self.objects.append(BLM(name, **kwargs))
+
+    def AddRmat(self, name='rmat', length=0.1,
+                r11=1.0, r12=0, r13=0, r14=0,
+                r21=0, r22=1.0, r23=0, r24=0,
+                r31=0, r32=0, r33=1.0, r34=0,
+                r41=0, r42=0, r43=0, r44=1.0,
+                **kwargs):
+        self.Append(Element(name, 'rmatrix', l=length,
+                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
+                            **kwargs))
+
+    def AddThinRmat(self, name='rmatthin',
+                    r11=1.0, r12=0, r13=0, r14=0,
+                    r21=0, r22=1.0, r23=0, r24=0,
+                    r31=0, r32=0, r33=1.0, r34=0,
+                    r41=0, r42=0, r43=0, r44=1.0,
+                    **kwargs):
+        self.Append(Element(name, 'thinrmatrix',
+                            rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                            rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                            rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                            rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
+                            **kwargs))
 
 # General scripts below this point
 

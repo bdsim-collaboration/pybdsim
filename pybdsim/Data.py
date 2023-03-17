@@ -1522,7 +1522,7 @@ class SamplerData(_SamplerData):
     >>> thirdAfterPrimaries = pybdsim.Data.SamplerData(f, 3)
     """
     def __init__(self, data, samplerIndexOrName=0):
-        params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T',
+        params = ['n', 'energy', 'x', 'y', 'z', 'xp', 'yp','zp','T','p',
                   'weight','partID','parentID','trackID','modelID','turnNumber','S',
                   'r', 'rp', 'phi', 'phip', 'charge', 'kineticEnergy',
                   'mass', 'rigidity','isIon','ionA','ionZ']
