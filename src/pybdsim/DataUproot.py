@@ -7,53 +7,54 @@ Design goals:
  to explore and discover the data structure.
  - provide analysis tools exploiting the new Awkward 1.0 library (https://arxiv.org/pdf/2001.06307.pdf)
 """
-from __future__ import annotations
-from typing import TYPE_CHECKING, Optional, List, Dict, Tuple, Union
-from collections import UserDict
-import logging
-import itertools
-import os
+from __future__ import annotations as _annotations
+import awkward as _ak
+from collections import UserDict as _UserDict
+import logging as _logging
+import itertools as _itertools
+import os as _os
 import numpy as _np
 import pandas as _pd
-from scipy.interpolate import interp1d
-import matplotlib.pyplot as plt
-import awkward as ak
+from scipy.interpolate import interp1d as _interp1d
+from typing import TYPE_CHECKING as _TYPE_CHECKING
+from typing import Optional as _Optional
+from typing import List as _List
+from typing import Dict as _Dict
+from typing import Tuple as _Tuple
+from typing import Union as _Union
+import matplotlib.pyplot as _plt
+import warnings as _warnings
 
 try:
     import uproot as _uproot
 except (ImportError, ImportWarning):
-    logging.warning("Uproot is required for this module to have full functionalities.\n")
+    _logging.warning("Uproot is required for this module to have full functionalities.\n")
     raise ImportError("Uproot is required for this module to work.")
 
 _WITH_ROOT = False
 try:
-    import warnings
+    _warnings.simplefilter("ignore")
+    import ROOT as _ROOT
 
-    warnings.simplefilter("ignore")
-    import ROOT
-
-    ROOT.gSystem.Load('librebdsim')
-    warnings.simplefilter("default")
+    _ROOT.gSystem.Load('librebdsim')
+    _warnings.simplefilter("default")
     _WITH_ROOT = True
 except ImportError:
-    logging.warning("ROOT is required for this module to have full functionalities.\n"
-                    "Not all methods will be available.")
+    _logging.warning("ROOT is required for this module to have full functionalities.\n"
+                     "Not all methods will be available.")
 
 _WITH_BOOST_HISTOGRAM = False
 try:
     try:
-        import warnings
-
-        warnings.simplefilter("ignore")
+        _warnings.simplefilter("ignore")
         import boost_histogram as bh
-
-        warnings.simplefilter("default")
+        _warnings.simplefilter("default")
     except (ImportError, UserWarning):
         pass
     _WITH_BOOST_HISTOGRAM = True
 except (ImportError, ImportWarning):
-    logging.warning("boost_histogram is required for this module to have full functionalities.\n"
-                    "Not all methods will be available.")
+    _logging.warning("boost_histogram is required for this module to have full functionalities.\n"
+                     "Not all methods will be available.")
 
 __all__ = [
     'Output',
@@ -198,7 +199,7 @@ class Histogram3d(Histogram):
         return _pd.DataFrame(index=index, data=data)
 
     def to_csv(self, filename='histogram.csv', path='.', **kwargs):
-        self.to_df().to_csv(os.path.join(path, filename), header=False, float_format='% 11.7E', **kwargs)
+        self.to_df().to_csv(_os.path.join(path, filename), header=False, float_format='% 11.7E', **kwargs)
 
 
 class Histogram4d:
@@ -240,8 +241,8 @@ class Histogram4d:
                 bh.axis.Regular(self._h.h_nzbins, self._h.h_zmin, self._h.h_zmax),
                 energy_axis)
 
-            for x, y, z, e in itertools.product(range(self._h.h_nxbins), range(self._h.h_nybins),
-                                                range(self._h.h_nzbins), range(self._h.h_nebins)):
+            for x, y, z, e in _itertools.product(range(self._h.h_nxbins), range(self._h.h_nybins),
+                                                 range(self._h.h_nzbins), range(self._h.h_nebins)):
                 histo4d[x, y, z, e] = getattr(self._h, hist_type).at(x, y, z, e)
 
             return histo4d
@@ -323,13 +324,13 @@ class Histogram4d:
 
     def compute_h10(self, conversionfactorfile):
         data = _pd.read_table(conversionfactorfile, names=["energy", "h10_coeff"])
-        f = interp1d(data['energy'].values, data['h10_coeff'].values)
+        f = _interp1d(data['energy'].values, data['h10_coeff'].values)
         self._cache = self.project_to_3d(weights=f(self.bh.axes[3].centers)).view()
         return self.project_to_3d(weights=f(self.bh.axes[3].centers))
 
     def plot_spectrum(self, x=0, y=0, z=0, xlim=[1e-10, 300], ylim=[1e-15, 1e-7], log=True, error_bar=True, **kwargs):
 
-        fig, ax = plt.subplots(sharex=True, figsize=(8, 5.5))
+        fig, ax = _plt.subplots(sharex=True, figsize=(8, 5.5))
 
         bh = self.bh
         bh_err = self.bh_err
@@ -383,7 +384,7 @@ class Histogram4d:
 
         fig.tight_layout()
 
-        plt.show()
+        _plt.show()
 
     def get_position_in_space(self, x=0, y=0, z=0, origin=[0, 0, 0]):
         centers = self.centers
@@ -509,11 +510,11 @@ class Output(metaclass=OutputType):
         """
         self._filename = filename
         self._path = path
-        self._file = os.path.join(path, filename)
+        self._file = _os.path.join(path, filename)
         if open_file:
             self._root_directory: _uproot.rootio.ROOTDirectory = _uproot.open(self._file)
             if _WITH_ROOT:
-                self._rootfile = ROOT.TFile.Open(self._file)
+                self._rootfile = _ROOT.TFile.Open(self._file)
 
 
     @classmethod
@@ -554,7 +555,7 @@ class Output(metaclass=OutputType):
 
 
     class Directory:
-        def __init__(self, parent: Union[Output, Output.Directory], directory: _uproot.rootio.ROOTDirectory):
+        def __init__(self, parent: _Union[Output, Output.Directory], directory: _uproot.rootio.ROOTDirectory):
             """
             A representation of a (nested) structure of ROOT directories.
 
@@ -587,7 +588,7 @@ class Output(metaclass=OutputType):
             elif c.startswith('BDSBH4D'):
                 name = n.split(';')[0]
                 if not _WITH_ROOT:
-                    logging.error("ROOT must be installed to use Histogram4D.")
+                    _logging.error("ROOT must be installed to use Histogram4D.")
                 else:
                     return Histogram4d(self.parent, self.parent.rootfile.Get('Event/MergedHistograms/' + name), name)
             else:
@@ -609,7 +610,7 @@ class Output(metaclass=OutputType):
             return self._directory
 
         @property
-        def keys(self) -> List[str]:
+        def keys(self) -> _List[str]:
             """The content of the directory."""
             return self._directory.keys()
 
@@ -624,8 +625,8 @@ class Output(metaclass=OutputType):
             self._parent = parent
             self._tree_name = tree_name or self.__class__.__name__
             self._tree: _uproot.rootio.TTree = parent[self._tree_name]
-            self._df: Optional[_pd.DataFrame] = None
-            self._np: Optional[_np.ndarray] = None
+            self._df: _Optional[_pd.DataFrame] = None
+            self._np: _Optional[_np.ndarray] = None
 
         def __getitem__(self, item):
             try:
@@ -675,11 +676,11 @@ class Output(metaclass=OutputType):
             return self._tree
 
         @property
-        def branches_names(self) -> List[str]:
+        def branches_names(self) -> _List[str]:
             return [b for b in self.tree.keys() if '/' not in b]
 
         @property
-        def branches(self) -> List[_uproot.rootio.TBranchElement]:
+        def branches(self) -> _List[_uproot.rootio.TBranchElement]:
             return [b for b in self.tree.values() if b.name[-1] == '.']
 
         @property
@@ -700,8 +701,8 @@ class Output(metaclass=OutputType):
             return self._np
 
     class Branch:
-        BRANCH_NAME: Optional[str] = None
-        DEFAULT_LEAVES: Dict[str, Tuple[bool, Optional[str]]] = {}
+        BRANCH_NAME: _Optional[str] = None
+        DEFAULT_LEAVES: _Dict[str, _Tuple[bool, _Optional[str]]] = {}
 
         def __new__(cls, *args, **kwargs):
             def toggle(leave):
@@ -716,7 +717,7 @@ class Output(metaclass=OutputType):
                 setattr(instance, f"toggle_{k}", toggle(k).__get__(instance))
             return instance
 
-        def __init__(self, parent: Output.Tree, branch_name: Optional[str] = None):
+        def __init__(self, parent: Output.Tree, branch_name: _Optional[str] = None):
             """
             A representation of a ROOT Branch.
 
@@ -728,9 +729,9 @@ class Output(metaclass=OutputType):
                 self._branch = parent[branch_name]
             else:
                 self._branch = parent[self.__class__.__name__]
-            self._df: Optional[_pd.DataFrame] = None
-            self._np: Optional[_np.ndarray] = None
-            self._active_leaves: Dict[str, Tuple[bool, Optional[str]]] = self.DEFAULT_LEAVES.copy()
+            self._df: _Optional[_pd.DataFrame] = None
+            self._np: _Optional[_np.ndarray] = None
+            self._active_leaves: _Dict[str, _Tuple[bool, _Optional[str]]] = self.DEFAULT_LEAVES.copy()
 
         def __getitem__(self, item):
             return self._branch[item]
@@ -746,7 +747,7 @@ class Output(metaclass=OutputType):
                 branches = self._active_leaves
             return self.parent.arrays(branches=[b for b in branches], **kwargs)
 
-        def pandas(self, branches: List[str] = None, strip_prefix: bool = True, **kwargs):
+        def pandas(self, branches: _List[str] = None, strip_prefix: bool = True, **kwargs):
             """A proxy for the uproot method.
             """
             if branches is None:
@@ -754,8 +755,8 @@ class Output(metaclass=OutputType):
             else:
                 branches = [self.branch_name + b for b in branches]
 
-            df = ak.to_dataframe(self.parent.tree.arrays(branches, library='ak'),
-                                 how='outer') # Use ak instead of pandas
+            df = _ak.to_dataframe(self.parent.tree.arrays(branches, library='ak'),
+                                  how='outer') # Use ak instead of pandas
             if strip_prefix:
                 import re
                 df.columns = [re.split(self.branch_name, c)[1] for c in df.columns]
@@ -791,11 +792,11 @@ class Output(metaclass=OutputType):
                 return name
 
         @property
-        def leaves(self) -> List[_uproot.rootio.TBranchElement]:
+        def leaves(self) -> _List[_uproot.rootio.TBranchElement]:
             return self._branch.values()
 
         @property
-        def leaves_names(self) -> List[str]:
+        def leaves_names(self) -> _List[str]:
             return self._branch.keys()
 
         @property
@@ -1405,7 +1406,7 @@ class BDSimOutput(Output):
 
             # Collimators
             if not self.array(branch='storeCollimatorInfo'):
-                logging.warning("Informations for collimators are empty, you shoud set storeCollimatorInfo=1")
+                _logging.warning("Informations for collimators are empty, you shoud set storeCollimatorInfo=1")
 
             collimator_df = _pd.DataFrame()
             branches = ['collimatorInfo/Model.collimatorInfo.componentName',
@@ -1607,7 +1608,7 @@ class BDSimOutput(Output):
             def read_df(self) -> _pd.DataFrame:
                 pass
 
-        class Samplers(UserDict):
+        class Samplers(_UserDict):
             def compute_optics(self, samplers: Optional[List[str]] = None):
                 return _pd.DataFrame(
                     [sampler.compute_optics() for sampler in self.data.values()]
@@ -1695,11 +1696,11 @@ class BDSimOutput(Output):
                     'S': data[0, -1],
                 }
 
-        class Collimators(UserDict):
-            def to_df(self, samplers: Optional[List[str]] = None, columns: Optional[List[str]] = None) -> _pd.DataFrame:
+        class Collimators(_UserDict):
+            def to_df(self, samplers: _Optional[_List[str]] = None, columns: _Optional[_List[str]] = None) -> _pd.DataFrame:
                 ...
 
-            def to_np(self, samplers: Optional[List[str]] = None, columns: Optional[List[str]] = None) -> _np.ndarray:
+            def to_np(self, samplers: _Optional[_List[str]] = None, columns: _Optional[_List[str]] = None) -> _np.ndarray:
                 ...
 
             @property
