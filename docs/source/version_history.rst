@@ -2,7 +2,7 @@
 Version History
 ===============
 
-V3.0.0 - 2023 / XX / XX
+V3.0.0 - 2023 / 03 / 19
 =======================
 
 * Restructure package into a declarative Python package where all source files are now in
