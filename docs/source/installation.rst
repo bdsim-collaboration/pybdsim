@@ -10,6 +10,7 @@ be install through pip (with internet access): ::
 There are the following features that result in more dependencies being installed:
 
 * uproot - includes uproot data loading
+* boost_histogram - includes boost-histogram package for 4d histograms
 * cpymad - allows usage of cpymad for converting models
 * pysad - allows usage of pysad for converting models
 
@@ -19,7 +20,7 @@ These can be installed as: ::
 
 or: ::
 
-  pip install pybdsim[uproot,cpymad,pysad]
+  pip install pybdsim[uproot,boost_histogram,cpymad,pysad]
 
 
 Requirements
