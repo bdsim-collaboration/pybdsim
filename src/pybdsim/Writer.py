@@ -17,7 +17,6 @@ from . import Options as _Options
 
 import time as _time
 import os as _os
-import numpy as _np
 import textwrap as _textwrap
 sections = ['components',
             'sequence',

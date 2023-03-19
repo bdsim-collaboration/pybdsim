@@ -1,3 +1,7 @@
+"""
+Utilities for running BDSIM and other tools from Python.
+
+"""
 import os as _os
 import subprocess as _subprocess
 import uuid as _uuid
