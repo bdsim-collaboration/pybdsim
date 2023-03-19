@@ -2,9 +2,13 @@
 Version History
 ===============
 
-V2.5.0 - 2023 / XX / XX
+V3.0.0 - 2023 / XX / XX
 =======================
 
+* Restructure package into a declarative Python package where all source files are now in
+  `src/pybdsim/`.
+* The pacakge now has a feature called `uproot` for the optional dependencies of uproot, pandas,
+  and pint packages.
 * Field classes no longer have :code:`flip=True` as the default - it is now :code:`False`.
   Please check any field maps created by scripts using these classes.
 

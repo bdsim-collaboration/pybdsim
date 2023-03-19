@@ -38,6 +38,9 @@ dependencies = [
 
 [project.optional-dependencies]
 uproot = ["uproot", "pandas", "pint"]
+cpymad = ["cpymad"]
+pysad = ["pysad"]
+dev = ["pytest", "sphinx", "sphinx-rtd-theme"]
 
 [project.urls]
 homepage = "http://www.pp.rhul.ac.uk/bdsim/pybdsim"
