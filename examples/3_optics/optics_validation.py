@@ -5,7 +5,7 @@ from cpymad.madx import Madx
 
 import pymadx
 import pybdsim
-from pybdsim.DataUproot import BDSimOutput
+from pybdsim.DataUproot import BDSIMOutput
 from pybdsim.Optics import Twiss
 import georges_core
 from georges_core.units import ureg as _ureg

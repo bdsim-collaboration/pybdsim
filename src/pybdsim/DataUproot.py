@@ -58,18 +58,18 @@ except (ImportError, ImportWarning):
 
 __all__ = [
     'Output',
-    'BDSimOutputException',
-    'BDSimOutput',
-    'ReBDSimOutput',
-    'ReBDSimOpticsOutput',
-    'ReBDSimCombineOutput',
+    'BDSIMOutputException',
+    'BDSIMOutput',
+    'REBDSIMOutput',
+    'REBDSIMOpticsOutput',
+    'REBDSIMCombineOutput',
     'Histogram',
-    'Histogram2d',
-    'Histogram3d'
+    'Histogram2D',
+    'Histogram3D'
 ]
 
 
-class BDSimOutputException(Exception):
+class BDSIMOutputException(Exception):
     pass
 
 
@@ -103,8 +103,7 @@ class Histogram:
         return len(self._h.axes[0].edges()) - 1
 
 
-class Histogram1d(Histogram):
-
+class Histogram1D(Histogram):
     @property
     def centers(self):
         if self._centers is not None:
@@ -117,11 +116,11 @@ class Histogram1d(Histogram):
         return self._h.values()
 
 
-class Histogram2d(Histogram):
+class Histogram2D(Histogram):
     ...
 
 
-class Histogram3d(Histogram):
+class Histogram3D(Histogram):
     def __init__(self, h, parent, name):
         Histogram.__init__(self, h)
         self._filename = parent.filename
@@ -202,7 +201,7 @@ class Histogram3d(Histogram):
         self.to_df().to_csv(_os.path.join(path, filename), header=False, float_format='% 11.7E', **kwargs)
 
 
-class Histogram4d:
+class Histogram4D:
     def __init__(self, parent, bdsbh4d_histogram, name):
         self._h = bdsbh4d_histogram
         self._bh = None
@@ -578,19 +577,19 @@ class Output(metaclass=OutputType):
                 return Output.Directory(self.parent, directory=item)
             elif c.endswith('TH1D'):
                 item = self._directory[n]
-                return Histogram1d(item)
+                return Histogram1D(item)
             elif c.endswith('TH2D'):
                 item = self._directory[n]
-                return Histogram2d(item)
+                return Histogram2D(item)
             elif c.endswith('TH3D'):
                 item = self._directory[n]
-                return Histogram3d(item, self.parent, n)
+                return Histogram3D(item, self.parent, n)
             elif c.startswith('BDSBH4D'):
                 name = n.split(';')[0]
                 if not _WITH_ROOT:
                     _logging.error("ROOT must be installed to use Histogram4D.")
                 else:
-                    return Histogram4d(self.parent, self.parent.rootfile.Get('Event/MergedHistograms/' + name), name)
+                    return Histogram4D(self.parent, self.parent.rootfile.Get('Event/MergedHistograms/' + name), name)
             else:
                 return self._directory[n]
 
@@ -812,7 +811,7 @@ class Output(metaclass=OutputType):
             return self._np
 
 
-class BDSimOutput(Output):
+class BDSIMOutput(Output):
     def __getattr__(self, item):
         if item in (
                 'header',
@@ -825,7 +824,7 @@ class BDSimOutput(Output):
         ):
             setattr(self,
                     item,
-                    getattr(BDSimOutput, item.title())(parent=self)
+                    getattr(BDSIMOutput, item.title())(parent=self)
                     )
             return getattr(self, item)
 
@@ -1456,16 +1455,16 @@ class BDSimOutput(Output):
     class Event(Output.Tree):
         def __getattr__(self, item):
             if item == 'samplers':
-                self.samplers = BDSimOutput.Event.Samplers({
+                self.samplers = BDSIMOutput.Event.Samplers({
                     s.rstrip('.'):
-                        BDSimOutput.Event.Sampler(parent=self, branch_name=s)
+                        BDSIMOutput.Event.Sampler(parent=self, branch_name=s)
                     for s in self.parent.model.sampler_names})
                 return self.samplers
 
             elif item == 'collimators':
-                self.collimators = BDSimOutput.Event.Collimators({
+                self.collimators = BDSIMOutput.Event.Collimators({
                     s.rstrip('.'):
-                        BDSimOutput.Event.Collimator(parent=self, branch_name=s)
+                        BDSIMOutput.Event.Collimator(parent=self, branch_name=s)
                     for s in self.parent.model.collimator_names})
                 return self.collimators
             else:
@@ -1609,15 +1608,15 @@ class BDSimOutput(Output):
                 pass
 
         class Samplers(_UserDict):
-            def compute_optics(self, samplers: Optional[List[str]] = None):
+            def compute_optics(self, samplers: _Optional[_List[str]] = None):
                 return _pd.DataFrame(
                     [sampler.compute_optics() for sampler in self.data.values()]
                 )
 
-            def to_df(self, samplers: Optional[List[str]] = None, columns: Optional[List[str]] = None) -> _pd.DataFrame:
+            def to_df(self, samplers: _Optional[_List[str]] = None, columns: _Optional[_List[str]] = None) -> _pd.DataFrame:
                 pass
 
-            def to_np(self, samplers: Optional[List[str]] = None, columns: Optional[List[str]] = None) -> _np.ndarray:
+            def to_np(self, samplers: _Optional[_List[str]] = None, columns: _Optional[_List[str]] = None) -> _np.ndarray:
                 pass
 
             @property
@@ -1743,7 +1742,7 @@ class BDSimOutput(Output):
             }
 
 
-class ReBDSimOutput(Output):
+class REBDSIMOutput(Output):
     def __getattr__(self, item):
         if item in (
                 'beam',
@@ -1755,7 +1754,7 @@ class ReBDSimOutput(Output):
             try:
                 self._root_directory.get(item.split('_')[0].title())
             except KeyError:
-                raise BDSimOutputException(f"Key {item} is invalid.")
+                raise BDSIMOutputException(f"Key {item} is invalid.")
             setattr(self,
                     item,
                     Output.Directory(parent=self, directory=self._root_directory[item.split('_')[0].title()])
@@ -1763,35 +1762,35 @@ class ReBDSimOutput(Output):
         elif item == 'model':
             setattr(self,
                     item,
-                    getattr(BDSimOutput, item.title())(parent=self, tree_name='ModelTree'),
+                    getattr(BDSIMOutput, item.title())(parent=self, tree_name='ModelTree'),
                     )
         else:
             setattr(self,
                     item,
-                    getattr(BDSimOutput, item.title())(parent=self)
+                    getattr(BDSIMOutput, item.title())(parent=self)
                     )
         return getattr(self, item)
 
 
-class ReBDSimOpticsOutput(Output):
+class REBDSIMOpticsOutput(Output):
     def __getattr__(self, item):
         try:
             self._root_directory.get(item.title())
         except KeyError:
-            raise BDSimOutputException(f"Key {item} is invalid.")
+            raise BDSIMOutputException(f"Key {item} is invalid.")
 
         if item in (
                 'optics',
         ):
             setattr(self,
                     item,
-                    getattr(ReBDSimOpticsOutput, item.title())(parent=self)
+                    getattr(REBDSIMOpticsOutput, item.title())(parent=self)
                     )
             return getattr(self, item)
         else:
             setattr(self,
                     item,
-                    getattr(BDSimOutput, item.title())(parent=self)
+                    getattr(BDSIMOutput, item.title())(parent=self)
                     )
         return getattr(self, item)
 
@@ -1865,7 +1864,7 @@ class ReBDSimOpticsOutput(Output):
             return optics_df
 
 
-class ReBDSimCombineOutput(ReBDSimOutput):
+class REBDSIMCombineOutput(REBDSIMOutput):
     def __getattr__(self, item):
         if item not in ('event', 'header'):
             return None
