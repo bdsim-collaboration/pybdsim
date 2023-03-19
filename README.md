@@ -19,21 +19,27 @@ S. Walker
 
 ## Setup ##
 
-From within the pybdsim root directory:
+pip install pybdsim
+
+Or from source, from the main directory:
 
 $ make install
 
-or for development:
+or for development where the local copy of the repository is used and can
+be reloaded with local changes:
 
 $ make develop
 
+Look in the Makefile for the various pip commands (e.g. for with a venv)
+
 
 ```
-#!python
-
-$>python
-$>>> import pybdsim
-$>>> a = pybdsim.Data.Load("run1_output.txt")
-$>>> import matplotlib.pyplot as plt
-$>>> plt.hist(a.Xp())
+python
+>>> import pybdsim
+>>> d = pybdsim.Data.Load("output.root")
+>>> eventTree = a.GetEventTree()
+>>> for event in eventTree:
+        print(event.Summary.nTracks)
+>>> dh = pybdsim.Data.Load("analysis_histograms.root")
+>>> pybdsim.Plot.Histogram1D(dh.histogramspy["Event/MergedHistograms/PlossHisto"])
 ```
