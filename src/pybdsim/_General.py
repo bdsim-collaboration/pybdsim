@@ -1,14 +1,10 @@
-# pybdsim._General - general python scripts / tools
-# Version 1.0
-# L. Nevay, S.T.Boogert, J.Snuverink
-
 """
 General utilities for day to day housekeeping
 """
 
-import glob
-import os
-import pybdsim.Data
+import glob as _glob
+import os as _os
+import pybdsim.Data as _Data
 import re as _re
 import numpy as _np
 
@@ -18,9 +14,9 @@ def GetFileName(ob):
     """
     if type(ob) == str:
         return ob
-    elif type(ob) == pybdsim.Data.RebdsimFile:
+    elif type(ob) == _Data.RebdsimFile:
         return ob.filename
-    elif type(ob) == pybdsim.Data.BDSAsciiData:
+    elif type(ob) == _Data.BDSAsciiData:
         return ob.filename
     else:
         return ""
@@ -33,7 +29,7 @@ def GenUniqueFilename(filename):
         extension = '.' + parts[1]
     else:
         extension = ''
-    while os.path.exists(filename) :
+    while _os.path.exists(filename) :
         filename = basefilename+'_'+str(i)+extension
         i = i + 1
     return filename
@@ -81,13 +77,13 @@ def CheckItsBDSAsciiData(bfile, requireOptics=False):
                 return None
     
     if type(bfile) == str:
-        data = pybdsim.Data.Load(bfile)
+        data = _Data.Load(bfile)
         data2 = CheckOptics(data, requireOptics)
         if data2 is not None:
             data = data2
-    elif type(bfile) == pybdsim.Data.BDSAsciiData:
+    elif type(bfile) == _Data.BDSAsciiData:
         data = bfile
-    elif type(bfile) == pybdsim.Data.RebdsimFile:
+    elif type(bfile) == _Data.RebdsimFile:
         data = CheckOptics(bfile, requireOptics)
     else:
         raise IOError("Not pybdsim.Data.BDSAsciiData file type: "+str(bfile))
@@ -95,10 +91,10 @@ def CheckItsBDSAsciiData(bfile, requireOptics=False):
 
 def CheckBdsimDataHasSurveyModel(bfile):
     if isinstance(bfile, str):
-        data = pybdsim.Data.Load(bfile)
-    elif type(bfile) == pybdsim.Data.BDSAsciiData:
+        data = _Data.Load(bfile)
+    elif type(bfile) == _Data.BDSAsciiData:
         data = bfile
-    elif type(bfile) == pybdsim.Data.RebdsimFile:
+    elif type(bfile) == _Data.RebdsimFile:
         data = bfile
     else:
         return False
@@ -123,15 +119,15 @@ def PrepareReducedName2(elementname):
     return rname
 
 def GetLatestFileFromDir(dirpath='', extension='*'):
-    return max(glob.iglob(dirpath+extension), key=os.path.getctime)
+    return max(_glob.iglob(dirpath+extension), key=_os.path.getctime)
 
 def IsSurvey(file):
     """
     Checks if input is a BDSIM generated survey
     """
     if isinstance(file,_np.str):
-        machine = pybdsim.Data.Load(file)
-    elif isinstance(file,pybdsim.Data.BDSAsciiData):
+        machine = _Data.Load(file)
+    elif isinstance(file, _Data.BDSAsciiData):
         machine = file
     else:
         raise IOError("Unknown input type - not BDSIM data")
