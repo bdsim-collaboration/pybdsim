@@ -1,25 +1,33 @@
 """
 pybdsim - python tool for BDSIM.
 
-Copyright Royal Holloway, University of London 2020.
+Copyright Royal Holloway, University of London 2023.
 
 +-----------------+----------------------------------------------------------+
 | **Module**      | **Description**                                          |
 +-----------------+----------------------------------------------------------+
-| Builder         | Create generic accelerators for bdsim.                   |
+| Builder         | Create generic accelerators for BDSIM.                   |
++-----------------+----------------------------------------------------------+
+| Compare         | Comparison of optics between different codes.            |
++-----------------+----------------------------------------------------------+
+| Constants       | Constants.                                               |
 +-----------------+----------------------------------------------------------+
 | Convert         | Convert other formats into gmad.                         |
 +-----------------+----------------------------------------------------------+
 | Data            | Read the bdsim output formats.                           |
 +-----------------+----------------------------------------------------------+
-| Fields          | Write BDSIM field format.                                |
+| DataUproot      | Data loading with uproot instead of pyroot.              |
 +-----------------+----------------------------------------------------------+
-| Gmad            | Create bdsim input files - lattices & options.           |
+| Field           | Read and write BDSIM field format files.                 |
 +-----------------+----------------------------------------------------------+
 | Geant4          | Dictionary that contains process and subprocess IDs      |
 +-----------------+----------------------------------------------------------+
+| Gmad            | Create bdsim input files - lattices & options.           |
++-----------------+----------------------------------------------------------+
 | ModelProcessing | Tools to process existing BDSIM models and generate      |
 |                 | other versions of them.                                  |
++-----------------+----------------------------------------------------------+
+| Optics          | Optical calculation in development.                      |
 +-----------------+----------------------------------------------------------+
 | Options         | Methods to generate bdsim options.                       |
 +-----------------+----------------------------------------------------------+
@@ -30,23 +38,18 @@ Copyright Royal Holloway, University of London 2020.
 | Visualisation   | Help locate objects in the BDSIM visualisation, requires |
 |                 | a BDSIM survey file.                                     |
 +-----------------+----------------------------------------------------------+
+| Writer          | Write various objects from Builder.                      |
++-----------------+----------------------------------------------------------+
 
 +-------------+--------------------------------------------------------------+
 | **Class**   | **Description**                                              |
 +-------------+--------------------------------------------------------------+
 | Beam        | A beam options dictionary with methods.                      |
 +-------------+--------------------------------------------------------------+
-| ExecOptions | All the executable options for BDSIM for a particular run,   |
-|             | included in the Run module.                                  |
-+-------------+--------------------------------------------------------------+
-| Study       | A holder for the output of runs. Included in the Run Module. |
-+-------------+--------------------------------------------------------------+
 | XSecBias    | A cross-section biasing object.                              |
 +-------------+--------------------------------------------------------------+
 
 """
-
-__version__ = "2.2.0"
 
 from . import Beam
 from . import Builder
@@ -65,7 +68,11 @@ from . import ModelProcessing
 from . import Visualisation
 from . import XSecBias
 from . import _General
-from . import Optics
+
+try:
+    from . import Optics
+except:
+    pass
 
 __all__ = ['Beam',
            'Builder',
@@ -75,8 +82,9 @@ __all__ = ['Beam',
            'Data',
            'DataUproot',
            'Field',
-           'Gmad',
            'Geant4',
+           'Gmad',
+           'Optics',
            'Options',
            'Plot',
            'Run',

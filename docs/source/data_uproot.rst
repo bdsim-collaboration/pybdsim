@@ -1,5 +1,5 @@
 =========================
-Data loading using uproot
+Data Loading Using Uproot
 =========================
 
 Utilities to load BDSIM output data using `uproot`. It is intended for small-scale
