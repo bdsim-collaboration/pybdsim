@@ -1,17 +1,25 @@
-import itertools
-from logging import warning
-import warnings
+"""
+Optical calculations. Work in progress.
+
+"""
+
+import itertools as _itertools
+from logging import warning as _warning
+import warnings as _warnings
 import pandas as _pd
 import numpy as _np
-from typing import Optional, List, Dict, Tuple, Union
+from typing import Optional as _Optional
+from typing import List as _List
+from typing import Dict as _Dict
+from typing import Tuple as _Tuple
 
-from pint import UnitRegistry
+from pint import UnitRegistry as _UnitRegistry
 
-_ureg = UnitRegistry()
+_ureg = _UnitRegistry()
 _ureg.define('electronvolt = e * volt = eV')
 
 
-def _get_matrix_elements_block(m: _pd.DataFrame, twiss: Dict, block: int = 1) -> Tuple:
+def _get_matrix_elements_block(m: _pd.DataFrame, twiss: _Dict, block: int = 1) -> _Tuple:
     """Extract parameters from the DataFrame."""
     p = 1 if block == 1 else 3
     v = 1 if block == 1 else 2
@@ -33,13 +41,13 @@ class TwissException(Exception):
 
 class Twiss:
     def __init__(self,
-                 samplers_data: Dict[str, _pd.DataFrame] = None,
+                 samplers_data: _Dict[str, _pd.DataFrame] = None,
                  first_sampler: str = None,
                  last_sampler: str = None
                  ):
         """
         Args:
-            samplers_data: Dictionnary of Dataframe that contains all the samplers. {sampler's name: dataFrame}.
+            samplers_data: Dictionary of Dataframe that contains all the samplers. {sampler's name: dataFrame}.
                            The following coordinates must be in the DataFrame and in this order
                            ['x', 'xp', 'y', 'yp', 'S', 'p']
             first_sampler: First element where to compute the optics
@@ -57,14 +65,14 @@ class Twiss:
             raise TwissException(f"{first_sampler} not in samplers_data")
         if last_sampler not in samplers_name:
             raise TwissException(f"{last_sampler} not in samplers_data")
-        self.samplers_data = dict(itertools.islice(samplers_data.items(),
-                                                   samplers_name.index(first_sampler),
-                                                   samplers_name.index(last_sampler)+1))
+        self.samplers_data = dict(_itertools.islice(samplers_data.items(),
+                                                    samplers_name.index(first_sampler),
+                                                    samplers_name.index(last_sampler)+1))
 
     def __call__(self,
-                 twiss_init: Optional[Dict] = None,
+                 twiss_init: _Optional[_Dict] = None,
                  with_phase_unrolling: bool = True,
-                 offsets: List = None, # -> Must be computed on the fly
+                 offsets: _List = None, # -> Must be computed on the fly
                  ) -> _pd.DataFrame:
         """
         Uses a step-by-step transfer matrix to compute the Twiss parameters (uncoupled). The phase advance and the
@@ -151,7 +159,7 @@ class Twiss:
         return step_by_step_matrix
 
     @staticmethod
-    def compute_alpha_from_matrix(m: _pd.DataFrame, twiss: Dict, plane: int = 1) -> _pd.Series:
+    def compute_alpha_from_matrix(m: _pd.DataFrame, twiss: _Dict, plane: int = 1) -> _pd.Series:
         """
         Computes the Twiss alpha values at every step of the input step-by-step transfer matrix.
 
@@ -167,10 +175,10 @@ class Twiss:
         return -r11 * r21 * beta + (r11 * r22 + r12 * r21) * alpha - r12 * r22 * gamma
 
     @staticmethod
-    def compute_beta_from_matrix(m: _pd.DataFrame, twiss: Dict, plane: int = 1,
+    def compute_beta_from_matrix(m: _pd.DataFrame, twiss: _Dict, plane: int = 1,
                                  strict: bool = False) -> _pd.Series:
         """
-        Computes the Twiss beta values at every steps of the input step-by-step transfer matrix.
+        Computes the Twiss beta values at every step of the input step-by-step transfer matrix.
 
         Args:
             m: the step-by-step transfer matrix for which the beta values should be computed
@@ -188,9 +196,9 @@ class Twiss:
         return _
 
     @staticmethod
-    def compute_gamma_from_matrix(m: _pd.DataFrame, twiss: Dict, plane: int = 1) -> _pd.Series:
+    def compute_gamma_from_matrix(m: _pd.DataFrame, twiss: _Dict, plane: int = 1) -> _pd.Series:
         """
-        Computes the Twiss gamma values at every steps of the input step-by-step transfer matrix.
+        Computes the Twiss gamma values at every step of the input step-by-step transfer matrix.
 
         Args:
             m: the step-by-step transfer matrix for which the beta values should be computed
@@ -204,9 +212,9 @@ class Twiss:
         return r21 ** 2 * beta - 2.0 * r21 * r22 * alpha + r22 ** 2 * gamma
 
     @staticmethod
-    def compute_mu_from_matrix(m: _pd.DataFrame, twiss: Dict, plane: int = 1) -> _pd.Series:
+    def compute_mu_from_matrix(m: _pd.DataFrame, twiss: _Dict, plane: int = 1) -> _pd.Series:
         """
-        Computes the phase advance values at every steps of the input step-by-step transfer matrix.
+        Computes the phase advance values at every step of the input step-by-step transfer matrix.
 
         Args:
             m: the step-by-step transfer matrix for which the beta values should be computed
@@ -220,7 +228,7 @@ class Twiss:
         return _np.arctan2(r12.astype(_np.float64), (r11 * beta - r12 * alpha).astype(_np.float64))
 
     @staticmethod
-    def compute_jacobian_from_matrix(m: _pd.DataFrame, twiss: Dict, plane: int = 1) -> _pd.Series:
+    def compute_jacobian_from_matrix(m: _pd.DataFrame, twiss: _Dict, plane: int = 1) -> _pd.Series:
         """
         Computes the jacobian of the 2x2 transfer matrix (useful to verify the simplecticity).
 
@@ -236,9 +244,9 @@ class Twiss:
         return r11 * r22 - r12 * r21
 
     @staticmethod
-    def compute_dispersion_from_matrix(m: _pd.DataFrame, twiss: Dict, plane: int = 1) -> _pd.Series:
+    def compute_dispersion_from_matrix(m: _pd.DataFrame, twiss: _Dict, plane: int = 1) -> _pd.Series:
         """
-        Computes the dispersion function at every steps of the input step-by-step transfer matrix.
+        Computes the dispersion function at every step of the input step-by-step transfer matrix.
 
         Args:
             m: the step-by-step transfer matrix for which the dispersion function should be computed
@@ -262,9 +270,9 @@ class Twiss:
         return d0 * r11 + dp0 * r12 + r15
 
     @staticmethod
-    def compute_dispersion_prime_from_matrix(m: _pd.DataFrame, twiss: Dict, plane: int = 1) -> _pd.Series:
+    def compute_dispersion_prime_from_matrix(m: _pd.DataFrame, twiss: _Dict, plane: int = 1) -> _pd.Series:
         """
-        Computes the dispersion prime function at every steps of the input step-by-step transfer matrix.
+        Computes the dispersion prime function at every step of the input step-by-step transfer matrix.
 
         Args:
             m: the step-by-step transfer matrix for which the dispersion prime function should be computed
@@ -291,7 +299,7 @@ class Twiss:
         return d0 * r21 + dp0 * r22 + r25
 
     @staticmethod
-    def compute_periodic_twiss(matrix: _pd.DataFrame) -> Dict:
+    def compute_periodic_twiss(matrix: _pd.DataFrame) -> _Dict:
         """
         Compute twiss parameters from a transfer matrix which is assumed to be a periodic transfer matrix.
 
@@ -306,14 +314,14 @@ class Twiss:
             'CMU2': (matrix['R33'] + matrix['R44']) / 2.0,
         })
         if twiss['CMU1'] < -1.0 or twiss['CMU1'] > 1.0:
-            warning(f"Horizontal motion is unstable; proceed with caution (cos(mu) = {twiss['CMU1']}).")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            _warning(f"Horizontal motion is unstable; proceed with caution (cos(mu) = {twiss['CMU1']}).")
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("ignore")
             twiss['MU1'] = _np.arccos(twiss['CMU1'])
         if twiss['CMU2'] < -1.0 or twiss['CMU2'] > 1.0:
-            warning(f"Vertical motion is unstable; proceed with caution (cos(mu) = {twiss['CMU2']}).")
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
+            _warning(f"Vertical motion is unstable; proceed with caution (cos(mu) = {twiss['CMU2']}).")
+        with _warnings.catch_warnings():
+            _warnings.simplefilter("ignore")
             twiss['MU2'] = _np.arccos(twiss['CMU2'])
         twiss['BETA11'] = matrix['R12'] / _np.sin(twiss['MU1']) * _ureg.m
         if twiss['BETA11'] < 0.0:
