@@ -67,9 +67,9 @@ def LoadROOTLibraries():
     reLoad  = _ROOT.gSystem.Load("librebdsim")
     # 0=ok, -1=fail, 1=already loaded
     if reLoad < 0:
-        raise Warning("librebdsim not found")
+        _warnings.warn("librebdsim not found")
     if bdsLoad < 0:
-        raise Warning("libbdsimRootEvent not found")
+        _warnings.warn("libbdsimRootEvent not found")
     _libsLoaded = True
 
 def Load(filepath):
