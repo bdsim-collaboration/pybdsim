@@ -7,7 +7,6 @@ Classes:
 Data - read various output files
 
 """
-from . import Constants as _Constants
 from . import _General
 
 from collections import defaultdict as _defaultdict
@@ -47,8 +46,9 @@ def LoadROOTLibraries():
     Load root libraries. Only works once to prevent errors.
     """
     global _libsLoaded
+    # check and only load once
     if _libsLoaded:
-        return #only load once        
+        return
     try:
         import ROOT as _ROOT
     except ImportError:

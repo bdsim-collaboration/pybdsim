@@ -16,7 +16,6 @@ import os as _os
 import numpy as _np
 import pandas as _pd
 from scipy.interpolate import interp1d as _interp1d
-from typing import TYPE_CHECKING as _TYPE_CHECKING
 from typing import Optional as _Optional
 from typing import List as _List
 from typing import Dict as _Dict
