@@ -42,7 +42,7 @@ class Field(object):
                 fn.write(s.encode('ascii'))
             else:
                 fn.write(s)
-        
+        write(f, "# units: cm, T\n")
         for key,value in self.header.items():
             write(f, str(key)+'> '+ str(value) + '\n')
         if overrideLoopOrder:
