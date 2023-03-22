@@ -20,6 +20,7 @@ of BDSIM models.
    support
    version_history
    moduledocs
+   developer
 	     
 
 
