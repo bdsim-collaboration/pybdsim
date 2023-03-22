@@ -2,12 +2,22 @@
 Version History
 ===============
 
+V3.0.1 - 2023 / 03 / 22
+=======================
+
+* Fix import for pybdsim when ROOT is present but librebdsim etc. are not available
+  through environmental variables, or findable. Would cause induce a classic ROOT
+  segfault when importing pybdsim.
+* Fix wrong exception being raised.
+* Always write a comment string at the start of a BDSIM field map file to specify
+  the units of the file.
+
 V3.0.0 - 2023 / 03 / 19
 =======================
 
 * Restructure package into a declarative Python package where all source files are now in
   `src/pybdsim/`.
-* The pacakge now has a feature called `uproot` for the optional dependencies of uproot, pandas,
+* The package now has a feature called `uproot` for the optional dependencies of uproot, pandas,
   and pint packages.
 * Field classes no longer have :code:`flip=True` as the default - it is now :code:`False`.
   Please check any field maps created by scripts using these classes.
@@ -26,7 +36,7 @@ New Features
   loaded and handled similarly to 1,2,3D histograms. They are loaded automatically when
   loading a rebdsim file.
 * pybdsim.Data.TH1,2,3 now have :code:`xrange`, :code:`yrange`, and :code:`zrange` members
-  where approriate with a conveninent tuple of the range in each dimension. They also
+  where appropriate with a convenient tuple of the range in each dimension. They also
   have the member :code:`integral` and :code:`integralError` taken from their ROOT objects.
 * Field plotting functions now tolerate Field class objects as well as filenames to make
   it easier to check field objects as you're making them.
@@ -89,7 +99,7 @@ v2.3.0 - 2020 / 12 / 15
 New Features
 ------------
 
-* Convenience functions for pickling and unpickling data in the Data module with optional compression.
+* Convenience functions for pickling and un-pickling data in the Data module with optional compression.
 * Generic loss map plot.
 
 
@@ -118,7 +128,7 @@ New Featuers
 General
 -------
 
-* Return arguments of `pybdsim.Convert.MadxTfs2Gmad` is now just 2 items - machine and ommitted items. Previously 3.
+* Return arguments of `pybdsim.Convert.MadxTfs2Gmad` is now just 2 items - machine and omitted items. Previously 3.
 
 Bug Fixes
 ---------
@@ -137,7 +147,7 @@ New Features
   BDSIM output format.
 * Support for thin R matrix, parallel transporter and thick R matrix in builder.
 * Generate transfer matrix from tracking data from BDSIM for a single element.
-* Control over legend location in stanard energy deposition and loss plots.
+* Control over legend location in standard energy deposition and loss plots.
 * Utility function to write sampler data from BDSIM output to a user input file.
 * Support for energy variation in the beam line in MAD8 conversion.
 
@@ -285,6 +295,6 @@ New Features
 ------------
 
 * GPL3 licence introduced.
-* Compatability with PIP install system.
+* Compatibility with PIP install system.
 * Manual.
 * Testing suite.
