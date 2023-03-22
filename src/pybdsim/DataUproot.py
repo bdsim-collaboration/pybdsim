@@ -7,7 +7,11 @@ Design goals:
  to explore and discover the data structure.
  - provide analysis tools exploiting the new Awkward 1.0 library (https://arxiv.org/pdf/2001.06307.pdf)
 """
+# this must apparently be at the beginning of the file or the imports crash
 from __future__ import annotations as _annotations
+
+from . import Data as _Data
+
 import awkward as _ak
 from collections import UserDict as _UserDict
 import logging as _logging
@@ -34,9 +38,6 @@ _WITH_ROOT = False
 try:
     _warnings.simplefilter("ignore")
     import ROOT as _ROOT
-
-    _ROOT.gSystem.Load('librebdsim')
-    _warnings.simplefilter("default")
     _WITH_ROOT = True
 except ImportError:
     _logging.warning("ROOT is required for this module to have full functionalities.\n"
@@ -512,6 +513,7 @@ class Output(metaclass=OutputType):
         if open_file:
             self._root_directory: _uproot.rootio.ROOTDirectory = _uproot.open(self._file)
             if _WITH_ROOT:
+                _Data.LoadROOTLibraries()
                 self._rootfile = _ROOT.TFile.Open(self._file)
 
 
