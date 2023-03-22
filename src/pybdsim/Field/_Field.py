@@ -101,7 +101,7 @@ class Field(object):
         Very simple and only works for Field2D - can be improved.
         """
         if self.nDimensions != 2:
-            raise LogicError("This field map is not 2D - it's ",self.nDimensions,"D")
+            raise ValueError("This field map is not 2D - it's ",self.nDimensions,"D")
 
         f = open(fileName, "w")
         
