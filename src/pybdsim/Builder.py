@@ -29,7 +29,7 @@ import math as _math
 import numpy as _np
 import copy as _copy
 import textwrap as _textwrap
-import numbers
+import numbers as _numbers
 
 # these are written to match the order in the manual - http://www.pp.rhul.ac.uk/bdsim/manual-develop/model_construction.html#beamline-elements
 bdsimcategories = [
@@ -109,7 +109,7 @@ class ElementBase(_MutableMapping):
             self._store[key] = value
         elif isinstance(value, tuple):
             self._store[key] = (float(value[0]), value[1])
-        elif isinstance(value, numbers.Number):
+        elif isinstance(value, _numbers.Number):
             if "aper" in key.lower() and value < 1e-6:
                 return
             else:

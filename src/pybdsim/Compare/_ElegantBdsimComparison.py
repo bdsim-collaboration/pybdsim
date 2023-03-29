@@ -1,7 +1,5 @@
-import pymadx as _pymadx
 import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
-import numpy as _np
 from os.path import isfile as _isfile
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime

@@ -1,11 +1,10 @@
 import numpy as _np
-import pybdsim.Data
+import pybdsim.Data as _Data
 
 def BdsimElement2TransferMatrix(bdsfile,element,outputType="list"):
-    
     """
     Calculates the Transfer Matrix of an element in a BDSIM beamline from an output (non-optical) 
-    rootfile of the beamline by using a Singular Value Decomposition pseudoinverse of a matrix of 
+    rootfile of the beamline by using a Singular Value Decomposition pseudo-inverse of a matrix of
     particle trajectories.
     
     Inputs:
@@ -18,9 +17,9 @@ def BdsimElement2TransferMatrix(bdsfile,element,outputType="list"):
         raise ValueError('Element to convert must have a preceding Element.')
     
     #take sampler data before and after element
-    rootfile    = pybdsim.Data.Load(bdsfile)
-    priorund    = pybdsim.Data.SamplerData(rootfile,element-1)
-    postund     = pybdsim.Data.SamplerData(rootfile,element)
+    rootfile    = _Data.Load(bdsfile)
+    priorund    = _Data.SamplerData(rootfile,element-1)
+    postund     = _Data.SamplerData(rootfile,element)
     
     #put into matrix, transpose so each row is a single particle's co-ordinates.
     priormatrix = _np.asmatrix([priorund.data['x'], priorund.data['xp'], priorund.data['y'], priorund.data['yp']]).T
@@ -57,13 +56,11 @@ def BdsimElement2TransferMatrix(bdsfile,element,outputType="list"):
             "r43" : yprow.item(2),
             "r44" : yprow.item(3),
                  }
-    
-    elif outputType == "list" :
+    elif outputType == "list":
         output = [xrow.item(0),xrow.item(1),xrow.item(2),xrow.item(3),
                   xprow.item(0),xprow.item(1),xprow.item(2),xprow.item(3),
                   yrow.item(0),yrow.item(1),yrow.item(2),yrow.item(3),
                   yprow.item(0),yprow.item(1),yprow.item(2),yprow.item(3)]
-           
     else:
         raise TypeError('outputType: "'+outputType+'" invalid.')
         

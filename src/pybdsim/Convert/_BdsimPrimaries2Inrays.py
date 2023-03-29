@@ -1,16 +1,7 @@
 from scipy import constants as _con
-import warnings
-
-try:
-    import ROOT as _rt
-except ImportError:
-    warnings.warn("ROOT not available - some functionality missing", UserWarning)
-
 import numpy as _np
-import matplotlib.pyplot as _plt
 import os.path as _path
-import sys
-import time
+import time as _time
 
 import pybdsim.Data as _Data
 
@@ -67,7 +58,7 @@ def BdsimSampler2Ptc(inputfile, outfile, samplername, start=0, ninrays=-1):
 
     nentries = len(sampler_coords[0])
     headstr = "! PTC format inrays file of " + str(nentries)
-    headstr += " initial coordinates generated from primaries in BDSIM sampler " + samplername + " on " + time.strftime("%c") + "\n"
+    headstr += " initial coordinates generated from primaries in BDSIM sampler " + samplername + " on " + _time.strftime("%c") + "\n"
 
     outfile.writelines(headstr)
     for n in range(0, nentries):  # n denotes a given particle
@@ -182,7 +173,7 @@ def BdsimPrimaries2Madx(inputfile,outfile,start=0, ninrays=-1):
 
     nentries =  len(primary_coords[0])
     headstr  = "! MadX format inrays file of "+str(nentries)
-    headstr += " initial coordinates generated from BDSIM output on "+time.strftime("%c")+"\n"
+    headstr += " initial coordinates generated from BDSIM output on "+_time.strftime("%c")+"\n"
 
     outfile.writelines(headstr)
     for n in range(0,nentries):               # n denotes a given particle
@@ -221,7 +212,7 @@ def BdsimPrimaries2Mad8(inputfile,outfile,start=0, ninrays=-1):
 
     nentries =  len(primary_coords[0])
     headstr  = "! Mad8 format inrays file of "+repr(nentries)
-    headstr += " initial coordinates generated from BDSIM output on "+time.strftime("%c")+"\n"
+    headstr += " initial coordinates generated from BDSIM output on "+_time.strftime("%c")+"\n"
 
     outfile.writelines(headstr)
     for n in range(0,nentries):    #n denotes a given particle

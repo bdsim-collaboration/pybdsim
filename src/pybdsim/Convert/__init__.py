@@ -10,7 +10,7 @@ from ._MadxTfs2Gmad import MadxTfs2GmadBeam
 from ._Mad8Twiss2Gmad import Mad8Twiss2Gmad
 from ._Transport2Gmad import Transport2Gmad
 
-# all optional imports are quiet without warning so we don't see print out all the time for each one
+# all optional imports are quiet without warning, so we don't see print out all the time for each one
 
 try:
     import pysad
