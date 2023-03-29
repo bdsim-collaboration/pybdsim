@@ -120,12 +120,11 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
     if not (outfile[-4:] == ".dat"):
         outfile = outfile + ".dat"
 
-    if isinstance(inputfile, str):
-        if not _path.isfile(inputfile):
-            raise IOError("file \"{}\" not found!".format(inputfile))
-        else:
-            print("Loading input file: ", inputfile)
-            data = _Data.Load(inputfile)
+    if not _path.isfile(inputfile):
+        raise IOError("file \"{}\" not found!".format(inputfile))
+    else:
+        print("Loading input file: ", inputfile)
+        data = _Data.Load(inputfile)
 
     x,xp,y,yp,tof,E,pid = _ExtractSamplerCoords(data, samplername)
 
@@ -233,12 +232,11 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
     """
     Load BDSIM coordinates and convert to PTC format.
     """
-    if isinstance(inputfile, str):
-        if not _path.isfile(inputfile):
-            raise IOError("file \"{}\" not found!".format(inputfile))
-        else:
-            print("Loading input file: ", inputfile)
-            data = _Data.Load(inputfile)
+    if not _path.isfile(inputfile):
+        raise IOError("file \"{}\" not found!".format(inputfile))
+    else:
+        print("Loading input file: ", inputfile)
+        data = _Data.Load(inputfile)
 
     #Get sampler/primaries data
     x,xp,y,yp,tof,E,pid = _ExtractSamplerCoords(data, samplername)
