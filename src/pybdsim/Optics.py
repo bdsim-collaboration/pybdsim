@@ -15,7 +15,7 @@ from typing import Tuple as _Tuple
 
 from pint import UnitRegistry as _UnitRegistry
 
-_ureg = _UnitRegistry()
+_ureg = _UnitRegistry(on_redefinition="ignore")
 _ureg.define('electronvolt = e * volt = eV')
 
 
