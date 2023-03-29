@@ -39,7 +39,7 @@ dependencies = [
 [project.optional-dependencies]
 uproot = ["uproot", "pandas", "pint"]
 boost_histogram = ["boost-histogram"]
-cpymad = ["cpymad"]
+cpymad = ["cpymad", "mergedeep"]
 pysad = ["pysad"]
 dev = ["pytest", "sphinx", "sphinx-rtd-theme"]
 
