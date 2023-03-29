@@ -1,18 +1,26 @@
-from __future__ import annotations
-from typing import Optional, Dict, Tuple, MutableMapping, Callable
-import os
-import re
+from __future__ import annotations as _annotations
+from typing import Optional as _Optional
+from typing import Dict as _Dict
+from typing import Tuple as _Tuple
+from typing import MutableMapping as _MutableMapping
+from typing import Callable as _Callable
+from typing import TYPE_CHECKING as _TYPE_CHECKING
+import os as _os
+import re as _re
 import logging as _logging
-import cpymad.madx
-import yaml
+import cpymad.madx as _madx
+import yaml as _yaml
 import pandas as _pd
 import numpy as _np
-from mergedeep import merge
-import pybdsim
-from typing import TYPE_CHECKING
+from mergedeep import merge as _merge
 
-if TYPE_CHECKING:
-    from pymask.madxp import Madxp
+import pybdsim.Builder as _Builder
+import pybdsim.Beam as _Beam
+import pybdsim.Options as _Options
+
+# commented out as seems to be another dependency... don't know about it... only for type checking
+#if _TYPE_CHECKING:
+#    from pymask.madxp import Madxp
 
 BDSIM_MAD_CONVENTION = {
     'apertype': 'apertureType',
@@ -59,9 +67,9 @@ def _log_component_info(name: str, parent_name: str, base_name: str, max_length:
 
 class CPyMad2Gmad:
     def __init__(self,
-                 madx_instance: Madxp,
-                 model: Optional[Dict] = None,
-                 aperture_model: Callable[[str], str] = None,
+                 madx_instance,
+                 model: _Optional[_Dict] = None,
+                 aperture_model: _Callable[[str], str] = None,
                  model_path: str = '.',
                  model_file: str = 'model.yml',
                  log_file: str = 'model.log',
@@ -72,27 +80,27 @@ class CPyMad2Gmad:
         handler.setLevel(_logging.INFO)
         self.logging.addHandler(handler)
         self.logging.info("Reading the model configuration file.")
-        with open(os.path.join(model_path, model_file)) as file:
-            _ = yaml.full_load(file)
+        with open(_os.path.join(model_path, model_file)) as file:
+            _ = _yaml.full_load(file)
 
-        # Build the complete model dictionnary
+        # Build the complete model dictionary
         self.model = {}
 
         # need to check if there are some modules in the yml file
         if _['builder']['modules']:
             for module in _['builder']['modules']:
-                with open(os.path.join(
+                with open(_os.path.join(
                         model_path,
                         _['builder']['config']['geometries_path'],
                         'modules',
                         module,
                         'data.yml')
                 ) as file:
-                    self.model = merge(self.model, yaml.full_load(file))
+                    self.model = _merge(self.model, _yaml.full_load(file))
                     self.logging.info(f"Merged data from module '{module}'.")
 
-        self.model = merge(self.model, _)
-        self.model = merge(self.model, model or {})
+        self.model = _merge(self.model, _)
+        self.model = _merge(self.model, model or {})
 
         # Add quotes for BDSim options
         for k, v in self.model['options'].items():
@@ -103,7 +111,7 @@ class CPyMad2Gmad:
             # Compile the regular expressions in the model
             self.logging.info("Compiling regular expressions...")
             for r in list(self.model['sequence'].keys()):
-                self.model['sequence'][re.compile(r)] = self.model['sequence'].pop(r)
+                self.model['sequence'][_re.compile(r)] = self.model['sequence'].pop(r)
             self.logging.info("... done.")
 
         # Aperture model
@@ -187,13 +195,13 @@ class CPyMad2Gmad:
 
         return _iterator
 
-    def _get_model_properties_for_element(self, element_name: str) -> Tuple[Optional[str], dict]:
+    def _get_model_properties_for_element(self, element_name: str) -> _Tuple[_Optional[str], dict]:
         properties = {}
         element_type = None
         for regex, data in self.model['sequence'].items():
             if regex.match(element_name):
-                properties = merge(properties, data['properties'])
-                element_type: Optional[str] = data.get('type', None)
+                properties = _merge(properties, data['properties'])
+                element_type: _Optional[str] = data.get('type', None)
         return element_type, properties
 
     def _build_bdsim_component_properties(self, element: _pd.Series) -> dict:
@@ -202,7 +210,7 @@ class CPyMad2Gmad:
         bdsim_properties = {}
         for k, v in mad_element.items():
             if k in BDSIM_MADX_ELEMENTS_ARGUMENTS:
-                if isinstance(v, cpymad.madx.ArrayAttribute):
+                if isinstance(v, _madx.madx.ArrayAttribute):
                     if list(mad_parent.get(k)) != list(v):
                         bdsim_properties[BDSIM_MAD_CONVENTION.get(k, k)] = v
                 else:
@@ -355,7 +363,7 @@ class CPyMad2Gmad:
 
         return bdsim_properties
 
-    def _generate_bdsim_component(self, element: _pd.Series, bdsim_properties: MutableMapping):
+    def _generate_bdsim_component(self, element: _pd.Series, bdsim_properties: _MutableMapping):
         """
         Generate the Pybdsim component from its adjusted properties.
 
@@ -394,13 +402,13 @@ class CPyMad2Gmad:
                 parent_name = 'drift'
                 self.logging.info(_log_component_info(element['NAME'], element['PARENT'], element['BASE_PARENT'])
                                   + f" - Converting to a drift because {element['PARENT']} is not supported.")
-            bdsim_component = pybdsim.Builder.Element(
+            bdsim_component = _Builder.Element(
                 name=element['NAME'],
                 category=parent_name,
                 isMultipole='knl' in bdsim_properties or 'ksl' in bdsim_properties,
                 **bdsim_properties)
         else:
-            bdsim_component = pybdsim.Builder.Element.from_element(
+            bdsim_component = _Builder.Element.from_element(
                 name=element['NAME'],
                 parent_element_name=parent_name,
                 isMultipole='knl' in bdsim_properties.keys() or 'ksl' in bdsim_properties.keys(),
@@ -413,7 +421,7 @@ class CPyMad2Gmad:
 
         if 'sequence' in self.model.keys():
             bdsim_element_type, properties = self._get_model_properties_for_element(element['NAME'])
-            bdsim_properties = merge(bdsim_properties, properties)
+            bdsim_properties = _merge(bdsim_properties, properties)
             element['PARENT'] = bdsim_element_type or BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
         else:
             element['PARENT'] = BDSIM_RESERVED_NAME.get(element['PARENT'], element['PARENT'])
@@ -425,7 +433,7 @@ class CPyMad2Gmad:
                  with_bdsim_options: bool = True,
                  with_bdsim_placements: bool = True,
                  ):
-        bdsim_input = pybdsim.Builder.Machine()
+        bdsim_input = _Builder.Machine()
         components = self.components[~self.components['BDSIM'].isnull()]
         # Add all components
         for name, component in components.iterrows():
@@ -443,7 +451,7 @@ class CPyMad2Gmad:
             if 'twiss' not in self.madx.table:
                 self.madx.input('twiss;')
             tw = self.madx.table['twiss'].dframe().iloc[0]
-            bdsim_beam = pybdsim.Beam.Beam(particletype=self.madx_beam['particle'],
+            bdsim_beam = _Beam.Beam(particletype=self.madx_beam['particle'],
                                            energy=self.madx_beam['energy'],
                                            distrtype='gausstwiss')
             bdsim_beam.SetX0(tw['x'])
@@ -464,7 +472,7 @@ class CPyMad2Gmad:
             bdsim_input.AddBeam(bdsim_beam)
 
         if with_bdsim_options:
-            bdsim_input.AddOptions(pybdsim.Options.Options(**self.model['options']))
+            bdsim_input.AddOptions(_Options.Options(**self.model['options']))
 
         # if with_bdsim_placements:
         #     for ref_name, placements in self.placement_properties.items():
