@@ -17,6 +17,13 @@ class Field(object):
         self.flip            = flip
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
+        self.comments        = []
+
+    def AddComment(self, commentString):
+        """
+        Add a string that will be put on a comment line at the beginning of the file.
+        """
+        self.comments.append(str(commentString))
         
     def Write(self, fileName, writeLoopOrderReversed=False, overrideLoopOrder=None):
         """
@@ -43,6 +50,8 @@ class Field(object):
             else:
                 fn.write(s)
         write(f, "# units: cm, T\n")
+        for comment in self.comments:
+            write(f, "# "+str(comment)+"\n")
         for key,value in self.header.items():
             write(f, str(key)+'> '+ str(value) + '\n')
         if overrideLoopOrder:
@@ -274,20 +283,23 @@ def Load(filename, debug=False):
     """
     gzippedFile = False
     if (filename.endswith('.tar.gz')):
-        print('Field Loader> loading compressed file ' + filename)
+        if debug:
+            print('Field Loader> loading compressed file ' + filename)
         tar = _tarfile.open(filename,'r')
         f = tar.extractfile(tar.firstmember)
     elif '.gz' in filename:
         f = _gzip.open(filename)
         gzippedFile = True
     else:
-        print('Field Loader> loading file ' + filename)
+        if debug:
+            print('Field Loader> loading file ' + filename)
         f = open(filename)
 
     intoData = False
     header   = {}
     columns  = []
     data     = []
+    comments = []
     
     for line in f:
         if gzippedFile:
@@ -298,7 +310,6 @@ def Load(filename, debug=False):
             if ls.isspace() or len(ls) == 0:
                 continue
             data.append(line.strip().split())
-
         elif '>' in line:
             d = line.strip().split('>')
             k = d[0].strip()
@@ -307,10 +318,11 @@ def Load(filename, debug=False):
             except ValueError:
                 v = d[1].strip()
             header[k] = v
-
         elif '!' in line:
             columns = line.strip('!').strip().split()
             intoData = True
+        elif line.lstrip().startswith('#'):
+            comments.append(line.lstrip()[1:])
 
     f.close()
     
@@ -339,7 +351,6 @@ def Load(filename, debug=False):
     requiredSet = {'nx','ny','nz','nt'}
     headerKeySet = set(header.keys())
     keysPresent = headerKeySet.intersection(requiredSet)
-    keysPresentList = list(keysPresent)
     if len(keysPresent) < nDim:
         print('missing keys from header!')
         if debug:
@@ -350,14 +361,15 @@ def Load(filename, debug=False):
                           'y' : 'ny',
                           'z' : 'nz',
                           't' : 'nt'}
-        print("Columns: ",columns)
-        print("Header: ",header)
+        if debug:
+            print("Columns: ", columns)
+            print("Header: ", header)
         dims = [int(header[dimToNVariable[k.lower()]]) for k in columns[:-3]]
         dims.append(len(columns))
         if debug:
-            print("Shape of numpy array to be: ",dims)
-            print("nDimensions: ",nDim)
-            print("Existing numpy array shape: ",_np.shape(data))
+            print("Shape of numpy array to be: ", dims)
+            print("nDimensions: ", nDim)
+            print("Existing numpy array shape: ", _np.shape(data))
         data = data.reshape(*dims)
 
     # build field object
@@ -373,6 +385,7 @@ def Load(filename, debug=False):
     else:
         raise ValueError("Invalid number of dimensions")
 
+    fd.comments = comments
     return fd
 
 

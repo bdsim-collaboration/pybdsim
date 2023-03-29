@@ -2,6 +2,14 @@
 Version History
 ===============
 
+V3.1.0 - 2023 / 03 / 29
+=======================
+
+* Add the writing and reading of comment lines in field maps.
+* Reduce print out when loading a field map.
+* Clean imports in cpymad interface as well as in Convert functions.
+
+
 V3.0.1 - 2023 / 03 / 22
 =======================
 
