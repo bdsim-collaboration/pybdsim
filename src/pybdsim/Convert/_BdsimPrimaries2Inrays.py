@@ -305,8 +305,8 @@ def _ExtractSamplerCoords(data, samplername):
         # check branch exists
         allSamplers = data.GetSamplerNames()
         if not samplername in allSamplers:
-            print("Sampler " + samplername + " not found in inputfile. Terminating...")
-            sys.exit(1)
+            msg = "Sampler " + samplername + " not found in inputfile."
+            raise ValueError(msg)
 
     sampler = _Data.SamplerData(data, samplername)
 
