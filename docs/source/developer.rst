@@ -12,7 +12,7 @@ The procedure is as follows because the version number is read from the git tag.
 #) Locally tag the new version number on the last commit but don't push the tag.
 #) Locally pip install pybdsim so if you were to import pybdsim you'd find this latest tag.
 #) Generate html manual and stash for later upload (:code:`cd docs; make html; tar -czf html.tar.gz html`).
-#) Generate pdf manual (:code:`cd docs; make latexpdf; cp build/latexpdf/pybdsim.pdf .`) and commit.
+#) Generate pdf manual (:code:`cd docs; make latexpdf; cp build/latex/pybdsim.pdf .`) and commit.
 #) Delete old (local) tag.
 #) Add the same version number tag to the latest commit.
 #) Make sure if the `dist` directory exits that it's empty (ignored on git - only local files).
