@@ -352,19 +352,20 @@ class Spectra:
         self.histogramspy = {}
         self.pdgids = set()
         self.pdgidsSorted = []
+        self.flags = [] # none, primary or secondary
 
-    def append(self, pdgid, hist, path, nameIn=None):
+    def append(self, pdgid, hist, path, nameIn=None, flag=None):
         if nameIn:
             self.name = nameIn
-        self.histograms[pdgid] = hist
-        self.histogramspy[pdgid] = TH1(hist)
+        self.histograms[(pdgid,flag)] = hist
+        self.histogramspy[(pdgid,flag)] = TH1(hist)
         self.pdgids.add(pdgid)
         self._generateSortedList()
 
     def _generateSortedList(self):
-        integrals = {pdgid:h.integral for pdgid,h in self.histogramspy.items()}
+        integrals = {(pdgid,flag):h.integral for (pdgid,flag),h in self.histogramspy.items()}
         integralsSorted = sorted(integrals.items(), key=lambda item: item[1])
-        self.pdgidsSorted = [pdgid for pdgid,_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
+        self.pdgidsSorted = [(pdgid,flag) for (pdgid,flag),_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
 
 def ParseSpectraName(hname):
     # expects a string of the form
@@ -372,9 +373,13 @@ def ParseSpectraName(hname):
     hn = _re.sub("Top\d+_", "", hname)
     #hn = hname.replace('Top_','')
     hn = hn.replace('Spectra_','')
-    name,nth,pdgid = hn.split('_')
+    vals = hn.split('_')
+    name,nth,pdgid = vals[:3]
+    flag = vals[3] if len(vals) == 4 else 'n'
+    if len(flag) > 1:
+        flag = flag.lower()[0]
     pdgid = int(pdgid)
-    return name+"_"+nth,pdgid
+    return name+"_"+nth,pdgid,flag
 
 class RebdsimFile:
     """
@@ -547,8 +552,8 @@ class RebdsimFile:
             hname = str(hist.GetName())
             if 'Spectra' in hname:
                 try:
-                    sname,pdgid = ParseSpectraName(hname)
-                    self.spectra[sname].append(pdgid, hist, path, sname)
+                    sname,pdgid,flag = ParseSpectraName(hname)
+                    self.spectra[sname].append(pdgid, hist, path, sname, flag)
                 except ValueError:
                     pass # could be old data with the word "Spectra" in the name
 

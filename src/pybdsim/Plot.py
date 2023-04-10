@@ -530,8 +530,14 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     return f
 
 def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
-    histograms = [spectra.histogramspy[pdgid] for pdgid in spectra.pdgidsSorted]
-    labels = [_Constants.GetPDGName(pdgid)[1] for pdgid in spectra.pdgidsSorted]
+    histograms = [spectra.histogramspy[(pdgid,flag)] for (pdgid,flag) in spectra.pdgidsSorted]
+    labels = []
+    for (pdgid, flag) in spectra.pdgidsSorted:
+        rn = _Constants.GetPDGName(pdgid)[1]
+        if flag != 'n':
+            rn += r" ("+flag+r")"
+        labels.append(rn)
+            
     if xlabel is None:
         print("Using default xlabel of kinetic energy")
         xlabel="Kinetic Energy (GeV)"
