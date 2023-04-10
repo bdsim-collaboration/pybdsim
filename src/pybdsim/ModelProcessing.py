@@ -18,7 +18,8 @@ def GetAxisAlignedBoundingBoxOfCollimator(modelData, collimatorName):
     Inspect pybdsim.Data.ModelData assuming collimator info was stored
     to give an axis aligned bounding box set of ranges in global coordinates.
     """
-    if type(modelData) is not pybdsim.Data.ModelData:
+    import pybdsim as _pybdsim
+    if type(modelData) is not _pybdsim.Data.ModelData:
         raise TypeError("not pybdsim.Data.ModelData instance")
 
     ci = modelData.collimatorInfo[collimatorName]
@@ -35,7 +36,8 @@ def GetMaterialIDOfCollimator(modelData, collimatorName):
     Inspect pybdsim.Data.ModelData assuming collimator info was stored
     to give an axis aligned bounding box set of ranges in global coordinates.
     """
-    if type(modelData) is not pybdsim.Data.ModelData:
+    import pybdsim as _pybdsim
+    if type(modelData) is not _pybdsim.Data.ModelData:
         raise TypeError("not pybdsim.Data.ModelData instance")
     ci = modelData.collimatorInfo[collimatorName]
     return modelData.materialNameToID[ci.material]    
@@ -46,7 +48,7 @@ def GenerateFullListOfSamplers(inputfile, outputfile):
 
     This will parse the input using the compiled BDSIM
     parser (GMAD), iterate over all the beamline elements
-    and generate a sampler for every elements.  Ignores
+    and generate a sampler for every element.  Ignores
     samplers, but may include already defined ones in your
     own input.
 
