@@ -36,12 +36,12 @@ except (ImportError, ImportWarning):
 
 _WITH_ROOT = False
 try:
-    _warnings.simplefilter("ignore")
     import ROOT as _ROOT
     _WITH_ROOT = True
 except ImportError:
-    _logging.warning("ROOT is required for this module to have full functionalities.\n"
-                     "Not all methods will be available.")
+    pass
+    #_logging.warning("ROOT is required for this module to have full functionalities.\n"
+    #                 "Not all methods will be available.")
 
 _WITH_BOOST_HISTOGRAM = False
 try:
