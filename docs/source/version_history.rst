@@ -2,6 +2,13 @@
 Version History
 ===============
 
+V3.1.1 - 2023 / XX / XX
+=======================
+
+* Fixed spectra loading and plotting for when the 'p' and 's' prefixes are used
+  in the rebdsim Spectra command to denote primary and secondary particles.
+
+
 V3.1.0 - 2023 / 04 / 02
 =======================
 
