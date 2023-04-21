@@ -673,7 +673,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         if autovmin and vmin is None and not histEmpty:
             vmin = _np.min(h.contents[h.contents!=0])
         else:
-            vmin = 0
+            vmin = None
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
@@ -744,6 +744,7 @@ def Histogram3D(th3):
     colours[:,:,:,3] = d.data
     ax.voxels(fill, facecolors=colours)
     #return colours
+    
 
 def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
     """
