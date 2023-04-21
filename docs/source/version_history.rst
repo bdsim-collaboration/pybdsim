@@ -8,6 +8,7 @@ V3.1.1 - 2023 / XX / XX
 * Fixed spectra loading and plotting for when the 'p' and 's' prefixes are used
   in the rebdsim Spectra command to denote primary and secondary particles.
 * Fixed error with default log scale in `Plot.Histogram2D` when no `vmin` was specified.
+* Fix :code:`pybdsim._version_tuple` which should be :code:`pybdsim.__version_tuple__`.
 
 
 V3.1.0 - 2023 / 04 / 02
