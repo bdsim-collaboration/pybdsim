@@ -536,6 +536,8 @@ def Spectra(spectra,
             figsize=(10,5), legendKwargs={}, **errorbarKwargs):
     """
     Plot a Spectra object loaded from data that represents a set of histograms.
+
+    returns a list of figure objects.
     """
     histograms = [spectra.histogramspy[(pdgid,flag)] for (pdgid,flag) in spectra.pdgidsSorted]
     
@@ -571,13 +573,15 @@ def Spectra(spectra,
             # in the A list, so also put it first in the B list
             histogramsB.insert(0, histogramsA[0])
             
-        Histogram1DMultiple(histogramsA, labelsA, log, xlog, xlabel, ylabel, title,
-                            scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
-        Histogram1DMultiple(histogramsB, labelsB, log, xlog, xlabel, ylabel, title,
-                            scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+        f1 = Histogram1DMultiple(histogramsA, labelsA, log, xlog, xlabel, ylabel, title,
+                                 scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+        f2 = Histogram1DMultiple(histogramsB, labelsB, log, xlog, xlabel, ylabel, title,
+                                 scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+        return [f1,f2]
     else:
-        Histogram1DMultiple(histograms, labels, log, xlog, xlabel, ylabel, title,
-                            scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+        f1 = Histogram1DMultiple(histograms, labels, log, xlog, xlabel, ylabel, title,
+                                 scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+        return [f1]
 
 
 def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
@@ -772,6 +776,7 @@ def Histogram3D(th3):
     colours[:,:,:,3] = d.data
     ax.voxels(fill, facecolors=colours)
     #return colours
+    return f
     
 
 def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
