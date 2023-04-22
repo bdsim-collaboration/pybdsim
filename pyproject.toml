@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-uproot = ["uproot", "pandas", "pint"]
+uproot = ["awkward", "uproot", "pandas", "pint"]
 boost_histogram = ["boost-histogram"]
 cpymad = ["cpymad", "mergedeep"]
 pysad = ["pysad"]

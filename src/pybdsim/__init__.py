@@ -64,7 +64,6 @@ from . import Constants
 from . import Convert
 from . import Compare
 from . import Data
-from . import DataUproot
 from . import Field
 from . import Geant4
 from . import Gmad
@@ -76,11 +75,6 @@ from . import Visualisation
 from . import XSecBias
 from . import _General
 
-try:
-    from . import Optics
-except:
-    pass
-
 __all__ = ['Beam',
            'Builder',
            'Constants',
@@ -91,7 +85,6 @@ __all__ = ['Beam',
            'Field',
            'Geant4',
            'Gmad',
-           'Optics',
            'Options',
            'Plot',
            'Run',
@@ -99,3 +92,15 @@ __all__ = ['Beam',
            'Visualisation',
            'XSecBias',
            '_General']
+
+try:
+    from . import Optics
+    __all__.append("Optics")
+except:
+    pass
+
+try:
+    from . import DataUproot
+    __all__.append("DataUproot")
+except:
+    pass
