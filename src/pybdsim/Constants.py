@@ -1,10 +1,10 @@
 PDGind = {
-    0     : ('Total',                 'Total')
+    0     : ('Total',                 'Total'),
 #COMMON
     2212  : ('Proton',                'p'),
     -2212 : ('Antiproton',            r'$\overline{p}$'),
     2112  : ('Neutron',               'n'),
-    -2112 : ('Neutron',               'n'),
+    -2112 : ('AntiNeutron',           r'$\overline{n}$'),
     11    : ('Electron',              r'$e^{-}$'),
     -11   : ('Positron',              r'$e^{+}$'),
     22    : ('Photon',                r'$\gamma$'),
