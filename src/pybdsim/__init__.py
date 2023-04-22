@@ -16,7 +16,7 @@ Copyright Royal Holloway, University of London 2023.
 +-----------------+----------------------------------------------------------+
 | Data            | Read the bdsim output formats.                           |
 +-----------------+----------------------------------------------------------+
-| DataUproot      | Data loading with uproot instead of pyroot.              |
+| DataUproot      | Data loading with uproot instead of pyroot. (optional)   |
 +-----------------+----------------------------------------------------------+
 | Field           | Read and write BDSIM field format files.                 |
 +-----------------+----------------------------------------------------------+
@@ -27,7 +27,7 @@ Copyright Royal Holloway, University of London 2023.
 | ModelProcessing | Tools to process existing BDSIM models and generate      |
 |                 | other versions of them.                                  |
 +-----------------+----------------------------------------------------------+
-| Optics          | Optical calculation in development.                      |
+| Optics          | Optical calculation in development. (optional)           |
 +-----------------+----------------------------------------------------------+
 | Options         | Methods to generate bdsim options.                       |
 +-----------------+----------------------------------------------------------+

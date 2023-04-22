@@ -9,6 +9,7 @@ V3.1.1 - 2023 / XX / XX
   in the rebdsim Spectra command to denote primary and secondary particles.
 * Fixed error with default log scale in `Plot.Histogram2D` when no `vmin` was specified.
 * Fix :code:`pybdsim._version_tuple` which should be :code:`pybdsim.__version_tuple__`.
+* Fix import without awkward array which is only required for the [uproot] feature of pybdsim.
 
 
 V3.1.0 - 2023 / 04 / 02
