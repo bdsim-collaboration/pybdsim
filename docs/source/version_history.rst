@@ -2,7 +2,7 @@
 Version History
 ===============
 
-V3.1.1 - 2023 / XX / XX
+V3.1.1 - 2023 / 04 / 23
 =======================
 
 * Fixed spectra loading and plotting for when the 'p' and 's' prefixes are used
