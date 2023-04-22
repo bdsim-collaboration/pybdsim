@@ -1,4 +1,5 @@
 PDGind = {
+    0     : ('Total',                 'Total')
 #COMMON
     2212  : ('Proton',                'p'),
     -2212 : ('Antiproton',            r'$\overline{p}$'),

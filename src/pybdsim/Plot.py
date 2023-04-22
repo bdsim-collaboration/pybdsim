@@ -529,14 +529,22 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     _plt.tight_layout()
     return f
 
-def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
+def Spectra(spectra,
+            log=False, xlog=False,
+            xlabel=None, ylabel=None, title=None,
+            scalingFactors=None, xScalingFactors=None,
+            figsize=(10,5), legendKwargs={}, **errorbarKwargs):
+    """
+    Plot a Spectra object loaded from data that represents a set of histograms.
+    """
     histograms = [spectra.histogramspy[(pdgid,flag)] for (pdgid,flag) in spectra.pdgidsSorted]
+    
     labels = []
     for (pdgid, flag) in spectra.pdgidsSorted:
         rn = _Constants.GetPDGName(pdgid)[1]
         if flag != 'n':
             rn += r" ("+flag+r")"
-        labels.append(rn)
+        labels.append(rn)        
             
     if xlabel is None:
         print("Using default xlabel of kinetic energy")
@@ -550,7 +558,27 @@ def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None
             ylabel = "Per-Event Rate / " + str(round(h1.xwidths[0],2)) + " GeV"
     if title is None:
         title = spectra.name
-    Histogram1DMultiple(histograms, labels, log, xlog, xlabel, ylabel, title, scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+
+    # avoid overly busy plots... if more than 8 lines, split into 2. Copy the total to both.
+    if len(histograms) > 8:
+        histogramsA = histograms[:9]
+        histogramsB = histograms[9:]
+        labelsA = labels[:9]
+        labelsB = labels[9:]
+        if (0,'n') in spectra.pdgidsSorted:
+            # if pdgid of 0, which is the 'total' histogram is present,
+            # then it's integral must be the greatest and it should be first
+            # in the A list, so also put it first in the B list
+            histogramsB.insert(0, histogramsA[0])
+            
+        Histogram1DMultiple(histogramsA, labelsA, log, xlog, xlabel, ylabel, title,
+                            scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+        Histogram1DMultiple(histogramsB, labelsB, log, xlog, xlabel, ylabel, title,
+                            scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+    else:
+        Histogram1DMultiple(histograms, labels, log, xlog, xlabel, ylabel, title,
+                            scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+
 
 def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
     """

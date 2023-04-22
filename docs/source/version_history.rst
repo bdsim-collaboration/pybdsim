@@ -10,6 +10,8 @@ V3.1.1 - 2023 / XX / XX
 * Fixed error with default log scale in `Plot.Histogram2D` when no `vmin` was specified.
 * Fix :code:`pybdsim._version_tuple` which should be :code:`pybdsim.__version_tuple__`.
 * Fix import without awkward array which is only required for the [uproot] feature of pybdsim.
+* :code:`pybdsim.Plot.Spectra()` now makes more than one plot if more than 8 particles are specified.
+* Recognised PDG ID 0 as "total" from BDSIM.
 
 
 V3.1.0 - 2023 / 04 / 02
