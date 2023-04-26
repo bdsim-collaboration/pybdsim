@@ -102,12 +102,20 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
             d.ConcatenateMachine(machine)
     return d
 
-def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
-                                        tightLayout=True, sOffset=0., fraction=0.9):
+def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sOffset=0., fraction=0.9):
     """
-    Add a machine diagram to the top of the plot in a current figure
-    sOffset offsets survey along s
-    fraction controls fraction of the figure for the plot, the remainder being used for the survey
+    Add a machine diagram to the top of the plot in a current figure.
+
+    :param figure: the matplotlib figure to add the plot to.
+    :type figure: matplotlib.figure.Figure
+    :param surveyfile: BDSIM file or REBDSIM file (with Model tree filled) or BDSIM survey output or path to any of these.
+    :type surveyfile: str, pybdsim.Data.RebdsimFile, pybdsim.Data.BDSAsciiData, cppyy.gbl.DataLoader
+    :param tightLayout: whether to call matplotlib's tight layout after adding the axes.
+    :type tightLayout: bool
+    :param sOffset: add this number to the S coordinate of all elements in the machine diagram.
+    :type sOffset: float
+    :param fraction: controls fraction of the figure for the plot, the remainder being used for the survey.
+    :type fraction: float
     """
     from . import Data as _Data
     if isinstance(surveyfile, str) and not _ospath.isfile(surveyfile):
@@ -146,6 +154,20 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile,
 
 
 def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
+    """
+    The low-level version of drawing a machine diagram. Draws into an axes instance
+    given using loaded model data in the form of a pybdsim.Data.BDSAsciiData instance.
+
+    :param axesinstance: the plotting axis to draw the machine diagram into.
+    :type axesinstance: matplotlib.axes.Axes
+    :param: bdsasciidataobject The model data.
+    :type bdsasciidataobject: pybdsim.Data.BDSAsciiData
+    :param sOffset: add this value to the S of all machine elements in the diagram.
+    :type sOffset: float
+
+    The main interface is AddMachineLatticeFromSurveyToFigure, but this function
+    may be useful for more granular plotting, e.g. with custom subfigures / axes.
+    """
     ax  = axesinstance #handy shortcut
     bds = bdsasciidataobject
 
@@ -230,10 +252,7 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     ax.set_ylim(-0.2,0.2)
     ax.set_xlim(sOffset, smax)
 
-def SubplotsWithDrawnMachineLattice(survey, nrows=2,
-                                    machine_plot_gap=0.01,
-                                    gridspec_kw=None,
-                                    subplots_kw=None, **fig_kw):
+def SubplotsWithDrawnMachineLattice(survey, nrows=2, machine_plot_gap=0.01, gridspec_kw=None, subplots_kw=None, **fig_kw):
     """
     Create a figure with a single column of axes, sharing the
     x-axis by default, with the machine drawn from the provided survey
@@ -242,8 +261,9 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2,
     the machine, and the second for any data to be plotted to
     afterwards.
 
-    Parameters:
-    survey : BSDIM survey which is used to draw the machine lattice on the top axes.
+    :param survey: BDSIM survey which is used to draw the machine lattice on the top axes.
+    :type survey: str, pybdsim.Data.BDSAsciiData
+
     machine_plot_gap : vertical space between the top of the first axes and the 
     bottom of the machine axes. By default this is small.
 
@@ -1872,14 +1892,13 @@ def LossMap(ax, xcentres, y, ylow=None, **kwargs):
                     color=line.get_color(),
                     **kwargs)
 
-"""
-The ModelBDSIMXZ and ModelBDSIMYZ functions add the possibility to plot a survey
-done in BDSIM. The results can be found in the BDSIM output file in the Model tree.
-The functions can plot the start and end positions of each element in the sequence.
-"""
 
 def ModelBDSIMXZ(model, ax=None):
-
+    """
+    The ModelBDSIMXZ and ModelBDSIMYZ functions add the possibility to plot a survey
+    done in BDSIM. The results can be found in the BDSIM output file in the Model tree.
+    The functions can plot the start and end positions of each element in the sequence.
+    """
     staPos = model.staRefPos
     endPos = model.endRefPos
 
@@ -1902,6 +1921,11 @@ def ModelBDSIMXZ(model, ax=None):
     _plt.tight_layout()
 
 def ModelBDSIMYZ(model, ax=None):
+    """
+    The ModelBDSIMXZ and ModelBDSIMYZ functions add the possibility to plot a survey
+    done in BDSIM. The results can be found in the BDSIM output file in the Model tree.
+    The functions can plot the start and end positions of each element in the sequence.
+    """
 
     staPos = model.staRefPos
     endPos = model.endRefPos
@@ -1925,7 +1949,9 @@ def ModelBDSIMYZ(model, ax=None):
     _plt.tight_layout()
 
 def ModelElegantXZ(model, ax=None, transpose=False):
-
+    """
+    Plot a model madx from elegant. In development.
+    """
     X = model['X']
     Z = model['Z']
     if transpose:
@@ -1955,7 +1981,9 @@ def ModelElegantXZ(model, ax=None, transpose=False):
     _plt.tight_layout()
 
 def ModelElegantYZ(model, ax=None, transpose=False):
-
+    """
+    Plot a model madx from elegant. In development.
+    """
     Y = model['Y']
     Z = model['Z']
     if transpose:

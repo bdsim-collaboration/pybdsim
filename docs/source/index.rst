@@ -15,6 +15,7 @@ of BDSIM models.
    compare	     
    data
    data_uproot
+   plotting
    fieldmaps
    classes
    support

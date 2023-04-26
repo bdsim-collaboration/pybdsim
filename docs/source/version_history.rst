@@ -2,6 +2,17 @@
 Version History
 ===============
 
+V3.2.0 - 2023 / 04 / 26
+=======================
+
+* Remove the function :code:`pybdsim.Plot.AddMachineLatticeToFigure()`. This was just a forward to
+  :code:`pymadx.Plot.AddMachineLatticeToFigure()` and this should be used explicitly for
+  machine diagram plotting for TFS files. Otherwise, :code:`pybdsim.Plot.AddMachineLatticeFromSurveyToFigure`
+  should be used.
+* Better documentation about plotting.
+* Increase the visibility of light grey elements in the machine diagram from alpha 0.1 to 0.4.
+  
+
 V3.1.1 - 2023 / 04 / 23
 =======================
 
