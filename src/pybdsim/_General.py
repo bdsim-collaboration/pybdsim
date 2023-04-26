@@ -90,6 +90,7 @@ def CheckItsBDSAsciiData(bfile, requireOptics=False):
     return data
 
 def CheckBdsimDataHasSurveyModel(bfile):
+    data = None
     if isinstance(bfile, str):
         data = _Data.Load(bfile)
     elif type(bfile) == _Data.BDSAsciiData:
@@ -97,12 +98,9 @@ def CheckBdsimDataHasSurveyModel(bfile):
     elif type(bfile) == _Data.RebdsimFile:
         data = bfile
     else:
-        return False
+        data = bfile
 
-    if hasattr(data,"model"):
-        return True
-    else:
-        return False
+    return hasattr(data,"model")
 
 def PrepareReducedName(elementname):
     """
