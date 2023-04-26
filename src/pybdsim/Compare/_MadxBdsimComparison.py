@@ -585,7 +585,7 @@ def _AddSurvey(figure, survey):
             _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
     # If BDSIM ASCII survey instance
     elif isinstance(survey, _pybdsim.Data.BDSAsciiData):
-        _pybdsim.Plot.AddMachineLatticeToFigure(figure,survey)
+        _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
     elif isinstance(survey, _pymadx.Data.Tfs): # If TFS
         _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
     # if a (BDSIM) ROOT file

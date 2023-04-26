@@ -109,7 +109,7 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
            try:
                pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
            except IOError:
-               pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
+               _pymadx.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
         _plt.show(block=False)
         return plot
     return f_out

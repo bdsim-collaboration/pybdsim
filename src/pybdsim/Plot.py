@@ -11,9 +11,7 @@ import matplotlib as _matplotlib
 from matplotlib.colors import LogNorm as _LogNorm
 import matplotlib.pyplot as _plt
 import matplotlib.patches as _patches
-import matplotlib.ticker as _ticker
 import numpy as _np
-import string as _string
 import datetime as _datetime
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 from scipy import constants as _con
@@ -41,12 +39,6 @@ def MadxTfsBeta(tfsfile, title='', outputfilename=None):
     A forward to the pymadx.Plot.PlotTfsBeta function.
     """
     _pymadx.Plot.Beta(tfsfile,title,outputfilename)
-
-def AddMachineLatticeToFigure(figure, tfsfile, tightLayout=True):
-    """
-    A forward to the pymadx.Plot.AddMachineLatticeToFigure function.
-    """
-    _pymadx.Plot.AddMachineLatticeToFigure(figure, tfsfile, tightLayout)
 
 def ProvideWrappedS(sArray, index):
     s = sArray #shortcut
@@ -1328,7 +1320,7 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
     ax.set_yscale('log')
 
     if tfssurvey:
-        AddMachineLatticeToFigure(f, tfssurvey)
+        _pymadx.Plot.AddMachineLatticeToFigure(f, tfssurvey)
     elif bdsimsurvey:
         AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey)
     elif hasattr(d, "model"):
@@ -1493,7 +1485,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     _plt.legend(fontsize="small", framealpha=1)# bbox_to_anchor=(0.85, 1), loc=2, borderaxespad=0., framealpha=1)
 
     if tfssurvey:
-        AddMachineLatticeToFigure(f, tfssurvey)
+        _pymadx.Plot.AddMachineLatticeToFigure(f, tfssurvey)
     elif bdsimsurvey and not skipMachineLattice:
         #AddMachineLatticeFromSurveyToFigure(f, bdsimsurvey) #TODO: Fix this, currenly gives an error
         print("not working like this")
@@ -1522,7 +1514,7 @@ def PrimarySurvival(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=N
     ax1.set_xlabel('S (m)')
 
     if tfssurvey:
-        AddMachineLatticeToFigure(fig, tfssurvey)
+        _pymadx.Plot.AddMachineLatticeToFigure(fig, tfssurvey)
     elif bdsimsurvey:
         AddMachineLatticeFromSurveyToFigure(fig, bdsimsurvey)
     elif hasattr(d, "model"):
@@ -1589,7 +1581,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     ax1.set_xlabel('S (m)')
 
     if tfssurvey:
-        AddMachineLatticeToFigure(fig, tfssurvey)
+        _pymadx.Plot.AddMachineLatticeToFigure(fig, tfssurvey)
     elif bdsimsurvey:
         AddMachineLatticeFromSurveyToFigure(fig, bdsimsurvey)
     elif hasattr(d, "model"):

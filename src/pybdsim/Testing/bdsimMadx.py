@@ -652,7 +652,7 @@ class LatticeTest:
             _plt.ylabel(r'$'+fn_name+fn_units+r'$')
             _plt.legend(numpoints=1,loc=10,fancybox=True, framealpha=1.0,prop={'size':15})
             _plt.grid(True)
-            _Plot.AddMachineLatticeToFigure(_plt.gcf(),madx)
+            _pymadx.Plot.AddMachineLatticeToFigure(_plt.gcf(),madx)
             #_plt.subplots_adjust(left=0.1,right=0.9,top=0.96, bottom=0.15, wspace=0.15, hspace=0.2)
 
         if showResiduals:

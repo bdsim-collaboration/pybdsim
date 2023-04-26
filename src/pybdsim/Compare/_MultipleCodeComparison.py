@@ -533,7 +533,7 @@ def _make_plotter(plot_info):
             try:
                 _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
             except IOError:
-                _pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
+                _pymadx.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
         _plt.show(block=False)
 
         if saveFig:
@@ -994,7 +994,7 @@ def PlotNPart(data, names, plotterData=None, **kwargs):
         try:
             _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
         except IOError:
-            _pybdsim.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
+            _pymadx.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
     _plt.show(block=False)
 
     if saveFig:
