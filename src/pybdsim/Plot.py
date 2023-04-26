@@ -121,7 +121,10 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sO
     if isinstance(surveyfile, str) and not _ospath.isfile(surveyfile):
         raise IOError("Survey not found: ", surveyfile)
     if _CheckBdsimDataHasSurveyModel(surveyfile):
-        sf = _Data.Load(surveyfile).model
+        if hasattr(surveyfile, "model"):
+            sf = surveyfile.model
+        else:
+            sf = _Data.Load(surveyfile).model
     else:
         sf = _CheckItsBDSAsciiData(surveyfile)
 
