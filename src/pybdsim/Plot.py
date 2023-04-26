@@ -244,10 +244,10 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
         else:
             #unknown so make light in alpha
             if lengths[i] > 1e-1:
-                DrawRect(starts[i],lengths[i],'#cccccc',alpha=0.1) #light grey
+                DrawRect(starts[i],lengths[i],'#cccccc',alpha=0.4) #light grey
             else:
                 #relatively short element - just draw a line
-                DrawLine(starts[i],'#cccccc',alpha=0.1)
+                DrawLine(starts[i],'#cccccc',alpha=0.4)
 
     # plot beam line
     smax = bds.SEnd()[-1] + sOffset
