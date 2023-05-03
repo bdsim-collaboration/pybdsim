@@ -544,11 +544,9 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     _plt.tight_layout()
     return f
 
-def Spectra(spectra,
-            log=False, xlog=False,
-            xlabel=None, ylabel=None, title=None,
+def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None,
             scalingFactors=None, xScalingFactors=None,
-            figsize=(10,5), legendKwargs={}, **errorbarKwargs):
+            figsize=(10,5), legendKwargs={}, vmin=None, vmax=None, **errorbarKwargs):
     """
     Plot a Spectra object loaded from data that represents a set of histograms.
 
@@ -587,15 +585,34 @@ def Spectra(spectra,
             # then it's integral must be the greatest and it should be first
             # in the A list, so also put it first in the B list
             histogramsB.insert(0, histogramsA[0])
+            labelsB.insert(0, labelsA[0])
             
         f1 = Histogram1DMultiple(histogramsA, labelsA, log, xlog, xlabel, ylabel, title,
                                  scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
         f2 = Histogram1DMultiple(histogramsB, labelsB, log, xlog, xlabel, ylabel, title,
                                  scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+        for f in [f1,f2]:
+            ax = f.get_axes()[0]
+            if vmin:
+                yl = ax.get_ylim()
+                yl = (vmin,yl[1])
+                ax.set_ylim(*yl)
+            if vmax:
+                yl = ax.get_ylim()
+                yl = (yl[0],vmax)
+                ax.set_ylim(*yl)
         return [f1,f2]
     else:
         f1 = Histogram1DMultiple(histograms, labels, log, xlog, xlabel, ylabel, title,
                                  scalingFactors, xScalingFactors, figsize, legendKwargs, **errorbarKwargs)
+        if vmin:
+            yl = _plt.ylim()
+            yl = (vmin,yl[1])
+            _plt.ylim(*yl)
+        if vmax:
+            yl = _plt.ylim()
+            yl = (yl[0],vmax)
+            _plt.ylim(*yl)
         return [f1]
 
 
@@ -717,10 +734,15 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     ext = [_np.min(xsf*h.xlowedge),_np.max(xsf*h.xhighedge),_np.min(ysf*h.ylowedge),_np.max(ysf*h.yhighedge)]
     histEmpty = len(h.contents[h.contents!=0]) == 0
     if vmin is None:
-        if autovmin and vmin is None and not histEmpty:
+        if autovmin and not histEmpty:
             vmin = _np.min(h.contents[h.contents!=0])
         else:
-            vmin = None
+            vmin = 1.0/h.entries # statistical floor and matplotlib requires a finite vmin
+    if vmax is None:
+        if histEmpty:
+            vmax = 1.0
+        else:
+            vmax = _np.max(h.contents)
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
