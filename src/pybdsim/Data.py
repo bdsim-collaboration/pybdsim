@@ -1414,6 +1414,47 @@ class Histogram1DSet:
         newSumWeightsSq = {key:self.sumWeightsSq[key] for key in newBins.keys()}
         self.sumWeightsSq = _defaultdict(float, **newSumWeightsSq)
 
+
+def GetHistoryPDGTuple(trajectories, startingTrajectoryStorageIndex, reduceDuplicates=False):
+    """
+    Return a tuple of PDG IDs for the history of a particle given by trajectories in an event.
+
+    :param trajectories: event.Trajectory instance from loaded ROOT data
+    :type trajectories: event.Trajectory
+    :param startingTrajectoryStorageIndex: storage index of which trajectory to start from
+    :type startingTrajectoryStorageIndex: int
+    :param reduceDuplicates: whether to remove sequential duplicates from the history
+    :type reduceDuplicates: bool
+
+    >>> d = pybdsim.Data.Load("somdbdsimoutputfile.root")
+    >>> et = d.GetEventTree()
+    >>> for event in et:
+            tid = event.sampler1.trackID[0]
+            history = pybdsim.Data.GetHistoryPDGTuple(event.Trajectory, tid)
+            print(history)
+
+    An example might be (13,211,211,2212) or with reducedDuplicates (31,211,2212)
+
+    Note, this will raise an IndexError if you haven't stored the right trajectories.
+    and must be used knowing that the connected trajectories for a given starting trackID
+    are stored.
+    """
+    ts = trajectories
+    storageIndex = startingTrajectoryStorageIndex
+    parentID = 1  # just not 0
+    history = []
+
+    while parentID != 0:
+        pdgID = ts.partID[storageIndex]
+        history.append(pdgID)
+        storageIndex = ts.parentIndex[storageIndex]
+        parentID = ts.parentID[storageIndex]
+    history.append(ts.partID[storageIndex])
+    history = tuple(history)
+    if reduceDuplicates:
+        history = tuple(x for x, y in _itertools.groupby(history))
+    return history
+
 class _SamplerData:
     """
     Base class for loading a chosen set of sampler data from a file.

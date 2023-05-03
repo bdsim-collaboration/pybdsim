@@ -2,6 +2,12 @@
 Version History
 ===============
 
+V3.3.0 - 2023 / 05 / XX
+=======================
+
+* Fix setup.cfg having pymadx in the name although it makes no difference.
+* Add new :code:`pybdsim.Data.GetHistoryPDGTuple()` function to aid trajectory analysis.
+
 V3.2.0 - 2023 / 04 / 26
 =======================
 
