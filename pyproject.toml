@@ -40,6 +40,8 @@ uproot = ["awkward", "uproot", "pandas", "pint"]
 boost_histogram = ["boost-histogram"]
 cpymad = ["cpymad", "mergedeep"]
 pysad = ["pysad"]
+pymad8 = ["pymad8"]
+all = ["awkward", "uproot", "pandas", "pint", "boost-histogram", "cpymad", "mergedeep", "pysad", "pymad8"]
 dev = ["pytest", "sphinx", "sphinx-rtd-theme"]
 
 [project.urls]

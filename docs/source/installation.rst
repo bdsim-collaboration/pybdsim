@@ -13,6 +13,8 @@ There are the following features that result in more dependencies being installe
 * `boost_histogram` - includes boost-histogram package for 4d histograms
 * `cpymad` - allows usage of cpymad for converting models
 * `pysad` - allows usage of pysad for converting models
+* `pymad8` - allows usage of pymad8 for converting models
+* `all` - all of the above at once
 
 These can be installed as: ::
 
@@ -20,7 +22,7 @@ These can be installed as: ::
 
 or: ::
 
-  pip install pybdsim[uproot,boost_histogram,cpymad,pysad]
+  pip install pybdsim[uproot,boost_histogram,cpymad,pysad,pymad8]
 
 
 Requirements
