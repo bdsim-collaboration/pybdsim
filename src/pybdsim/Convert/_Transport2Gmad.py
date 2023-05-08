@@ -4,7 +4,7 @@ from pybdsim import Builder as _pyBuilder
 from pybdsim import Options as _Options
 
 from pytransport.Convert import _Convert
-from pytransport.Data import ConversionData
+from pytransport.Data import ConversionData as _ConversionData
 
 
 def Transport2Gmad(inputfile,
@@ -57,10 +57,10 @@ def Transport2Gmad(inputfile,
     file or Transport output file.
 
     """
-    converter = _Convert(ConversionData(inputfile=inputfile, options=_Options.Options(), machine=_pyBuilder.Machine(),
-                                        particle=particle, debug=debug, distrType=distrType, gmad=True,
-                                        gmadDir=outputDir, madx=False, madxDir='', dontSplit=dontSplit,
-                                        keepName=keepName, combineDrifts=combineDrifts))
+    converter = _Convert(_ConversionData(inputfile=inputfile, options=_Options.Options(), machine=_pyBuilder.Machine(),
+                                         particle=particle, debug=debug, distrType=distrType, gmad=True,
+                                         gmadDir=outputDir, madx=False, madxDir='', dontSplit=dontSplit,
+                                         keepName=keepName, combineDrifts=combineDrifts))
     # automatically convert
     converter.Convert()
 

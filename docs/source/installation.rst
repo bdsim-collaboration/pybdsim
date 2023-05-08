@@ -41,7 +41,6 @@ Generally, the requirements for pybdsim are
 * scipy
 * fortranformat
 * pymadx
-* pymad8
 * pytransport
 
 These are all available through pip and will be automatically installed.

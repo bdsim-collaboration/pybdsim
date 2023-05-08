@@ -12,10 +12,10 @@ import matplotlib.pyplot as _plt
 import datetime as _datetime
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 
-import pybdsim.Data
-import pybdsim.Plot
-import pybdsim._General as _Gen
+import pybdsim.Data as _Data
+import pybdsim.Plot as _Plot
 
+import pymadx as _pymadx
 import pytransport as _pyt
 
 # Predefined lists of tuples for making the standard plots,
@@ -49,7 +49,7 @@ def _parse_bdsim_input(bdsim_in, name):
            raise IOError("file \"{}\" not found!".format(bdsim_in))
        name = (_path.splitext(_path.basename(bdsim_in))[0]
                if name is None else name)
-       data = pybdsim.Data.Load(bdsim_in)
+       data = _Data.Load(bdsim_in)
        if hasattr(data, 'optics'):
            data = data.optics
        elif hasattr(data, 'Optics'):
@@ -58,7 +58,7 @@ def _parse_bdsim_input(bdsim_in, name):
            raise AttributeError("No optics found for BDSIM file: {}".format(bdsim_in))
        return data, name
    try:
-       if isinstance(bdsim_in, pybdsim.Data.RebdsimFile):
+       if isinstance(bdsim_in, _Data.RebdsimFile):
            if hasattr(bdsim_in,'optics'):
                bdsim_in = bdsim_in.optics
            elif hasattr(bdsim_in,'Optics'):
@@ -107,7 +107,7 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
 
         if survey is not None:
            try:
-               pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
+               _Plot.AddMachineLatticeFromSurveyToFigure(_plt.gcf(), survey)
            except IOError:
                _pymadx.Plot.AddMachineLatticeToFigure(_plt.gcf(), survey)
         _plt.show(block=False)
