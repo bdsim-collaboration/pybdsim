@@ -2,9 +2,11 @@
 Version History
 ===============
 
-V3.3.0 - 2023 / 05 / XX
+V3.3.0 - 2023 / 05 / 08
 =======================
 
+* Fix installation where there was a missing dependency of pandas with pymad8. pymad8 is
+  now no longer a formal dependency but all the conversion and comparison code still exists.
 * Fix setup.cfg having pymadx in the name although it makes no difference.
 * Add new :code:`pybdsim.Data.GetHistoryPDGTuple()` function to aid trajectory analysis.
 

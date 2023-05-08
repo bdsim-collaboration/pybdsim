@@ -8,6 +8,7 @@ The following people have contributed to pybdsim:
 * Andrey Abramov
 * Siobhan Alden
 * Stewart Boogert
+* Marin Deniaud
 * Cedric Hernalsteens
 * Fabian Metzger
 * Will Parker

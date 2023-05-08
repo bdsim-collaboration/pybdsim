@@ -8,6 +8,7 @@ L. Nevay
 A. Abramov
 S. Alden
 S. Boogert
+M. Deniaud
 C. Hernalsteens
 W. Parker
 E. Ramoisiaux
