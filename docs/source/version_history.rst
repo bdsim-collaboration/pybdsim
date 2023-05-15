@@ -2,6 +2,11 @@
 Version History
 ===============
 
+V3.3.1 - 2023 / 05 / 15
+=======================
+
+* Reduce Python version requirement to >3.6 instead of 3.7.
+
 V3.3.0 - 2023 / 05 / 08
 =======================
 
