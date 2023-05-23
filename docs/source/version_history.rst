@@ -2,6 +2,12 @@
 Version History
 ===============
 
+V3.3.2 - 2023 / 05 / XX
+=======================
+
+* Fix loading of new header variables with backwards compatibility.
+
+
 V3.3.1 - 2023 / 05 / 15
 =======================
 

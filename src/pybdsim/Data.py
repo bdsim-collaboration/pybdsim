@@ -310,6 +310,10 @@ class Header:
         self.trajectoryFilters = []
         self.skimmedFile   = False
         self.nOriginalEvents = 0
+        self.nEventsRequested = 0
+        self.nEventsInFileSkipped = 0
+        self.nEventsInFile = 0
+        self.distrFileLoopNTimes = 0
         if 'TFile' in kwargs:
             self._FillFromTFile(kwargs['TFile'])
         elif 'Header' in kwargs:
@@ -344,6 +348,9 @@ class Header:
         self.trajectoryFilters = [str(s) for s in hi.trajectoryFilters]
         self.skimmedFile   = bool(hi.skimmedFile)
         self.nOriginalEvents = int(hi.nOriginalEvents)
+        for variable in ["nEventsRequested", "nEventsInFileSkipped", "nEventsInFile", "distrFileLoopNTimes"]:
+            if hasattr(hi, variable):
+                setattr(self, variable, int(getattr(hi, variable)))
 
 class Spectra:
     def __init__(self, nameIn=None):
