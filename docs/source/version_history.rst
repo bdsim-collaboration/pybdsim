@@ -2,10 +2,12 @@
 Version History
 ===============
 
-V3.3.2 - 2023 / 05 / XX
+V3.3.2 - 2023 / 06 / XX
 =======================
 
 * Fix loading of new header variables with backwards compatibility.
+* Fix extra new lines and white space being written out in comments at the top
+  of field maps.
 
 
 V3.3.1 - 2023 / 05 / 15
