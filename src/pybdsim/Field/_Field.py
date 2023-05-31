@@ -19,6 +19,12 @@ class Field(object):
         self.nDimensions     = 0
         self.comments        = []
 
+    def __imul__(self, scalingFactor):
+        self.data[..., self.nDimensions:] *= scalingFactor
+
+    def ScaleField(self, scalingFactor):
+        self *= scalingFactor
+
     def AddComment(self, commentString):
         """
         Add a string that will be put on a comment line at the beginning of the file.
