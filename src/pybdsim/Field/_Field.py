@@ -57,7 +57,7 @@ class Field(object):
                 fn.write(s)
         write(f, "# units: cm, T\n")
         for comment in self.comments:
-            write(f, "# "+str(comment)+"\n")
+            write(f, "# "+str(comment).strip()+"\n")
         for key,value in self.header.items():
             write(f, str(key)+'> '+ str(value) + '\n')
         if overrideLoopOrder:
