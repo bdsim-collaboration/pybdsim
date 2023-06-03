@@ -9,9 +9,6 @@ import re as _re
 import numpy as _np
 
 def GetFileName(ob):
-    """
-
-    """
     if type(ob) == str:
         return ob
     elif type(ob) == _Data.RebdsimFile:
