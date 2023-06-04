@@ -2139,10 +2139,12 @@ class BeamData:
 
 
 def _filterROOTObject(rootobj):
-    """Gets the names of the attributes which are just data and
-    specific to the class.  That is to say it removes all the
+    """
+    Gets the names of the attributes which are just data and
+    specific to the class. That is to say it removes all the
     clutter inherited from TObject, any methods, and some other
-    stuff.  Should retain strictly only the data."""
+    stuff. Should retain strictly only the data.
+    """
     # Define an instance of TObject which we can use to extract
     # the interface of our rootobj, leaving out all the rubbish.
     tobject_interface = set(dir(_ROOT.TObject()))
