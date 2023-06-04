@@ -19,7 +19,6 @@ import numpy as _np
 import re as _re
 import os as _os
 import pickle as _pickle
-import warnings as _warnings
 
 _useRoot      = True
 _libsLoaded   = False
@@ -66,11 +65,14 @@ def LoadROOTLibraries():
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
     # 0=ok, -1=fail, 1=already loaded
-    if reLoad < 0:
-        _warnings.warn("librebdsim not found")
-    if bdsLoad < 0:
-        _warnings.warn("libbdsimRootEvent not found")
-    _libsLoaded = True
+    if reLoad < 0 or bdsLoad < 0:
+        if reLoad < 0:
+            print("Warning: librebdsim not found")
+        if bdsLoad < 0:
+            print("Warning: libbdsimRootEvent not found")
+        _libsLoaded = False
+    else:
+        _libsLoaded = True
 
 def Load(filepath):
     """
@@ -176,9 +178,11 @@ def _LoadRoot(filepath):
     Inspect file and check it's a BDSIM file of some kind and load.
     """
     if not _useRoot:
-        raise IOError("ROOT in python not available - can't load ROOT file")
+        raise IOError("ROOT in python not available - cannot load ROOT file")
 
     LoadROOTLibraries()
+    if not _libsLoaded:
+        raise IOError("BDSIM ROOT libraries not found - cannot load data - source bdsim.sh")
 
     fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
 
