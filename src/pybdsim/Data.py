@@ -1185,6 +1185,42 @@ class TH3(TH2):
         h2d = self.hist.Project3D("yze")
         return TH2(h2d)
 
+    def WriteASCII(self, filename, scalingFactor=1.0, comments=None):
+        """
+        Write the contents to a text file. Optionally multiply contents by a numerical factor.
+
+        :param filename: output name to write to - can optionally include .dat suffix.
+        :type filename: str
+        :param scalingFactor: numerical factor to multiply all contents by on writing out only.
+        :type scalingFactor: float
+        :param comments: list of comments to be written at the top of the file.
+        :type comments: list(str)
+        """
+        filename = str(filename)
+        if filename.endswith('.dat'):
+            filename = filename[:-4]
+        fn = filename + "_" + self.name + ".dat"
+        fo = open(fn, "w")
+        shape = self.contents.shape
+        if comments:
+            for comment in comments:
+                fo.write("# " + str(comment) + "\n")
+        fo.write("# scalingFactor: "+str(scalingFactor)+"\n")
+        fo.write("# " + "\t".join(["nx:", str(self.nbinsx), "xmin[m]:", str(self.xrange[0]), "xmax[m]:", str(self.xrange[1])]) + "\n")
+        fo.write("# " + "\t".join(["ny:", str(self.nbinsy), "ymin[m]:", str(self.yrange[0]), "ymax[m]:", str(self.yrange[1])]) + "\n")
+        fo.write("# " + "\t".join(["nz:", str(self.nbinsz), "zmin[m]:", str(self.zrange[0]), "zmax[m]:", str(self.zrange[1])]) + "\n")
+        columns = ['%18s' % s for s in ["x[m]", "y[m]", "z[m]", "Contents"]]
+        fo.write("!" + "\t".join(columns) + "\n")
+        for zi in range(shape[2]):
+            for yi in range(shape[1]):
+                for xi in range(shape[0]):
+                    value = [self.xcentres[xi], self.ycentres[yi], self.zcentres[zi], scalingFactor * self.contents[xi, yi, zi]]
+                    strings = ['%.8E' % x for x in value]
+                    stringsFW = ['%18s' % s for s in strings]
+                    fo.write("\t".join(stringsFW) + "\n")
+        fo.close()
+
+    
 class BDSBH4D():
     """
     Wrapper for a BDSBH instance. Converts to numpy data.

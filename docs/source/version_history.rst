@@ -8,6 +8,10 @@ V3.3.2 - 2023 / 06 / XX
 * Fix loading of new header variables with backwards compatibility.
 * Fix extra new lines and white space being written out in comments at the top
   of field maps.
+* New function to write a 3D scoring mesh out as ASCII for transfer to
+  other programs.
+* Explicit exception when the ROOT libraries can't be loaded for reading
+  BDSIM data.
 
 
 V3.3.1 - 2023 / 05 / 15
