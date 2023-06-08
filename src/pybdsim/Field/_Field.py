@@ -18,6 +18,8 @@ class Field(object):
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
         self.comments        = []
+        self.loopOrder       = None
+
     def __add__(field1, field2):
         if field1.nDimensions == field2.nDimensions:
             result = _deepcopy(field1)
@@ -83,7 +85,14 @@ class Field(object):
                 raise ValueError("overrideLoopOrder must be one of 'xyzt', 'tzyx'")
             write(f, "loopOrder> "+overrideLoopOrder+"\n")
         else:
-            lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
+            if writeLoopOrderReversed and self.loopOrder == 'xyzt':
+                lo = 'tzyx' 
+            elif writeLoopOrderReversed and self.loopOrder == 'tzyx':
+                lo = 'xyzt'
+            elif self.loopOrder:
+                lo = self.loopOrder
+            else:
+                lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
             write(f, "loopOrder> "+lo+"\n")
 
         if self.doublePrecision:
@@ -410,6 +419,10 @@ def Load(filename, debug=False):
         raise ValueError("Invalid number of dimensions")
 
     fd.comments = comments
+    if 'loopOrder' in header:
+        fd.loopOrder = order
+    else:
+        fd.loopOrder = None
     return fd
 
 
