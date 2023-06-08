@@ -1,7 +1,7 @@
 import gzip as _gzip
 import numpy as _np
 import tarfile as _tarfile
-
+from copy import deepcopy as _deepcopy
 
 class Field(object):
     """
@@ -18,12 +18,30 @@ class Field(object):
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
         self.comments        = []
+    def __add__(field1, field2):
+        if field1.nDimensions == field2.nDimensions:
+            result = _deepcopy(field1)
+            result.data[..., result.nDimensions:] = field1.data[..., field1.nDimensions:] + field2.data[..., field2.nDimensions:]
+            return result
+        else:
+            raise ValueError("The two field maps do not have the same dimension!")
+        
+    def __mul__(field, scalingFactor):
+        result = _deepcopy(field)
+        result.data[..., result.nDimensions:] *= scalingFactor
+        return result
+
+    def __iadd__(self, field):
+        self = self + field
 
     def __imul__(self, scalingFactor):
-        self.data[..., self.nDimensions:] *= scalingFactor
+        self = self * scalingFactor
 
     def ScaleField(self, scalingFactor):
         self *= scalingFactor
+
+    def AddField(self, field):
+        self += field
 
     def AddComment(self, commentString):
         """
