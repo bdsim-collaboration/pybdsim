@@ -8,17 +8,15 @@ class Field(object):
     Base class used for common writing procedures for BDSIM field format.
 
     This does not support arbitrary loop ordering - only the originally intended
-    xyzt.
+    xyzt or tzyx. Internally, every field map is converted into xyzt.
     """
-    def __init__(self, array=_np.array([]), columns=[], flip=False, doublePrecision=False):
+    def __init__(self, array=_np.array([]), columns=[], doublePrecision=False):
         self.data            = array
         self.columns         = columns
         self.header          = {}
-        self.flip            = flip
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
         self.comments        = []
-        self.loopOrder       = None
 
     def __add__(field1, field2):
         if field1.nDimensions == field2.nDimensions:
@@ -58,7 +56,7 @@ class Field(object):
 
         gzip - if the file ends with ".gz" the file will be compressed automatically.
 
-        For loopOrder it should be only 'xyzt' or 'tzyx'. This option is
+        For loopOrder it can be only 'xyzt' or 'tzyx'. This option is
         provided in case a field is prepared in the other order somehow and you
         want to control the writing of this header variable independently.
         """
@@ -78,22 +76,15 @@ class Field(object):
             write(f, "# "+str(comment).strip()+"\n")
         for key,value in self.header.items():
             write(f, str(key)+'> '+ str(value) + '\n')
-        flipLocal = self.flip
+
         if loopOrder:
             if loopOrder not in ['xyzt', 'tzyx']:
                 raise ValueError("loopOrder must be one of 'xyzt', 'tzyx'")
             else:
+                flip = True if loopOrder == 'tzyx' else False
                 write(f, "loopOrder> "+loopOrder+"\n")
-            if self.loopOrder:
-                if loopOrder != self.loopOrder:
-                    flipLocal = not flipLocal
-        elif self.loopOrder:
-            write(f, "loopOrder> "+self.loopOrder+"\n")
-        '''
-        Shall we include the else statement to specify the BDSIM standard loopOrder which is
-        xyzt? This might be wrong as the field map could have been constructed with a different
-        loopOrder.
-        '''
+        else:
+            write(f, "loopOrder> xyzt\n")
 
         if self.doublePrecision:
             colStrings = ['%23s' % s for s in self.columns]
@@ -106,17 +97,12 @@ class Field(object):
         # flatten all but last dimension - 3 field components
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
         
-        if flipLocal:
+        if flip:
             # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
             # [x,y,z,values]   -> [z,y,x,values]   for 3D
             # [x,y,values]     -> [y,x,values]     for 2D
             # [x,values]       -> [x,values]       for 1D
-            if (self.data.ndim == 2):
-                pass # do nothin for 1D
-            inds = list(range(self.data.ndim))       # indices for dimension [0,1,2] etc
-            # keep the last value the same but reverse all indices before then
-            inds[:(self.data.ndim - 1)] = reversed(inds[:(self.data.ndim - 1)])
-            datal = _np.transpose(self.data, inds)
+            datal = FlipFieldMap(self.data)
         else:
             datal = self.data
 
@@ -153,6 +139,41 @@ class Field(object):
         
         f.close()
 
+def CheckLoopOrder(data):
+    """
+    :param data: Array that contains the field map data. It should be already in the proper field map format
+    :type loopOrder: numpy.array
+
+    This function determines automatically what the loop order of the given data is.
+    It checks if the first or last dimension, so x or y, x or z or x or t changes.
+    In case of a 1D field map, the concept of loop order is not defined, so we give
+    back the BDSIM standard loop order which is xyzt.
+    """
+    nDimension = _np.shape(data)[-1] - 3
+    if nDimension > 1:
+        if data[..., 0][0][0] != data[..., 0][0][1]:
+            return 'tzyx'
+        elif data[..., nDimension - 1][0][0] != data[..., nDimension - 1][0][1]:
+            return 'xyzt'
+        else:
+            raise ValueError("The array containing the data is not in the correct shape! Check it")  
+    else:
+        return 'xyzt'  
+
+def FlipFieldMap(data):
+    """
+    :param data: Array that contains the field map data. It should be already in the proper field map format
+    :type loopOrder: numpy.array
+
+    This function flips the array to go from one loop order to the other one.
+    In case of a 1D field map, nothing will be changed.
+    """
+    if (data.ndim == 2):
+        pass # do nothin for 1D
+    inds = list(range(data.ndim))       # indices for dimension [0,1,2] etc
+    # keep the last value the same but reverse all indices before then
+    inds[:(data.ndim - 1)] = reversed(inds[:(data.ndim - 1)])
+    return _np.transpose(data, inds)
 
 class Field1D(Field):
     """
@@ -178,7 +199,6 @@ class Field1D(Field):
         self.header['n' + column.lower()]   = _np.shape(self.data)[0]
         self.nDimensions = 1
 
-
 class Field2D(Field):
     """
     Utility class to write a 2D field map array to BDSIM field format.
@@ -199,10 +219,13 @@ class Field2D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y'):
+    def __init__(self, data, doublePrecision=False, firstColumn='X', secondColumn='Y'):
         columns = [firstColumn, secondColumn, 'Fx', 'Fy', 'Fz']
-        super(Field2D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [1,0] if flip else [0,1]
+        inds = [0,1]
+        if CheckLoopOrder(data) == 'tzyx':
+            data = FlipFieldMap(data)
+            inds = [1,0]
+        super(Field2D, self).__init__(data,columns,doublePrecision)
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         self.header[fcl+'min'] = _np.min(self.data[:,:,0])
@@ -234,10 +257,13 @@ class Field3D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=False, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
+    def __init__(self, data, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
         columns = [firstColumn,secondColumn,thirdColumn,'Fx','Fy','Fz']
-        super(Field3D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [2,1,0] if flip else [0,1,2]
+        inds = [0,1,2]
+        if CheckLoopOrder(data) == 'tzyx':
+            data = FlipFieldMap(data)
+            inds = [2,1,0]
+        super(Field3D, self).__init__(data,columns,doublePrecision)
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         tcl = thirdColumn.lower()
@@ -273,10 +299,13 @@ class Field4D(Field):
     values are written to 16 s.f. (True) or 8 s.f. (False - default).
 
     """
-    def __init__(self, data, flip=False, doublePrecision=False):
+    def __init__(self, data, doublePrecision=False):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
-        super(Field4D, self).__init__(data,columns,flip,doublePrecision)
-        inds = [3,2,1,0] if flip else [0,1,2,3]
+        inds = [0,1,2,3]
+        if CheckLoopOrder(data) == 'tzyx':
+            data = FlipFieldMap(data)
+            inds = [3,2,1,0]
+        super(Field4D, self).__init__(data,columns,doublePrecision)
         self.header['xmin'] = _np.min(self.data[:,:,:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,:,:,0])
         self.header['nx']   = _np.shape(self.data)[inds[0]]
@@ -356,9 +385,6 @@ def Load(filename, debug=False):
     # over x first, then y, then z, so it appears the first
     # column is changing.
 
-    if 'loopOrder' in header:
-        order = header['loopOrder']
-
     nDim = len(columns) - 3
     # TBC for no case when we don't store spatial coords also
     if (nDim < 1 or nDim > 4):
@@ -391,6 +417,23 @@ def Load(filename, debug=False):
             print("Existing numpy array shape: ", _np.shape(data))
         data = data.reshape(*dims)
 
+    if 'loopOrder' in header:
+        if header['loopOrder'] == CheckLoopOrder(data):
+            order = header['loopOrder']
+        elif CheckLoopOrder(data):
+            order = CheckLoopOrder(data) 
+            print("The loop order was specified wrong! We corrected it to " + order + ".")
+        else:
+            raise ValueError("No loop order specified and it also couldn't be determined! Check your input!")
+    elif CheckLoopOrder(data):
+        order = CheckLoopOrder(data)
+    else:
+        raise ValueError("No loop order specified and it also couldn't be determined! Check your input!")
+
+    #The internal represantation should always be with loop order xyzt
+    if order == 'tzyx':
+        data = FlipFieldMap(data)
+
     # build field object
     #columns = [s.strip('n') for s in keysPresentList]
     if nDim == 1:
@@ -405,12 +448,7 @@ def Load(filename, debug=False):
         raise ValueError("Invalid number of dimensions")
 
     fd.comments = comments
-    if 'loopOrder' in header:
-        fd.loopOrder = order
-    else:
-        fd.loopOrder = None
     return fd
-
 
 def MirrorDipoleQuadrant1(field2D):
     """
