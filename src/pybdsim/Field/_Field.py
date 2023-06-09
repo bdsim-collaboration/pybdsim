@@ -146,10 +146,7 @@ class Field(object):
             raise ValueError("This field map is not 2D - it's ",self.nDimensions,"D")
 
         f = open(fileName, "w")
-        
-        # flatten all but last dimension - 3 field components
-        nvalues = _np.shape(self.data)[-1] # number of values in last dimension
-        
+
         for xi in range(self.header['nx']):
             for yi in range(self.header['ny']):
                 v = self.data[xi][yi]
