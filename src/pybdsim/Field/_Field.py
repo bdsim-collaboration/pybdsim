@@ -51,16 +51,14 @@ class Field(object):
         """
         self.comments.append(str(commentString))
         
-    def Write(self, fileName, writeLoopOrderReversed=False, overrideLoopOrder=None):
+    def Write(self, fileName, loopOrder=None):
         """
-        :param writeLoopOrderReversed: Write this field map with the other loop order.
-        :type writeLoopOrderReversed: bool
-        :param overrideLoopOrder: string to write irrespective of internal data as the loop order.
-        :type overrideLoopOrder: str
+        :param loopOrder: string to specify the loop order irrespective of internal data.
+        :type loopOrder: str
 
         gzip - if the file ends with ".gz" the file will be compressed automatically.
 
-        For overrideLoopOrder it should be only 'xyzt' or 'tzyx'. This option is
+        For loopOrder it should be only 'xyzt' or 'tzyx'. This option is
         provided in case a field is prepared in the other order somehow and you
         want to control the writing of this header variable independently.
         """
@@ -80,20 +78,22 @@ class Field(object):
             write(f, "# "+str(comment).strip()+"\n")
         for key,value in self.header.items():
             write(f, str(key)+'> '+ str(value) + '\n')
-        if overrideLoopOrder:
-            if overrideLoopOrder not in ['xyzt', 'tzyx']:
-                raise ValueError("overrideLoopOrder must be one of 'xyzt', 'tzyx'")
-            write(f, "loopOrder> "+overrideLoopOrder+"\n")
-        else:
-            if writeLoopOrderReversed and self.loopOrder == 'xyzt':
-                lo = 'tzyx' 
-            elif writeLoopOrderReversed and self.loopOrder == 'tzyx':
-                lo = 'xyzt'
-            elif self.loopOrder:
-                lo = self.loopOrder
+        flipLocal = self.flip
+        if loopOrder:
+            if loopOrder not in ['xyzt', 'tzyx']:
+                raise ValueError("loopOrder must be one of 'xyzt', 'tzyx'")
             else:
-                lo = 'tzyx' if writeLoopOrderReversed else 'xyzt'
-            write(f, "loopOrder> "+lo+"\n")
+                write(f, "loopOrder> "+loopOrder+"\n")
+            if self.loopOrder:
+                if loopOrder != self.loopOrder:
+                    flipLocal = not flipLocal
+        elif self.loopOrder:
+            write(f, "loopOrder> "+self.loopOrder+"\n")
+        '''
+        Shall we include the else statement to specify the BDSIM standard loopOrder which is
+        xyzt? This might be wrong as the field map could have been constructed with a different
+        loopOrder.
+        '''
 
         if self.doublePrecision:
             colStrings = ['%23s' % s for s in self.columns]
@@ -105,10 +105,6 @@ class Field(object):
         
         # flatten all but last dimension - 3 field components
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
-
-        flipLocal = self.flip
-        if writeLoopOrderReversed:
-            flipLocal = not flipLocal
         
         if not flipLocal:
             # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
