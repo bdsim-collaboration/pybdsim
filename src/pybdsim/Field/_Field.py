@@ -149,10 +149,7 @@ class Field(object):
         
         # flatten all but last dimension - 3 field components
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
-
-        flipLocal = self.flip
-
-        dt = self.data.reshape(-1,nvalues)
+        
         for xi in range(self.header['nx']):
             for yi in range(self.header['ny']):
                 v = self.data[xi][yi]
