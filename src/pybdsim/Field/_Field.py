@@ -106,7 +106,7 @@ class Field(object):
         # flatten all but last dimension - 3 field components
         nvalues = _np.shape(self.data)[-1] # number of values in last dimension
         
-        if not flipLocal:
+        if flipLocal:
             # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
             # [x,y,z,values]   -> [z,y,x,values]   for 3D
             # [x,y,values]     -> [y,x,values]     for 2D
@@ -355,13 +355,9 @@ def Load(filename, debug=False):
     # this is convention - in the case of xyzt, bdsim loops
     # over x first, then y, then z, so it appears the first
     # column is changing.
-    flip = False
 
     if 'loopOrder' in header:
         order = header['loopOrder']
-        flip = order == 'tzyx'
-        if debug:
-            print("flip :",flip)
 
     nDim = len(columns) - 3
     # TBC for no case when we don't store spatial coords also
@@ -400,11 +396,11 @@ def Load(filename, debug=False):
     if nDim == 1:
         fd = Field1D(data, column=columns[0])
     elif nDim == 2:
-        fd = Field2D(data, flip=flip, firstColumn=columns[0], secondColumn=columns[1])
+        fd = Field2D(data, firstColumn=columns[0], secondColumn=columns[1])
     elif nDim == 3:
-        fd = Field3D(data, flip=flip, firstColumn=columns[0], secondColumn=columns[1], thirdColumn=columns[2])
+        fd = Field3D(data, firstColumn=columns[0], secondColumn=columns[1], thirdColumn=columns[2])
     elif nDim == 4:
-        fd = Field4D(data, flip=flip)
+        fd = Field4D(data)
     else:
         raise ValueError("Invalid number of dimensions")
 
