@@ -163,17 +163,31 @@ def CheckLoopOrder(data):
 def FlipFieldMap(data):
     """
     :param data: Array that contains the field map data. It should be already in the proper field map format
-    :type loopOrder: numpy.array
+    :type data: numpy.array
 
     This function flips the array to go from one loop order to the other one.
     In case of a 1D field map, nothing will be changed.
     """
     if (data.ndim == 2):
         pass # do nothin for 1D
+    arrayShape = _np.shape(data)
+    newShape = tuple()
+    for i in range(len(arrayShape) - 2, -1, -1):
+        newShape += (arrayShape[i],)
+    newShape += (arrayShape[-1],)
+    flattenedArray = data.reshape(-1, arrayShape[-1])
     inds = list(range(data.ndim))       # indices for dimension [0,1,2] etc
     # keep the last value the same but reverse all indices before then
     inds[:(data.ndim - 1)] = reversed(inds[:(data.ndim - 1)])
-    return _np.transpose(data, inds)
+    sortKeys = tuple()
+    if CheckLoopOrder(data) == 'tzyx':
+        for i in range(len(inds) - 1):
+            sortKeys += (flattenedArray[:, inds[i]],)
+    elif CheckLoopOrder(data) == 'xyzt':
+        for i in range(len(inds) - 2, -1, -1):
+            sortKeys += (flattenedArray[:, inds[i]],)
+    flattenedArray = flattenedArray[_np.lexsort(sortKeys)]
+    return flattenedArray.reshape(newShape)
 
 class Field1D(Field):
     """
