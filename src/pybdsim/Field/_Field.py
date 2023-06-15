@@ -169,25 +169,20 @@ def FlipFieldMap(data):
     In case of a 1D field map, nothing will be changed.
     """
     if (data.ndim == 2):
-        pass # do nothin for 1D
+        pass # do nothing for 1D
+
     arrayShape = _np.shape(data)
-    newShape = tuple()
-    for i in range(len(arrayShape) - 2, -1, -1):
-        newShape += (arrayShape[i],)
-    newShape += (arrayShape[-1],)
-    flattenedArray = data.reshape(-1, arrayShape[-1])
-    inds = list(range(data.ndim))       # indices for dimension [0,1,2] etc
-    # keep the last value the same but reverse all indices before then
+    inds = list(range(data.ndim))  # indices for dimension [0,1,2] etc
     inds[:(data.ndim - 1)] = reversed(inds[:(data.ndim - 1)])
-    sortKeys = tuple()
-    if CheckLoopOrder(data) == 'tzyx':
-        for i in range(len(inds) - 1):
-            sortKeys += (flattenedArray[:, inds[i]],)
-    elif CheckLoopOrder(data) == 'xyzt':
-        for i in range(len(inds) - 2, -1, -1):
-            sortKeys += (flattenedArray[:, inds[i]],)
-    flattenedArray = flattenedArray[_np.lexsort(sortKeys)]
-    return flattenedArray.reshape(newShape)
+    #determine the shape of the flipped array
+    newShape = arrayShape[len(arrayShape) - 2::-1] + (arrayShape[-1],)
+
+    #flatten it to a 2D-array.
+    flattenedArray = data.reshape(-1, arrayShape[-1])
+    # keep the last value the same but reverse all indices before then
+    flag = range(len(inds) - 1) if CheckLoopOrder(data) == 'tzyx' else range(len(inds) - 2, -1, -1)
+    sortKeys = tuple([flattenedArray[:, inds[i]] for i in flag])
+    return flattenedArray[_np.lexsort(sortKeys)].reshape(newShape)
 
 class Field1D(Field):
     """
