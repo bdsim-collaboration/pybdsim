@@ -149,11 +149,11 @@ def CheckLoopOrder(data):
     In case of a 1D field map, the concept of loop order is not defined, so we give
     back the BDSIM standard loop order which is xyzt.
     """
-    nDimension = _np.shape(data)[-1] - 3
-    if nDimension > 1:
-        if data[..., 0][0][0] != data[..., 0][0][1]:
+    if data.ndim > 2:
+        flattenedArray = data.reshape(-1, _np.shape(data)[-1])
+        if flattenedArray[0, 0] != flattenedArray[1, 0]:
             return 'tzyx'
-        elif data[..., nDimension - 1][0][0] != data[..., nDimension - 1][0][1]:
+        elif flattenedArray[0, len(flattenedArray[0]) - 4] != flattenedArray[1, len(flattenedArray[0]) - 4]:
             return 'xyzt'
         else:
             raise ValueError("The array containing the data is not in the correct shape! Check it")  
