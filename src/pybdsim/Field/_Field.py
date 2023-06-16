@@ -57,8 +57,7 @@ class Field(object):
         gzip - if the file ends with ".gz" the file will be compressed automatically.
 
         For loopOrder it can be only 'xyzt' or 'tzyx'. This option is
-        provided in case a field is prepared in the other order somehow and you
-        want to control the writing of this header variable independently.
+        provided in case one aims at writing out in tzyx loop order.
         """
         compressed = fileName.endswith(".gz")
         if compressed:
@@ -75,14 +74,21 @@ class Field(object):
         for comment in self.comments:
             write(f, "# "+str(comment).strip()+"\n")
         for key,value in self.header.items():
-            write(f, str(key)+'> '+ str(value) + '\n')
+            #Ignore the loop order if it was written in the input file
+            #as it's not guaranteed to be right.
+            if key == 'loopOrder':
+                continue
+            else:
+                write(f, str(key)+'> '+ str(value) + '\n')
 
+        datal = self.data
         if loopOrder:
             if loopOrder not in ['xyzt', 'tzyx']:
                 raise ValueError("loopOrder must be one of 'xyzt', 'tzyx'")
             else:
-                flip = True if loopOrder == 'tzyx' else False
-                write(f, "loopOrder> "+loopOrder+"\n")
+                if loopOrder == 'tzyx':
+                    datal = FlipFieldMap(self.data)
+                write(f, "loopOrder> " + loopOrder + "\n")
         else:
             write(f, "loopOrder> xyzt\n")
 
@@ -95,18 +101,8 @@ class Field(object):
         write(f, '! '+ '\t'.join(colStrings)+'\n')
         
         # flatten all but last dimension - 3 field components
-        nvalues = _np.shape(self.data)[-1] # number of values in last dimension
+        datal = datal.reshape(-1,_np.shape(self.data)[-1])
         
-        if flip:
-            # [x,y,z,t,values] -> [t,z,y,x,values] for 4D
-            # [x,y,z,values]   -> [z,y,x,values]   for 3D
-            # [x,y,values]     -> [y,x,values]     for 2D
-            # [x,values]       -> [x,values]       for 1D
-            datal = FlipFieldMap(self.data)
-        else:
-            datal = self.data
-
-        datal = datal.reshape(-1,nvalues)
         for value in datal:
             if self.doublePrecision:
                 strings   = ['%.16E' % x for x in value]
