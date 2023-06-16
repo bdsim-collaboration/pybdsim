@@ -321,7 +321,6 @@ class Field4D(Field):
         self.header['nt']   = _np.shape(self.data)[3]
         self.nDimensions = 4
 
-
 def Load(filename, debug=False):
     """
     :param filename: name of file to load
@@ -418,22 +417,13 @@ def Load(filename, debug=False):
             print("Existing numpy array shape: ", _np.shape(data))
         data = data.reshape(*dims)
 
+    order = CheckLoopOrder(data) if CheckLoopOrder(data) else None
+    if not order:
+        raise ValueError("The loop order couldn't be determined! Check your input!")
     if 'loopOrder' in header:
-        if header['loopOrder'] == CheckLoopOrder(data):
-            order = header['loopOrder']
-        elif CheckLoopOrder(data):
-            order = CheckLoopOrder(data) 
+        if order != header['loopOrder']:
             print("The loop order was specified wrong! We corrected it to " + order + ".")
-        else:
-            raise ValueError("No loop order specified and it also couldn't be determined! Check your input!")
-    elif CheckLoopOrder(data):
-        order = CheckLoopOrder(data)
-    else:
-        raise ValueError("No loop order specified and it also couldn't be determined! Check your input!")
-
-    #The internal represantation should always be with loop order xyzt
-    if order == 'tzyx':
-        data = FlipFieldMap(data)
+            header['loopOrder'] = order
 
     # build field object
     #columns = [s.strip('n') for s in keysPresentList]
