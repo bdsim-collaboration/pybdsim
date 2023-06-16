@@ -102,7 +102,7 @@ class Field(object):
         
         # flatten all but last dimension - 3 field components
         datal = datal.reshape(-1,_np.shape(self.data)[-1])
-        
+
         for value in datal:
             if self.doublePrecision:
                 strings   = ['%.16E' % x for x in value]
