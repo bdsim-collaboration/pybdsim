@@ -151,13 +151,16 @@ def CheckLoopOrder(data):
     """
     if data.ndim > 2:
         flattenedArray = data.reshape(-1, _np.shape(data)[-1])
+        #Check if first coordinate is changing first -> xyzt
         if flattenedArray[0, 0] != flattenedArray[1, 0]:
             return 'tzyx'
+        #Check if last coordinate is changing first -> tzyx
         elif flattenedArray[0, len(flattenedArray[0]) - 4] != flattenedArray[1, len(flattenedArray[0]) - 4]:
             return 'xyzt'
         else:
             raise ValueError("The array containing the data is not in the correct shape! Check it")  
     else:
+        #For 1D field maps, there is no loop order! So, BDSIM standard xyzt is returned
         return 'xyzt'  
 
 def FlipFieldMap(data):
