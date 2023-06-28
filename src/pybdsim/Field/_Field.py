@@ -232,17 +232,20 @@ class Field2D(Field):
     """
     def __init__(self, data, doublePrecision=False, firstColumn='X', secondColumn='Y'):
         columns = [firstColumn, secondColumn, 'Fx', 'Fy', 'Fz']
-        if CheckLoopOrder(data) == 'tzyx':
-            data = FlipFieldMap(data)
-        super(Field2D, self).__init__(data,columns,doublePrecision)
+        flipped = (0, 1)
+        if CheckLoopOrder(data) == 'xyzt':
+            super(Field2D, self).__init__(data,columns,doublePrecision)
+        else:
+            super(Field2D, self).__init__(FlipFieldMap(_deepcopy(data)),columns,doublePrecision)
+            flipped = tuple(reversed(flipped))
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         self.header[fcl+'min'] = _np.min(self.data[:,:,0])
         self.header[fcl+'max'] = _np.max(self.data[:,:,0])
-        self.header['n'+fcl]   = _np.shape(self.data)[0]
+        self.header['n'+fcl]   = _np.shape(self.data)[flipped[0]]
         self.header[scl+'min'] = _np.min(self.data[:,:,1])
         self.header[scl+'max'] = _np.max(self.data[:,:,1])
-        self.header['n'+scl]   = _np.shape(self.data)[1]
+        self.header['n'+scl]   = _np.shape(self.data)[flipped[1]]
         self.nDimensions = 2
 
 class Field3D(Field):
@@ -267,21 +270,24 @@ class Field3D(Field):
     """
     def __init__(self, data, doublePrecision=False, firstColumn='X', secondColumn='Y', thirdColumn='Z'):
         columns = [firstColumn,secondColumn,thirdColumn,'Fx','Fy','Fz']
-        if CheckLoopOrder(data) == 'tzyx':
-            data = FlipFieldMap(data)
-        super(Field3D, self).__init__(data,columns,doublePrecision)
+        flipped = (0, 1, 2)
+        if CheckLoopOrder(data) == 'xyzt':
+            super(Field3D, self).__init__(data,columns,doublePrecision)
+        else:
+            super(Field3D, self).__init__(FlipFieldMap(_deepcopy(data)),columns,doublePrecision) 
+            flipped = tuple(reversed(flipped))
         fcl = firstColumn.lower()
         scl = secondColumn.lower()
         tcl = thirdColumn.lower()
         self.header[fcl+'min'] = _np.min(self.data[:,:,:,0])
         self.header[fcl+'max'] = _np.max(self.data[:,:,:,0])
-        self.header['n'+fcl]   = _np.shape(self.data)[0]
+        self.header['n'+fcl]   = _np.shape(self.data)[flipped[0]]
         self.header[scl+'min'] = _np.min(self.data[:,:,:,1])
         self.header[scl+'max'] = _np.max(self.data[:,:,:,1])
-        self.header['n'+scl]   = _np.shape(self.data)[1]
+        self.header['n'+scl]   = _np.shape(self.data)[flipped[1]]
         self.header[tcl+'min'] = _np.min(self.data[:,:,:,2])
         self.header[tcl+'max'] = _np.max(self.data[:,:,:,2])
-        self.header['n'+tcl]   = _np.shape(self.data)[2]
+        self.header['n'+tcl]   = _np.shape(self.data)[flipped[2]]
         self.nDimensions = 3
 
 class Field4D(Field):
@@ -306,21 +312,24 @@ class Field4D(Field):
     """
     def __init__(self, data, doublePrecision=False):
         columns = ['X','Y','Z','T','Fx','Fy','Fz']
-        if CheckLoopOrder(data) == 'tzyx':
-            data = FlipFieldMap(data)
-        super(Field4D, self).__init__(data,columns,doublePrecision)
+        flipped = (0, 1, 2, 3)
+        if CheckLoopOrder(data) == 'xyzt':
+            super(Field4D, self).__init__(data,columns,doublePrecision)
+        else:
+            super(Field4D, self).__init__(FlipFieldMap(_deepcopy(data)),columns,doublePrecision) 
+            flipped = tuple(reversed(flipped))
         self.header['xmin'] = _np.min(self.data[:,:,:,:,0])
         self.header['xmax'] = _np.max(self.data[:,:,:,:,0])
-        self.header['nx']   = _np.shape(self.data)[0]
+        self.header['nx']   = _np.shape(self.data)[flipped[0]]
         self.header['ymin'] = _np.min(self.data[:,:,:,:,1])
         self.header['ymax'] = _np.max(self.data[:,:,:,:,1])
-        self.header['ny']   = _np.shape(self.data)[1]
+        self.header['ny']   = _np.shape(self.data)[flipped[1]]
         self.header['zmin'] = _np.min(self.data[:,:,:,:,2])
         self.header['zmax'] = _np.max(self.data[:,:,:,:,2])
-        self.header['nz']   = _np.shape(self.data)[2]
+        self.header['nz']   = _np.shape(self.data)[flipped[2]]
         self.header['tmin'] = _np.min(self.data[:,:,:,:,3])
         self.header['tmax'] = _np.max(self.data[:,:,:,:,3])
-        self.header['nt']   = _np.shape(self.data)[3]
+        self.header['nt']   = _np.shape(self.data)[flipped[3]]
         self.nDimensions = 4
 
 def Load(filename, debug=False):
