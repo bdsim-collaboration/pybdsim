@@ -391,9 +391,9 @@ def Load(filename, debug=False):
     
     data = _np.array(data, dtype=float)
 
-    normalLoopOrder = ['x','y','z','t']
+    normalLoopOrder = 'xyzt'
     # this is convention - in the case of xyzt, bdsim loops
-    # over x first, then y, then z, so it appears the first
+    # over z first, then y, then x, so it appears the first
     # column is changing.
 
     nDim = len(columns) - 3
