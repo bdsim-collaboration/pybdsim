@@ -81,13 +81,13 @@ class Field(object):
             else:
                 write(f, str(key)+'> '+ str(value) + '\n')
 
-        datal = self.data
+        datal = _deepcopy(self.data)
         if loopOrder:
             if loopOrder not in ['xyzt', 'tzyx']:
                 raise ValueError("loopOrder must be one of 'xyzt', 'tzyx'")
             else:
                 if loopOrder == 'tzyx':
-                    datal = FlipFieldMap(self.data)
+                    datal = FlipFieldMap(datal)
                 write(f, "loopOrder> " + loopOrder + "\n")
         else:
             write(f, "loopOrder> xyzt\n")
@@ -101,7 +101,7 @@ class Field(object):
         write(f, '! '+ '\t'.join(colStrings)+'\n')
         
         # flatten all but last dimension - 3 field components
-        datal = datal.reshape(-1,_np.shape(self.data)[-1])
+        datal = datal.reshape(-1, _np.shape(datal)[-1])
 
         for value in datal:
             if self.doublePrecision:
