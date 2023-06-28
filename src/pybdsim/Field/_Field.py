@@ -144,15 +144,17 @@ def CheckLoopOrder(data):
     It checks if the first or last dimension, so x or y, x or z or x or t changes.
     In case of a 1D field map, the concept of loop order is not defined, so we give
     back the BDSIM standard loop order which is xyzt.
+    Loop order based on BDSFieldLoaderBDSIM.cc line 351 ff.
     """
     if data.ndim > 2:
-        flattenedArray = data.reshape(-1, _np.shape(data)[-1])
+        inputArray = _deepcopy(data)
+        flattenedArray = inputArray.reshape(-1, _np.shape(inputArray)[-1])
         #Check if first coordinate is changing first -> xyzt
         if flattenedArray[0, 0] != flattenedArray[1, 0]:
-            return 'tzyx'
+            return 'xyzt'
         #Check if last coordinate is changing first -> tzyx
         elif flattenedArray[0, len(flattenedArray[0]) - 4] != flattenedArray[1, len(flattenedArray[0]) - 4]:
-            return 'xyzt'
+            return 'tzyx'
         else:
             raise ValueError("The array containing the data is not in the correct shape! Check it")  
     else:
