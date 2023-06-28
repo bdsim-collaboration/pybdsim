@@ -172,16 +172,17 @@ def FlipFieldMap(data):
     if (data.ndim == 2):
         pass # do nothing for 1D
 
-    arrayShape = _np.shape(data)
-    inds = list(range(data.ndim))  # indices for dimension [0,1,2] etc
-    inds[:(data.ndim - 1)] = reversed(inds[:(data.ndim - 1)])
+    inputArray = _deepcopy(data)
+    arrayShape = _np.shape(inputArray)
+    inds = list(range(inputArray.ndim))  # indices for dimension [0,1,2] etc
+    inds[:(inputArray.ndim - 1)] = reversed(inds[:(inputArray.ndim - 1)])
     #determine the shape of the flipped array
     newShape = arrayShape[len(arrayShape) - 2::-1] + (arrayShape[-1],)
 
     #flatten it to a 2D-array.
-    flattenedArray = data.reshape(-1, arrayShape[-1])
+    flattenedArray = inputArray.reshape(-1, arrayShape[-1])
     # keep the last value the same but reverse all indices before then
-    flag = range(len(inds) - 1) if CheckLoopOrder(data) == 'tzyx' else range(len(inds) - 2, -1, -1)
+    flag = range(len(inds) - 1) if CheckLoopOrder(inputArray) == 'xyzt' else range(len(inds) - 2, -1, -1)
     sortKeys = tuple([flattenedArray[:, inds[i]] for i in flag])
     return flattenedArray[_np.lexsort(sortKeys)].reshape(newShape)
 
