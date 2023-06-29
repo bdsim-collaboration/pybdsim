@@ -5,7 +5,7 @@ import numpy as _np
 import os.path as _ospath
 from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
-from pybdsim._General import CheckItsBDSAsciiData, CheckBdsimDataHasSurveyModel
+from pybdsim.Data import CheckItsBDSAsciiData, CheckBdsimDataHasSurveyModel
 
 # Predefined dicts of variables for making the standard plots,
 # ptctwiss variables are the same as madx, ptc variables are the same as bdsim

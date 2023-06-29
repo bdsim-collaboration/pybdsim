@@ -2,7 +2,7 @@
 Version History
 ===============
 
-V3.3.2 - 2023 / 06 / XX
+V3.3.2 - 2023 / 06 / 29
 =======================
 
 * Fix loading of new header variables with backwards compatibility.
@@ -12,6 +12,7 @@ V3.3.2 - 2023 / 06 / XX
   other programs.
 * Explicit exception when the ROOT libraries can't be loaded for reading
   BDSIM data.
+* Fix circular import from Data.py and _General.py.
 
 
 V3.3.1 - 2023 / 05 / 15

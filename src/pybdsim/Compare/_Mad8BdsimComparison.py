@@ -1,7 +1,7 @@
 import pickle as _pkl
 import pylab as _pl
 import pymad8 as _m8
-import pybdsim as _bd
+import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile as _isfile
@@ -238,13 +238,13 @@ def Mad8VsBDSIM(twiss, bdsim, survey=None, functions=None, postfunctions=None, f
     if isinstance(bdsim, str) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
 
-    fname = _bd._General.GetFileName(bdsim)  # cache file name
+    fname = _pybdsim._General.GetFileName(bdsim)  # cache file name
     if fname == "":
         fname = "optics_report"
 
     # load mad8 optics and bdsim optics
     mad8opt = _m8.Output(twiss)
-    bdsinst = _bd._General.CheckItsBDSAsciiData(bdsim)
+    bdsinst = _pybdsim.Data.CheckItsBDSAsciiData(bdsim)
     bdsopt = _GetBDSIMOptics(bdsinst)
 
     # parameters required for calculating beam sizes, not written in mad8 output so have to supply manually.

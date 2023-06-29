@@ -17,8 +17,8 @@ from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 from scipy import constants as _con
 import os.path as _ospath
 
-from ._General import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
-from ._General import CheckBdsimDataHasSurveyModel as _CheckBdsimDataHasSurveyModel
+from .Data import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
+from .Data import CheckBdsimDataHasSurveyModel as _CheckBdsimDataHasSurveyModel
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
