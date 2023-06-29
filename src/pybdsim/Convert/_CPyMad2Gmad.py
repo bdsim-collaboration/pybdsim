@@ -1,4 +1,3 @@
-from __future__ import annotations as _annotations
 from typing import Optional as _Optional
 from typing import Dict as _Dict
 from typing import Tuple as _Tuple
