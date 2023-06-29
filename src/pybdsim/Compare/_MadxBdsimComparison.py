@@ -38,7 +38,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
         fname = "optics_report"
 
     tfsinst = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsim, True)
+    bdsinst = _pybdsim.Data.CheckItsBDSAsciiData(bdsim, True)
 
     tfsheader = tfsinst.header
     tfsopt  = _GetTfsOptics(tfsinst)
@@ -112,7 +112,7 @@ def PrepareResiduals(tfs, bds, survey=None, verbose=False):
     """
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds) # works for root files too
+    bdsinst   = _pybdsim.Data.CheckItsBDSAsciiData(bds) # works for root files too
 
     bdel    = bdsinst.orbit.elementName()
     bdslist = _np.array(bdel)
@@ -499,7 +499,7 @@ def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, 
     """
     _CheckFilesExist(tfs, bds, survey)
     tfsopt = _pymadx.Data.CheckItsTfs(tfs)
-    bdsopt = _pybdsim._General.CheckItsBDSAsciiData(bds)
+    bdsopt = _pybdsim.Data.CheckItsBDSAsciiData(bds)
 
     if survey is None:
         survey = tfsopt
@@ -546,7 +546,7 @@ def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, 
 def MadxVsBDSIMOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None, verbose=False, figsize=(12,5)):
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
-    bdsinst   = _pybdsim._General.CheckItsBDSAsciiData(bds)
+    bdsinst   = _pybdsim.Data.CheckItsBDSAsciiData(bds)
     tfsd = PrepareResiduals(tfs, bds)
     tdata = tfsd[0]
     bdata = tfsd[1]

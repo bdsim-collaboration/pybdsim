@@ -647,7 +647,7 @@ class BDSAsciiData(list):
         of str type or this class.
         """
         #Get final position of the machine (different param for survey)
-        if _General.IsSurvey(self):
+        if IsSurvey(self):
             lastSpos = self.GetColumn('SEnd')[-1]
         else:
             lastSpos = self.GetColumn('S')[-1]
@@ -661,7 +661,7 @@ class BDSAsciiData(list):
                 raise AttributeError("Cannot concatenate machine, variable names do not match")
 
             #surveys have multiple s positions per element
-            if _General.IsSurvey(machine):
+            if IsSurvey(machine):
                 sstartind = self.names.index('SStart')
                 smidind = self.names.index('SMid')
                 sendind = self.names.index('SEnd')
@@ -676,7 +676,7 @@ class BDSAsciiData(list):
                 elementlist = list(element)
 
                 #update the elements S position
-                if _General.IsSurvey(machine):
+                if IsSurvey(machine):
                     elementlist[sstartind] += lastSpos
                     elementlist[smidind] += lastSpos
                     elementlist[sendind] += lastSpos
@@ -686,7 +686,7 @@ class BDSAsciiData(list):
                 self.append(tuple(elementlist))
 
             #update the total S position.
-            if _General.IsSurvey(machine):
+            if IsSurvey(machine):
                 lastSpos += machine.GetColumn('SEnd')[-1]
             else:
                 lastSpos += machine.GetColumn('S')[-1]
@@ -2270,3 +2270,65 @@ def SDDSBuildParameterDicts(sddsColumnDict):
         result[en]['KEYWORD'] = et
 
     return result
+
+def GetFileName(ob):
+    if type(ob) == str:
+        return ob
+    elif type(ob) == RebdsimFile:
+        return ob.filename
+    elif type(ob) == BDSAsciiData:
+        return ob.filename
+    else:
+        return ""
+
+def CheckItsBDSAsciiData(bfile, requireOptics=False):
+    def CheckOptics(obj, requireOpticsL=False):
+        if hasattr(obj, 'Optics'):
+            return obj.Optics
+        elif hasattr(obj, 'optics'):
+            return obj.optics
+        else:
+            if requireOpticsL:
+                raise IOError("No optics found in pybdsim.Data.BDSAsciiData instance")
+            else:
+                return None
+
+    if type(bfile) == str:
+        data = Load(bfile)
+        data2 = CheckOptics(data, requireOptics)
+        if data2 is not None:
+            data = data2
+    elif type(bfile) == BDSAsciiData:
+        data = bfile
+    elif type(bfile) == RebdsimFile:
+        data = CheckOptics(bfile, requireOptics)
+    else:
+        raise IOError("Not pybdsim.Data.BDSAsciiData file type: " + str(bfile))
+    return data
+
+
+def CheckBdsimDataHasSurveyModel(bfile):
+    data = None
+    if isinstance(bfile, str):
+        data = Load(bfile)
+    elif type(bfile) == BDSAsciiData:
+        data = bfile
+    elif type(bfile) == RebdsimFile:
+        data = bfile
+    else:
+        data = bfile
+
+    return hasattr(data, "model")
+
+def IsSurvey(file):
+    """
+    Checks if input is a BDSIM generated survey
+    """
+    if isinstance(file,_np.str):
+        machine = Load(file)
+    elif isinstance(file, BDSAsciiData):
+        machine = file
+    else:
+        raise IOError("Unknown input type - not BDSIM data")
+
+    return machine.names.count('SStart') != 0

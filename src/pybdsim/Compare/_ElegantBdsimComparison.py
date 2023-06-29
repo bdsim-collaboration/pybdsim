@@ -41,7 +41,7 @@ def ElegantVsBDSIM(elegantTwiss, elegantSigma, elegantCentroid, bdsim, functions
 
     bdsData = _pybdsim.Data.Load(bdsim)
 
-    bdsinst = _pybdsim._General.CheckItsBDSAsciiData(bdsData, True)
+    bdsinst = _pybdsim.Data.CheckItsBDSAsciiData(bdsData, True)
     bdsopt  = _GetBDSIMOptics(bdsinst)
     survey  = bdsData.model if hasattr(bdsData, "model") else None
 

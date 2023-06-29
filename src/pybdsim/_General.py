@@ -4,19 +4,8 @@ General utilities for day to day housekeeping
 
 import glob as _glob
 import os as _os
-import pybdsim.Data as _Data
 import re as _re
 import numpy as _np
-
-def GetFileName(ob):
-    if type(ob) == str:
-        return ob
-    elif type(ob) == _Data.RebdsimFile:
-        return ob.filename
-    elif type(ob) == _Data.BDSAsciiData:
-        return ob.filename
-    else:
-        return ""
 
 def GenUniqueFilename(filename):
     i = 1
@@ -61,44 +50,6 @@ def IsFloat(stringtotest):
     except ValueError:
         return False
 
-def CheckItsBDSAsciiData(bfile, requireOptics=False):
-    def CheckOptics(obj, requireOpticsL=False):
-        if hasattr(obj,'Optics'):
-            return obj.Optics
-        elif hasattr(obj, 'optics'):
-            return obj.optics
-        else:
-            if requireOpticsL:
-                raise IOError("No optics found in pybdsim.Data.BDSAsciiData instance")
-            else:
-                return None
-    
-    if type(bfile) == str:
-        data = _Data.Load(bfile)
-        data2 = CheckOptics(data, requireOptics)
-        if data2 is not None:
-            data = data2
-    elif type(bfile) == _Data.BDSAsciiData:
-        data = bfile
-    elif type(bfile) == _Data.RebdsimFile:
-        data = CheckOptics(bfile, requireOptics)
-    else:
-        raise IOError("Not pybdsim.Data.BDSAsciiData file type: "+str(bfile))
-    return data
-
-def CheckBdsimDataHasSurveyModel(bfile):
-    data = None
-    if isinstance(bfile, str):
-        data = _Data.Load(bfile)
-    elif type(bfile) == _Data.BDSAsciiData:
-        data = bfile
-    elif type(bfile) == _Data.RebdsimFile:
-        data = bfile
-    else:
-        data = bfile
-
-    return hasattr(data,"model")
-
 def PrepareReducedName(elementname):
     """
     Only allow alphanumeric characters and '_'
@@ -115,19 +66,6 @@ def PrepareReducedName2(elementname):
 
 def GetLatestFileFromDir(dirpath='', extension='*'):
     return max(_glob.iglob(dirpath+extension), key=_os.path.getctime)
-
-def IsSurvey(file):
-    """
-    Checks if input is a BDSIM generated survey
-    """
-    if isinstance(file,_np.str):
-        machine = _Data.Load(file)
-    elif isinstance(file, _Data.BDSAsciiData):
-        machine = file
-    else:
-        raise IOError("Unknown input type - not BDSIM data")
-
-    return machine.names.count('SStart') != 0
 
 def IsROOTFile(path):
     """Check if input is a ROOT file."""
