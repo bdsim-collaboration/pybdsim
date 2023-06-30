@@ -144,7 +144,7 @@ def CheckLoopOrder(data):
     It checks if the first or last dimension, so x or y, x or z or x or t changes.
     In case of a 1D field map, the concept of loop order is not defined, so we give
     back the BDSIM standard loop order which is xyzt.
-    Loop order based on BDSFieldLoaderBDSIM.cc line 351 ff.
+    Loop order based on BDSFieldLoaderBDSIM.cc line 363 ff.
     """
     if data.ndim > 2:
         inputArray = _deepcopy(data)
@@ -393,7 +393,7 @@ def Load(filename, debug=False):
 
     normalLoopOrder = 'xyzt'
     # this is convention - in the case of xyzt, bdsim loops
-    # over z first, then y, then x, so it appears the first
+    # over x first, then y, then z, so it appears the first
     # column is changing.
 
     nDim = len(columns) - 3
