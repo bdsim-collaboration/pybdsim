@@ -33,7 +33,7 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
 
     _CheckFilesExist(tfs, bdsim, survey)
 
-    fname = _pybdsim._General.GetFileName(bdsim) # cache file name
+    fname = _pybdsim.Data.GetFileName(bdsim) # cache file name
     if fname == "":
         fname = "optics_report"
 
