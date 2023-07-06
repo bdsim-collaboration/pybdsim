@@ -35,7 +35,7 @@ def ElegantVsBDSIM(elegantTwiss, elegantSigma, elegantCentroid, bdsim, functions
 
     _CheckFileExistsList(elegantTwiss, elegantSigma, elegantCentroid, bdsim)
 
-    fname = _pybdsim._General.GetFileName(bdsim) # cache file name
+    fname = _pybdsim.Data.GetFileName(bdsim) # cache file name
     if fname == "":
         fname = "optics_report"
 

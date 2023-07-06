@@ -238,7 +238,7 @@ def Mad8VsBDSIM(twiss, bdsim, survey=None, functions=None, postfunctions=None, f
     if isinstance(bdsim, str) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
 
-    fname = _pybdsim._General.GetFileName(bdsim)  # cache file name
+    fname = _pybdsim.Data.GetFileName(bdsim)  # cache file name
     if fname == "":
         fname = "optics_report"
 
