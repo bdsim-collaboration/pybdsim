@@ -2,6 +2,11 @@
 Version History
 ===============
 
+V3.3.3 - 2023 / 07 / 17
+=======================
+
+* Fix for missing functions due to recent refactor in `Data.General`.
+
 V3.3.2 - 2023 / 06 / 29
 =======================
 
