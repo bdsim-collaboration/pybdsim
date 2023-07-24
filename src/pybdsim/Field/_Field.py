@@ -18,16 +18,17 @@ class Field(object):
         self.doublePrecision = doublePrecision
         self.nDimensions     = 0
         self.comments        = []
-    def __add__(field1, field2):
-        if field1.nDimensions == field2.nDimensions:
-            result = _deepcopy(field1)
-            result.data[..., result.nDimensions:] = field1.data[..., field1.nDimensions:] + field2.data[..., field2.nDimensions:]
+
+    def __add__(self, field):
+        if self.nDimensions == field.nDimensions:
+            result = _deepcopy(self)
+            result.data[..., result.nDimensions:] = self.data[..., self.nDimensions:] + field.data[..., field.nDimensions:]
             return result
         else:
             raise ValueError("The two field maps do not have the same dimension!")
         
-    def __mul__(field, scalingFactor):
-        result = _deepcopy(field)
+    def __mul__(self, scalingFactor):
+        result = _deepcopy(self)
         result.data[..., result.nDimensions:] *= scalingFactor
         return result
 
@@ -154,6 +155,50 @@ class Field(object):
         
         f.close()
 
+    def WriteMGNDataCard(self, fileName, name = 'magnet', symmetry = '0.0'):
+        if self.nDimensions != 2:
+            raise ValueError("This field map is not 2D - it's ",self.nDimensions,"D")
+        f = open(fileName, 'w')
+
+        numberOfDigits = 9
+
+        f.write('FREE\n')
+        f.write('MGNCREAT  , 200.0, , 0.0, 0.0, ' + symmetry + ', , ' + name + '\n')
+        f.write('MGNCREAT  , , , , ' + str(self.header['nx']) + ', ' + str(self.header['ny'])
+                + ', ,  &\n')
+        f.write('MGNCREAT  , ' +  str(self.header['xmin']) + ', ' + str(self.header['ymin'])
+                + ', , ' + str(self.header['xmax']) + ', ' + str(self.header['ymax']) + ',  , &&\n')
+        fieldPointCounter = 0 #Maximal 3 points per card
+        lineCounter = 0 #First card ends with name of mgncreat card, second one with & and then &&
+        line = 'MGNDATA   , '
+        for yi in range(self.header['ny']):
+            for xi in range(self.header['nx']):
+                line += str(round(self.data[xi][yi][2], numberOfDigits)) + ', ' + str(round(self.data[xi][yi][3], numberOfDigits)) + ', '
+                if fieldPointCounter == 2 and lineCounter == 0:
+                    line += ' ' + name + '\n'
+                    f.write(line)
+                    line = 'MGNDATA   , '
+                    lineCounter += 1
+                    fieldPointCounter = 0
+                elif fieldPointCounter == 2 and lineCounter == 1:
+                    line += '  &\n'
+                    f.write(line)
+                    line = 'MGNDATA   , '
+                    lineCounter += 1
+                    fieldPointCounter = 0
+                elif fieldPointCounter == 2 and lineCounter > 1:
+                    line += '  &&\n'
+                    f.write(line)
+                    line = 'MGNDATA   , '
+                    fieldPointCounter = 0
+                elif fieldPointCounter < 2:
+                    fieldPointCounter += 1
+        print(fieldPointCounter)
+        if fieldPointCounter != 0:
+            line += ', , ' * (3 - fieldPointCounter) + '  &&\nFIXED'
+            f.write(line)
+        else:
+            f.write('FIXED')
 
 class Field1D(Field):
     """
