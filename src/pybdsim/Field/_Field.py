@@ -26,17 +26,19 @@ class Field(object):
             return result
         else:
             raise ValueError("The two field maps do not have the same dimension!")
-        
+
+    def __iadd__(self, field):
+        self = self + field
+        return self
+
     def __mul__(self, scalingFactor):
         result = _deepcopy(self)
         result.data[..., result.nDimensions:] *= scalingFactor
         return result
 
-    def __iadd__(self, field):
-        self = self + field
-
     def __imul__(self, scalingFactor):
         self = self * scalingFactor
+        return self
 
     def ScaleField(self, scalingFactor):
         self *= scalingFactor
