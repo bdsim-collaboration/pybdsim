@@ -156,6 +156,23 @@ class Field(object):
         f.close()
 
     def WriteMGNDataCard(self, fileName, name = 'magnet', symmetry = '0.0'):
+        """
+        :param fileName: Name of file to write the fieldmap to.
+        :type fileName: str
+        :param name: Name of the magnetic field in the MGNCREAT card.
+        :type name: str
+        :param symmetry: Symmetry that gets applied to the fieldmap inside FLUKA.
+        :type symmetry: str
+
+        Write 2D field maps stored in Field2D to FLUKA format which can be loaded with MGN data cards.
+        Therefore, we create a magnet which is purely based on a fieldmap (200.0) without offsetting it, as
+        (0,0) in the fieldmap is, where the beam is (and it's only used for analytical fields).
+        The symmetry needs to be specified in accordance to Sx + Sy*10 + Sz*100, for example for a quadrupole
+        it's 12.0 and for a C-shaped bend it's 10.0. 0.0 means no symmetry.
+        In the final file, one can see three field points per MGNDATA card without specifying the location,
+        as this is given by the grid definition. In the file, the points need to go from low x and y
+        to high x and y, with looping first over y and then x.
+        """
         if self.nDimensions != 2:
             raise ValueError("This field map is not 2D - it's ",self.nDimensions,"D")
         f = open(fileName, 'w')
@@ -193,7 +210,7 @@ class Field(object):
                     fieldPointCounter = 0
                 elif fieldPointCounter < 2:
                     fieldPointCounter += 1
-        print(fieldPointCounter)
+
         if fieldPointCounter != 0:
             line += ', , ' * (3 - fieldPointCounter) + '  &&\nFIXED'
             f.write(line)
