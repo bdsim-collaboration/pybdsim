@@ -21,9 +21,8 @@ class Field(object):
 
     def __add__(self, field):
         if self.nDimensions == field.nDimensions:
-            result = _deepcopy(self)
-            result.data[..., result.nDimensions:] = self.data[..., self.nDimensions:] + field.data[..., field.nDimensions:]
-            return result
+            self.data[..., self.nDimensions:] = self.data[..., self.nDimensions:] + field.data[..., field.nDimensions:]
+            return self
         else:
             raise ValueError("The two field maps do not have the same dimension!")
 
@@ -32,9 +31,8 @@ class Field(object):
         return self
 
     def __mul__(self, scalingFactor):
-        result = _deepcopy(self)
-        result.data[..., result.nDimensions:] *= scalingFactor
-        return result
+        self.data[..., self.nDimensions:] *= scalingFactor
+        return self
 
     def __imul__(self, scalingFactor):
         self = self * scalingFactor
