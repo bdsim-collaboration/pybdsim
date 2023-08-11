@@ -723,9 +723,8 @@ class Dump(Element):
 
 
 class ExternalGeometry(Element):
-    def __init__(self, name, l, outerDiameter, geometryFile, **kwargs):
+    def __init__(self, name, l, geometryFile, **kwargs):
         Element.__init__(self, name, 'element', l=l,
-                         outerDiameter=outerDiameter,
                          geometryFile=geometryFile, **kwargs)
 
 
@@ -1592,8 +1591,8 @@ class Machine(object):
                             rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44,
                             **kwargs))
 
-    def AddElement(self, name='el', length=0.1, outerDiameter=1, geometryFile="geometry.gdml", **kwargs):
-        self.Append(Element(name, 'element',l=length,outerDiameter=outerDiameter,geometryFile=geometryFile, **kwargs))
+    def AddElement(self, name='el', length=0.1, geometryFile="geometry.gdml", **kwargs):
+        self.Append(Element(name, 'element',l=length,geometryFile=geometryFile, **kwargs))
 
     def AddMarker(self, name='mk'):
         self.Append(Element(name, 'marker'))
