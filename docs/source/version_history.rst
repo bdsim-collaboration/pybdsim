@@ -35,6 +35,7 @@ V3.3.1 - 2023 / 05 / 15
 
 * Reduce Python version requirement to >3.6 instead of 3.7.
 
+
 V3.3.0 - 2023 / 05 / 08
 =======================
 
@@ -42,6 +43,7 @@ V3.3.0 - 2023 / 05 / 08
   now no longer a formal dependency but all the conversion and comparison code still exists.
 * Fix setup.cfg having pymadx in the name although it makes no difference.
 * Add new :code:`pybdsim.Data.GetHistoryPDGTuple()` function to aid trajectory analysis.
+
 
 V3.2.0 - 2023 / 04 / 26
 =======================
@@ -83,6 +85,7 @@ V3.0.1 - 2023 / 03 / 22
 * Fix wrong exception being raised.
 * Always write a comment string at the start of a BDSIM field map file to specify
   the units of the file.
+
 
 V3.0.0 - 2023 / 03 / 19
 =======================
@@ -148,6 +151,7 @@ General
 * Better field loading in `pybdsim.Field.Load`. Returns the same Field object
   from pybdsim as you would write.
 
+
 v2.4.0 - 2021 / 06 / 16
 =======================
 
@@ -164,6 +168,7 @@ Bug Fixes
 * Python 3.8+ warnings fixed.
 * Add ROOT_INCLUDE_PATH to ROOT as newer versions don't do this automatically.
 * Fixed vmin for 2D histogram plot.
+
 
 v2.3.0 - 2020 / 12 / 15
 =======================
@@ -182,6 +187,7 @@ New Features
 ------------
 
 * Support for Python3.
+
 
 v2.1 - 2019 / 04 / 20
 =====================
@@ -208,6 +214,7 @@ Bug Fixes
 * Fix loading of Model tree from ROOT output given some recent collimation variables may have
   a different structure or type from the existing ones.
 * In `pybdsim.Plot.Histogram2D`, the y log scale argument was "ylocscale" and is fixed to "yLogScale".
+
 
 v2.0 - 2019 / 02 / 27
 =====================
@@ -262,6 +269,7 @@ Bug Fixes
 * Fix orientation of 2D histograms in plotting.
 * Fix header information labels when writing field maps with reversed order.
 
+
 v1.8 - 2018 / 06 / 23
 =====================
 
@@ -303,6 +311,7 @@ Bug Fixes
 
 * Fix machine diagram plotting from BDSIM survey.
 * Fix machine diagram searching with right-click in plots.
+
 
 v1.5 - 2018 / 05 / 17
 =====================
@@ -359,6 +368,7 @@ Bug Fixes
 * Fixed axis labels in field map plotting utilities.
 * MADX BDSIM testing suite now works with subrelativistic particles.
 * Many small fixes to conversion.
+
 
 v1.3 - 2017 / 12 / 05
 =====================
