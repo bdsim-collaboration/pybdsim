@@ -11,7 +11,7 @@ The procedure is as follows because the version number is read from the git tag.
 #) Make sure you're in a new venv or uninstall pybdsim from your current venv / pip.
 #) Locally tag the new version number on the last commit but don't push the tag.
 #) Locally pip install pybdsim so if you were to import pybdsim you'd find this latest tag.
-#) Generate html manual and stash for later upload (:code:`cd docs; make html; tar -czf html.tar.gz html`).
+#) Generate html manual and stash for later upload (:code:`cd docs; make html; cd build; tar -czf html.tar.gz html`).
 #) Generate pdf manual (:code:`cd docs; make latexpdf; cp build/latex/pybdsim.pdf .`) and commit.
 #) Delete old (local) tag.
 #) Add the same version number tag to the latest commit.
