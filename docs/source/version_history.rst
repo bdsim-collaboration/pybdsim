@@ -8,11 +8,14 @@ V3.4.0 - 2023 / 08 / 12
 * Fix for spectra name parsing when loading a rebdsim output file.
 * New function :code:`pybdsim.Data.CombinePickledHistogram1DSets` to combine
   pickled Histogram1DSet instances from a custom analysis.
+* Fix Histogram1DSet print out when no name was specified.
+
 
 V3.3.3 - 2023 / 07 / 17
 =======================
 
 * Fix for missing functions due to recent refactor in `Data.General`.
+
 
 V3.3.2 - 2023 / 06 / 29
 =======================

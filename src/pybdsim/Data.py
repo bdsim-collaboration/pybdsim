@@ -1466,7 +1466,8 @@ class Histogram1DSet:
 
     def __repr__(self):
         r = self.Result()
-        s = self.name + "\t" + r.__repr__()
+        n = self.name if self.name else 'Histogram1DSet'
+        s = n + "\t" + r.__repr__()
         return s
 
     def SortByBin(self):
