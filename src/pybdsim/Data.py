@@ -375,7 +375,7 @@ class Spectra:
 
     def _generateSortedList(self):
         integrals = {(pdgid,flag):h.integral for (pdgid,flag),h in self.histogramspy.items()}
-        integralsSorted = sorted(integrals.items(), key=lambda item: item[1])
+        #integralsSorted = sorted(integrals.items(), key=lambda item: item[1])
         self.pdgidsSorted = [(pdgid,flag) for (pdgid,flag),_ in sorted(integrals.items(), key=lambda item: item[1], reverse=True)]
 
 def ParseSpectraName(hname):
