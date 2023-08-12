@@ -9,6 +9,8 @@ V3.4.0 - 2023 / 08 / 12
 * New function :code:`pybdsim.Data.CombinePickledHistogram1DSets` to combine
   pickled Histogram1DSet instances from a custom analysis.
 * Fix Histogram1DSet print out when no name was specified.
+* Remove need for `outerDiameter` for the ExternalGeometry class and also
+  the AddElement function when building models.
 
 
 V3.3.3 - 2023 / 07 / 17
