@@ -2,6 +2,11 @@
 Version History
 ===============
 
+V3.3.4 - 2023 / 08 / 12
+=======================
+
+* Fix for spectra name parsing when loading a rebdsim output file.
+
 V3.3.3 - 2023 / 07 / 17
 =======================
 

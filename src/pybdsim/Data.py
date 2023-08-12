@@ -383,13 +383,27 @@ def ParseSpectraName(hname):
     # Top10_Spectra_SamplerName_PDGID
     hn = _re.sub("Top\d+_", "", hname)
     #hn = hname.replace('Top_','')
-    hn = hn.replace('Spectra_','')
-    vals = hn.split('_')
-    name,nth,pdgid = vals[:3]
-    flag = vals[3] if len(vals) == 4 else 'n'
-    if len(flag) > 1:
-        flag = flag.lower()[0]
-    pdgid = int(pdgid)
+    #hn = hn.replace('Spectra_','')
+    #rem = _re.compile(R"Spectra([\w\.\-]+)_(\d+)_([\-+]*\d+)$")
+    # (TopN_)Spectra_(NAME)_Nth_+-PDGID(_Primary | _Secondary)  is the pattern of possible names
+    rem = _re.compile(R"Spectra_([\w\.\-]+)_(\d+)_([\-+]*\d+)((?:_Primary|_Secondary)*)$")
+    match = _re.match(rem, hn)
+    if not match:
+        raise ValueError("Could not parse the spectra name", hname)
+
+    # flag is either 'primary', 'secondary', or 'n' for none
+    try:
+        name = match[1]
+        nth = match[2]
+        pdgid = int(match[3])
+        flag = match[4]
+        if len(flag) == 0:
+            flag = 'n'
+        else:
+            flag = flag[1:].lower()
+    except:
+        raise ValueError("Could not parse the spectra name", hname)
+
     return name+"_"+nth,pdgid,flag
 
 class RebdsimFile:
@@ -565,8 +579,9 @@ class RebdsimFile:
                 try:
                     sname,pdgid,flag = ParseSpectraName(hname)
                     self.spectra[sname].append(pdgid, hist, path, sname, flag)
-                except ValueError:
-                    pass # could be old data with the word "Spectra" in the name
+                except ValueError as e:
+                    print(e)
+                    continue # could be old data with the word "Spectra" in the name
 
 def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
     """
@@ -1224,7 +1239,6 @@ class TH3(TH2):
 class BDSBH4D():
     """
     Wrapper for a BDSBH instance. Converts to numpy data.
-
     """
     def __init__(self, hist, extractData=True):
         # these members are made to be the same as our "ROOTHist" class
