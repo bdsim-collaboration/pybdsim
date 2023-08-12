@@ -2,10 +2,12 @@
 Version History
 ===============
 
-V3.3.4 - 2023 / 08 / 12
+V3.4.0 - 2023 / 08 / 12
 =======================
 
 * Fix for spectra name parsing when loading a rebdsim output file.
+* New function :code:`pybdsim.Data.CombinePickledHistogram1DSets` to combine
+  pickled Histogram1DSet instances from a custom analysis.
 
 V3.3.3 - 2023 / 07 / 17
 =======================

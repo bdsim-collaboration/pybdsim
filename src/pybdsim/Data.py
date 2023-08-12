@@ -1476,6 +1476,56 @@ class Histogram1DSet:
         self.sumWeightsSq = _defaultdict(float, **newSumWeightsSq)
 
 
+def _MergePickledHistogram1DSets(*files):
+    """
+    Function merge a list of files (by string path) assuming pickled Histogram1DSet objects.
+
+    Made like this as has to be at the top level for parallelising. Also, starmap will only
+    unpack all the arguments so we have to accept a full list here.
+    """
+    print(files)
+    result = Histogram1DSet()
+    for f in files:
+        print(f)
+        try:
+            s = LoadPickledObject(f)
+            result += s
+        except:
+            print("Unable to load '",f,"' ...continuing")
+            continue
+    return result
+
+def CombinePickledHistogram1DSets(globPattern="*.dat", nCPUs=1):
+    """
+    :param globPattern: pattern of files to gather together to merge.
+    :type globPattern: str
+    :param nCPUS: number of cpus / processes to use for parallelising this - to be finished.
+    :type nCPUS: int
+
+    Gather a set of files. Assume they each contain 1x pickled (binary)
+    Histogram1DSet instance and accumulate them all. Returns the total object.
+    """
+    files = _glob.glob(globPattern)
+    if len(files) == 0:
+        print("No files found")
+        return
+
+    if nCPUs > 1 and len(files) > nCPUs:
+        import multiprocessing as _mp
+        chunksize = int(_np.floor(len(files) / nCPUs))
+        def chunks(lst, n):
+            for i in range(0, len(lst), n):
+                yield lst[i:i + n]
+        filesChunks = chunks(files, chunksize)
+        p = _mp.Pool(processes=nCPUs)
+        result = Histogram1DSet()
+        for partialResult in p.starmap(_MergePickledHistogram1DSets, filesChunks):
+            result += partialResult
+        return result
+    else:
+        return _MergePickledHistogram1DSets(*files)
+
+
 def GetHistoryPDGTuple(trajectories, startingTrajectoryStorageIndex, reduceDuplicates=False):
     """
     Return a tuple of PDG IDs for the history of a particle given by trajectories in an event.
@@ -2230,13 +2280,17 @@ def LoadPickledObject(filename):
     Unpickle an object. If the name contains .pbz2 the bz2 library will be
     used as well to load the compressed pickled object.
     """
-    if "pbz2" in filename:
-        import bz2
-        with bz2.BZ2File(filename, "rb") as f:
-            return _pickle.load(f)
-    else:
-        with open(filename, "rb") as f:
-            return _pickle.load(f)
+    try:
+        if "pbz2" in filename:
+            import bz2
+            with bz2.BZ2File(filename, "rb") as f:
+                return _pickle.load(f)
+        else:
+            with open(filename, "rb") as f:
+                return _pickle.load(f)
+    except EOFError as e:
+        print(e)
+        return None
         
 
 def LoadSDDSColumnsToDict(filename):
