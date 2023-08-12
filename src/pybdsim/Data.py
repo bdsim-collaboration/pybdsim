@@ -1923,6 +1923,7 @@ class EventSummaryData(EventInfoData):
     # this simply inherits EventInfoData as the branch is the same,
     # just renamed to Summary from Info.
     def __init__(self, data):
+        super(EventSummaryData, self).__init__(data)
         event     = data.GetEvent()
         eventTree = data.GetEventTree()
         info      = event.Summary
