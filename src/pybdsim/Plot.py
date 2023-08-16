@@ -129,11 +129,10 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sO
     axmachine.margins(x=0.02)
 
     DrawMachineLattice(axmachine, sf, sOffset=sOffset)
-
     #put callbacks for linked scrolling
     def MachineXlim(ax):
         axmachine.set_autoscale_on(False)
-        for ax in axoptics : 
+        for ax in axoptics:
             ax.set_xlim(axmachine.get_xlim())
 
     def Click(a) :
@@ -387,7 +386,6 @@ def _MakePlotter(plot_info_tuples, x_label, y_label, title):
             AddMachineLatticeFromSurveyToFigure(plot, survey, tightLayout)
         else:
             _plt.tight_layout()
-
         _plt.show(block=False)
 
         if outputfilename != None:
