@@ -2,6 +2,12 @@
 Version History
 ===============
 
+V3.X.X - 2023 / XX / XX
+=======================
+
+* Fix x axis range in optics plot when the initial S of a beamline is not 0.
+
+
 V3.4.0 - 2023 / 08 / 12
 =======================
 
