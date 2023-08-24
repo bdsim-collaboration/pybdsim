@@ -6,6 +6,10 @@ V3.X.X - 2023 / XX / XX
 =======================
 
 * Fix x axis range in optics plot when the initial S of a beamline is not 0.
+* Include chunker.py and chunkermp.py utilities here. They allow you to apply
+  bdsimCombine using one or multiple CPUs to reduce a big set of files by a
+  given factor. For example, combine skimmed files, 10 to 1. See
+  :code:`pybdsim.Run.Reduce` and `ReduceParallel`.
 
 
 V3.4.0 - 2023 / 08 / 12

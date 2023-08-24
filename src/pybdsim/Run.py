@@ -2,11 +2,14 @@
 Utilities for running BDSIM and other tools from Python.
 
 """
+import glob as _glob
+import multiprocessing as _mp
+import numpy as _np
 import os as _os
 import subprocess as _subprocess
 import uuid as _uuid
-import pybdsim.Data as _Data
 
+from . import Data as _Data
 from . import _General
 
 
@@ -272,3 +275,67 @@ def GetOpticsFromGMAD(gmad, keep_optics=False):
     else: # do it in /tmp/
         RebdsimOptics(bdsim_output_path, "{}/{}-optics.root".format(tmpdir, gmadname))
         return _Data.Load("{}/{}-optics.root".format(tmpdir, gmadname))
+
+
+def Chunks(l, n):
+    """ Yield successive n-sized chunks from list l."""
+    return [l[i:i+n] for i in range(0,len(l),n)]
+
+
+def Reduce(globcommand, nPerChunk, outputprefix):
+    """
+    Apply bdsimCombine to the globcommand set of files combining
+    nPerchunks into an output file.
+
+    ReduceRun("datadir/*.root", 10, "outputdir/")
+    """
+
+    files = _glob.glob(globcommand)
+    print(len(files), "files to be combined in chunks of ", nPerChunk)
+
+    # find number of integers required for output file name
+    nchars = int(_np.ceil(_np.log10(len(files))))
+
+    # append underscore if not a dir
+    prefix = outputprefix if outputprefix.endswith('/') else outputprefix+"_"
+    
+    chunks = Chunks(files, nPerChunk)
+    for i,chunk in enumerate(chunks):
+        print('Chunk ',i)
+        chunkName = prefix + str(i).zfill(nchars)+".root"
+        command = "bdsimCombine "+chunkName + " " + " ".join(chunk)
+        print(command)
+        _os.system(command)
+
+
+def _Combine(output, files):
+    """Private function for parallelising reducing run."""
+    command = "bdsimCombine " + output + " " + " ".join(files)
+    print("Combinding ",files[0],"to",files[-1])
+    _os.system(command)
+
+    
+def ReduceParallel(globcommand, nPerChunk, outputprefix, nCPUs=4):
+    """
+    In parallel, apply bdsimCombine to the globcommand set of files combining
+    nPerChunk into an output file.
+
+    chunkermp.ReduceRun("testfiles/*.root", 14, "testfiles-merge/", nCPUs=7)
+    """
+    files = _glob.glob(globcommand)
+    print(len(files), "files to be combined in chunks of ", nPerChunk)
+
+    # find number of integers required for output file name
+    nchars = int(_np.ceil(_np.log10(len(files))))
+
+    # append underscore if not a dir
+    prefix = outputprefix if outputprefix.endswith('/') else outputprefix+"_"
+    
+    chunks = Chunks(files, nPerChunk)
+    if len(chunks[-1]) == 1:
+        chunks[-2].extend(chunks[-1])
+        chunks.pop()
+    chunkname = [prefix + str(i).zfill(nchars)+".root" for i in range(len(chunks))]
+
+    p = _mp.Pool(processes=nCPUs)
+    p.starmap(_Combine, zip(chunkname, chunks))
