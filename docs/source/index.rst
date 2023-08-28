@@ -14,11 +14,14 @@ of BDSIM models.
    convert
    compare	     
    data
+   data_uproot
+   plotting
    fieldmaps
    classes
    support
    version_history
    moduledocs
+   developer
 	     
 
 

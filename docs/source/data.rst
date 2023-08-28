@@ -107,6 +107,7 @@ file `combined-ana.root` in `bdsim/examples/features/data`.
 	    :width: 100%
 	    :align: center
 
+
 Histogram Plotting
 ------------------
 
@@ -122,8 +123,9 @@ histograms.
 	    :width: 100%
 	    :align: center
 
-Histogram Operations
---------------------
+
+ROOT Histogram Operations
+-------------------------
 
 Loaded histograms from a rebdsim file are both wrapped in our pybdsim.Data.THX classes
 for nice numpy arrays for easy plotting, but also we retain the original ROOT objects.
@@ -174,6 +176,8 @@ Some useful functions assuming a histogram :code:`h` of type TH1D or TH2D or TH3
 
 * :code:`hnew = h.Rebin2D(Nx, Ny, h.GetName()+"_rebin"+str(Nx)+str(Ny))` Join Nx bins in x and Ny bins in y into 1.
 * :code:`h.Scale(number)` Change :code:`h` to multiply every bin by 'number'.
+* :code:`h.ProjectionX(h.GetName()+"_int_x", 0, -1, "e")` Integrate along the x dimension giving a 1D histogram in y.
+* :code:`h.ProjectionY(h.GetName()+"_int_y", 0, -1, "e")` Integrate along the y dimension giving a 1D histogram in y.
   
 
 **TH3**
@@ -206,6 +210,16 @@ Some useful functions assuming a histogram :code:`h` of type TH1D or TH2D or TH3
 
 * "Profile" histogram is an average in 1 dimension, not a 'profile' as per the real meaning of the word.
 * "Projection" means integral.
+
+Python Histogram Operations
+---------------------------
+
+Some of the above operations are provided in functions of `pybdsim.Data.TH2` and `pybdsim.Data.TH3` -
+the 'Python' versions in pybdsim.
+
+See :ref:`pybdsim-data-module` and look for each of the classes there, where their functions are listed.
+
+Some specifically for 3D histograms (i.e. often scoring meshes) are described below.
 
 .. _data-3d-histograms:
   
@@ -307,3 +321,4 @@ variables most interesting for tracking ('x','xp','y','yp','z','zp','energy','t'
   >>> psd1 = pybdsim.Data.PhaseSpaceData(d)
   >>> psd2 = pybdsim.Data.PhaseSpaceData(d, fq15x)
   >>> psd3 = pybdsim.Data.PhaseSpaceData(d, 3)
+

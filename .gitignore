@@ -1,3 +1,5 @@
+src/pybdsim/_version.py
+
 *.pyc
 *~
 *.idea/

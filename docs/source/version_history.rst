@@ -2,17 +2,120 @@
 Version History
 ===============
 
-V2.5.0 - 2022 / 02 / XX
+V3.5.0 - 2023 / 08 / 25
 =======================
 
+* Fix x axis range in optics plot when the initial S of a beamline is not 0.
+* Include chunker.py and chunkermp.py utilities here. They allow you to apply
+  bdsimCombine using one or multiple CPUs to reduce a big set of files by a
+  given factor. For example, combine skimmed files, 10 to 1. See
+  :code:`pybdsim.Run.Reduce` and `ReduceParallel`.
+
+
+V3.4.0 - 2023 / 08 / 12
+=======================
+
+* Fix for spectra name parsing when loading a rebdsim output file.
+* New function :code:`pybdsim.Data.CombinePickledHistogram1DSets` to combine
+  pickled Histogram1DSet instances from a custom analysis.
+* Fix Histogram1DSet print out when no name was specified.
+* Remove need for `outerDiameter` for the ExternalGeometry class and also
+  the AddElement function when building models.
+
+
+V3.3.3 - 2023 / 07 / 17
+=======================
+
+* Fix for missing functions due to recent refactor in `Data.General`.
+
+
+V3.3.2 - 2023 / 06 / 29
+=======================
+
+* Fix loading of new header variables with backwards compatibility.
+* Fix extra new lines and white space being written out in comments at the top
+  of field maps.
+* New function to write a 3D scoring mesh out as ASCII for transfer to
+  other programs.
+* Explicit exception when the ROOT libraries can't be loaded for reading
+  BDSIM data.
+* Fix circular import from Data.py and _General.py.
+
+
+V3.3.1 - 2023 / 05 / 15
+=======================
+
+* Reduce Python version requirement to >3.6 instead of 3.7.
+
+
+V3.3.0 - 2023 / 05 / 08
+=======================
+
+* Fix installation where there was a missing dependency of pandas with pymad8. pymad8 is
+  now no longer a formal dependency but all the conversion and comparison code still exists.
+* Fix setup.cfg having pymadx in the name although it makes no difference.
+* Add new :code:`pybdsim.Data.GetHistoryPDGTuple()` function to aid trajectory analysis.
+
+
+V3.2.0 - 2023 / 04 / 26
+=======================
+
+* Remove the function :code:`pybdsim.Plot.AddMachineLatticeToFigure()`. This was just a forward to
+  :code:`pymadx.Plot.AddMachineLatticeToFigure()` and this should be used explicitly for
+  machine diagram plotting for TFS files. Otherwise, :code:`pybdsim.Plot.AddMachineLatticeFromSurveyToFigure`
+  should be used.
+* Better documentation about plotting.
+* Increase the visibility of light grey elements in the machine diagram from alpha 0.1 to 0.4.
+  
+
+V3.1.1 - 2023 / 04 / 23
+=======================
+
+* Fixed spectra loading and plotting for when the 'p' and 's' prefixes are used
+  in the rebdsim Spectra command to denote primary and secondary particles.
+* Fixed error with default log scale in `Plot.Histogram2D` when no `vmin` was specified.
+* Fix :code:`pybdsim._version_tuple` which should be :code:`pybdsim.__version_tuple__`.
+* Fix import without awkward array which is only required for the [uproot] feature of pybdsim.
+* :code:`pybdsim.Plot.Spectra()` now makes more than one plot if more than 8 particles are specified.
+* Recognised PDG ID 0 as "total" from BDSIM.
+
+
+V3.1.0 - 2023 / 04 / 02
+=======================
+
+* Add the writing and reading of comment lines in field maps.
+* Reduce print out when loading a field map.
+* Clean imports in cpymad interface as well as in Convert functions.
+
+
+V3.0.1 - 2023 / 03 / 22
+=======================
+
+* Fix import for pybdsim when ROOT is present but librebdsim etc. are not available
+  through environmental variables, or findable. Would cause induce a classic ROOT
+  segfault when importing pybdsim.
+* Fix wrong exception being raised.
+* Always write a comment string at the start of a BDSIM field map file to specify
+  the units of the file.
+
+
+V3.0.0 - 2023 / 03 / 19
+=======================
+
+* Restructure package into a declarative Python package where all source files are now in
+  `src/pybdsim/`.
+* The package now has a feature called `uproot` for the optional dependencies of uproot, pandas,
+  and pint packages.
 * Field classes no longer have :code:`flip=True` as the default - it is now :code:`False`.
   Please check any field maps created by scripts using these classes.
 
 New Features
 ------------
 
+* Add a module to load BDSIM output file, included rebdsim files with uproot.
 * Create a nice Python copy of the header information from any (re)bdsim file when
   loading with pybdsim using only Python types.
+* New integration for 2D histograms along each axis to 1D histograms.
 * New slices for 3D histograms as well as integrating along a dimension ('projection').
   See :ref:`data-3d-histograms`.
 * New ratio plot for 2x 1D histograms. See `pybdsim.Plot.Histogram1DRatio`.
@@ -20,7 +123,7 @@ New Features
   loaded and handled similarly to 1,2,3D histograms. They are loaded automatically when
   loading a rebdsim file.
 * pybdsim.Data.TH1,2,3 now have :code:`xrange`, :code:`yrange`, and :code:`zrange` members
-  where approriate with a conveninent tuple of the range in each dimension. They also
+  where appropriate with a convenient tuple of the range in each dimension. They also
   have the member :code:`integral` and :code:`integralError` taken from their ROOT objects.
 * Field plotting functions now tolerate Field class objects as well as filenames to make
   it easier to check field objects as you're making them.
@@ -47,6 +150,7 @@ Bug Fixes
 * Fix check in Run of if it's a ROOT file or not. Simplify it to use file extension.
 * Tolerate no pytransport installation.
 * Fix loading of aperture data from a BDSIM output file.
+* Fix loading of model data.
 * Fix aperture plots from a BDSIM output file.
 
 General
@@ -58,6 +162,7 @@ General
 * Better automatic ranges for Histogram1DMultiple plots by default.
 * Better field loading in `pybdsim.Field.Load`. Returns the same Field object
   from pybdsim as you would write.
+
 
 v2.4.0 - 2021 / 06 / 16
 =======================
@@ -76,13 +181,14 @@ Bug Fixes
 * Add ROOT_INCLUDE_PATH to ROOT as newer versions don't do this automatically.
 * Fixed vmin for 2D histogram plot.
 
+
 v2.3.0 - 2020 / 12 / 15
 =======================
 
 New Features
 ------------
 
-* Convenience functions for pickling and unpickling data in the Data module with optional compression.
+* Convenience functions for pickling and un-pickling data in the Data module with optional compression.
 * Generic loss map plot.
 
 
@@ -93,6 +199,7 @@ New Features
 ------------
 
 * Support for Python3.
+
 
 v2.1 - 2019 / 04 / 20
 =====================
@@ -111,7 +218,7 @@ New Featuers
 General
 -------
 
-* Return arguments of `pybdsim.Convert.MadxTfs2Gmad` is now just 2 items - machine and ommitted items. Previously 3.
+* Return arguments of `pybdsim.Convert.MadxTfs2Gmad` is now just 2 items - machine and omitted items. Previously 3.
 
 Bug Fixes
 ---------
@@ -119,6 +226,7 @@ Bug Fixes
 * Fix loading of Model tree from ROOT output given some recent collimation variables may have
   a different structure or type from the existing ones.
 * In `pybdsim.Plot.Histogram2D`, the y log scale argument was "ylocscale" and is fixed to "yLogScale".
+
 
 v2.0 - 2019 / 02 / 27
 =====================
@@ -130,7 +238,7 @@ New Features
   BDSIM output format.
 * Support for thin R matrix, parallel transporter and thick R matrix in builder.
 * Generate transfer matrix from tracking data from BDSIM for a single element.
-* Control over legend location in stanard energy deposition and loss plots.
+* Control over legend location in standard energy deposition and loss plots.
 * Utility function to write sampler data from BDSIM output to a user input file.
 * Support for energy variation in the beam line in MAD8 conversion.
 
@@ -173,6 +281,7 @@ Bug Fixes
 * Fix orientation of 2D histograms in plotting.
 * Fix header information labels when writing field maps with reversed order.
 
+
 v1.8 - 2018 / 06 / 23
 =====================
 
@@ -214,6 +323,7 @@ Bug Fixes
 
 * Fix machine diagram plotting from BDSIM survey.
 * Fix machine diagram searching with right-click in plots.
+
 
 v1.5 - 2018 / 05 / 17
 =====================
@@ -271,6 +381,7 @@ Bug Fixes
 * MADX BDSIM testing suite now works with subrelativistic particles.
 * Many small fixes to conversion.
 
+
 v1.3 - 2017 / 12 / 05
 =====================
 
@@ -278,6 +389,6 @@ New Features
 ------------
 
 * GPL3 licence introduced.
-* Compatability with PIP install system.
+* Compatibility with PIP install system.
 * Manual.
 * Testing suite.

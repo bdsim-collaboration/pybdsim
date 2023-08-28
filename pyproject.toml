@@ -1,0 +1,65 @@
+[project]
+name = "pybdsim"
+requires-python = ">=3.6"
+dynamic = ["version"]
+readme = "README.md"
+description = "Python utilities for the Monte Carlo Particle accelerator code BDSIM."
+license = {file = "LICENCE.txt"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Software Development"
+    ]
+authors = [
+  {name = "JAI@RHUL", email = "laurie.nevay@cern.ch"}
+]
+maintainers = [
+  {name = "Laurie Nevay", email = "laurie.nevay@cern.ch"}
+]
+dependencies = [
+  "matplotlib>=3.0",
+  "numpy>=1.14",
+  "importlib-metadata",
+  "scipy",
+  "fortranformat",
+  "pymadx",
+  "pytransport"
+]
+
+[project.optional-dependencies]
+uproot = ["awkward", "uproot", "pandas", "pint"]
+boost_histogram = ["boost-histogram"]
+cpymad = ["cpymad", "mergedeep"]
+pysad = ["pysad"]
+pymad8 = ["pymad8"]
+all = ["awkward", "uproot", "pandas", "pint", "boost-histogram", "cpymad", "mergedeep", "pysad", "pymad8"]
+dev = ["pytest", "sphinx", "sphinx-rtd-theme"]
+
+[project.urls]
+homepage = "http://www.pp.rhul.ac.uk/bdsim/pybdsim"
+documentation = "http://www.pp.rhul.ac.uk/bdsim/pybdsim"
+repository = "https://bitbucket.org/jairhul/pybdsim"
+
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/pybdsim/_version.py"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--strict-markers"
+markers = ["sanity", "regression"]
+testpaths = [
+    "tests",
+]
