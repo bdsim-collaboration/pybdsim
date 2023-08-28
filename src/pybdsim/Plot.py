@@ -1040,10 +1040,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
 
     for parameter in ('x', 'y', 'xp', 'yp', 'T', energy):
         # get the parameter label
-        if parameter in list(labels.keys()):
-            l[parameter] = labels[parameter]
-        else:
-            l[parameter] = defaultLabels[parameter]
+        l[parameter] = labels[parameter] if parameter in labels else defaultLabels[parameter]
 
         if parameter == 'kinetic':
             if data['kineticEnergy'].size != 0:  # check if KE stored in output to begin with
