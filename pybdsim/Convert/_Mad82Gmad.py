@@ -467,10 +467,11 @@ def _Mad82GmadElementFactory(item, allelementdict, verbose,
 		phase = lag * 2 * _np.pi
 
 		if freq != 0:
-			kws['freq'] = freq
+			kws['frequency'] = freq
+			kws['frequency'] = 0
 		if phase != 0:
 			kws['phase'] = phase
-		return _Builder.RFCavity(rname, l, gradient=gradient, **kws)
+		return _Builder.RFCavity(rname, l, gradient=(gradient,"MV/m"), **kws)
 	#######################################################################
 	elif Type in {'ECOL','RCOL'}:
 		if name in collimatordict:
