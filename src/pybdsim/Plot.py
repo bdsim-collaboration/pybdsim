@@ -1066,7 +1066,11 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     # Use nominal T with beam E0 as low no. of particles can cause statistical fluctuation
     if offsetTime:
         S = max(data['S'])  # should all be the same for a sampler, take max to be safe
+        # TDOO - beam may have only beamEnergy or beamMomentum or beamKinetic energy set
+        # and the others may be 0. Here, this could lead to zero division and a nan.
         t = S / (_np.sqrt(1.0 - 1.0/((beam.beamEnergy/primarymass)**2)) * _con.c)
+        if _np.isnan(t):
+            t = 0
         da['T'] -= (t * 1e9)
 
     # create correlation and coords figures and empty subplots
