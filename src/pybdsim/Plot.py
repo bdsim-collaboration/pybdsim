@@ -972,11 +972,11 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     Default = True.
     """
 
-    defaultLabels = {'x': 'X (mm)',
-                     'y': 'Y (mm)',
-                     'xp': r'X$^{\prime}$  $(\times 10^{-3})$',
-                     'yp': r'Y$^{\prime}$  $(\times 10^{-3})$',
-                     'T': 'T (ns)',
+    defaultLabels = {'x': 'x (mm)',
+                     'y': 'y (mm)',
+                     'xp': r'x$^{\prime}$  $(\times 10^{-3})$',
+                     'yp': r'y$^{\prime}$  $(\times 10^{-3})$',
+                     'T': 't (ns)',
                      'energy': 'Energy (GeV)',
                      'kinetic': 'Kinetic Energy (GeV)'
                      }
