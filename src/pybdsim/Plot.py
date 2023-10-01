@@ -1219,10 +1219,13 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     if outputfilename is not None:
         if '.' in outputfilename:
             outputfilename = outputfilename.split('.')[0]
-        fcoordTrans.savefig(outputfilename + '_coords' + extension)
-        fcorrTrans.savefig(outputfilename + '_correlations' + extension)
-        fcoordLong.savefig(outputfilename + '_long_coords' + extension)
-        fcorrLong.savefig(outputfilename + '_long_correlations' + extension)
+        kwargs = {}
+        if 'png' in extension:
+            kwargs['dpi'] = 500
+        fcoordTrans.savefig(outputfilename + '_coords' + extension, **kwargs)
+        fcorrTrans.savefig(outputfilename + '_correlations' + extension, **kwargs)
+        fcoordLong.savefig(outputfilename + '_long_coords' + extension, **kwargs)
+        fcorrLong.savefig(outputfilename + '_long_correlations' + extension, **kwargs)
 
 def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
     """
