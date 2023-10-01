@@ -5,7 +5,7 @@ Version History
 V3.6.0 - 2023 / XX / XX
 =======================
 
-
+* Fix 1D histogram y range in plots if a bin has a 100% error on it.
 * Tight layout for 2D histogram plots.
 * Automatically upgrade the default matplotlib png resolution to 500 dpi if
   saving a figure as a png for 2D histogram plots.

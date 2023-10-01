@@ -502,6 +502,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
     histEmpty = len(h.contents[h.contents!=0]) == 0
+    
     if not histEmpty:
         ht = _Data.PadHistogram1D(h)
     else:
@@ -532,6 +533,11 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     except:
         pass
     if log and not histEmpty:
+        # round down to the nearest power of 10
+        # not contents-errors may have a bin with 100% error, so we get ~0 or
+        # with numerical precision something very small like 1e-22. Therefore,
+        # just round down to next power of 10 on the contents.
+        ymin = sf * 10 ** (_np.floor(_np.log10(_np.min(h.contents[h.contents > 0]))))
         _plt.ylim(abs(ymin)*0.9,abs(ymax)*1.3)
         if _matplotlib.__version__ >= '3.3':
             _plt.yscale('log', nonpositive='clip')
