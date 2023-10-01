@@ -778,6 +778,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         pass
     else:
         _plt.title(title)
+    _plt.tight_layout()
     return f
 
 def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None, **imshowKwargs):
@@ -1209,7 +1210,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     fcorrLong.tight_layout()
     fcorrLong.subplots_adjust(top=0.92)
 
-    # add colorbar
+    # add colourbar
     if includeColorbar:
         fcorrTrans.subplots_adjust(right=0.885)
         cbar_ax = fcorrTrans.add_axes([0.92, 0.15, 0.03, 0.7])

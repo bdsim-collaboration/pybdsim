@@ -2,6 +2,14 @@
 Version History
 ===============
 
+V3.6.0 - 2023 / XX / XX
+=======================
+
+
+* Tight layout for 2D histogram plots.
+* Automatically upgrade the default matplotlib png resolution to 500 dpi if
+  saving a figure as a png for 2D histogram plots.
+
 V3.5.0 - 2023 / 08 / 25
 =======================
 
