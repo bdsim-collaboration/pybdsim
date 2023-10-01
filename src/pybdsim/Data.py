@@ -2239,6 +2239,17 @@ class BeamData:
         for name in interface:
             setattr(self, name, getattr(rootobj, name))
 
+    def GetBeamEnergy(self):
+        beamEnergy = 0
+        if hasattr(self, "beamEnergy"):
+            beamEnergy = getattr(self, "beamEnergy")
+        beamKineticEnergy = 0
+        if hasattr(self, "beamKineticEnergy"):
+            beamKineticEnergy = getattr(self, "beamKineticEnergy")
+        beamMomemtum = 0
+        if hasattr(self, "beamMomemtum"):
+            beamMomemtum = getattr(self, "beamMomemtum")
+
 
 def _filterROOTObject(rootobj):
     """
