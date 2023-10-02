@@ -502,6 +502,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
     histEmpty = len(h.contents[h.contents!=0]) == 0
+    
     if not histEmpty:
         ht = _Data.PadHistogram1D(h)
     else:
@@ -532,6 +533,11 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     except:
         pass
     if log and not histEmpty:
+        # round down to the nearest power of 10
+        # not contents-errors may have a bin with 100% error, so we get ~0 or
+        # with numerical precision something very small like 1e-22. Therefore,
+        # just round down to next power of 10 on the contents.
+        ymin = sf * 10 ** (_np.floor(_np.log10(_np.min(h.contents[h.contents > 0]))))
         _plt.ylim(abs(ymin)*0.9,abs(ymax)*1.3)
         if _matplotlib.__version__ >= '3.3':
             _plt.yscale('log', nonpositive='clip')
@@ -778,6 +784,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         pass
     else:
         _plt.title(title)
+    _plt.tight_layout()
     return f
 
 def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None, **imshowKwargs):
@@ -1209,7 +1216,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     fcorrLong.tight_layout()
     fcorrLong.subplots_adjust(top=0.92)
 
-    # add colorbar
+    # add colourbar
     if includeColorbar:
         fcorrTrans.subplots_adjust(right=0.885)
         cbar_ax = fcorrTrans.add_axes([0.92, 0.15, 0.03, 0.7])
@@ -1219,10 +1226,13 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     if outputfilename is not None:
         if '.' in outputfilename:
             outputfilename = outputfilename.split('.')[0]
-        fcoordTrans.savefig(outputfilename + '_coords' + extension)
-        fcorrTrans.savefig(outputfilename + '_correlations' + extension)
-        fcoordLong.savefig(outputfilename + '_long_coords' + extension)
-        fcorrLong.savefig(outputfilename + '_long_correlations' + extension)
+        kwargs = {}
+        if 'png' in extension:
+            kwargs['dpi'] = 500
+        fcoordTrans.savefig(outputfilename + '_coords' + extension, **kwargs)
+        fcorrTrans.savefig(outputfilename + '_correlations' + extension, **kwargs)
+        fcoordLong.savefig(outputfilename + '_long_coords' + extension, **kwargs)
+        fcorrLong.savefig(outputfilename + '_long_correlations' + extension, **kwargs)
 
 def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
     """
