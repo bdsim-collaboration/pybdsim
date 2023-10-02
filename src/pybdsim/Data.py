@@ -956,6 +956,21 @@ class TH1(ROOTHist):
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
 
+    def IntegrateFromBins(self, startBin=None, endBin=None):
+        if not startBin:
+            startBin = self.hist.GetXaxis().GetFirst()
+        if not endBin:
+            endBin = self.hist.GetXaxis().GetLast()
+        error = _ctypes.c_double(0.0)
+        mean = self.hist.IntegralAndError(startBin, endBin, error)
+
+        return mean, error.values
+    
+    def Integrate(self, xLow=None, xHigh=None):
+        startBin = self.hist.FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
+        endBin = self.hist.FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
+        return self.IntegrateFromBins(startBin, endBin)
+
     def _GetContents(self):
         for i in range(self.nbinsx):
             self.contents[i] = self.hist.GetBinContent(i+1)
