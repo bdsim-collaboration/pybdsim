@@ -964,7 +964,7 @@ class TH1(ROOTHist):
         error = _ctypes.c_double(0.0)
         mean = self.hist.IntegralAndError(startBin, endBin, error)
 
-        return mean, error.values
+        return mean, error.value
     
     def Integrate(self, xLow=None, xHigh=None):
         startBin = self.hist.FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
