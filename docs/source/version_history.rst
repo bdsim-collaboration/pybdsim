@@ -2,7 +2,7 @@
 Version History
 ===============
 
-V3.6.0 - 2023 / XX / XX
+V3.5.1 - 2023 / 10 / 03
 =======================
 
 * Fix 1D histogram y range in plots if a bin has a 100% error on it.

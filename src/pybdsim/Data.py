@@ -957,6 +957,13 @@ class TH1(ROOTHist):
         self.integralError = _np.sqrt((self.errors**2).sum())
 
     def IntegrateFromBins(self, startBin=None, endBin=None):
+        """
+        Calculate the integral from start bin index to end bin index in ROOT's
+        TH1D bin numbering scheme (usually 1 is the first bin and 0 is the underflow).
+        If left empty, they will integrate the whole range.
+
+        returns the integral,error
+        """
         if not startBin:
             startBin = self.hist.GetXaxis().GetFirst()
         if not endBin:
@@ -967,6 +974,12 @@ class TH1(ROOTHist):
         return mean, error.value
     
     def Integrate(self, xLow=None, xHigh=None):
+        """
+        Integrate the histogram based on coordinates (not bins). The
+        default is to return the integral of the whole histogram.
+
+        returns the integral,error
+        """
         startBin = self.hist.FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
         endBin = self.hist.FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
         return self.IntegrateFromBins(startBin, endBin)
