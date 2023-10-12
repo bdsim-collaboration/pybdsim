@@ -597,6 +597,34 @@ def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
     f = dc.CreateEmptyRebdsimFile(outputfilename, nOriginalEvents)
     return f
 
+def CreateEmptyBDSKIMFile(inputfilename, outputfilename=None):
+    inputData = Load(inputfilename)
+    if not outputfilename:
+        outputfilename = inputfilename.replace(".root", "_skim.root")
+    outfile = _ROOT.TFile(outputfilename, 'recreate')
+    inputData.GetHeaderTree().CloneTree().Write()
+    inputData.GetParticleDataTree().CloneTree().Write()
+    inputData.GetBeamTree().CloneTree().Write()
+    inputData.GetOptionsTree().CloneTree().Write()
+    inputData.GetModelTree().CloneTree().Write()
+    inputData.GetRunTree().CloneTree().Write()
+
+    return outfile
+
+def SkimBDSIMEvents(inputData, filterFunction):
+    filterTree = inputData.GetEventTree().CloneTree(0)
+    for event in inputData.GetEventTree():
+        if filterFunction(event):
+            filterTree.Fill()
+    return filterTree
+
+def SkimBDSIMFile(inputfilename, filterFunction, outputfilename=None):
+    inputData = Load(inputfilename)
+    outfile = CreateEmptyBDSKIMFile(inputfilename, outputfilename)
+    filterTree = SkimBDSIMEvents(inputData, filterFunction)
+    filterTree.Write()
+    outfile.Close()
+
 def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     """
     :param tfile: TFile object to write to.
