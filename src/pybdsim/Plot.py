@@ -557,15 +557,23 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     return _plt.gcf()
 
 def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None,
-            scalingFactors=None, xScalingFactors=None,
+            scalingFactor=1.0, xScalingFactor=1.0,
             figsize=(10,5), legendKwargs={}, vmin=None, vmax=None, **errorbarKwargs):
     """
     Plot a Spectra object loaded from data that represents a set of histograms.
 
+    :param scalingFactor: value to multiply all bin contents by (single number)
+    :type scalingFactor: float, int
+    :param xScalingFactor: value to multiply all bin centre coordinates by (single number)
+    :type xScalingFactor: float, int
+
     returns a list of figure objects.
     """
     histograms = [spectra.histogramspy[(pdgid,flag)] for (pdgid,flag) in spectra.pdgidsSorted]
-    
+
+    scalingFactors = [scalingFactor]*len(histograms)
+    xScalingFactors = [xScalingFactor]*len(histograms)
+
     labels = []
     for (pdgid, flag) in spectra.pdgidsSorted:
         rn = _Constants.GetPDGName(pdgid)[1]
@@ -637,7 +645,9 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
 
     return figure instance
 
-    xScalingFactors may be a float, int or list
+    xScalingFactors may be a single float, int and therefore equally applied to all
+    histograms, or a list of floats that must match the length of the hsitograms for
+    unique scalings of each one.
 
     Example: ::
 

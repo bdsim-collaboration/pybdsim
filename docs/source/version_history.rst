@@ -21,6 +21,10 @@ V3.6.0 - 2023 / XX / XX
   `Histogram2D`, `Histogram2DErrors` all now support supplying your own Matplotlib
   axis instance to draw 'into', rather than create a new figure. This allows
   better reuse of the plotting functions but with your own layout of figures.
+* :code:`pybdsim.Plot.Histogram1DMultiple` now accepts a single float for `scalingFactors`
+  or the `xScalingFactors` arguments, which will be then equally applied to all
+  histograms. It automatically makes a list of factors to match the length of
+  the incoming histogram list.
   
   
 
