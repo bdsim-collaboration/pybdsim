@@ -612,25 +612,36 @@ class RebdsimFile:
         newspectra = {k:v for k,v in self.spectra.items()}
         self.spectra = newspectra # turn back into a regular dictionary to highlight bad key access to users
 
-def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
+def CreateEmptyRebdsimFile(outputFileName, nOriginalEvents=1):
     """
     Create an empty rebdsim format file with the layout of folders.
     Returns the ROOT.TFile object.
     """
     LoadROOTLibraries()
 
-    if not outputfilename.endswith(".root"):
-        outputfilename += ".root"
+    if not outputFileName.endswith(".root"):
+        outputFileName += ".root"
 
     dc = _ROOT.DataDummyClass()
-    f = dc.CreateEmptyRebdsimFile(outputfilename, nOriginalEvents)
+    f = dc.CreateEmptyRebdsimFile(outputFileName, nOriginalEvents)
     return f
 
-def CreateEmptyBDSKIMFile(inputfilename, outputfilename=None):
-    inputData = Load(inputfilename)
-    if not outputfilename:
-        outputfilename = inputfilename.replace(".root", "_skim.root")
-    outfile = _ROOT.TFile(outputfilename, 'recreate')
+def CreateEmptyBDSKIMFile(inputFileName, outputFileName=None):
+    """
+    Create an empty raw BDSIM file suitable for filling with a custom
+    skim - ie a Python version of bdskim based on an existin BDSIM raw file.
+
+    :param inputFilename: raw data file to base the new file on for skimming.
+    :type inputFilename: str
+    :param outputFileName: optional output filename including extension desired.
+    :type outputFileName: None, str
+
+    If no outputFileName is given, then it will be inputFileName_skim.root.
+    """
+    inputData = Load(inputFileName)
+    if not outputFileName:
+        outputFileName = inputFileName.replace(".root", "_skim.root")
+    outfile = _ROOT.TFile(outputFileName, 'recreate')
     inputData.GetHeaderTree().CloneTree().Write()
     inputData.GetParticleDataTree().CloneTree().Write()
     inputData.GetBeamTree().CloneTree().Write()
@@ -640,17 +651,36 @@ def CreateEmptyBDSKIMFile(inputfilename, outputfilename=None):
 
     return outfile
 
-def SkimBDSIMEvents(inputData, filterFunction):
+def _SkimBDSIMEvents(inputData, filterFunction):
     filterTree = inputData.GetEventTree().CloneTree(0)
     for event in inputData.GetEventTree():
         if filterFunction(event):
             filterTree.Fill()
     return filterTree
 
-def SkimBDSIMFile(inputfilename, filterFunction, outputfilename=None):
-    inputData = Load(inputfilename)
-    outfile = CreateEmptyBDSKIMFile(inputfilename, outputfilename)
-    filterTree = SkimBDSIMEvents(inputData, filterFunction)
+def SkimBDSIMFile(inputFileName, filterFunction, outputFileName=None):
+    """
+    Skim a raw BDSIM file with a custom filter function.
+
+    :param inputFileName: raw input BDSIM file to skim.
+    :type inputFileName: str
+    :param filterFunction: a function of form `bool Function(event)`
+    :type filterFunction: function
+    :param outputFileName: optional specific output file name to write to.
+    :type outputFileName: None, str
+
+    If no outputFileName is given, then it will be inputFileName_skim.root.
+
+    The function must accept a single argument that will be the event. This
+    variable will have the layout of the event exactly as you see it in a
+    TBrowser (e.g. event.PrimaryLastHit.x[0] could be used. It should return
+    a Boolean True or False whether that event should be included in the output
+    skim file.
+
+    """
+    inputData = Load(inputFileName)
+    outfile = CreateEmptyBDSKIMFile(inputFileName, outputFileName)
+    filterTree = _SkimBDSIMEvents(inputData, filterFunction)
     filterTree.Write()
     outfile.Close()
 
