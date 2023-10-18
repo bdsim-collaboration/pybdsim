@@ -578,10 +578,13 @@ class RebdsimFile:
             if 'Spectra' in hname:
                 try:
                     sname,pdgid,flag = ParseSpectraName(hname)
+                    # self.spectra is a defaultdict(Spectra) which is our own class that has an append method
                     self.spectra[sname].append(pdgid, hist, path, sname, flag)
                 except ValueError as e:
                     print(e)
                     continue # could be old data with the word "Spectra" in the name
+        newspectra = {k:v for k,v in self.spectra.items()}
+        self.spectra = newspectra # turn back into a regular dictionary to highlight bad key access to users
 
 def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
     """

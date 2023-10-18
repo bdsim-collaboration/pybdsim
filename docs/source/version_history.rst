@@ -2,6 +2,22 @@
 Version History
 ===============
 
+V3.6.0 - 2023 / XX / XX
+=======================
+
+* :code:`pybdsim.Plot.Spectra` arguments have changed from `scalingFactors` to
+  `scalingFactor`, i.e. a single number. Previously it had to be a list to go
+  into the :code:`pybdsim.Plot.Histogram1DMultiple` function. This is now done
+  automatically as rebdsim-produced spectra must be consistent in binning by
+  construction. Similarly, for `xScalingFactor`.
+* Change the loaded spectra from :code:`pybdsim.Data.Load` (which returns a
+  :code:`pybdsim.Data.RebdsimFile` instance) from a `defaultdict` in Python
+  to a regular dictionary. This way, if a spectra is accessed by an invalid
+  key, a `KeyError` exception is thrown rather than nothing happening. The
+  `defaultdict` is an internal code optimisation and not required for the user
+  to see.
+
+
 V3.5.1 - 2023 / 10 / 03
 =======================
 
