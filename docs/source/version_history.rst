@@ -28,6 +28,10 @@ V3.6.0 - 2023 / XX / XX
 * Fix the automatic y scale limits in the :code:`pybdsim.Plot.Histogram1DMultiple` plotting
   function that would not always correctly identify the minimum if the histogram was
   empty and on a log scale.
+* New :code:`pybdsim.Data.SkimBDSIMFile` function that allows skimming a raw BDSIM
+  file with a custom filter function. The function should take an event as an argument
+  and return True or False for whether to keep that event in the skimmed file. Allows
+  more complex filtering than the :code:`bdskim` tool.
   
   
 
