@@ -17,7 +17,12 @@ V3.6.0 - 2023 / XX / XX
   `defaultdict` is an internal code optimisation and not required for the user
   to see.
 * Fix sorting of spectra by bin contents.
-
+* The plotting functions inside :cdoe:`pybdsim.Plot`: `Histogram1D`, `Histogram1DMultiple`,
+  `Histogram2D`, `Histogram2DErrors` all now support supplying your own Matplotlib
+  axis instance to draw 'into', rather than create a new figure. This allows
+  better reuse of the plotting functions but with your own layout of figures.
+  
+  
 
 V3.5.1 - 2023 / 10 / 03
 =======================
