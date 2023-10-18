@@ -373,6 +373,32 @@ class Spectra:
         self.pdgids.add(pdgid)
         self._generateSortedList()
 
+    def pop(self, pdgid, flag='n'):
+        """
+        Remove a pdgid from the spectra - perhaps to filter before plotting.
+        """
+        flags = ['n', 'primary', 'secondary']
+        if flag not in flags:
+            raise ValueError("flag must be one of n, primary, secondary")
+        if pdgid not in self.pdgids:
+            print("This PDG ID",pdgid," is not in the spectra (check it's an integer also)")
+            return
+
+        self.histograms.pop((pdgid, flag))
+        self.histogramspy.pop((pdgid, flag))
+        ind = self.pdgidsSorted.index((pdgid,flag))
+        self.pdgidsSorted.pop(ind)
+
+        # only remove from set of PDG IDs if it doesn't remain with any flag at all
+        # could maybe just remake the set rather than test to remove the value
+        tests = [(pdgid,f) for f in flags]
+        removeIt = True
+        for t in tests:
+            if t in self.pdgidsSorted:
+                removeIt = False
+        if removeIt:
+            self.pdgids.remove(pdgid)
+
     def _generateSortedList(self):
         integrals = {(pdgid,flag):h.integral for (pdgid,flag),h in self.histogramspy.items()}
         #integralsSorted = sorted(integrals.items(), key=lambda item: item[1])
