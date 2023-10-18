@@ -1502,8 +1502,8 @@ class Histogram1DSet:
         return s
 
     def SortByBin(self):
-        newBins = sorted(self.bins.items(), key=lambda item: item[1], reverse=True)
-        self.bins = _defaultdict(float, **newBins)
+        newBins = {k:v for k,v in sorted(self.bins.items(), key=lambda item: item[1], reverse=True)}
+        self.bins = _defaultdict(float, newBins)
         newSumWeightsSq = {key:self.sumWeightsSq[key] for key in newBins.keys()}
         self.sumWeightsSq = _defaultdict(float, **newSumWeightsSq)
 

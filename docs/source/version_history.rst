@@ -16,6 +16,7 @@ V3.6.0 - 2023 / XX / XX
   key, a `KeyError` exception is thrown rather than nothing happening. The
   `defaultdict` is an internal code optimisation and not required for the user
   to see.
+* Fix sorting of spectra by bin contents.
 
 
 V3.5.1 - 2023 / 10 / 03
