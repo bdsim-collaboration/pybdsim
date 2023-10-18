@@ -682,25 +682,34 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     xmax = -_np.inf
     allHistsEmpty = True  # true until one hist isn't empty
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
+
+        # auto limits... complex to cover every case also in log
         histEmpty = len(h.contents[h.contents != 0]) == 0
         # x range heuristic - do before padding
         xmin = min(xmin, _np.min(xsf*h.xlowedge))
         xmax = max(xmax, _np.max(xsf*h.xhighedge))
+        # for heuristic determination of ylim we use original un-padded histogram data
+        if not histEmpty:
+            ymin = min(ymin, sf * _np.min(h.contents[h.contents!=0]))
+        else:
+            ymin = sf*1.0/h.entries # statistical floor
+        ypos = [ymin] if ymin > 0 else sf*h.contents[h.contents > 0]
+        if len(ypos) > 0:
+            yminpos = min(yminpos, _np.min(ypos))
+        ymax = max(ymax, sf * _np.max(h.contents + h.errors))
+
+        # pad histogram if not empty
         if not histEmpty:
             allHistsEmpty = False
             ht = _Data.PadHistogram1D(h)
         else:
             ht = h
+
+        # plot histogram
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
                     xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
-        # for heuristic determination of ylim we use original unpadded histogram data
-        ymin = min(ymin, sf*_np.min(h.contents-h.errors))
-        ypos = h.contents[h.contents>0]
-        if len(ypos) > 0:
-            yminpos = min(yminpos, _np.min(ypos))
-        ymax = max(ymax, sf*_np.max(h.contents+h.errors))
-        
+
     if xlabel is None:
         ax.set_xlabel(histograms[0].xlabel)
     else:
@@ -776,7 +785,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         if autovmin and not histEmpty:
             vmin = _np.min(h.contents[h.contents!=0])
         else:
-            vmin = 1.0/h.entries # statistical floor and matplotlib requires a finite vmin
+            vmin = sf*1.0/h.entries # statistical floor and matplotlib requires a finite vmin
     if vmax is None:
         if histEmpty:
             vmax = 1.0

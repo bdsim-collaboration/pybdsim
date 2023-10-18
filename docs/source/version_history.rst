@@ -25,6 +25,9 @@ V3.6.0 - 2023 / XX / XX
   or the `xScalingFactors` arguments, which will be then equally applied to all
   histograms. It automatically makes a list of factors to match the length of
   the incoming histogram list.
+* Fix the automatic y scale limits in the :code:`pybdsim.Plot.Histogram1DMultiple` plotting
+  function that would not always correctly identify the minimum if the histogram was
+  empty and on a log scale.
   
   
 
