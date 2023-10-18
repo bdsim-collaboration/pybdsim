@@ -626,7 +626,7 @@ def CreateEmptyRebdsimFile(outputFileName, nOriginalEvents=1):
     f = dc.CreateEmptyRebdsimFile(outputFileName, nOriginalEvents)
     return f
 
-def CreateEmptyBDSKIMFile(inputFileName, outputFileName=None):
+def _CreateEmptyBDSKIMFile(inputFileName, outputFileName=None):
     """
     Create an empty raw BDSIM file suitable for filling with a custom
     skim - ie a Python version of bdskim based on an existin BDSIM raw file.
@@ -679,7 +679,7 @@ def SkimBDSIMFile(inputFileName, filterFunction, outputFileName=None):
 
     """
     inputData = Load(inputFileName)
-    outfile = CreateEmptyBDSKIMFile(inputFileName, outputFileName)
+    outfile = _CreateEmptyBDSKIMFile(inputFileName, outputFileName)
     filterTree = _SkimBDSIMEvents(inputData, filterFunction)
     filterTree.Write()
     outfile.Close()
