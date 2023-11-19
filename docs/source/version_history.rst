@@ -2,6 +2,47 @@
 Version History
 ===============
 
+V3.6.0 - 2023 / XX / XX
+=======================
+
+* :code:`pybdsim.Plot.Spectra` arguments have changed from `scalingFactors` to
+  `scalingFactor`, i.e. a single number. Previously it had to be a list to go
+  into the :code:`pybdsim.Plot.Histogram1DMultiple` function. This is now done
+  automatically as rebdsim-produced spectra must be consistent in binning by
+  construction. Similarly, for `xScalingFactor`.
+* Change the loaded spectra from :code:`pybdsim.Data.Load` (which returns a
+  :code:`pybdsim.Data.RebdsimFile` instance) from a `defaultdict` in Python
+  to a regular dictionary. This way, if a spectra is accessed by an invalid
+  key, a `KeyError` exception is thrown rather than nothing happening. The
+  `defaultdict` is an internal code optimisation and not required for the user
+  to see.
+* Fix sorting of spectra by bin contents.
+* The plotting functions inside :cdoe:`pybdsim.Plot`: `Histogram1D`, `Histogram1DMultiple`,
+  `Histogram2D`, `Histogram2DErrors` all now support supplying your own Matplotlib
+  axis instance to draw 'into', rather than create a new figure. This allows
+  better reuse of the plotting functions but with your own layout of figures.
+* :code:`pybdsim.Plot.Histogram1DMultiple` now accepts a single float for `scalingFactors`
+  or the `xScalingFactors` arguments, which will be then equally applied to all
+  histograms. It automatically makes a list of factors to match the length of
+  the incoming histogram list.
+* Fix the automatic y scale limits in the :code:`pybdsim.Plot.Histogram1DMultiple` plotting
+  function that would not always correctly identify the minimum if the histogram was
+  empty and on a log scale.
+* New :code:`pybdsim.Data.SkimBDSIMFile` function that allows skimming a raw BDSIM
+  file with a custom filter function. The function should take an event as an argument
+  and return True or False for whether to keep that event in the skimmed file. Allows
+  more complex filtering than the :code:`bdskim` tool.
+  
+  
+
+V3.5.1 - 2023 / 10 / 03
+=======================
+
+* Fix 1D histogram y range in plots if a bin has a 100% error on it.
+* Tight layout for 2D histogram plots.
+* Automatically upgrade the default matplotlib png resolution to 500 dpi if
+  saving a figure as a png for 2D histogram plots.
+
 V3.5.0 - 2023 / 08 / 25
 =======================
 

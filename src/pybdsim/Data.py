@@ -373,6 +373,32 @@ class Spectra:
         self.pdgids.add(pdgid)
         self._generateSortedList()
 
+    def pop(self, pdgid, flag='n'):
+        """
+        Remove a pdgid from the spectra - perhaps to filter before plotting.
+        """
+        flags = ['n', 'primary', 'secondary']
+        if flag not in flags:
+            raise ValueError("flag must be one of n, primary, secondary")
+        if pdgid not in self.pdgids:
+            print("This PDG ID",pdgid," is not in the spectra (check it's an integer also)")
+            return
+
+        self.histograms.pop((pdgid, flag))
+        self.histogramspy.pop((pdgid, flag))
+        ind = self.pdgidsSorted.index((pdgid,flag))
+        self.pdgidsSorted.pop(ind)
+
+        # only remove from set of PDG IDs if it doesn't remain with any flag at all
+        # could maybe just remake the set rather than test to remove the value
+        tests = [(pdgid,f) for f in flags]
+        removeIt = True
+        for t in tests:
+            if t in self.pdgidsSorted:
+                removeIt = False
+        if removeIt:
+            self.pdgids.remove(pdgid)
+
     def _generateSortedList(self):
         integrals = {(pdgid,flag):h.integral for (pdgid,flag),h in self.histogramspy.items()}
         #integralsSorted = sorted(integrals.items(), key=lambda item: item[1])
@@ -578,24 +604,91 @@ class RebdsimFile:
             if 'Spectra' in hname:
                 try:
                     sname,pdgid,flag = ParseSpectraName(hname)
+                    # self.spectra is a defaultdict(Spectra) which is our own class that has an append method
                     self.spectra[sname].append(pdgid, hist, path, sname, flag)
                 except ValueError as e:
                     print(e)
                     continue # could be old data with the word "Spectra" in the name
+        newspectra = {k:v for k,v in self.spectra.items()}
+        self.spectra = newspectra # turn back into a regular dictionary to highlight bad key access to users
 
-def CreateEmptyRebdsimFile(outputfilename, nOriginalEvents=1):
+def CreateEmptyRebdsimFile(outputFileName, nOriginalEvents=1):
     """
     Create an empty rebdsim format file with the layout of folders.
     Returns the ROOT.TFile object.
     """
     LoadROOTLibraries()
 
-    if not outputfilename.endswith(".root"):
-        outputfilename += ".root"
+    if not outputFileName.endswith(".root"):
+        outputFileName += ".root"
 
     dc = _ROOT.DataDummyClass()
-    f = dc.CreateEmptyRebdsimFile(outputfilename, nOriginalEvents)
+    f = dc.CreateEmptyRebdsimFile(outputFileName, nOriginalEvents)
     return f
+
+def _CreateEmptyBDSKIMFile(inputFileName, inputData=None, outputFileName=None):
+    """
+    Create an empty raw BDSIM file suitable for filling with a custom
+    skim - ie a Python version of bdskim based on an existin BDSIM raw file.
+
+    :param inputFilename: raw data file to base the new file on for skimming.
+    :type inputFilename: str
+    :param inputData: optional input data used for skimming.
+    :type inputData: pybdsim.Data
+    :param outputFileName: optional output filename including extension desired.
+    :type outputFileName: None, str
+
+    If no outputFileName is given, then it will be inputFileName_skim.root.
+    """
+    if not inputData:
+        inputData = Load(inputFileName)
+    if not outputFileName:
+        outputFileName = inputFileName.replace(".root", "_skim.root")
+    outfile = _ROOT.TFile(outputFileName, 'recreate')
+    inputData.GetHeaderTree().CloneTree().Write()
+    inputData.GetParticleDataTree().CloneTree().Write()
+    inputData.GetBeamTree().CloneTree().Write()
+    inputData.GetOptionsTree().CloneTree().Write()
+    inputData.GetModelTree().CloneTree().Write()
+    inputData.GetRunTree().CloneTree().Write()
+
+    return outfile
+
+def _SkimBDSIMEvents(inputData, filterFunction):
+    filterTree = inputData.GetEventTree().CloneTree(0)
+    for event in inputData.GetEventTree():
+        if filterFunction(event):
+            filterTree.Fill()
+    return filterTree
+
+def SkimBDSIMFile(inputFileName, filterFunction, outputFileName=None):
+    """
+    Skim a raw BDSIM file with a custom filter function.
+
+    :param inputFileName: raw input BDSIM file to skim.
+    :type inputFileName: str
+    :param filterFunction: a function of form `bool Function(event)`
+    :type filterFunction: function
+    :param outputFileName: optional specific output file name to write to.
+    :type outputFileName: None, str
+
+    If no outputFileName is given, then it will be inputFileName_skim.root.
+
+    The function must accept a single argument that will be the event. This
+    variable will have the layout of the event exactly as you see it in a
+    TBrowser (e.g. event.PrimaryLastHit.x[0] could be used. It should return
+    a Boolean True or False whether that event should be included in the output
+    skim file.
+
+    """
+    inputData = Load(inputFileName)
+    outfile = _CreateEmptyBDSKIMFile(inputFileName, inputData, outputFileName)
+    filterTree = _SkimBDSIMEvents(inputData, filterFunction)
+    filterTree.Write()
+    header = Header(outfile.Get("Header"))
+    header.skimmedFile = True
+    header.nEventsInFile = filterTree.GetEntries()
+    outfile.Close()
 
 def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     """
@@ -955,6 +1048,34 @@ class TH1(ROOTHist):
         self.integral = _np.sum(self.contents)
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
+
+    def IntegrateFromBins(self, startBin=None, endBin=None):
+        """
+        Calculate the integral from start bin index to end bin index in ROOT's
+        TH1D bin numbering scheme (usually 1 is the first bin and 0 is the underflow).
+        If left empty, they will integrate the whole range.
+
+        returns the integral,error
+        """
+        if not startBin:
+            startBin = self.hist.GetXaxis().GetFirst()
+        if not endBin:
+            endBin = self.hist.GetXaxis().GetLast()
+        error = _ctypes.c_double(0.0)
+        mean = self.hist.IntegralAndError(startBin, endBin, error)
+
+        return mean, error.value
+    
+    def Integrate(self, xLow=None, xHigh=None):
+        """
+        Integrate the histogram based on coordinates (not bins). The
+        default is to return the integral of the whole histogram.
+
+        returns the integral,error
+        """
+        startBin = self.hist.FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
+        endBin = self.hist.FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
+        return self.IntegrateFromBins(startBin, endBin)
 
     def _GetContents(self):
         for i in range(self.nbinsx):
@@ -1471,8 +1592,8 @@ class Histogram1DSet:
         return s
 
     def SortByBin(self):
-        newBins = sorted(self.bins.items(), key=lambda item: item[1], reverse=True)
-        self.bins = _defaultdict(float, **newBins)
+        newBins = {k:v for k,v in sorted(self.bins.items(), key=lambda item: item[1], reverse=True)}
+        self.bins = _defaultdict(float, newBins)
         newSumWeightsSq = {key:self.sumWeightsSq[key] for key in newBins.keys()}
         self.sumWeightsSq = _defaultdict(float, **newSumWeightsSq)
 
@@ -2238,6 +2359,17 @@ class BeamData:
     def _getData(self, interface, rootobj):
         for name in interface:
             setattr(self, name, getattr(rootobj, name))
+
+    def GetBeamEnergy(self):
+        beamEnergy = 0
+        if hasattr(self, "beamEnergy"):
+            beamEnergy = getattr(self, "beamEnergy")
+        beamKineticEnergy = 0
+        if hasattr(self, "beamKineticEnergy"):
+            beamKineticEnergy = getattr(self, "beamKineticEnergy")
+        beamMomemtum = 0
+        if hasattr(self, "beamMomemtum"):
+            beamMomemtum = getattr(self, "beamMomemtum")
 
 
 def _filterROOTObject(rootobj):

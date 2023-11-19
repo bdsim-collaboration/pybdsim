@@ -481,7 +481,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
         print("Written ", output_filename)
 
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), log=False, **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), log=False, ax=None, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
 
@@ -491,17 +491,23 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     :param scalingFactor: multiplier for values
     :param xScalingFactor: multiplier for x axis coordinates
     :param log: whether to automatically plot on a vertical log scale
+    :param ax: Matplotlib.Axis instance to draw into. If None, a figure will be created.
 
     return figure instance
     """
     if 'drawstyle' not in errorbarKwargs:
         errorbarKwargs['drawstyle'] = 'steps-mid'
     h = histogram
-    f = _plt.figure(figsize=figsize)
-    ax = f.add_subplot(111)
+    
+    incomingAxis = bool(ax)
+    if not ax:
+        f = _plt.figure(figsize=figsize)
+        ax = f.add_subplot(111)
+    
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
     histEmpty = len(h.contents[h.contents!=0]) == 0
+    
     if not histEmpty:
         ht = _Data.PadHistogram1D(h)
     else:
@@ -532,27 +538,42 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     except:
         pass
     if log and not histEmpty:
-        _plt.ylim(abs(ymin)*0.9,abs(ymax)*1.3)
+        # round down to the nearest power of 10
+        # not contents-errors may have a bin with 100% error, so we get ~0 or
+        # with numerical precision something very small like 1e-22. Therefore,
+        # just round down to next power of 10 on the contents.
+        ymin = sf * 10 ** (_np.floor(_np.log10(_np.min(h.contents[h.contents > 0]))))
+        ax.set_ylim(abs(ymin)*0.9,abs(ymax)*1.3)
         if _matplotlib.__version__ >= '3.3':
-            _plt.yscale('log', nonpositive='clip')
+            ax.set_yscale('log', nonpositive='clip')
         else:
-            _plt.yscale('log', nonposy='clip')
+            ax.set_yscale('log', nonposy='clip')
     else:
-        _plt.ylim(ymin*0.8, ymax*1.05)
+        ax.set_ylim(ymin*0.8, ymax*1.05)
 
-    _plt.tight_layout()
-    return f
+    if not incomingAxis:
+        _plt.tight_layout()
+    
+    return _plt.gcf()
 
 def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None,
-            scalingFactors=None, xScalingFactors=None,
+            scalingFactor=1.0, xScalingFactor=1.0,
             figsize=(10,5), legendKwargs={}, vmin=None, vmax=None, **errorbarKwargs):
     """
     Plot a Spectra object loaded from data that represents a set of histograms.
 
+    :param scalingFactor: value to multiply all bin contents by (single number)
+    :type scalingFactor: float, int
+    :param xScalingFactor: value to multiply all bin centre coordinates by (single number)
+    :type xScalingFactor: float, int
+
     returns a list of figure objects.
     """
     histograms = [spectra.histogramspy[(pdgid,flag)] for (pdgid,flag) in spectra.pdgidsSorted]
-    
+
+    scalingFactors = [scalingFactor]*len(histograms)
+    xScalingFactors = [xScalingFactor]*len(histograms)
+
     labels = []
     for (pdgid, flag) in spectra.pdgidsSorted:
         rn = _Constants.GetPDGName(pdgid)[1]
@@ -615,14 +636,18 @@ def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None
         return [f1]
 
 
-def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None, title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5), legendKwargs={}, **errorbarKwargs):
+def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None,
+                        title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),
+                        legendKwargs={}, ax=None, **errorbarKwargs):
     """
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
 
     return figure instance
 
-    xScalingFactors may be a float, int or list
+    xScalingFactors may be a single float, int and therefore equally applied to all
+    histograms, or a list of floats that must match the length of the hsitograms for
+    unique scalings of each one.
 
     Example: ::
 
@@ -633,12 +658,16 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
                           scalingFactors=[1,100,100],
                           xScalingFactors=1e6,
                           log=True)
+
+    :param ax: matplotlib axes to draw into - if none, a new figure will be created.
     """
     if "xScalingFactor" in errorbarKwargs:
         raise ValueError("'xScalingFactor' - did you mean 'xScalingFactors'?")
 
-    f = _plt.figure(figsize=figsize)
-    ax = f.add_subplot(111)
+    incomingAxis = bool(ax)
+    if not ax:
+        f = _plt.figure(figsize=figsize)
+        ax = f.add_subplot(111)
     
     if scalingFactors is None:
         scalingFactors = _np.ones_like(histograms)
@@ -653,25 +682,34 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     xmax = -_np.inf
     allHistsEmpty = True  # true until one hist isn't empty
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
+
+        # auto limits... complex to cover every case also in log
         histEmpty = len(h.contents[h.contents != 0]) == 0
         # x range heuristic - do before padding
         xmin = min(xmin, _np.min(xsf*h.xlowedge))
         xmax = max(xmax, _np.max(xsf*h.xhighedge))
+        # for heuristic determination of ylim we use original un-padded histogram data
+        if not histEmpty:
+            ymin = min(ymin, sf * _np.min(h.contents[h.contents!=0]))
+        else:
+            ymin = sf*1.0/h.entries # statistical floor
+        ypos = [ymin] if ymin > 0 else sf*h.contents[h.contents > 0]
+        if len(ypos) > 0:
+            yminpos = min(yminpos, _np.min(ypos))
+        ymax = max(ymax, sf * _np.max(h.contents + h.errors))
+
+        # pad histogram if not empty
         if not histEmpty:
             allHistsEmpty = False
             ht = _Data.PadHistogram1D(h)
         else:
             ht = h
+
+        # plot histogram
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
                     xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
-        # for heuristic determination of ylim we use original unpadded histogram data
-        ymin = min(ymin, sf*_np.min(h.contents-h.errors))
-        ypos = h.contents[h.contents>0]
-        if len(ypos) > 0:
-            yminpos = min(yminpos, _np.min(ypos))
-        ymax = max(ymax, sf*_np.max(h.contents+h.errors))
-        
+
     if xlabel is None:
         ax.set_xlabel(histograms[0].xlabel)
     else:
@@ -687,27 +725,33 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     else:
         ax.set_title(title)
     if log and not allHistsEmpty:
-        _plt.ylim(abs(yminpos)*0.9,abs(ymax)*1.1)
+        aymin = 10**_np.floor(_np.log10(abs(yminpos)*0.9))
+        aymax = 10**_np.ceil(_np.log10(abs(ymax)*1.1))
+        ax.set_ylim(aymin, aymax)
         if _matplotlib.__version__ >= '3.3':
-            _plt.yscale('log', nonpositive='clip')
+            ax.set_yscale('log', nonpositive='clip')
         else:
-            _plt.yscale('log', nonposy='clip')
+            ax.set_yscale('log', nonposy='clip')
     else:
-        _plt.ylim(ymin*0.8, ymax*1.05)
+        ax.set_ylim(ymin*0.8, ymax*1.05)
 
     if xlog:
-        _plt.xscale('log')
+        ax.set_xscale('log')
         suggestedXMin = 0.95*xmin
         if suggestedXMin <= 0:
             suggestedXMin = 1
-        _plt.xlim(suggestedXMin, 1.05*xmax)
+        ax.set_xlim(suggestedXMin, 1.05*xmax)
 
-    _plt.legend(**legendKwargs)
-    _plt.tight_layout()
+    ax.legend(**legendKwargs)
+    if not incomingAxis:
+        _plt.tight_layout()
     
-    return f
+    return _plt.gcf()
 
-def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None, colourbar=True, **imshowKwargs):
+def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="",
+                zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0,
+                yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None,
+                colourbar=True, ax=None, cax=None, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -721,11 +765,16 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     autovmin       - automatically determin the lower limit of the colourbar from the data
     vmin           - explicitly control the vmin for the colour normalisation
     vmax           - explicitly control the vmax for the colour normalisation
+    ax             - optional matplotlib axes to draw into
+    cax            - optional axes to draw coloubar into
 
     return figure instance
     """
     h = histogram
-    f = _plt.figure(figsize=figsize)
+    incomingAxis = bool(ax)
+    if not ax:
+        f = _plt.figure(figsize=figsize)
+        ax = f.add_subplot(111)
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
@@ -736,7 +785,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         if autovmin and not histEmpty:
             vmin = _np.min(h.contents[h.contents!=0])
         else:
-            vmin = 1.0/h.entries # statistical floor and matplotlib requires a finite vmin
+            vmin = sf*1.0/h.entries # statistical floor and matplotlib requires a finite vmin
     if vmax is None:
         if histEmpty:
             vmax = 1.0
@@ -745,15 +794,16 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
-        ax = f.add_subplot(111)
         im = ax.pcolormesh(h.xedges*xsf, h.yedges*ysf, d, norm=norm, rasterized=True, **imshowKwargs)
         #_plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
         if colourbar:
-            _plt.colorbar(im, label=zlabel)
+            _plt.colorbar(im, label=zlabel, cax=cax)
     else:
-        _plt.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', vmin=vmin, vmax=vmax,**imshowKwargs)
+        ax.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', vmin=vmin, vmax=vmax,**imshowKwargs)
         if colourbar:
-            _plt.colorbar(format='%.0e', label=zlabel)
+            _plt.colorbar(format='%.0e', label=zlabel, cax=cax)
+
+    ax.set_aspect(aspect)
 
     if xLogScale:
         _plt.xscale('log')
@@ -761,26 +811,32 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         _plt.yscale('log')
 
     if xlabel == "":
-        _plt.xlabel(h.xlabel)
+        ax.set_xlabel(h.xlabel)
     elif xlabel is None:
         pass
     else:
-        _plt.xlabel(xlabel)
+        ax.set_xlabel(xlabel)
     if ylabel == "":
-        _plt.ylabel(h.ylabel)
+        ax.set_ylabel(h.ylabel)
     elif ylabel is None:
         pass
     else:
-        _plt.ylabel(ylabel)
+        ax.set_ylabel(ylabel)
     if title == "":
-        _plt.title(h.title) # default to one in histogram
+        ax.set_title(h.title) # default to one in histogram
     elif title is None:
         pass
     else:
-        _plt.title(title)
-    return f
+        ax.set_title(title)
 
-def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None, **imshowKwargs):
+    if not incomingAxis:
+        _plt.tight_layout()
+    return _plt.gcf()
+
+def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="",
+                      title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0,
+                      figsize=(6,5), vmin=None, autovmin=False, vmax=None, colourbar=True, ax=None,
+                      cax=None, **imshowKwargs):
     """
     Similar to Histogram2D() but plot the errors from the histogram instead of the contents.
     See pybdsim.Plot.Histogram2D for documentation of arguments.
@@ -788,7 +844,8 @@ def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False
     h2 = _copy.deepcopy(histogram)
     h2.contents = h2.errors # set contents as errors and just use regular plot
     return Histogram2D(h2, logNorm, xLogScale, yLogScale, xlabel, ylabel, zlabel, title, aspect, scalingFactor,
-                       xScalingFactor, yScalingFactor, figsize, vmin, autovmin, vmax, **imshowKwargs)
+                       xScalingFactor, yScalingFactor, figsize, vmin, autovmin, vmax,
+                       colorbar, ax, cax, **imshowKwargs)
 
 def Histogram3D(th3):
     """
@@ -972,11 +1029,11 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     Default = True.
     """
 
-    defaultLabels = {'x': 'X (mm)',
-                     'y': 'Y (mm)',
-                     'xp': r'X$^{\prime}$  $(\times 10^{-3})$',
-                     'yp': r'Y$^{\prime}$  $(\times 10^{-3})$',
-                     'T': 'T (ns)',
+    defaultLabels = {'x': 'x (mm)',
+                     'y': 'y (mm)',
+                     'xp': r'x$^{\prime}$  $(\times 10^{-3})$',
+                     'yp': r'y$^{\prime}$  $(\times 10^{-3})$',
+                     'T': 't (ns)',
                      'energy': 'Energy (GeV)',
                      'kinetic': 'Kinetic Energy (GeV)'
                      }
@@ -1040,10 +1097,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
 
     for parameter in ('x', 'y', 'xp', 'yp', 'T', energy):
         # get the parameter label
-        if parameter in list(labels.keys()):
-            l[parameter] = labels[parameter]
-        else:
-            l[parameter] = defaultLabels[parameter]
+        l[parameter] = labels[parameter] if parameter in labels else defaultLabels[parameter]
 
         if parameter == 'kinetic':
             if data['kineticEnergy'].size != 0:  # check if KE stored in output to begin with
@@ -1069,7 +1123,11 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     # Use nominal T with beam E0 as low no. of particles can cause statistical fluctuation
     if offsetTime:
         S = max(data['S'])  # should all be the same for a sampler, take max to be safe
+        # TDOO - beam may have only beamEnergy or beamMomentum or beamKinetic energy set
+        # and the others may be 0. Here, this could lead to zero division and a nan.
         t = S / (_np.sqrt(1.0 - 1.0/((beam.beamEnergy/primarymass)**2)) * _con.c)
+        if _np.isnan(t):
+            t = 0
         da['T'] -= (t * 1e9)
 
     # create correlation and coords figures and empty subplots
@@ -1208,7 +1266,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     fcorrLong.tight_layout()
     fcorrLong.subplots_adjust(top=0.92)
 
-    # add colorbar
+    # add colourbar
     if includeColorbar:
         fcorrTrans.subplots_adjust(right=0.885)
         cbar_ax = fcorrTrans.add_axes([0.92, 0.15, 0.03, 0.7])
@@ -1218,10 +1276,13 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
     if outputfilename is not None:
         if '.' in outputfilename:
             outputfilename = outputfilename.split('.')[0]
-        fcoordTrans.savefig(outputfilename + '_coords' + extension)
-        fcorrTrans.savefig(outputfilename + '_correlations' + extension)
-        fcoordLong.savefig(outputfilename + '_long_coords' + extension)
-        fcorrLong.savefig(outputfilename + '_long_correlations' + extension)
+        kwargs = {}
+        if 'png' in extension:
+            kwargs['dpi'] = 500
+        fcoordTrans.savefig(outputfilename + '_coords' + extension, **kwargs)
+        fcorrTrans.savefig(outputfilename + '_correlations' + extension, **kwargs)
+        fcoordLong.savefig(outputfilename + '_long_coords' + extension, **kwargs)
+        fcorrLong.savefig(outputfilename + '_long_correlations' + extension, **kwargs)
 
 def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
     """

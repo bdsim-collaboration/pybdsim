@@ -108,6 +108,28 @@ file `combined-ana.root` in `bdsim/examples/features/data`.
 	    :align: center
 
 
+Skimming Data With Custom Filter
+--------------------------------
+
+The compiled tool :code:`bdskim` exists to select a subset of events from a BDSIM
+raw output file. It produces another BDSIM raw output file but with fewer events
+that pass a selection (like a selection used for a histogram). However, we may
+want to make a more complex selection that simply isn't possible in a single
+histogram selection line.
+
+In this case, we can use a little analysis written in Python and use pybdsim to
+help to 'skim' the file nicely for us. Below is an example: ::
+
+  import pybdsim
+  def MyCustomFilter(event):
+      return 20.0 < event.Primary.energy[0] < 100.0
+  SkimBDSIMFile("originalData.root", MyCustomFilter)
+
+This will apply MyCustomFilter, which returns True only when the first primary in
+the event has a total energy greater than 20.0 GeV and less than 100.0 GeV. Events
+matching this criteria will be saved to a new BDSIM raw file called "originaData_skim.root".
+
+
 Histogram Plotting
 ------------------
 

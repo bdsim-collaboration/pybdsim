@@ -28,8 +28,8 @@ PDGind = {
     130   : ('K-Long',                r'$K_{L}^{0}$'),
     310   : ('K-Short',               r'$K_{S}^{0}$'),
 #STRANGE BARYONS
-    3122  : ('Lambda',                r'$\Lambda$'),
-    -3122 : ('Anti Lambda',           r'$\overline{\Lambda}$'),
+    3122  : ('Lambda',                r'$\Lambda^{0}$'),
+    -3122 : ('Anti Lambda',           r'$\overline{\Lambda^{0}}$'),
     3222  : ('Sigma+',                r'$\Sigma^{+}$'),
     -3222 : ('Anti Sigma+',           r'$\overline{\Sigma^{+}}$'),
     3212  : ('Sigma0',                r'$\Sigma^{0}$'),
