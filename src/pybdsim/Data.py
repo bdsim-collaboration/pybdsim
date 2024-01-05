@@ -1339,6 +1339,8 @@ class TH3(TH2):
             for comment in comments:
                 fo.write("# " + str(comment) + "\n")
         fo.write("# scalingFactor: "+str(scalingFactor)+"\n")
+        fo.write("# unscaled integral: "+str(self.integral)+" +- "+str(self.integralError)+"\n")
+        fo.write("# scaled integral: " + str(self.integral*scalingFactor) + " +- " + str(self.integralError*scalingFactor) + "\n")
         fo.write("# " + "\t".join(["nx:", str(self.nbinsx), "xmin[m]:", str(self.xrange[0]), "xmax[m]:", str(self.xrange[1])]) + "\n")
         fo.write("# " + "\t".join(["ny:", str(self.nbinsy), "ymin[m]:", str(self.yrange[0]), "ymax[m]:", str(self.yrange[1])]) + "\n")
         fo.write("# " + "\t".join(["nz:", str(self.nbinsz), "zmin[m]:", str(self.zrange[0]), "zmax[m]:", str(self.zrange[1])]) + "\n")
@@ -1352,6 +1354,7 @@ class TH3(TH2):
                     stringsFW = ['%18s' % s for s in strings]
                     fo.write("\t".join(stringsFW) + "\n")
         fo.close()
+        return fn
 
     
 class BDSBH4D():
