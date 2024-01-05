@@ -1319,6 +1319,9 @@ class TH3(TH2):
         """
         Write the contents to a text file. Optionally multiply contents by a numerical factor.
 
+        Adds the histogram name (self.name) to the filename, e.g. filename-name.dat. Returns
+        name that was built up.
+
         :param filename: output name to write to - can optionally include .dat suffix.
         :type filename: str
         :param scalingFactor: numerical factor to multiply all contents by on writing out only.
@@ -1329,7 +1332,7 @@ class TH3(TH2):
         filename = str(filename)
         if filename.endswith('.dat'):
             filename = filename[:-4]
-        fn = filename + "_" + self.name + ".dat"
+        fn = filename + "-" + self.name + ".dat"
         fo = open(fn, "w")
         shape = self.contents.shape
         if comments:
