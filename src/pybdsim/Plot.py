@@ -352,6 +352,9 @@ _SIGMA_P = [("Sigma_xp", "Sigma_Sigma_xp", r"$\sigma_{xp}$"),
 _MEAN = [("Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
          ("Mean_y", "Sigma_Mean_y", r"$\bar{y}$")]
 
+_EMITT = [("Emitt_x", "Sigma_Emitt_x", r"$\epsilon_{x}$"),
+          ("Emitt_y", "Sigma_Emitt_y", r"$\epsilon_{y}$")]
+
 def _MakePlotter(plot_info_tuples, x_label, y_label, title):
     def f_out(bds, outputfilename=None, survey=None, **kwargs):
         # options
@@ -404,6 +407,7 @@ PlotDispP  = _MakePlotter(_DISP_P,  "S / m", r"$D_{p_{x},p_{y}}$ / m",  "Momentu
 PlotSigma  = _MakePlotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
 PlotSigmaP = _MakePlotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
 PlotMean   = _MakePlotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
+PlotEmittance = _MakePlotter(_EMITT, "S / m", r"$\epsilon_{x,y}$ / m rad", "Emittance")
 
 def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
     # options
