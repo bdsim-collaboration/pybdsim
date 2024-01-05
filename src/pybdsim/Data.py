@@ -626,19 +626,22 @@ def CreateEmptyRebdsimFile(outputFileName, nOriginalEvents=1):
     f = dc.CreateEmptyRebdsimFile(outputFileName, nOriginalEvents)
     return f
 
-def _CreateEmptyBDSKIMFile(inputFileName, outputFileName=None):
+def _CreateEmptyBDSKIMFile(inputFileName, inputData=None, outputFileName=None):
     """
     Create an empty raw BDSIM file suitable for filling with a custom
     skim - ie a Python version of bdskim based on an existin BDSIM raw file.
 
     :param inputFilename: raw data file to base the new file on for skimming.
     :type inputFilename: str
+    :param inputData: optional input data used for skimming.
+    :type inputData: pybdsim.Data
     :param outputFileName: optional output filename including extension desired.
     :type outputFileName: None, str
 
     If no outputFileName is given, then it will be inputFileName_skim.root.
     """
-    inputData = Load(inputFileName)
+    if not inputData:
+        inputData = Load(inputFileName)
     if not outputFileName:
         outputFileName = inputFileName.replace(".root", "_skim.root")
     outfile = _ROOT.TFile(outputFileName, 'recreate')
@@ -679,9 +682,12 @@ def SkimBDSIMFile(inputFileName, filterFunction, outputFileName=None):
 
     """
     inputData = Load(inputFileName)
-    outfile = _CreateEmptyBDSKIMFile(inputFileName, outputFileName)
+    outfile = _CreateEmptyBDSKIMFile(inputFileName, inputData, outputFileName)
     filterTree = _SkimBDSIMEvents(inputData, filterFunction)
     filterTree.Write()
+    header = Header(outfile.Get("Header"))
+    header.skimmedFile = True
+    header.nEventsInFile = filterTree.GetEntries()
     outfile.Close()
 
 def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
