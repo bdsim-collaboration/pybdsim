@@ -1065,7 +1065,15 @@ class Machine(object):
         """
         return self.length
 
-    def Append(self, item, is_component=False):
+    def Append(self, item, addToSequence=True):
+        """
+        Add an element or sequence to the main sequence.
+
+        :param item: the element or sequence to add
+        :type item: pybdsim.Builder.Element, pybdsim.Builder.Line
+        :param addToSequence: whether the definition is added to the main sequence
+        :type addToSequence: bool
+        """
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
@@ -1079,10 +1087,11 @@ class Machine(object):
         else:
             if self.verbose:
                 print("Element of name: ",item.name," already defined, simply adding to sequence")
-        # finally add it to the sequence if this is not a base component of the sequence.
-        if not is_component:
-            self.sequence.append(item.name)
 
+        # add to the sequence - optional as we may be appending a parent definition to the list
+        # of objects to write before the main definitions.
+        if addToSequence:
+            self.sequence.append(item.name)
             self.length += item.length
             self.lenint.append(self.length)
 
