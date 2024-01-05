@@ -560,6 +560,23 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     
     return _plt.gcf()
 
+def SpectraSelect(spectra, pdgids,
+                  log=False, xlog=False, xlabel=None, ylabel=None, title=None,
+                  scalingFactor=1.0, xScalingFactor=1.0,
+                  figsize=(10,5), legendKwargs={}, vmin=None, vmax=None, **errorbarKwargs):
+
+    spc = _copy.deepcopy(spectra)
+
+    allpdgids = set(spc.pdgids)
+    tokeep = set(pdgids)
+    topop = allpdgids.difference(tokeep)
+    for pdgid in topop:
+        spc.pop(pdgid)
+
+    return Spectra(spc, log, xlog, xlabel, ylabel, title, scalingFactor, xScalingFactor,
+                   figsize, legendKwargs, vmin, vmax, **errorbarKwargs)
+    
+
 def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None,
             scalingFactor=1.0, xScalingFactor=1.0,
             figsize=(10,5), legendKwargs={}, vmin=None, vmax=None, **errorbarKwargs):
