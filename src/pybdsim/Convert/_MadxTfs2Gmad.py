@@ -594,7 +594,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                 else:
                     return _Builder.ECol(rname, l, xsize, ysize, **kws)
         # dict is incomplete or the component is erroneously
-        # reffered to as a collimator even when it can be thought
+        # referred to as a collimator even when it can be thought
         # of as a drift (e.g. LHC TAS).
         elif collimatordict != {}:
             msg = ("{} {} not found in collimatordict."

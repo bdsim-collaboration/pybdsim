@@ -329,8 +329,8 @@ class ElementModifier(ElementBase):
     >>> f.close()
 
     cat mylattice.gmad
-    qf1, quadrupole, l=0.3, k1=0.00345;
-    qf1, k1=0.0245
+    qf1: quadrupole, l=0.3, k1=0.00345;
+    qf1: k1=0.0245;
 
     This results in the quadrupole strength k1 in this example being
     changed to 0.0245.
