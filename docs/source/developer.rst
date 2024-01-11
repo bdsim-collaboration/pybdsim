@@ -30,3 +30,13 @@ Then you can test by importing it and using it. Afterwards, remove it.
 .. warning:: Once a tag is pushed to pypi, it can **never** be deleted or replaced. Similarly
              for testpypi. Consider using `v1.2.3-rc` or `v1.2.3-rc1`, which will be recognised
              as a release candidate by pypi.
+
+
+Annual Update
+-------------
+
+For the change of copyright year, change in the following places:
+
+* :code:`LICENCE.txt`
+* :code:`docs/source/licence.txt`
+* :code:`docs/source/conf.py`

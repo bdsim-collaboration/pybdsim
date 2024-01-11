@@ -2,7 +2,7 @@
 Licence & Disclaimer
 ====================
 
-pybdsim Copyright (C) Royal Holloway, University of London 2023
+pybdsim Copyright (C) Royal Holloway, University of London 2024
 
 pybdsim is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published

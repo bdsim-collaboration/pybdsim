@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pybdsim'
-copyright = u'Royal Holloway, University of London 2023'
+copyright = u'Royal Holloway, University of London 2024'
 author = u'L Nevay, A Abramov, S Alden, S Boogert, C. Hernalsteens, F. Metzger, W Parker, E. Ramoisiaux, W Shields, J Snuverink, R Tesse, S Walker'
 
 # The version info for the project you're documenting, acts as replacement for

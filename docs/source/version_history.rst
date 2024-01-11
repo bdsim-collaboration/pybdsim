@@ -2,7 +2,7 @@
 Version History
 ===============
 
-V3.6.0 - 2023 / XX / XX
+V3.6.0 - 2024 / 01 / 12
 =======================
 
 * :code:`pybdsim.Plot.Spectra` arguments have changed from `scalingFactors` to
@@ -32,8 +32,8 @@ V3.6.0 - 2023 / XX / XX
   file with a custom filter function. The function should take an event as an argument
   and return True or False for whether to keep that event in the skimmed file. Allows
   more complex filtering than the :code:`bdskim` tool.
-  
-  
+* Update copyright year.
+
 
 V3.5.1 - 2023 / 10 / 03
 =======================
@@ -42,6 +42,7 @@ V3.5.1 - 2023 / 10 / 03
 * Tight layout for 2D histogram plots.
 * Automatically upgrade the default matplotlib png resolution to 500 dpi if
   saving a figure as a png for 2D histogram plots.
+
 
 V3.5.0 - 2023 / 08 / 25
 =======================
