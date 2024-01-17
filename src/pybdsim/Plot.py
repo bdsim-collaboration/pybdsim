@@ -820,9 +820,9 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         if colourbar:
             _plt.colorbar(im, label=zlabel, cax=cax)
     else:
-        ax.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', vmin=vmin, vmax=vmax,**imshowKwargs)
+        axim = ax.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', vmin=vmin, vmax=vmax,**imshowKwargs)
         if colourbar:
-            _plt.colorbar(format='%.0e', label=zlabel, cax=cax)
+            _plt.colorbar(axim, format='%.0e', label=zlabel, cax=cax)
 
     ax.set_aspect(aspect)
 
