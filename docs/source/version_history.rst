@@ -2,6 +2,13 @@
 Version History
 ===============
 
+V3.6.1 - 2024 / 01 / 30
+=======================
+
+* Bug fix for type comparison when plotting optics.
+* Improve documentation for plotting multiple machines / optics.
+
+
 V3.6.0 - 2024 / 01 / 12
 =======================
 
