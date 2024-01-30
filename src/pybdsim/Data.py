@@ -761,7 +761,7 @@ class BDSAsciiData(list):
             lastSpos = self.GetColumn('S')[-1]
 
         for machine in args:
-            if isinstance(machine,_np.str):
+            if isinstance(machine, str):
                 machine = Load(machine)
 
             #check names sets are equal
@@ -2532,7 +2532,7 @@ def IsSurvey(file):
     """
     Checks if input is a BDSIM generated survey
     """
-    if isinstance(file,_np.str):
+    if isinstance(file, str):
         machine = Load(file)
     elif isinstance(file, BDSAsciiData):
         machine = file
