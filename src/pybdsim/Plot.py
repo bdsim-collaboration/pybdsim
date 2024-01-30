@@ -445,6 +445,11 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
     Display all the optical function plots for a rebdsim optics root file. By default, this saves all optical
     functions into a single (outputfilename) pdf, to save the optical functions separately, supply an
     outputfilename with saveall=false.
+
+    :param rebdsimOpticsOutput: input file name or BDSAsciiData instance.
+    :type rebdsimOpticsOutput: str, pybdsim.Data.BDSAsciiData
+    :param outputfilename: desired output filename for optics plot
+    :type outputfilename: str
     """
     bdsdata = rebdsimOpticsOutput
     if type(bdsdata) is str:

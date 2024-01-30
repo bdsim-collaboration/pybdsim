@@ -7,8 +7,8 @@ pybdsim includes functions for common plots useful for BDSIM.
 BDSIM Optics
 ------------
 
-With a model, use :code:`sample, all;` in the input GMAD to give a sampler behind every
-element. Then calculate the optics and plot just those on their own.
+With a BDSIM model, use :code:`sample, all;` in the input GMAD file to put a sampler
+behind every element. Then calculate the optics and plot just those on their own.
 
 ::
 
@@ -17,8 +17,26 @@ element. Then calculate the optics and plot just those on their own.
    ls
      o1.root   o1_optics.root
 
+   ipython
+   >>> import pybdsim
+   >>> pybdsim.Plot.BDSIMOptics("o1_optics.root")
 
->>> pybdsim.Plot.BDSIMOptics("o1_optics.root")
+
+BDSIM Optics For Multiple Machines
+**********************************
+
+In some cases, a model may be split into different sections, such as before
+and after a degrader or target where we select a different beam afterwards
+and have different optics for a different momenta particle. In this case,
+even if you run two models to check the optics, you can plot them together.
+
+::
+
+    import pybdsim
+    partA = pybdsim.Data.Load("partA_optics.root").optics
+    partB = pybdsim.Data.Load("partB_optics.root").optics
+    partA.ConcatenateMachine(partB)
+    pybdsim.Plot.BDSIMOptics(partA)
 
 
 Histogram Plotting
@@ -37,8 +55,8 @@ histograms.
 
 
 .. figure:: figures/simpleHistogramPlot.png
-	    :width: 100%
-	    :align: center
+        :width: 100%
+        :align: center
 
 
 
