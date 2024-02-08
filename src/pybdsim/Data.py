@@ -761,7 +761,7 @@ class BDSAsciiData(list):
             lastSpos = self.GetColumn('S')[-1]
 
         for machine in args:
-            if isinstance(machine,_np.str):
+            if isinstance(machine, str):
                 machine = Load(machine)
 
             #check names sets are equal
@@ -1325,6 +1325,9 @@ class TH3(TH2):
         """
         Write the contents to a text file. Optionally multiply contents by a numerical factor.
 
+        Adds the histogram name (self.name) to the filename, e.g. filename-name.dat. Returns
+        name that was built up.
+
         :param filename: output name to write to - can optionally include .dat suffix.
         :type filename: str
         :param scalingFactor: numerical factor to multiply all contents by on writing out only.
@@ -1335,13 +1338,15 @@ class TH3(TH2):
         filename = str(filename)
         if filename.endswith('.dat'):
             filename = filename[:-4]
-        fn = filename + "_" + self.name + ".dat"
+        fn = filename + "-" + self.name + ".dat"
         fo = open(fn, "w")
         shape = self.contents.shape
         if comments:
             for comment in comments:
                 fo.write("# " + str(comment) + "\n")
         fo.write("# scalingFactor: "+str(scalingFactor)+"\n")
+        fo.write("# unscaled integral: "+str(self.integral)+" +- "+str(self.integralError)+"\n")
+        fo.write("# scaled integral: " + str(self.integral*scalingFactor) + " +- " + str(self.integralError*scalingFactor) + "\n")
         fo.write("# " + "\t".join(["nx:", str(self.nbinsx), "xmin[m]:", str(self.xrange[0]), "xmax[m]:", str(self.xrange[1])]) + "\n")
         fo.write("# " + "\t".join(["ny:", str(self.nbinsy), "ymin[m]:", str(self.yrange[0]), "ymax[m]:", str(self.yrange[1])]) + "\n")
         fo.write("# " + "\t".join(["nz:", str(self.nbinsz), "zmin[m]:", str(self.zrange[0]), "zmax[m]:", str(self.zrange[1])]) + "\n")
@@ -1355,6 +1360,7 @@ class TH3(TH2):
                     stringsFW = ['%18s' % s for s in strings]
                     fo.write("\t".join(stringsFW) + "\n")
         fo.close()
+        return fn
 
     
 class BDSBH4D():
@@ -2526,7 +2532,7 @@ def IsSurvey(file):
     """
     Checks if input is a BDSIM generated survey
     """
-    if isinstance(file,_np.str):
+    if isinstance(file, str):
         machine = Load(file)
     elif isinstance(file, BDSAsciiData):
         machine = file
