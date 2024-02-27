@@ -4,6 +4,7 @@ import os as _os
 import pickle as _pickle
 import numpy as _np
 import itertools as _itertools
+import copy as _copy
 
 def BeamPrincipleRayTemplate(file_name=None,
                              position_deviation = 1e-6,
@@ -23,10 +24,10 @@ def BeamPrincipleRayTemplate(file_name=None,
     particles.append(_np.array([ 0,-angular_deviation,0,0,0,0]))
     particles.append(_np.array([ 0,0,0,angular_deviation,0,0]))
     particles.append(_np.array([ 0,0,0,-angular_deviation,0,0]))
-    particles.append(_np.array([ 0,0,0,0,energy_deviation,0]))
-    particles.append(_np.array([ 0,0,0,0,-energy_deviation,0]))
-    particles.append(_np.array([ 0,0,0,0,0,time_deviation]))
-    particles.append(_np.array([ 0,0,0,0,0,-time_deviation]))
+    particles.append(_np.array([ 0,0,0,0,time_deviation,0]))
+    particles.append(_np.array([ 0,0,0,0,-time_deviation,0]))
+    particles.append(_np.array([ 0,0,0,0,0,energy_deviation]))
+    particles.append(_np.array([ 0,0,0,0,0,-energy_deviation]))
 
     # form tensor product
     if tensor_product :
@@ -35,7 +36,6 @@ def BeamPrincipleRayTemplate(file_name=None,
             l = list(i)
             l.sort()
             if l[0] != l[1]:
-                print(l)
                 s.add(tuple(l))
 
         # add new tensor particles
@@ -46,7 +46,7 @@ def BeamPrincipleRayTemplate(file_name=None,
     particles = _np.array(particles)
 
     # put back energy
-    particles[:,4] = particles[:,4] + energy
+    particles[:,5] = particles[:,5] + energy
 
     # write inray file
     if file_name :
@@ -57,7 +57,8 @@ def BeamPrincipleRayTemplate(file_name=None,
 
 def GmadTemplate(file_name_in, file_name_out, replacement_dict ={}, template_dir="./") :
     """
-    **GmadTemplate** render gmad template. Keys in the template should be of the form {{ string }}
+    **GmadTemplate** render gmad template. Keys in the template should
+    be of the form {{ string }}
 
 
     Example:
@@ -76,37 +77,71 @@ def GmadTemplate(file_name_in, file_name_out, replacement_dict ={}, template_dir
         file.write(content)
         print(f"... wrote {file_name_out}")
 
-def ScanParameter(file_name_in,
-                  parameter_key,
-                  parameter_steps = [],
-                  replacement_dict = {},
-                  analysis_function = None,
-                  template_dir="./",
-                  keep_files = False,
-                  numpy_output = True,
-                  pickle_output = True) :
+def ScanParameter1D(file_name_in,
+                    parameter_key,
+                    parameter_steps = [],
+                    replacement_dict = {},
+                    analysis_function = None,
+                    template_dir="./",
+                    keep_files = False,
+                    numpy_output = True,
+                    pickle_output = True,
+                    full_file_name = False) :
     """
-    **ScanParameter** loop variable, render gmad templat, run bdsim and perform analysis. The variables in the template
-    file need to be in the form {{ key }}
+    **ScanParameter1D** loop variable, render gmad template, run bdsim and perform analysis.
+    The variables in the template file need to be in the form {{ key }}
 
     Example:
 
     >>> def deltaE(filename) :
    ...:     return pybdsim.Analysis.CalculateEnergyGain(filename,"d1","rf1")
-    >>> pybdsim.Analysis.ScanParameter('drift.tem','RFCAVITY_FREQUENCY',range(0,100,10), analysis_function = deltaE)
+    >>> pybdsim.Analysis.ScanParameter1D(file_name_in = 'drift.tem',
+                                         parameter_key = 'RFCAVITY_FREQUENCY',
+                                         parameter_steps = [10,20,30],
+                                         analysis_function = deltaE)
 
+    +-----------------+---------------------------------------------------------+
+    | **Parameters**  | **Description**                                         |
+    +-----------------+---------------------------------------------------------+
+    | file_name_in    | Template gmad file                                      |
+    +-----------------+---------------------------------------------------------+
+    | parameter_key   | Template key to scan                                    |
+    +-----------------+---------------------------------------------------------+
+    | parameter_steps | list or range of parameter steps                        |
+    +-----------------+---------------------------------------------------------+
+    | replacement_dict| Dict ok template key - value pairs                      |
+    +-----------------+---------------------------------------------------------+
+    | analysis_funct  | Function to be run for each parameter step              |
+    +-----------------+---------------------------------------------------------+
+    | template_dir    | Directory of template                                   |
+    +-----------------+---------------------------------------------------------+
+    | keep_files      | True : keep rendered gmad files and root files          |
+    +-----------------+---------------------------------------------------------+
+    | numpy_output    | True : Store analysis function output in numpy file     |
+    +-----------------+---------------------------------------------------------+
+    | pickle_output   | True : Store analysis function output in pickle file    |
+    +-----------------+---------------------------------------------------------+
+    | full_file_name  | True : Expand replacement_dict for output file names    |
+    +-----------------+---------------------------------------------------------+
     returns [parameter_steps, list of analysis_function return type]
     """
 
 
     analysis_function_return = []
 
+    # expand parameter dict for name
+    extended_file_name = ""
+
+    if full_file_name :
+        for k in replacement_dict:
+            extended_file_name += "_"+k+"_"+str(replacement_dict[k])
+
     for parameter in parameter_steps :
 
         # gmad outout file name
-        gmad_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(parameter)+".gmad"
+        gmad_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(parameter)+extended_file_name+".gmad"
         # root output file name
-        root_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(parameter)
+        root_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(parameter)+extended_file_name
 
         # add parameter to replacement dict
         replacement_dict[parameter_key] = parameter
@@ -115,12 +150,13 @@ def ScanParameter(file_name_in,
         GmadTemplate(file_name_in, gmad_name_out, replacement_dict, template_dir)
 
         # run bdsim
-        _Run.Bdsim(gmad_name_out, root_name_out, silent=True, ngenerate=25000)
+        _Run.Bdsim(gmad_name_out, root_name_out, silent=True, ngenerate=10000)
 
         # run analysis function
-        analysis_return = analysis_function(root_name_out+".root")
-        print(analysis_return)
-        analysis_function_return.append(analysis_return)
+        if analysis_function :
+            analysis_return = analysis_function(root_name_out+".root")
+            print(analysis_return)
+            analysis_function_return.append(analysis_return)
 
         # run optics program
 
@@ -146,6 +182,87 @@ def ScanParameter(file_name_in,
             _np.save(f, analysis_function_return)
 
     return [parameter_steps, analysis_function_return]
+
+
+def ScanParameter2D(file_name_in,
+                    parameter_key1,
+                    parameter_key2,
+                    parameter_steps1 = [],
+                    parameter_steps2 = [],
+                    replacement_dict = {},
+                    analysis_function = None,
+                    template_dir="./",
+                    keep_files = False,
+                    numpy_output = False,
+                    pickle_output = True) :
+    """
+    **ScanParameter2D** double loop over 2 variable variable , render gmad template,
+    run bdsim and perform analysis. The variables in the template file need to be in
+    the form {{ key }}
+
+    Example:
+
+    >>> pybdsim.Analysis.ScanParameter2D(file_name_in = 'drift.tem',
+                                         parameter_key1 = 'RBEND_LENGTH',
+                                         parameter_key2 = 'RBEND_ANGLE',
+                                         parameter_steps1 = [1,2,3],
+                                         parameter_steps2 = [0.05,0.10,0.15],
+                                         analysis_function = None)
+
+    +-----------------+---------------------------------------------------------+
+    | **Parameters**  | **Description**                                         |
+    +-----------------+---------------------------------------------------------+
+    | file_name_in    | Template gmad file                                      |
+    +-----------------+---------------------------------------------------------+
+    | parameter_key1  | First template key to scan                              |
+    +-----------------+---------------------------------------------------------+
+    | parameter_key2  | Second template key to scan                             |
+    +-----------------+---------------------------------------------------------+
+    | parameter_steps1| list or range of parameter steps for key1               |
+    +-----------------+---------------------------------------------------------+
+    | parameter_steps2| list or range of parameter steps for key2               |
+    +-----------------+---------------------------------------------------------+
+    | replacement_dict| Dict ok template key - value pairs                      |
+    +-----------------+---------------------------------------------------------+
+    | analysis_funct  | Function to be run for each parameter step              |
+    +-----------------+---------------------------------------------------------+
+    | template_dir    | Directory of template                                   |
+    +-----------------+---------------------------------------------------------+
+    | keep_files      | True : keep rendered gmad files and root files          |
+    +-----------------+---------------------------------------------------------+
+    | numpy_output    | True : Store analysis function output in numpy file     |
+    +-----------------+---------------------------------------------------------+
+    | pickle_output   | True : Store analysis function output in pickle file    |
+    +-----------------+---------------------------------------------------------+
+    | full_file_name  | True : Expand replacement_dict for output file names    |
+    +-----------------+---------------------------------------------------------+
+    returns [parameter_steps, list of analysis_function return type]
+    """
+
+    parameter_steps = []
+    analysis_function_return = []
+
+    for parameter1 in parameter_steps1 :
+        replacement_dict_new = _copy.copy(replacement_dict)
+        replacement_dict_new[parameter_key1] = parameter1
+        r = ScanParameter1D(file_name_in, parameter_key2, parameter_steps2,
+                            replacement_dict_new, analysis_function, template_dir,
+                            keep_files = keep_files,
+                            numpy_output = False,
+                            pickle_output = False,
+                            full_file_name= True)
+
+        analysis_function_return.append(r)
+
+
+    if pickle_output :
+        with open(file_name_in.replace(".tem","")+"_"+parameter_key1+"_"+parameter_key2+".pkl", 'wb') as f:
+            _pickle.dump([parameter_steps1, analysis_function_return], f)
+
+    if numpy_output :
+        with open(file_name_in.replace(".tem","")+"_"+parameter_key1+"_"+parameter_key2+".npy", 'wb') as f:
+            _np.save(f, parameter_steps)
+            _np.save(f, analysis_function_return)
 
 def LoadScanOutput(file_name) :
     with open(file_name, 'rb') as f:
