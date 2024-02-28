@@ -738,10 +738,22 @@ class Rmat(Element):
                  r21, r22, r23, r24,
                  r31, r32, r33, r34,
                  r41, r42, r43, r44,  **kwargs):
-        Element.__init__(self, name, 'rmatrix', l=l, r11=r11, r12=r12, r13=r13, r14=r14,
-                         r21=r21, r22=r22, r23=r23, r24=r24,
-                         r31=r31, r32=r32, r33=r33, r34=r34,
-                         r41=r41, r42=r42, r43=r43, r44=r44, **kwargs)
+        Element.__init__(self, name, 'rmatrix', l=l,
+                         rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                         rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                         rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                         rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44, **kwargs)
+
+class ThinRmat(Element):
+    def __init__(self, name, r11, r12, r13, r14,
+                 r21, r22, r23, r24,
+                 r31, r32, r33, r34,
+                 r41, r42, r43, r44,  **kwargs):
+        Element.__init__(self, name, 'thinrmatrix',
+                         rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                         rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                         rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                         rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44, **kwargs)
 
 
 class Sampler(object):

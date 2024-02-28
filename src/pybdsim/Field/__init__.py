@@ -30,5 +30,5 @@ from .FieldPlotter import Plot3DXZ
 
 try:
     from .FieldPlotterVtk import Plot3DXYZVtk
-except ImportError:
+except ImportError :
     hasVtk = False
