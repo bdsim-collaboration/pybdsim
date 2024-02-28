@@ -1417,6 +1417,14 @@ class Machine(object):
                        "instance or an iterable of Builder.Material instances.")
                 raise TypeError(msg)
 
+
+    def AddNewColour(self, colour):
+        """
+        Add a Builder.NewColoour instance to this machine.
+        """
+
+        self.objects.append(colour)
+
     def AddBeam(self, beam=None):
         """
         Assign a beam instance to this machine. If no Beam instance is provided,
@@ -1711,6 +1719,9 @@ class Machine(object):
     def AddCrystal(self, name, **kwargs):
         self.objects.append(Crystal(name, **kwargs))
 
+
+    def AddScorer(self, name, **kwargs):
+        self.objects.append(Scorer(name, **kwargs))
     def AddScorerMesh(self, name, **kwargs):
         self.objects.append(ScorerMesh(name, **kwargs))
 
