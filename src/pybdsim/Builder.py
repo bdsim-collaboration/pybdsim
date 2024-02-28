@@ -1238,7 +1238,7 @@ class Machine(object):
         names = list(self.elements.keys())
         self.UpdateElements(names, parameter, value)
 
-    def InsertAndReplace(self, newElement, sLocation):
+    def InsertAndReplace(self, newElement, sLocation = 0, element_name = None):
         """
         New element will be placed at the central s location.
         """
@@ -1256,6 +1256,10 @@ class Machine(object):
             l = ne.length
             CheckName(ne.name)
 
+        if sLocation == 0 and element_name :
+            s = _np.array(self.lenint)[_np.array(self.sequence) == element_name][0]
+        if sLocation != 0 and element_name :
+            print("Using sLocation and not element_name")
 
         if l == 0:
             raise ValueError("Cannot be used to insert thin elements")
