@@ -1022,7 +1022,7 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, nbins=None, outputfilenam
 
 def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf',
                            nbins=None, energy='total', offsetTime=True, includeSecondaries=False,
-                           coordsTitle=None, correlationTitle=None, scalefactors={}, labels={},
+                           coordsTitle="", correlationTitle="", scalefactors={}, labels={},
                            log1daxes=False, log2daxes=False, includeColorbar=True):
     """
     Plot the coordinates and correlations of both the transverse and longitudinal phase space in separate plots
@@ -1271,24 +1271,28 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
         e[3].set_norm(normlong)
 
     # set titles, and adjust layout
-    if correlationTitle is None:
+    # if an empty string (but not None) use a default
+    if correlationTitle == "":
         correlationTitle = 'Correlations at ' + sd.samplerName
-    if coordsTitle is None:
-        coordsTitle = 'Coordinates at '+ sd.samplerName
+    if correlationTitle is not None:
+        fcorrTrans.suptitle(correlationTitle, fontsize='xx-large')
+        fcorrLong.suptitle(correlationTitle, fontsize='xx-large')
 
-    fcoordTrans.suptitle(coordsTitle, fontsize='xx-large')
+    if coordsTitle == "":
+        coordsTitle = 'Coordinates at '+ sd.samplerName
+    if coordsTitle is not None:
+        fcoordTrans.suptitle(coordsTitle, fontsize='xx-large')
+        fcoordLong.suptitle(coordsTitle, fontsize='xx-large')
+
     fcoordTrans.tight_layout()
     fcoordTrans.subplots_adjust(top=0.92)
 
-    fcorrTrans.suptitle(correlationTitle, fontsize='xx-large')
     fcorrTrans.tight_layout()
     fcorrTrans.subplots_adjust(top=0.92)
 
-    fcoordLong.suptitle(coordsTitle, fontsize='xx-large')
     fcoordLong.tight_layout()
     fcoordLong.subplots_adjust(top=0.92)
 
-    fcorrLong.suptitle(correlationTitle, fontsize='xx-large')
     fcorrLong.tight_layout()
     fcorrLong.subplots_adjust(top=0.92)
 
