@@ -268,6 +268,8 @@ def _LoadBdsimCoordsAndConvert(inputfile, samplername, start, ninrays, isPrimari
         # use design energy for primaries as a significant mean offset can exist with small number of particles
         beam = _Data.BeamData(data)
         Em = beam.beamEnergy
+        if Em == 0:
+            Em = beam.beamKineticEnergy + mass
     else:
         # Use the mean energy as there may have been a designed energy change (from RF, degrader, etc)
         Em = _np.mean(E)
