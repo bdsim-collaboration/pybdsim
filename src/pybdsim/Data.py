@@ -193,6 +193,12 @@ def _LoadRoot(filepath):
         d.header = Header(HeaderTree=d.GetHeaderTree())
         if d.header.nOriginalEvents == 0:
             d.header.nOriginalEvents = int(d.GetEventTree().GetEntries())
+
+        def AddRun() :
+            d.run = Run(RunTree=d.GetRunTree())
+
+        d.AddRun = AddRun
+
         return d
     elif fileType == "REBDSIM":
         print('REBDSIM analysis file - using RebdsimFile')
@@ -355,6 +361,64 @@ class Header:
         for variable in ["nEventsRequested", "nEventsInFileSkipped", "nEventsInFile", "distrFileLoopNTimes"]:
             if hasattr(hi, variable):
                 setattr(self, variable, int(getattr(hi, variable)))
+
+class Run:
+    """
+    A simple Python version of a run in a BDSIM file for
+    easy access to the data.
+    """
+
+    class _Summary :
+        def __init__(inner, ri):
+            inner.startTime = ri.Summary.startTime
+            inner.stopTime = ri.Summary.stopTime
+            inner.durationWall = ri.Summary.durationWall
+            inner.durationCPU = ri.Summary.durationCPU
+            inner.seedState = "TODO"
+
+    class _Histos :
+        def __init__(inner,ri):
+            inner.histograms1d = {}
+            inner.histograms2d = {}
+            inner.histograms3d = {}
+            inner.histograms4d = {}
+            inner.histograms1dpy = {}
+            inner.histograms2dpy = {}
+            inner.histograms3dpy = {}
+            inner.histograms4dpy = {}
+
+            # loop over 3d histograms
+            for h in ri.Histos.Get1DHistograms() :
+                inner.histograms1d[h.GetName()] = h
+                inner.histograms1dpy[h.GetName()] = TH1(h)
+
+            # loop over 3d histograms
+            for h in ri.Histos.Get2DHistograms() :
+                inner.histograms2d[h.GetName()] = h
+                inner.histograms2dpy[h.GetName()] = TH2(h)
+
+            # loop over 3d histograms
+            for h in ri.Histos.Get3DHistograms() :
+                inner.histograms3d[h.GetName()] = h
+                inner.histograms3dpy[h.GetName()] = TH3(h)
+
+            # loop over 3d histograms
+            for h in ri.Histos.Get4DHistograms() :
+                inner.histograms4d[h.GetName()] = h
+                inner.histograms4dpy[h.GetName()] = TH4(h)
+
+    def __init__(self, **kwargs):
+        if 'RunTree' in kwargs:
+            self._FillFromRunTree(kwargs['RunTree'])
+
+    def _FillFromRunTree(self, rt):
+        for ri in rt:
+            self._Fill(ri)
+
+    def _Fill(self, ri):
+        self.Summary = self._Summary(ri)
+        self.Histos = self._Histos(ri)
+
 
 class Spectra:
     def __init__(self, nameIn=None):
