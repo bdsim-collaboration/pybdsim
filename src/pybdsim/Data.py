@@ -195,6 +195,9 @@ def _LoadRoot(filepath):
             d.header.nOriginalEvents = int(d.GetEventTree().GetEntries())
 
         def AddRun() :
+            """
+            Add pythonic conversion of run tree (including run histograms)
+            """
             d.run = Run(RunTree=d.GetRunTree())
 
         d.AddRun = AddRun
