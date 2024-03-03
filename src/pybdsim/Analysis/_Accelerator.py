@@ -174,12 +174,11 @@ def CavityBodyTransverseMatrix(gammaI, gammaF, L, alpha, eta, deltaPhi) :
     +-----------------+---------------------------------------------------------+
     '''
 
-
     gammaPrime = (gammaF - gammaI)/L
     return _np.array([[_np.cos(alpha), _np.sqrt(8/eta)*gammaI/gammaPrime*_np.cos(deltaPhi)*_np.sin(alpha)],
                       [-_np.sqrt(eta/8)*gammaPrime/(gammaF*_np.cos(deltaPhi))*_np.sin(alpha), gammaI/gammaF*_np.cos(alpha)]])
 
-def CavityFringeTransverseMatrix(gammaI, gammaF, inward = True, gammaPrime = None) :
+def CavityFringeTransverseMatrix(gammaI, gammaF, L = 1, inward = True, gammaPrime = None) :
     '''
     Calculates RF cavity fringe transverse matrix.
 
@@ -203,8 +202,8 @@ def CavityFringeTransverseMatrix(gammaI, gammaF, inward = True, gammaPrime = Non
     +-----------------+---------------------------------------------------------+
     '''
 
-    if not gammaPrime:
-        gammaPrime = gammaF - gammaI
+    if not gammaPrime and L != 0:
+        gammaPrime = (gammaF - gammaI)/L
 
     if inward:
         gammaPrime = -gammaPrime
