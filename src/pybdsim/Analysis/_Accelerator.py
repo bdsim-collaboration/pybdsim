@@ -139,7 +139,12 @@ def TransitTimeFactorWavelength(length, wavelength, beta = 1) :
     argument = _np.pi*length/(beta*wavelength)
     return _np.sinc(argument)
 
-def CavityBodyTransverseMatrix(gammaI, gammaF, alpha, eta, deltaPhi) :
+def CavityBodyConstantEMatrix(gammaI, gammaF, L) :
+    gammaPrime = (gammaF-gammaI)/L
+
+    return _np.array([[1, gammaI/gammaPrime*_np.log(gammaF/gammaI)],[0, gammaI/gammaF]])
+
+def CavityBodyTransverseMatrix(gammaI, gammaF, L, alpha, eta, deltaPhi) :
     '''
     Calculates RF cavity body transverse matrix.
 
@@ -170,7 +175,7 @@ def CavityBodyTransverseMatrix(gammaI, gammaF, alpha, eta, deltaPhi) :
     '''
 
 
-    gammaPrime = gammaF - gammaI
+    gammaPrime = (gammaF - gammaI)/L
     return _np.array([[_np.cos(alpha), _np.sqrt(8/eta)*gammaI/gammaPrime*_np.cos(deltaPhi)*_np.sin(alpha)],
                       [-_np.sqrt(eta/8)*gammaPrime/(gammaF*_np.cos(deltaPhi))*_np.sin(alpha), gammaI/gammaF*_np.cos(alpha)]])
 
@@ -237,4 +242,4 @@ def CavityBodyEta(bn, bmn, deltaPhi) :
     return (bn**2 + bmn**2 + 2*bn*bmn*_np.cos(2*deltaPhi)).sum()
 
 def CavityBodyAlpha(gammaI, gammaF, eta, deltaPhi) :
-    return _np.sqrt(eta/8)/_np.cos(deltaPhi)*_np.log(gammaF/gammaI)
+    return _np.sqrt(eta/8.0)/_np.cos(deltaPhi)*_np.log(gammaF/gammaI)
