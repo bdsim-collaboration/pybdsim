@@ -6,6 +6,8 @@ import numpy as _np
 import itertools as _itertools
 import copy as _copy
 
+_np.set_printoptions(edgeitems=30, linewidth=100000, formatter=dict(float=lambda x: "%.3g" % x))
+
 def BeamPrincipleRayTemplate(file_name=None,
                              position_deviation = 1e-6,
                              angular_deviation = 1e-6,
@@ -84,7 +86,7 @@ def ScanParameter1D(file_name_in,
                     analysis_function = None,
                     template_dir="./",
                     keep_files = False,
-                    numpy_output = True,
+                    numpy_output = False,
                     pickle_output = True,
                     full_file_name = False) :
     """
@@ -139,9 +141,9 @@ def ScanParameter1D(file_name_in,
     for parameter in parameter_steps :
 
         # gmad outout file name
-        gmad_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(parameter)+extended_file_name+".gmad"
+        gmad_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(_np.round(parameter,2))+extended_file_name+".gmad"
         # root output file name
-        root_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(parameter)+extended_file_name
+        root_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(_np.round(parameter,2))+extended_file_name
 
         # add parameter to replacement dict
         replacement_dict[parameter_key] = parameter
