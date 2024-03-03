@@ -2,6 +2,7 @@ from ._GmadTemplate import ScanParameter1D as _ScanParameter1D
 from ._GmadTemplate import ScanParameter2D as _ScanParameter2D
 from ._Calculate import CalculateRMatrix as _CalculateRMatrix
 from ._Calculate import CalculateTaylorMapOrder2 as _CalculateTaylorMapOrder2
+from ._Calculate import CalculateEnergyGain as _CalculateEnergyGain
 import numpy as _np
 
 '''
@@ -9,10 +10,16 @@ import numpy as _np
 '''
 
 def linear(filename) :
-    return _CalculateRMatrix(filename, "d1", "t1")
+    return _CalculateRMatrix(filename, "d1", "t1",size=4)
 
 def taylor(filename):
     return _CalculateTaylorMapOrder2(filename, "d1", "t1")
+
+def gain(filename):
+    return _CalculateEnergyGain(filename, "d1", "t1")
+
+def cavity(filename) :
+    return [_CalculateRMatrix(filename, "d1", "t1",size=4),_CalculateEnergyGain(filename, "d1", "t1")]
 
 def T01_drift() :
     return _ScanParameter1D("./01_drift.tem",
@@ -53,3 +60,14 @@ def T06_sextupole() :
                             {"BEAM_ENERGY": "5",
                              "SEXTUPOLE_LENGTH":"1.0"}, taylor)
 
+def T13_rf() :
+    return _ScanParameter1D("./13_rf.tem",
+                            "RF_FREQUENCY",
+                            _np.linspace(0, 500, 1),
+                            {"BEAM_ENERGY": "5",
+                             "RF_LENGTH":"0.2",
+                             "RF_GRADIENT":"32",
+#                             "RF_FIELD_TYPE":'\"rfconstantinz\"'},
+                             "RF_FIELD_TYPE":'\"rfpillbox\"'},
+                             cavity,
+                            keep_files=True)
