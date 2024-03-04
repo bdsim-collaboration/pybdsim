@@ -66,7 +66,7 @@ def T13_rf() :
                             _np.linspace(0, 500, 1),
                             {"BEAM_ENERGY": "5",
                              "RF_LENGTH":"0.2",
-                             "RF_GRADIENT":"32",
+                             "RF_GRADIENT":"20",
 #                             "RF_FIELD_TYPE":'\"rfconstantinz\"'},
                              "RF_FIELD_TYPE":'\"rfpillbox\"'},
                              cavity,

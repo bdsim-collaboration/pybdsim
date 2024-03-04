@@ -214,6 +214,12 @@ def CavityFringeTransverseMatrix(gammaI, gammaF, L = 1, inward = True, gammaPrim
     return _np.array([[1,                   0],
                       [gammaPrime/(2*gamma),1]])
 
+
+def CavityPiModeComplete(gammaI, gammaF, L, alpha) :
+    gammaPrime = (gammaF-gammaI)/L
+    return _np.array([[_np.cos(alpha )-_np.sqrt(2)*_np.sin(alpha),_np.sqrt(8)*gammaI/gammaPrime*_np.sin(alpha)],
+                      [-3*gammaPrime/(_np.sqrt(8)*gammaF)*_np.sin(alpha),gammaI/gammaF*(_np.cos(alpha)+_np.sqrt(2)*_np.sin(alpha))]])
+
 def CavityGammaPrime(E0, deltaPhi, q = 1, m0 = 0.511) :
     '''
     Calculates RF cavity energy gain (inits are energy MeV, momentum MeV/c, mass MeV/c**2)
