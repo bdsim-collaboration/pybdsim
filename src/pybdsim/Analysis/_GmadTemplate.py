@@ -88,7 +88,8 @@ def ScanParameter1D(file_name_in,
                     keep_files = False,
                     numpy_output = False,
                     pickle_output = True,
-                    full_file_name = False) :
+                    full_file_name = False,
+                    ngenerate=10000) :
     """
     **ScanParameter1D** loop variable, render gmad template, run bdsim and perform analysis.
     The variables in the template file need to be in the form {{ key }}
@@ -128,6 +129,8 @@ def ScanParameter1D(file_name_in,
     returns [parameter_steps, list of analysis_function return type]
     """
 
+    # pop the scan parameter from the replacement dict
+    replacement_dict.pop(parameter_key)
 
     analysis_function_return = []
 
@@ -141,9 +144,9 @@ def ScanParameter1D(file_name_in,
     for parameter in parameter_steps :
 
         # gmad outout file name
-        gmad_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(_np.round(parameter,2))+extended_file_name+".gmad"
+        gmad_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(_np.round(parameter,4))+extended_file_name+".gmad"
         # root output file name
-        root_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(_np.round(parameter,2))+extended_file_name
+        root_name_out = file_name_in.replace(".tem","")+"_"+parameter_key+"_"+str(_np.round(parameter,4))+extended_file_name
 
         # add parameter to replacement dict
         replacement_dict[parameter_key] = parameter
@@ -152,7 +155,7 @@ def ScanParameter1D(file_name_in,
         GmadTemplate(file_name_in, gmad_name_out, replacement_dict, template_dir)
 
         # run bdsim
-        _Run.Bdsim(gmad_name_out, root_name_out, silent=True, ngenerate=10000)
+        _Run.Bdsim(gmad_name_out, root_name_out, silent=True, ngenerate=ngenerate)
 
         # run analysis function
         if analysis_function :
