@@ -60,13 +60,37 @@ def T06_sextupole() :
                             {"BEAM_ENERGY": "5",
                              "SEXTUPOLE_LENGTH":"1.0"}, taylor)
 
+
 def T13_rf() :
     return _ScanParameter1D("./13_rf.tem",
-                            "RF_FREQUENCY",
-                            _np.linspace(0, 500, 1),
-                            {"BEAM_ENERGY": "5",
+                            "RF_GRADIENT",
+                            _np.linspace(100,101,1),
+#                            "BEAM_X0",
+#                            _np.linspace(-1e-3, 1e-3, 11),
+                            {"BEAM_ENERGY": "10",
+                             "BEAM_DISTRTYPE":'\"gausstwiss\"',
+#                             "BEAM_DISTRTYPE":'\"reference\"',
+                             "BEAM_X0":"0",
+                             "BEAM_Y0":"0",
+                             "BEAM_XP0":"0",
+                             "BEAM_YP0":"0",
+                             "RF_GRADIENT":"100",
                              "RF_LENGTH":"0.2",
-                             "RF_GRADIENT":"20",
+                             "RF_FREQUENCY":"747.5",
+#                             "RF_FIELD_TYPE":'\"rfconstantinz\"',
+                             "RF_FIELD_TYPE":'\"rfpillbox\"'},
+                             analysis_function=cavity,
+                             keep_files=True,
+                             ngenerate=10000)
+
+def T13_rf_perle() :
+    return _ScanParameter1D("./13_rf.tem",
+                            "RF_GRADIENT",
+                            _np.linspace(100, 101, 1),
+                            {"BEAM_ENERGY": "7",
+                             "RF_LENGTH":"0.93",
+#                             "RF_GRADIENT":"45",
+                             "RF_FREQUENCY":"801.58",
 #                             "RF_FIELD_TYPE":'\"rfconstantinz\"'},
                              "RF_FIELD_TYPE":'\"rfpillbox\"'},
                              cavity,
