@@ -690,6 +690,62 @@ def SkimBDSIMFile(inputFileName, filterFunction, outputFileName=None):
     header.nEventsInFile = filterTree.GetEntries()
     outfile.Close()
 
+def WriteSamplerDataToROOTFile(inputFileName, outputFileName, samplerName):
+    """
+    Dump the sampler data from a BDSIM file to a ROOT file.
+    Be aware that you will loose the event structure. This will
+    not be suitable for further analysis with BDSIM tools.
+
+    :param inputFileName: raw input BDSIM file.
+    :type inputFileName: str
+    :param outputFileName: specific output file name to write to.
+    :type outputFileName: str
+    :param samplerName: name of the sampler to retrieve the data from.
+    :type samplerName: str
+    """
+
+    x = _np.array([0.0]).astype(_np.double)
+    y = _np.array([0.0]).astype(_np.double)
+    xp = _np.array([0.0]).astype(_np.double)
+    yp = _np.array([0.0]).astype(_np.double)
+    p = _np.array([0.0]).astype(_np.double)
+    partID = _np.array([0]).astype(_np.int32)
+    weight = _np.array([0.0]).astype(_np.double)
+
+    outputFile = _ROOT.TFile(outputFileName, 'recreate')
+    outputTree = _ROOT.TTree(samplerName, samplerName)
+
+    outputTree.Branch("x", x, "x/D")
+    outputTree.Branch("y", y, "y/D")
+    outputTree.Branch("xp", xp, "xp/D")
+    outputTree.Branch("yp", yp, "yp/D")
+    outputTree.Branch("p", p, "p/D")
+    outputTree.Branch("partID", partID, "partID/I")
+    outputTree.Branch("weight", weight, "weight/D")
+
+    inputData = Load(inputFileName)
+    sampler = SamplerData(inputData, samplerName)
+    samplerX = sampler.data['x']
+    samplerY = sampler.data['y']
+    samplerXp = sampler.data['xp']
+    samplerYp = sampler.data['yp']
+    samplerP = sampler.data['p']
+    samplerPartID = sampler.data['partID']
+    samplerWeight = sampler.data['weight']
+
+    for i in range(len(samplerX)):
+        x[0] = samplerX[i]
+        y[0] = samplerY[i]
+        xp[0] = samplerXp[i]
+        yp[0] = samplerYp[i]
+        p[0] = samplerP[i]
+        partID[0] = samplerPartID[i]
+        weight[0] = samplerWeight[i]
+        outputTree.Fill()
+
+    outputTree.Write()
+    outputFile.Close() 
+
 def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     """
     :param tfile: TFile object to write to.
