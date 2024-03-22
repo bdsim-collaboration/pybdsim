@@ -232,6 +232,8 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
             DrawRect(starts[i],lengths[i], u'#808080') #dark grey
         elif kw == 'rf' or kw == 'rfcavity' or kw == 'cavity_pillbox':
             DrawRect(starts[i],lengths[i], u'#768799') #srf grey
+        elif kw == 'gaborlens':
+            DrawRect(starts[i],lengths[i], u'#36a7d0') #cerulean
         else:
             #unknown so make light in alpha
             if lengths[i] > 1e-1:
@@ -352,6 +354,9 @@ _SIGMA_P = [("Sigma_xp", "Sigma_Sigma_xp", r"$\sigma_{xp}$"),
 _MEAN = [("Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
          ("Mean_y", "Sigma_Mean_y", r"$\bar{y}$")]
 
+_EMITT = [("Emitt_x", "Sigma_Emitt_x", r"$\epsilon_{x}$"),
+          ("Emitt_y", "Sigma_Emitt_y", r"$\epsilon_{y}$")]
+
 def _MakePlotter(plot_info_tuples, x_label, y_label, title):
     def f_out(bds, outputfilename=None, survey=None, **kwargs):
         # options
@@ -404,6 +409,7 @@ PlotDispP  = _MakePlotter(_DISP_P,  "S / m", r"$D_{p_{x},p_{y}}$ / m",  "Momentu
 PlotSigma  = _MakePlotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
 PlotSigmaP = _MakePlotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
 PlotMean   = _MakePlotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
+PlotEmittance = _MakePlotter(_EMITT, "S / m", r"$\epsilon_{x,y}$ / m rad", "Emittance")
 
 def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
     # options
@@ -441,6 +447,11 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
     Display all the optical function plots for a rebdsim optics root file. By default, this saves all optical
     functions into a single (outputfilename) pdf, to save the optical functions separately, supply an
     outputfilename with saveall=false.
+
+    :param rebdsimOpticsOutput: input file name or BDSAsciiData instance.
+    :type rebdsimOpticsOutput: str, pybdsim.Data.BDSAsciiData
+    :param outputfilename: desired output filename for optics plot
+    :type outputfilename: str
     """
     bdsdata = rebdsimOpticsOutput
     if type(bdsdata) is str:
@@ -555,6 +566,23 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         _plt.tight_layout()
     
     return _plt.gcf()
+
+def SpectraSelect(spectra, pdgids,
+                  log=False, xlog=False, xlabel=None, ylabel=None, title=None,
+                  scalingFactor=1.0, xScalingFactor=1.0,
+                  figsize=(10,5), legendKwargs={}, vmin=None, vmax=None, **errorbarKwargs):
+
+    spc = _copy.deepcopy(spectra)
+
+    allpdgids = set(spc.pdgids)
+    tokeep = set(pdgids)
+    topop = allpdgids.difference(tokeep)
+    for pdgid in topop:
+        spc.pop(pdgid)
+
+    return Spectra(spc, log, xlog, xlabel, ylabel, title, scalingFactor, xScalingFactor,
+                   figsize, legendKwargs, vmin, vmax, **errorbarKwargs)
+    
 
 def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None,
             scalingFactor=1.0, xScalingFactor=1.0,
@@ -799,9 +827,9 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         if colourbar:
             _plt.colorbar(im, label=zlabel, cax=cax)
     else:
-        ax.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', vmin=vmin, vmax=vmax,**imshowKwargs)
+        axim = ax.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', vmin=vmin, vmax=vmax,**imshowKwargs)
         if colourbar:
-            _plt.colorbar(format='%.0e', label=zlabel, cax=cax)
+            _plt.colorbar(axim, format='%.0e', label=zlabel, cax=cax)
 
     ax.set_aspect(aspect)
 
@@ -996,7 +1024,7 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, nbins=None, outputfilenam
 
 def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf',
                            nbins=None, energy='total', offsetTime=True, includeSecondaries=False,
-                           coordsTitle=None, correlationTitle=None, scalefactors={}, labels={},
+                           coordsTitle="", correlationTitle="", scalefactors={}, labels={},
                            log1daxes=False, log2daxes=False, includeColorbar=True):
     """
     Plot the coordinates and correlations of both the transverse and longitudinal phase space in separate plots
@@ -1245,24 +1273,28 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
         e[3].set_norm(normlong)
 
     # set titles, and adjust layout
-    if correlationTitle is None:
+    # if an empty string (but not None) use a default
+    if correlationTitle == "":
         correlationTitle = 'Correlations at ' + sd.samplerName
-    if coordsTitle is None:
-        coordsTitle = 'Coordinates at '+ sd.samplerName
+    if correlationTitle is not None:
+        fcorrTrans.suptitle(correlationTitle, fontsize='xx-large')
+        fcorrLong.suptitle(correlationTitle, fontsize='xx-large')
 
-    fcoordTrans.suptitle(coordsTitle, fontsize='xx-large')
+    if coordsTitle == "":
+        coordsTitle = 'Coordinates at '+ sd.samplerName
+    if coordsTitle is not None:
+        fcoordTrans.suptitle(coordsTitle, fontsize='xx-large')
+        fcoordLong.suptitle(coordsTitle, fontsize='xx-large')
+
     fcoordTrans.tight_layout()
     fcoordTrans.subplots_adjust(top=0.92)
 
-    fcorrTrans.suptitle(correlationTitle, fontsize='xx-large')
     fcorrTrans.tight_layout()
     fcorrTrans.subplots_adjust(top=0.92)
 
-    fcoordLong.suptitle(coordsTitle, fontsize='xx-large')
     fcoordLong.tight_layout()
     fcoordLong.subplots_adjust(top=0.92)
 
-    fcorrLong.suptitle(correlationTitle, fontsize='xx-large')
     fcorrLong.tight_layout()
     fcorrLong.subplots_adjust(top=0.92)
 

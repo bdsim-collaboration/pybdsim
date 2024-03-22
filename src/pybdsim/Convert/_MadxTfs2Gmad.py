@@ -258,11 +258,16 @@ def MadxTfs2Gmad(tfs, outputfilename,
     itemsomitted = []
 
     # iterate through input file and construct machine
+
+    oldItem = None
+
     for item in madx[startname:stopname:stepsize]:
         name = item['NAME']
         t = item['KEYWORD']
         l = item['L']
         i = item['INDEX']
+
+        _CalculateElementRmat(item,oldItem)
 
         zerolength = True if item['L'] < 1e-9 else False
         if (_WillIgnoreItem(item, madx, ignorezerolengthitems, _ignoreableThinElements)):
@@ -300,6 +305,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                                           aperturedict,
                                                           defaultAperture)
             machine.Append(element_with_aper)
+
+        oldItem = item
 
     if (samplers is not None):
         machine.AddSampler(samplers)
@@ -594,7 +601,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                 else:
                     return _Builder.ECol(rname, l, xsize, ysize, **kws)
         # dict is incomplete or the component is erroneously
-        # reffered to as a collimator even when it can be thought
+        # referred to as a collimator even when it can be thought
         # of as a drift (e.g. LHC TAS).
         elif collimatordict != {}:
             msg = ("{} {} not found in collimatordict."
@@ -620,6 +627,19 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
             return None
         ks = item['KSI'] / l
         return _Builder.Solenoid(rname, l, ks=ks, **kws)
+    elif t == "MATRIX" :
+        if l == 0:
+            return _Builder.ThinRmat(rname,
+                                     item['RMAT11'], item['RMAT12'], item['RMAT13'], item['RMAT14'],
+                                     item['RMAT21'], item['RMAT22'], item['RMAT23'], item['RMAT24'],
+                                     item['RMAT31'], item['RMAT32'], item['RMAT33'], item['RMAT34'],
+                                     item['RMAT41'], item['RMAT42'], item['RMAT43'], item['RMAT44'])
+        else :
+            return _Builder.Rmat(rname,l,
+                                     item['RMAT11'], item['RMAT12'], item['RMAT13'], item['RMAT14'],
+                                     item['RMAT21'], item['RMAT22'], item['RMAT23'], item['RMAT24'],
+                                     item['RMAT31'], item['RMAT32'], item['RMAT33'], item['RMAT34'],
+                                     item['RMAT41'], item['RMAT42'], item['RMAT43'], item['RMAT44'])
     else:
         print('unknown element type:', t, 'for element named: ', name)
         if zerolength and not ignorezerolengthitems:
@@ -678,6 +698,43 @@ def _GetSingleElementWithAper(item, gmadElement,
     gmadElement.update(aper)
     return gmadElement
 
+def _CalculateElementRmat(item, oldItem) :
+
+    if oldItem :
+        m0 = _np.array([[oldItem['RE11'],oldItem['RE12'], oldItem['RE13'], oldItem['RE14']],
+                        [oldItem['RE21'],oldItem['RE22'], oldItem['RE23'], oldItem['RE24']],
+                        [oldItem['RE31'],oldItem['RE32'], oldItem['RE33'], oldItem['RE34']],
+                        [oldItem['RE41'],oldItem['RE42'], oldItem['RE43'], oldItem['RE44']]])
+
+    m1 = _np.array([[item['RE11'],item['RE12'], item['RE13'], item['RE14']],
+                    [item['RE21'],item['RE22'], item['RE23'], item['RE24']],
+                    [item['RE31'],item['RE32'], item['RE33'], item['RE34']],
+                    [item['RE41'],item['RE42'], item['RE43'], item['RE44']]])
+
+    if oldItem :
+        m = _np.dot(m1,_np.linalg.inv(m0))
+    else :
+        m = m1
+
+    item['RMAT11'] = m[0][0]
+    item['RMAT12'] = m[0][1]
+    item['RMAT13'] = m[0][2]
+    item['RMAT14'] = m[0][3]
+
+    item['RMAT21'] = m[1][0]
+    item['RMAT22'] = m[1][1]
+    item['RMAT23'] = m[1][2]
+    item['RMAT24'] = m[1][3]
+
+    item['RMAT31'] = m[2][0]
+    item['RMAT32'] = m[2][1]
+    item['RMAT33'] = m[2][2]
+    item['RMAT34'] = m[2][3]
+
+    item['RMAT41'] = m[3][0]
+    item['RMAT42'] = m[3][1]
+    item['RMAT43'] = m[3][2]
+    item['RMAT44'] = m[3][3]
 
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, extraParamsDict={}):
     """

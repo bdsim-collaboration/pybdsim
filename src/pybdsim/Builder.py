@@ -329,8 +329,8 @@ class ElementModifier(ElementBase):
     >>> f.close()
 
     cat mylattice.gmad
-    qf1, quadrupole, l=0.3, k1=0.00345;
-    qf1, k1=0.0245
+    qf1: quadrupole, l=0.3, k1=0.00345;
+    qf1: k1=0.0245;
 
     This results in the quadrupole strength k1 in this example being
     changed to 0.0245.
@@ -738,10 +738,22 @@ class Rmat(Element):
                  r21, r22, r23, r24,
                  r31, r32, r33, r34,
                  r41, r42, r43, r44,  **kwargs):
-        Element.__init__(self, name, 'rmatrix', l=l, r11=r11, r12=r12, r13=r13, r14=r14,
-                         r21=r21, r22=r22, r23=r23, r24=r24,
-                         r31=r31, r32=r32, r33=r33, r34=r34,
-                         r41=r41, r42=r42, r43=r43, r44=r44, **kwargs)
+        Element.__init__(self, name, 'rmatrix', l=l,
+                         rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                         rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                         rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                         rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44, **kwargs)
+
+class ThinRmat(Element):
+    def __init__(self, name, r11, r12, r13, r14,
+                 r21, r22, r23, r24,
+                 r31, r32, r33, r34,
+                 r41, r42, r43, r44,  **kwargs):
+        Element.__init__(self, name, 'thinrmatrix',
+                         rmat11=r11, rmat12=r12, rmat13=r13, rmat14=r14,
+                         rmat21=r21, rmat22=r22, rmat23=r23, rmat24=r24,
+                         rmat31=r31, rmat32=r32, rmat33=r33, rmat34=r34,
+                         rmat41=r41, rmat42=r42, rmat43=r43, rmat44=r44, **kwargs)
 
 
 class Sampler(object):
@@ -1065,7 +1077,15 @@ class Machine(object):
         """
         return self.length
 
-    def Append(self, item, is_component=False):
+    def Append(self, item, addToSequence=True):
+        """
+        Add an element or sequence to the main sequence.
+
+        :param item: the element or sequence to add
+        :type item: pybdsim.Builder.Element, pybdsim.Builder.Line
+        :param addToSequence: whether the definition is added to the main sequence
+        :type addToSequence: bool
+        """
         if not isinstance(item, (Element, Line)):
             msg = "Only Elements or Lines can be added to the machine"
             raise TypeError(msg)
@@ -1079,10 +1099,11 @@ class Machine(object):
         else:
             if self.verbose:
                 print("Element of name: ",item.name," already defined, simply adding to sequence")
-        # finally add it to the sequence if this is not a base component of the sequence.
-        if not is_component:
-            self.sequence.append(item.name)
 
+        # add to the sequence - optional as we may be appending a parent definition to the list
+        # of objects to write before the main definitions.
+        if addToSequence:
+            self.sequence.append(item.name)
             self.length += item.length
             self.lenint.append(self.length)
 
@@ -1217,7 +1238,7 @@ class Machine(object):
         names = list(self.elements.keys())
         self.UpdateElements(names, parameter, value)
 
-    def InsertAndReplace(self, newElement, sLocation):
+    def InsertAndReplace(self, newElement, sLocation = 0, element_name = None):
         """
         New element will be placed at the central s location.
         """
@@ -1235,6 +1256,10 @@ class Machine(object):
             l = ne.length
             CheckName(ne.name)
 
+        if sLocation == 0 and element_name :
+            s = _np.array(self.lenint)[_np.array(self.sequence) == element_name][0]
+        if sLocation != 0 and element_name :
+            print("Using sLocation and not element_name")
 
         if l == 0:
             raise ValueError("Cannot be used to insert thin elements")
@@ -1391,6 +1416,14 @@ class Machine(object):
                 msg = ("Unknown material! Materials must be a Builder.Material"
                        "instance or an iterable of Builder.Material instances.")
                 raise TypeError(msg)
+
+
+    def AddNewColour(self, colour):
+        """
+        Add a Builder.NewColoour instance to this machine.
+        """
+
+        self.objects.append(colour)
 
     def AddBeam(self, beam=None):
         """
@@ -1686,6 +1719,9 @@ class Machine(object):
     def AddCrystal(self, name, **kwargs):
         self.objects.append(Crystal(name, **kwargs))
 
+
+    def AddScorer(self, name, **kwargs):
+        self.objects.append(Scorer(name, **kwargs))
     def AddScorerMesh(self, name, **kwargs):
         self.objects.append(ScorerMesh(name, **kwargs))
 
