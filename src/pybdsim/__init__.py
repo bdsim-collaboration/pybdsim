@@ -58,6 +58,7 @@ except ImportError:
     __version__ = "unknown version"
     __version_tuple__ = (0, 0, "unknown version")
 
+from . import Analysis
 from . import Beam
 from . import Builder
 from . import Constants

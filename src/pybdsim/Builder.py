@@ -1238,7 +1238,7 @@ class Machine(object):
         names = list(self.elements.keys())
         self.UpdateElements(names, parameter, value)
 
-    def InsertAndReplace(self, newElement, sLocation):
+    def InsertAndReplace(self, newElement, sLocation = 0, element_name = None):
         """
         New element will be placed at the central s location.
         """
@@ -1256,6 +1256,10 @@ class Machine(object):
             l = ne.length
             CheckName(ne.name)
 
+        if sLocation == 0 and element_name :
+            s = _np.array(self.lenint)[_np.array(self.sequence) == element_name][0]
+        if sLocation != 0 and element_name :
+            print("Using sLocation and not element_name")
 
         if l == 0:
             raise ValueError("Cannot be used to insert thin elements")
@@ -1412,6 +1416,14 @@ class Machine(object):
                 msg = ("Unknown material! Materials must be a Builder.Material"
                        "instance or an iterable of Builder.Material instances.")
                 raise TypeError(msg)
+
+
+    def AddNewColour(self, colour):
+        """
+        Add a Builder.NewColoour instance to this machine.
+        """
+
+        self.objects.append(colour)
 
     def AddBeam(self, beam=None):
         """
@@ -1707,6 +1719,9 @@ class Machine(object):
     def AddCrystal(self, name, **kwargs):
         self.objects.append(Crystal(name, **kwargs))
 
+
+    def AddScorer(self, name, **kwargs):
+        self.objects.append(Scorer(name, **kwargs))
     def AddScorerMesh(self, name, **kwargs):
         self.objects.append(ScorerMesh(name, **kwargs))
 
