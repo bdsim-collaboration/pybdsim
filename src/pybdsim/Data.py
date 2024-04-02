@@ -2010,6 +2010,14 @@ class TrajectoryData:
                     p = _np.zeros(len(t))
                     time = _np.zeros(len(t))
 
+                try:
+                    parentIndex = self._trajectory.parentIndex[i]
+                    parentStepIndex = self._trajectory.parentStepIndex[i]
+                    primaryStepIndex = self._trajectory.primaryStepIndex[i]
+                except:
+                    parentIndex = _np.zeros(len(t))
+                    parentStepIndex = _np.zeros(len(t))
+                    primaryStepIndex = _np.zeros(len(t))
 
                 try:
                     prePT = self._trajectory.preProcessTypes[i]
@@ -2021,6 +2029,7 @@ class TrajectoryData:
                     prePST = _np.zeros(len(t))
                     postPT = _np.zeros(len(t))
                     postPST = _np.zeros(len(t))
+
                 try:
                     xyz = self._trajectory.xyz[i]
                     pxpypz = self._trajectory.pxpypz[i]
@@ -2144,7 +2153,6 @@ class TrajectoryData:
 
                 preProcessTypes[j]    = prePT[j]
                 preProcessSubTypes[j] = prePST[j]
-
                 postProcessTypes[j]    = postPT[j]
                 postProcessSubTypes[j] = postPST[j]
                             
@@ -2176,10 +2184,12 @@ class TrajectoryData:
                 pyTrajectory['ionA'] = ionA
                 pyTrajectory['ionZ'] = ionZ
                 pyTrajectory['nElectrons'] = nElectrons
+                pyTrajectory['parentIDX'] = parentIndex
+                pyTrajectory['parentStepIDX'] = parentStepIndex
+                pyTrajectory['primaryStepIDX'] = primaryStepIndex
 
             pyTrajectory['prePT'] = preProcessTypes
             pyTrajectory['prePST'] = preProcessSubTypes
-
             pyTrajectory['postPT'] = postProcessTypes
             pyTrajectory['postPST'] = postProcessSubTypes
 
