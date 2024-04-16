@@ -5,7 +5,7 @@ def Plot3DXYZVtk(filename):
 
     d = pybdsim.Field.Load(filename)
 
-    glyph3D = _fieldToVtkStructuredGrid(d)
+    [glyph3D, streamline] = _fieldToVtkStructuredGrid(d)
 
     colors = vtk.vtkNamedColors()
 
@@ -15,6 +15,10 @@ def Plot3DXYZVtk(filename):
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
     actor.GetProperty().SetColor([0,0,0])
+
+    actor2 = vtk.vtkActor()
+    actor2.SetMapper(streamline.GetOutputPort())
+    actor2.VisibilityOn()
 
     renderer = vtk.vtkRenderer()
     renderWindow = vtk.vtkRenderWindow()
@@ -27,7 +31,8 @@ def Plot3DXYZVtk(filename):
     axes = vtk.vtkAxesActor()
     axes.SetTotalLength(50,50,50)
 
-    renderer.AddActor(actor)
+    #renderer.AddActor(actor)
+    renderer.AddActor(actor2)
     renderer.AddActor(axes)
     renderer.SetBackground([1,1,1])
 
@@ -77,7 +82,29 @@ def _fieldToVtkStructuredGrid(inputData) :
     # glyph3D.SetVectorModeToUseVector()
     glyph3D.SetScaleModeToScaleByVector()
     glyph3D.SetInputData(strucGrid)
-    glyph3D.SetScaleFactor(5)
+    glyph3D.SetScaleFactor(0.1)
     glyph3D.Update()
 
-    return glyph3D
+    seeds = vtk.vtkPlaneSource()
+    seeds.SetXResolution(10)
+    seeds.SetYResolution(10)
+    seeds.SetOrigin(0, 0, 0)
+    seeds.SetPoint1(10, 0, 0)
+    seeds.SetPoint2(0, 10, 0)
+    seeds.Update()
+
+    streamline = vtk.vtkStreamTracer()
+    streamline.SetInputData(strucGrid)
+    streamline.SetSourceConnection(seeds.GetOutputPort())
+    streamline.SetMaximumPropagation(50)
+    streamline.SetInitialIntegrationStep(.2)
+    streamline.SetIntegrationDirectionToForward()
+    streamline.Update()
+
+    streamline_mapper = vtk.vtkPolyDataMapper()
+    streamline_mapper.SetInputConnection(streamline.GetOutputPort())
+    streamline_actor = vtk.vtkActor()
+    streamline_actor.SetMapper(streamline_mapper)
+    streamline_actor.VisibilityOn()
+
+    return [glyph3D, streamline_mapper]
