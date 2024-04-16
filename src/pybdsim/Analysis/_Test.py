@@ -83,6 +83,24 @@ def T13_rf() :
                              keep_files=True,
                              ngenerate=10000)
 
+def T13_rf_rfconstantinz() :
+    return _ScanParameter1D("./13_rf.tem",
+                            "RF_GRADIENT",
+                            _np.linspace(10,101,3),
+                            {"BEAM_ENERGY": "10",
+                             "BEAM_DISTRTYPE":'\"gausstwiss\"',
+                             "BEAM_X0":"0",
+                             "BEAM_Y0":"0",
+                             "BEAM_XP0":"0",
+                             "BEAM_YP0":"0",
+                             "RF_GRADIENT":"100",
+                             "RF_LENGTH":"0.2",
+                             "RF_FREQUENCY":"747.5",
+                             "RF_FIELD_TYPE":'\"rfconstantinz\"'},
+                             analysis_function=cavity,
+                             keep_files=False,
+                             ngenerate=10000)
+
 def T13_rf_perle() :
     return _ScanParameter1D("./13_rf.tem",
                             "RF_GRADIENT",
