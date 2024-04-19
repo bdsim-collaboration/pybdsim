@@ -121,9 +121,9 @@ def _GenerateElementModifier(madxitem, nameToUse,
         newk4 = item['K4L'] / l * factor if not linear else 0
         a = _ElementModifier(nameToUse, k4=newk4)
     elif category == 'HKICKER':
-        a = _ElementModifier(nameToUse, angle=item['HKICK']*factor)
+        a = _ElementModifier(nameToUse, hkick=item['HKICK']*factor)
     elif category == 'VKICKER':
-        a = _ElementModifier(nameToUse, angle=item['VKICK']*factor)
+        a = _ElementModifier(nameToUse, vkick=item['VKICK']*factor)
     elif category == 'TKICKER':
         if verbose:
             print('WARNING - TKICKER not implemented yet')
