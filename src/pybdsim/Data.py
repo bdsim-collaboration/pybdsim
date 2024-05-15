@@ -1356,7 +1356,7 @@ class TH3(TH2):
                     self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
                     self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
 
-    def IntegateAlong1Dimension(self, dimension):
+    def IntegrateAlong1Dimension(self, dimension):
         """
         Integrate along a dimension returning a new 2D histogram.
         
@@ -1384,7 +1384,7 @@ class TH3(TH2):
         else:
             raise ValueError("dimension can only be one of 'x', 'y', 'z'")
 
-    def IntegateAlong2Dimensions(self, resultDimension):
+    def IntegrateAlong2Dimensions(self, resultDimension):
         """
         Integrate along 2 dimensions returning a new 1D histogram along the result dimension
         
