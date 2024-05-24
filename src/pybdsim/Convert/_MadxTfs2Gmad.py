@@ -267,7 +267,11 @@ def MadxTfs2Gmad(tfs, outputfilename,
         l = item['L']
         i = item['INDEX']
 
-        _CalculateElementRmat(item,oldItem)
+        try:
+            _CalculateElementRmat(item, oldItem)
+        except:
+            # RMATRIX elements may not be in the TFS file
+            pass
 
         zerolength = True if item['L'] < 1e-9 else False
         if (_WillIgnoreItem(item, madx, ignorezerolengthitems, _ignoreableThinElements)):
@@ -698,9 +702,8 @@ def _GetSingleElementWithAper(item, gmadElement,
     gmadElement.update(aper)
     return gmadElement
 
-def _CalculateElementRmat(item, oldItem) :
-
-    if oldItem :
+def _CalculateElementRmat(item, oldItem):
+    if oldItem:
         m0 = _np.array([[oldItem['RE11'],oldItem['RE12'], oldItem['RE13'], oldItem['RE14']],
                         [oldItem['RE21'],oldItem['RE22'], oldItem['RE23'], oldItem['RE24']],
                         [oldItem['RE31'],oldItem['RE32'], oldItem['RE33'], oldItem['RE34']],
@@ -711,7 +714,7 @@ def _CalculateElementRmat(item, oldItem) :
                     [item['RE31'],item['RE32'], item['RE33'], item['RE34']],
                     [item['RE41'],item['RE42'], item['RE43'], item['RE44']]])
 
-    if oldItem :
+    if oldItem:
         m = _np.dot(m1,_np.linalg.inv(m0))
     else :
         m = m1

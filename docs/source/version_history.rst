@@ -2,6 +2,11 @@
 Version History
 ===============
 
+V3.6.2 - 2024 / 05 / 15
+=======================
+
+* Typo fixed for :code:`IntegateAlong1Dimension` and :code:`IntegateAlong2Dimensions`.
+
 V3.6.1 - 2024 / 01 / 30
 =======================
 
