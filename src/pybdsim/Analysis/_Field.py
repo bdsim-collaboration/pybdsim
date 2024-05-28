@@ -32,13 +32,13 @@ def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1):
 
     Ez = cavityshape * E0 * _jn(m, kmn * r) * _cos(m * t) * _cos(p * _pi * z / length)
     Er = - cavityshape * p * _pi / length * radius / _jn_zeros(m, n)[n - 1] * E0 * _jvp(m, kmn * r) * _cos(m * t) * _sin(p * _pi * z / length)
-    Et = - cavityshape * p * _pi / length * m * radius ** 2 / _jn_zeros(m, n) ** 2 / r * E0 * _jn(m,kmn * r) * _sin(m * t) * _sin(p * _pi * z / length)
+    Et = - cavityshape * p * _pi / length * m * radius ** 2 / _jn_zeros(m, n)[n-1] ** 2 / r * E0 * _jn(m,kmn * r) * _sin(m * t) * _sin(p * _pi * z / length)
     Ex = Er * _cos(t) - Et * _sin(t)
     Ey = Er * _sin(t) + Et * _cos(t)
 
     Bz = cavityshape * 0 * r
-    Br = cavityshape * omega * m * radius ** 2 / _jn_zeros(m, n) ** 2 / r / _c ** 2 * E0 * _jn(m,kmn * r) * _sin(m * t) * _cos(p * _pi * z / length)
-    Bt = cavityshape * omega * radius / _jn_zeros(m, n) / _c ** 2 * E0 * _jvp(m, kmn * r) * _cos(m * t) * _cos(p * _pi * z / length)
+    Br = cavityshape * omega * m * radius ** 2 / _jn_zeros(m, n)[n-1] ** 2 / r / _c ** 2 * E0 * _jn(m,kmn * r) * _sin(m * t) * _cos(p * _pi * z / length)
+    Bt = cavityshape * omega * radius / _jn_zeros(m, n)[n-1] / _c ** 2 * E0 * _jvp(m, kmn * r) * _cos(m * t) * _cos(p * _pi * z / length)
 
     Bx = Br * _cos(t) - Bt * _sin(t)
     By = Br * _sin(t) + Bt * _cos(t)
@@ -82,6 +82,7 @@ def TE_cylindrical(r, t, z, radius, length, m, n, p, B0=1):
     return {"kmn": kmn, "kz": kz, "omega": omega, "freq": freq, "wavelength":wavelength,
             "Ex": Ex, "Ey": Ey, "Ez": Ez, "Er": Er, "Et": Et, "E":E,
             "Bx": Bx, "By": By, "Bz": Bz, "Br": Er, "Bt": Bt, "B":B}
+
 def Cylindrical_cartesianmesh(radius, length, modeType, m,n,p, nx=20, ny=20, nz=20, safety=0.01, field0=1) :
 
     lowx = -radius - safety
@@ -168,6 +169,7 @@ def Cylindrical_cartesianmesh(radius, length, modeType, m,n,p, nx=20, ny=20, nz=
             "Ex":ExArray.T, "Ey":EyArray.T,
             "Bx":BxArray.T, "By":ByArray.T,
             "B":B.T, "E":E.T}
+
 def Cylindrical_line(radius, length, modeType, m,n,p, nx=20, ny=20, nz=20, safety=0.01, field0=1,
                      p0=[0,0,0], dl=[0,0,1], nlambda=50, linelength=0.1):
     p0 = _array(p0)
@@ -198,6 +200,7 @@ def Cylindrical_line(radius, length, modeType, m,n,p, nx=20, ny=20, nz=20, safet
     fd['t'] = t
 
     return fd
+
 def MatplotlibPlotField(fieldDataDict):
 
     import matplotlib.pyplot as plt
@@ -235,6 +238,7 @@ def MatplotlibPlotField(fieldDataDict):
         plt.imshow(By)
         plt.clim(-Bmax, Bmax)
     _plt.colorbar()
+
 def PyVistaPlotField(fieldDataDict) :
     import pyvista as pv
 
@@ -278,15 +282,16 @@ def PyVistaPlotField(fieldDataDict) :
     pl = pv.Plotter()
 
     Eglyphs = grid.glyph(orient="E", factor=grid.x.max()/grid.get_array("E").max()/10)
-    pl.add_mesh(Eglyphs, show_scalar_bar=True, lighting=False, color="red")
+    #pl.add_mesh(Eglyphs, show_scalar_bar=True, lighting=False, color="red")
     Bglyphs = grid.glyph(orient="B", factor=grid.x.max()/grid.get_array("B").max()/10)
-    pl.add_mesh(Bglyphs, show_scalar_bar=True, lighting=False, color="blue")
-    #pl.add_mesh(EFieldLines, color="red")
-    #pl.add_mesh(BFieldLines, color="blue")
+    #pl.add_mesh(Bglyphs, show_scalar_bar=True, lighting=False, color="blue")
+    pl.add_mesh(EFieldLines, color="red")
+    pl.add_mesh(BFieldLines, color="blue")
     pl.camera.position = (0.3, 0.3, 0.3)
     pl.show()
 
     return grid
+
 def MatplotlibPlotField_1d(fd) :
     pass
 def V0(fd) :
@@ -294,6 +299,7 @@ def V0(fd) :
         z = fd['z']
         E = fd['Ez']
         return _trapz(E,z)
+
 def TransitTime(fd):
     if fd['type'] == "1d" :
         z = fd['z']
@@ -301,6 +307,7 @@ def TransitTime(fd):
 
         t = z/_c
         return _trapz(E*_cos(fd['omega']*t),z)/V0(fd)
+
 def TransitTime_TM010(gap, beta, frequency) :
     wavelength = _c/frequency
     return _sin(_pi*gap/(beta*wavelength))/(_pi*gap)*beta*wavelength
