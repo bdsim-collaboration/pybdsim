@@ -16,7 +16,15 @@ from numpy import tensordot as _tensordot
 from numpy import logical_and as _logical_and
 from numpy import trapz as _trapz
 
-def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1):
+def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1, opt=""):
+
+    if opt == "cart":
+        x = r
+        y = t
+
+        r = _sqrt(x**2+y**2)
+        t = _arctan2(y,x)
+
 
     if type(r) is not _array :
         r = _array(r)
@@ -56,7 +64,14 @@ def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1):
     return {"kmn":kmn, "kz":kz,"omega":omega, "freq":freq, "wavelength":wavelength,
             "Ex":Ex, "Ey":Ey, "Ez":Ez, "Er":Er, "Et":Et,"E":E,
             "Bx":Bx, "By":By, "Bz":Bz, "Br":Er, "Bt":Bt,"B":B}
-def TE_cylindrical(r, t, z, radius, length, m, n, p, B0=1):
+def TE_cylindrical(r, t, z, radius, length, m, n, p, B0=1, opt=""):
+
+    if opt == "cart":
+        x = r
+        y = t
+
+        r = _sqrt(x**2+y**2)
+        t = _arctan2(y,x)
 
     if type(r) is not _array :
         r = _array(r)
