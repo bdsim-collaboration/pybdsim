@@ -18,6 +18,13 @@ from numpy import trapz as _trapz
 
 def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1):
 
+    if type(r) is not _array :
+        r = _array(r)
+    if type(t) is not _array:
+        t = _array(t)
+    if type(z) is not _array:
+        z = _array(z)
+
     kmn = _jn_zeros(m,n)[n-1]/radius
     kz  = p *_pi / length
 
@@ -50,6 +57,14 @@ def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1):
             "Ex":Ex, "Ey":Ey, "Ez":Ez, "Er":Er, "Et":Et,"E":E,
             "Bx":Bx, "By":By, "Bz":Bz, "Br":Er, "Bt":Bt,"B":B}
 def TE_cylindrical(r, t, z, radius, length, m, n, p, B0=1):
+
+    if type(r) is not _array :
+        r = _array(r)
+    if type(t) is not _array:
+        t = _array(t)
+    if type(z) is not _array:
+        z = _array(z)
+
     kmn = _jnp_zeros(m, n)[n - 1] / radius
     kz = p * _pi / length
 
@@ -175,7 +190,6 @@ def Cylindrical_line(radius, length, modeType, m,n,p, nx=20, ny=20, nz=20, safet
     p0 = _array(p0)
     dl = _array(dl)
 
-    tl = _arctan2(_sqrt(dl[0]**2+dl[1]**2),dl[2])
     hl = linelength
 
     hmesh = _linspace(0, hl, nlambda)
@@ -282,11 +296,11 @@ def PyVistaPlotField(fieldDataDict) :
     pl = pv.Plotter()
 
     Eglyphs = grid.glyph(orient="E", factor=grid.x.max()/grid.get_array("E").max()/10)
-    #pl.add_mesh(Eglyphs, show_scalar_bar=True, lighting=False, color="red")
+    pl.add_mesh(Eglyphs, show_scalar_bar=True, lighting=False, color="red")
     Bglyphs = grid.glyph(orient="B", factor=grid.x.max()/grid.get_array("B").max()/10)
-    #pl.add_mesh(Bglyphs, show_scalar_bar=True, lighting=False, color="blue")
-    pl.add_mesh(EFieldLines, color="red")
-    pl.add_mesh(BFieldLines, color="blue")
+    pl.add_mesh(Bglyphs, show_scalar_bar=True, lighting=False, color="blue")
+    #pl.add_mesh(EFieldLines, color="red")
+    #pl.add_mesh(BFieldLines, color="blue")
     pl.camera.position = (0.3, 0.3, 0.3)
     pl.show()
 
