@@ -585,9 +585,7 @@ def Plot3DPyVista(filenameE, filenameB=None, scale=None) :
     Einter = _RegularGridInterpolator((x,y,z),_np.swapaxes(E,0,2))
 
     Ez = Einter((0,0,z))[:,2]
-    _plt.plot(z,Ez)
     LocZ  = z[_np.where(_np.diff(_np.sign(_np.diff(Ez))))] # find locations of derivative sign change
-    _plt.show()
 
     for LocZi in LocZ :
         fieldLineSeedE = pv.Disc(center = [0,0,LocZi], inner=0.0, outer=grid.x.max(), r_res=5, c_res=10)
