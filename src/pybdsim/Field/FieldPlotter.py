@@ -528,3 +528,68 @@ def Plot3DXZ(filename, scale=None):
     _plt.figure()
     _plt.quiver(d.x,d.z,d.fx,d.fz,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
     _Niceties('X (cm)', 'Z (cm)')
+
+def Plot3DPyVista(filenameE, filenameB=None, scale=None) :
+    """
+    Plots E and B as a function of x, y and z using pyvista
+    """
+    try :
+        import pyvista as pv
+    except :
+        print("Need pyvista for 3d field plotting")
+
+    dE = _pybdsim.Field.Load(filenameE)
+    if filenameB :
+        dB = _pybdsim.Field.Load(filenameB)
+
+    x = dE.data[0,0,:,0]
+    y = dE.data[0,:,0,1]
+    z = dE.data[:,0,0,2]
+
+    dimensions = [dE.data.shape[0], dE.data.shape[1], dE.data.shape[2]]
+    spacing = [x[1]-x[0], y[1]-y[0], z[1]-z[0]]
+    origin = [x.min(), y.min(), z.min()]
+
+    grid = pv.ImageData(
+        dimensions=dimensions,
+        spacing=spacing,
+        origin=origin,
+    )
+    grid['E'] = _np.reshape(dE.data[:,:,:,3:], (dE.data.shape[0]*dE.data.shape[1]*dE.data.shape[2],3))
+    if filenameB :
+        grid['B'] = _np.reshape(dB.data[:,:,:,3:], (dB.data.shape[0]*dB.data.shape[1]*dB.data.shape[2],3))
+
+    pl = pv.Plotter()
+
+    # intensity
+
+
+    # arrows
+    #glyphsE = grid.glyph(orient="E", factor=grid.x.max()/grid.get_array("E").max()/10)
+    #glyphsB = grid.glyph(orient="B", factor=grid.x.max()/grid.get_array("B").max()/10)
+    #pl.add_mesh(glyphsE, show_scalar_bar=True, lighting=False, color="red")
+    #pl.add_mesh(glyphsB, show_scalar_bar=True, lighting=False, color="blue")
+
+    # streamlines
+    fieldLineSeedE = pv.Disc(center = [0,0,5], inner=0.0, outer=grid.x.max(), r_res=5, c_res=10)
+    fieldLineE = grid.streamlines_from_source(fieldLineSeedE,
+                                              vectors="E",
+                                              max_step_length=0.2,
+                                              max_time=50.0,
+                                              integration_direction="both")
+    if filenameB :
+        fieldLineSeedB = pv.Plane(center = [0,0,0], direction=[0,1,0], i_size=2*grid.x.max(), j_size=2*grid.y.max(), i_resolution=10, j_resolution=10)
+        fieldLineB = grid.streamlines_from_source(fieldLineSeedB,
+                                                  vectors="B",
+                                                  max_step_length=0.2,
+                                                  max_time=50.0,
+                                                  integration_direction="both")
+
+    pl.add_mesh(fieldLineE.tube(radius=0.2),cmap="Reds")
+    if filenameB :
+        pl.add_mesh(fieldLineB.tube(radius=0.2), cmap="Blues")
+
+    pl.camera.position = (100, 100, 100)
+    pl.show()
+
+    return dE, dB, grid
