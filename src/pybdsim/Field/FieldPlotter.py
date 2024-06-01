@@ -4,6 +4,8 @@ import numpy as _np
 import pybdsim as _pybdsim
 import pybdsim.Field._Field
 
+from scipy.interpolate import RegularGridInterpolator as _RegularGridInterpolator
+
 def _ArrowSize(d):
     """
     :param d: pybdsim.Field.Field instance
@@ -533,10 +535,13 @@ def Plot3DPyVista(filenameE, filenameB=None, scale=None) :
     """
     Plots E and B as a function of x, y and z using pyvista
     """
+
     try :
         import pyvista as pv
+        pv.global_theme.allow_empty_mesh = True
     except :
         print("Need pyvista for 3d field plotting")
+        return
 
     dE = _pybdsim.Field.Load(filenameE)
     if filenameB :
@@ -565,28 +570,44 @@ def Plot3DPyVista(filenameE, filenameB=None, scale=None) :
 
 
     # arrows
-    #glyphsE = grid.glyph(orient="E", factor=grid.x.max()/grid.get_array("E").max()/10)
-    #glyphsB = grid.glyph(orient="B", factor=grid.x.max()/grid.get_array("B").max()/10)
-    #pl.add_mesh(glyphsE, show_scalar_bar=True, lighting=False, color="red")
-    #pl.add_mesh(glyphsB, show_scalar_bar=True, lighting=False, color="blue")
+    glyphsE = grid.glyph(orient="E", factor=grid.x.max()/grid.get_array("E").max()/10)
+    glyphsB = grid.glyph(orient="B", factor=grid.x.max()/grid.get_array("B").max()/10)
+    # pl.add_mesh(glyphsE, show_scalar_bar=True, lighting=False, color="red")
+    # pl.add_mesh(glyphsB, show_scalar_bar=True, lighting=False, color="blue")
 
     # streamlines
-    fieldLineSeedE = pv.Disc(center = [0,0,5], inner=0.0, outer=grid.x.max(), r_res=5, c_res=10)
-    fieldLineE = grid.streamlines_from_source(fieldLineSeedE,
-                                              vectors="E",
-                                              max_step_length=0.2,
-                                              max_time=50.0,
-                                              integration_direction="both")
+
+    # compute derivatives (dEz/dz)
+    E = _np.reshape(grid['E'],(grid.dimensions[0],grid.dimensions[1],grid.dimensions[2],3))
+    x = _np.linspace(grid.bounds[0], grid.bounds[1],grid.dimensions[0])
+    y = _np.linspace(grid.bounds[2], grid.bounds[3],grid.dimensions[1])
+    z = _np.linspace(grid.bounds[4], grid.bounds[5],grid.dimensions[2])
+    Einter = _RegularGridInterpolator((x,y,z),_np.swapaxes(E,0,2))
+
+    Ez = Einter((0,0,z))[:,2]
+    _plt.plot(z,Ez)
+    LocZ  = z[_np.where(_np.diff(_np.sign(_np.diff(Ez))))] # find locations of derivative sign change
+    _plt.show()
+
+    for LocZi in LocZ :
+        fieldLineSeedE = pv.Disc(center = [0,0,LocZi], inner=0.0, outer=grid.x.max(), r_res=5, c_res=10)
+        fieldLineE = grid.streamlines_from_source(fieldLineSeedE,
+                                                  vectors="E",
+                                                  max_step_length=0.2,
+                                                  max_time=50.0,
+                                                  integration_direction="both")
+        pl.add_mesh(fieldLineE.tube(radius=0.2),cmap="Reds")
+
+
     if filenameB :
+        # compute derivatives (dBp/dp)
+
         fieldLineSeedB = pv.Plane(center = [0,0,0], direction=[0,1,0], i_size=2*grid.x.max(), j_size=2*grid.y.max(), i_resolution=10, j_resolution=10)
         fieldLineB = grid.streamlines_from_source(fieldLineSeedB,
                                                   vectors="B",
                                                   max_step_length=0.2,
                                                   max_time=50.0,
                                                   integration_direction="both")
-
-    pl.add_mesh(fieldLineE.tube(radius=0.2),cmap="Reds")
-    if filenameB :
         pl.add_mesh(fieldLineB.tube(radius=0.2), cmap="Blues")
 
     pl.camera.position = (100, 100, 100)
