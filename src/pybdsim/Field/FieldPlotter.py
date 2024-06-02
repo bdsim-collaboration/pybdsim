@@ -531,7 +531,7 @@ def Plot3DXZ(filename, scale=None):
     _plt.quiver(d.x,d.z,d.fx,d.fz,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
     _Niceties('X (cm)', 'Z (cm)')
 
-def Plot3DPyVista(filenameE, filenameB=None, scale=None) :
+def Plot3DPyVista(filenameE, filenameB=None, tindex = 0, scale=None) :
     """
     Plots E and B as a function of x, y and z using pyvista
     """
@@ -544,8 +544,19 @@ def Plot3DPyVista(filenameE, filenameB=None, scale=None) :
         return
 
     dE = _pybdsim.Field.Load(filenameE)
+
+    if len(dE.data.shape) == 5 : # deal with 4D field
+        timedependent = True
+    else :
+        timedependent = False
+
+    if timedependent : # deal with 4D field
+        dE.data = dE.data[tindex,:,:,:,:]
+
     if filenameB :
         dB = _pybdsim.Field.Load(filenameB)
+        if timedependent : # deal with 4D field
+            dB.data = dB.data[tindex,:,:,:,:]
 
     x = dE.data[0,0,:,0]
     y = dE.data[0,:,0,1]
@@ -560,9 +571,17 @@ def Plot3DPyVista(filenameE, filenameB=None, scale=None) :
         spacing=spacing,
         origin=origin,
     )
-    grid['E'] = _np.reshape(dE.data[:,:,:,3:], (dE.data.shape[0]*dE.data.shape[1]*dE.data.shape[2],3))
+
+    if not timedependent:
+        grid['E'] = _np.reshape(dE.data[:,:,:,3:], (dE.data.shape[0]*dE.data.shape[1]*dE.data.shape[2],3))
+    else :
+        grid['E'] = _np.reshape(dE.data[:,:,:,4:], (dE.data.shape[0]*dE.data.shape[1]*dE.data.shape[2],3))
+
     if filenameB :
-        grid['B'] = _np.reshape(dB.data[:,:,:,3:], (dB.data.shape[0]*dB.data.shape[1]*dB.data.shape[2],3))
+        if not timedependent:
+            grid['B'] = _np.reshape(dB.data[:,:,:,3:], (dB.data.shape[0]*dB.data.shape[1]*dB.data.shape[2],3))
+        else :
+            grid['B'] = _np.reshape(dB.data[:,:,:,4:], (dB.data.shape[0]*dB.data.shape[1]*dB.data.shape[2],3))
 
     pl = pv.Plotter()
 
