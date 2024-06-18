@@ -180,6 +180,9 @@ class Options(dict):
     def SetBeamPipeThickness(self, bpt, unitsstring='mm'):
         self['beampipeThickness'] = str(bpt) + '*' + unitsstring
 
+    def SetHorizontalWidth(self, horizontalWidth, unitstring='mm'):
+        self['horizontalWidth'] = str(horizontalWidth) + '*' + unitstring
+
     def SetPipeMaterial(self, bpm):
         self['pipeMaterial'] = '"' + str(bpm) + '"'
 
