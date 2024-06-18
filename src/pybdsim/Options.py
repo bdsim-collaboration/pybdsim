@@ -348,6 +348,9 @@ class Options(dict):
     def SetMagnetGeometryType(self, magnetGeometryType='"none"'):
         self['magnetGeometryType'] = magnetGeometryType
 
+    def SetApertureType(self, apertureType) :
+        self['apertureType'] = apertureType
+
     def SetTrajectoryCutGTZ(self, gtz=0.0, unitsstring='m'):
         self['trajCutGTZ'] = str(gtz) + '*' + unitsstring
 
