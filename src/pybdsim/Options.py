@@ -186,6 +186,9 @@ class Options(dict):
     def SetPipeMaterial(self, bpm):
         self['pipeMaterial'] = '"' + str(bpm) + '"'
 
+    def SetWorldMaterial(self, worldMaterial):
+        self['worldMaterial'] = '"' + worldMaterial +'"'
+
     def SetVacuumMaterial(self, vm):
         self['vacMaterial'] = '"' + str(vm) + '"'
 
