@@ -27,8 +27,4 @@ from .FieldPlotter import Plot2DXYBz
 from .FieldPlotter import Plot2DXYFxFyFz
 from .FieldPlotter import Plot3DXY
 from .FieldPlotter import Plot3DXZ
-
-try:
-    from .FieldPlotterVtk import Plot3DXYZVtk
-except ImportError:
-    hasVtk = False
+from .FieldPlotter import Plot3DPyVista

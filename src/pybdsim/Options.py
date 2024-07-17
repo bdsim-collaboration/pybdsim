@@ -180,8 +180,14 @@ class Options(dict):
     def SetBeamPipeThickness(self, bpt, unitsstring='mm'):
         self['beampipeThickness'] = str(bpt) + '*' + unitsstring
 
+    def SetHorizontalWidth(self, horizontalWidth, unitstring='mm'):
+        self['horizontalWidth'] = str(horizontalWidth) + '*' + unitstring
+
     def SetPipeMaterial(self, bpm):
         self['pipeMaterial'] = '"' + str(bpm) + '"'
+
+    def SetWorldMaterial(self, worldMaterial):
+        self['worldMaterial'] = '"' + worldMaterial +'"'
 
     def SetVacuumMaterial(self, vm):
         self['vacMaterial'] = '"' + str(vm) + '"'
@@ -344,6 +350,9 @@ class Options(dict):
 
     def SetMagnetGeometryType(self, magnetGeometryType='"none"'):
         self['magnetGeometryType'] = magnetGeometryType
+
+    def SetApertureType(self, apertureType) :
+        self['apertureType'] = apertureType
 
     def SetTrajectoryCutGTZ(self, gtz=0.0, unitsstring='m'):
         self['trajCutGTZ'] = str(gtz) + '*' + unitsstring

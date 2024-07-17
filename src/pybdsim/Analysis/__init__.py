@@ -10,4 +10,5 @@ from ._Calculate import CompareRMatrix
 from ._Calculate import PlotRMatrix
 from ._Accelerator import *
 from ._Test import *
+from ._Field import *
 

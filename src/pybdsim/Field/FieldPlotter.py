@@ -4,6 +4,21 @@ import numpy as _np
 import pybdsim as _pybdsim
 import pybdsim.Field._Field
 
+from scipy.interpolate import RegularGridInterpolator as _RegularGridInterpolator
+
+def _GetField(fm, nDim=None):
+    """
+    Check if the input is a str or a field object of the correct dimensionality. Return the field.
+    """
+    if type(fm) is str:
+        fm = _pybdsim.Field.Load(fm)
+    elif not isinstance(fm, _pybdsim.Field._Field.Field):
+        raise TypeError("'filename' must be either str or Field")
+    if nDim is not None and fm.nDimensions != nDim:
+        raise ValueError("Field must be of dimension "+str(nDim))
+    return fm
+
+
 def _ArrowSize(d):
     """
     :param d: pybdsim.Field.Field instance
@@ -18,35 +33,40 @@ def _ArrowSize(d):
         result = _np.min([result, step])
     return result
 
-class FourDData(object):
+class FourDData:
     """
     Class purely to simplify plotting of fields. Not for general use.
     """
     def __init__(self, filename, xind=0, yind=1, zind=2, tind=3):
-        if type(filename) is str:
-            d = _pybdsim.Field.Load(filename)
-        elif isinstance(filename, _pybdsim.Field._Field.Field):
-            d = filename.data
-        else:
-            d = filename
+        # check for the dimensionality of the field
+        self.nDim = 1 if yind == -1 else 2 if zind == -1 else 3 if tind == -1 else 4
+        fm = _GetField(filename, self.nDim)
+        self.data = fm.data
             
         # '...' fills in unknown number of dimensions with ':' meaning
         # all of that dimension
         if (xind >= 0):
-            self.x  = d[..., xind].flatten()
+            self.x  = self[..., xind].flatten()
+            self.nx = len(_np.unique(self.x))
         if (yind >= 0):
-            self.y  = d[..., yind].flatten()
+            self.y  = self[..., yind].flatten()
+            self.ny = len(_np.unique(self.y))
         if (zind >= 0):
-            self.z  = d[..., zind].flatten()
+            self.z  = self[..., zind].flatten()
+            self.nz = len(_np.unique(self.z))
         if (tind >= 0):
-            self.t  = d[..., tind].flatten()
+            self.t  = self[..., tind].flatten()
+            self.nt = len(_np.unique(self.t))
 
         # index from end as we don't know the dimensionality
-        self.fx = d[...,-3].flatten()
-        self.fy = d[...,-2].flatten()
-        self.fz = d[...,-1].flatten()
-
+        self.fx = self[..., -3].flatten()
+        self.fy = self[..., -2].flatten()
+        self.fz = self[..., -1].flatten()
         self.mag = _np.sqrt(self.fx**2 + self.fy**2 + self.fz**2)
+
+    def __getitem__(self, key):
+        return self.data[key]
+
 
 class ThreeDData(FourDData):
     """
@@ -69,6 +89,23 @@ class OneDData(FourDData):
     def __init__(self, filename):
         FourDData.__init__(self, filename, tind=-1, zind=-1, yind=-1)
 
+class NDData(FourDData):
+    """
+    Class purely to simplify plotting of fields. Not for general use.
+    """
+    def __init__(self, filename):
+        fm = _GetField(filename)
+        if fm.nDimensions == 1:
+            OneDData.__init__(self, filename)
+        elif fm.nDimensions == 2:
+            TwoDData.__init__(self, filename)
+        elif fm.nDimensions == 3:
+            ThreeDData.__init__(self, filename)
+        elif fm.nDimensions == 4:
+            FourDData.__init__(self, filename)
+        else:
+            raise ValueError("Field must be of dimension 1, 2, 3 or 4")
+
 def _Niceties(xlabel, ylabel, zlabel="", flipX=False, aspect='equal'):
     if flipX:
         cx = _plt.xlim()
@@ -88,29 +125,25 @@ def Plot1DFxFyFz(filename):
     :param filename: name of the field map file or object
     :type filename: str, pybdsim.Field._Field.Field1D instance
     """
-    if type(filename) is str:
-        d = _pybdsim.Field.Load(filename)
-    elif isinstance(filename, _pybdsim.Field._Field.Field1D):
-        d = filename
-    else:
-        raise TypeError("'filename' must be either str or Field1D")
+    fm = _GetField(filename, 1)
+    d = OneDData(filename)
 
     f = _plt.figure(figsize=(7.5,4))
     axFz = f.add_subplot(313)
     axFx = f.add_subplot(311, sharex=axFz)
     axFy = f.add_subplot(312, sharex=axFz)
 
-    axFx.plot(d.data[:,0], d.data[:,1],'b')
-    axFx.plot(d.data[:,0], d.data[:,1],'b.')
-    axFy.plot(d.data[:,0], d.data[:,2],'g')
-    axFy.plot(d.data[:,0], d.data[:,2],'g.')
-    axFz.plot(d.data[:,0], d.data[:,3],'r')
-    axFz.plot(d.data[:,0], d.data[:,3],'r.')
+    axFx.plot(d.x, d.fx,'b')
+    axFx.plot(d.x, d.fx,'b.')
+    axFy.plot(d.x, d.fy,'g')
+    axFy.plot(d.x, d.fy,'g.')
+    axFz.plot(d.x, d.fz,'r')
+    axFz.plot(d.x, d.fz,'r.')
 
     axFx.set_ylabel('B$_x$ (T)')
     axFy.set_ylabel('B$_y$ (T)')
     axFz.set_ylabel('B$_z$ (T)')
-    axFz.set_xlabel(d.columns[0]+' (cm)')
+    axFz.set_xlabel(fm.columns[0]+' (cm)')
 
     _plt.setp(axFx.get_xticklabels(), visible=False)
     _plt.setp(axFy.get_xticklabels(), visible=False)
@@ -162,27 +195,12 @@ def Plot2DXYMagnitude(filename, title=None, flipX=False, firstDimension="X", sec
     :param zlabel: Label for colour bar
     :type zlabel: str
     """
-    flip = False
-    if type(filename) is str:
-        doriginal = _pybdsim.Field.Load(filename)
-        d = doriginal.data
-        flip = doriginal.flip
-    elif isinstance(filename, _pybdsim.Field._Field.Field):
-        doriginal = filename
-        d = filename.data
-        flip = doriginal.flip
-    else:
-        raise ValueError("Invalid type of data")
-    
+    d = TwoDData(filename)
     _plt.figure(figsize=figsize)
-
-    # assumes the columns are X Y Fx Fy Fz
-    bmag = _np.sqrt(d[:,:,2]**2 + d[:,:,3]**2)
-
-    ext = [_np.min(d[:,:,0]), _np.max(d[:,:,0]), _np.min(d[:,:,1]), _np.max(d[:,:,1])]
+    ext = [_np.min(d.x),_np.max(d.x),_np.min(d.y),_np.max(d.y)]
 
     # the data will write out flipped but we need to draw it the right way
-    theData = bmag.T if flip else bmag
+    theData = d.mag.reshape(d.ny, d.nx)
     _plt.imshow(theData, extent=ext, origin='lower', aspect=aspect, interpolation='none')
 
     if title:
@@ -213,14 +231,9 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
     """
-    if type(filename) is str:
-        doriginal = _pybdsim.Field.Load(filename)
-        d = doriginal.data
-    elif isinstance(filename, _pybdsim.Field._Field.Field):
-        doriginal = filename
-        d = filename.data
-    else:
-        raise ValueError("Invalid type of data")
+    fm = _GetField(filename, 2)
+    d = TwoDData(filename)
+    
     _plt.figure()
     assert(firstDimension != secondDimension)
     iInd = ['x', 'y', 'z', 't'].index(firstDimension.lower())
@@ -230,7 +243,7 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
     fi = d[:, :, iInd+2].flatten()
     fj = d[:, :, jInd+2].flatten()
     if scale is None:
-        scale = _ArrowSize(doriginal)
+        scale = _ArrowSize(fm)
     fmag = _np.hypot(fi,fj)
     fi /= fmag
     fj /= fmag
@@ -241,7 +254,7 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
     sd = secondDimension
     _Niceties(fd + ' (cm)', sd + ' (cm)', zlabel="|$B_{"+fd+","+sd+"}$| (T)", flipX=flipX, aspect=aspect)
 
-def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True, aspect='equal'):
+def Plot2DXYStream(filename, density=1, zInd=0, useColour=True, aspect='equal'):
     """
     Plot a bdsim field map file using the X,Y plane as a stream plot and plotting Fx, Fy.
     
@@ -249,34 +262,25 @@ def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True, aspect='eq
     :type filename: str, pybdsim.Field._Field.Field2D or Field3D instance
     :param density: arrow density (default=1) for matplotlib streamplot
     :type density: float
-    :param zIndexIf3D: index in Z if using 3D field map (default=0)
-    :type zIndexIf3D: int
     :param useColour: use magnitude of field as colour.
-    :type useColour: bool\
+    :type useColour: bool
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
 
     Note, matplotlibs streamplot may raise an exception if the field is entriely 0 valued.
     """
-    if type(filename) is str:
-        d = _pybdsim.Field.Load(filename)
-    elif isinstance(filename, _pybdsim.Field._Field.Field):
-        d = filename.data
-    else:
-        raise ValueError("Invalid type of data")
-
-    shape = _np.shape(d.data)
-    zInd = zIndexIf3D
-    if len(shape) == 3:
-        cx = d[0,:,0]
-        cy = d[:,0,1]
-        fx = d[:,:,2]
-        fy = d[:,:,3]
-    elif len(shape) == 4:
-        cx = d[zInd,0,:,0]
-        cy = d[zInd,:,0,1]
-        fx = d[zInd,:,:,3]
-        fy = d[zInd,:,:,4]
+    d = NDData(filename)
+    if d.nDim == 2:
+        cx = _np.unique(d.x)
+        cy = _np.unique(d.y)
+        fx = d.fx.reshape(len(cy), len(cx))
+        fy = d.fy.reshape(len(cy), len(cx))
+    elif d.nDim == 3:
+        # with the 3D data, we need to select a slice in Z (does not seem to work yet)
+        cx = d[0,:,zInd,0]
+        cy = d[:,0,zInd,1]
+        fx = d[:,:,zInd,3]
+        fy = d[:,:,zInd,4]
     else:
         raise ValueError("Currently only 2D and 3D field maps supported.")
 
@@ -288,11 +292,12 @@ def Plot2DXYStream(filename, density=1, zIndexIf3D=0, useColour=True, aspect='eq
     cy = _np.linspace(_np.min(cy), _np.max(cy), len(cy))
     
     _plt.figure()
+    mag = _np.sqrt(fx**2 + fy**2)
     if useColour:
-        mag = _np.sqrt(fx**2 + fy**2)
         _plt.streamplot(cx,cy,fx,fy,color=mag,cmap=_plt.cm.magma,density=density)
     else:
-        _plt.streamplot(cx,cy,fx,fy,density=density)
+        lw = 5*mag / mag.max()
+        _plt.streamplot(cx,cy,fx,fy,density=density, color='k', linewidth=lw)
     _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)", aspect=aspect)
 
 def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True, aspect='equal'):
@@ -312,21 +317,15 @@ def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True, aspect='eq
 
     Note, matplotlibs streamplot may raise an exception if the field is entriely 0 valued.
     """
-    if type(filename) is str:
-        d = _pybdsim.Field.Load(filename)
-    elif isinstance(filename, _pybdsim.Field._Field.Field):
-        d = filename.data
-    else:
-        raise ValueError("Invalid type of data")
+    d = TwoDData(filename)
 
-    shape = _np.shape(d.data)
     yInd = yIndexIf3D
-    if len(shape) == 3:
+    if d.nDim == 2:
         cx = d[0,:,0]
         cz = d[:,0,1] # still 2d data
         fx = d[:,:,2]
         fz = d[:,:,4]
-    elif len(shape) == 4:
+    elif d.nDim == 3:
         cx = d[yInd,0,:,0]
         cz = d[yInd,:,0,2]
         fx = d[yInd,:,:,3]
@@ -381,26 +380,19 @@ def Plot2DXYComponent(filename, componentIndex=2, scale=None, title=None, flipX=
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
     """
-    if type(filename) is str:
-        d = _pybdsim.Field.Load(filename)
-    elif isinstance(filename, _pybdsim.Field._Field.Field2D):
-        d = filename
-    else:
-        raise TypeError("'filename' must be either str or Field2D")
+    d = TwoDData(filename)
+    dataDict = {0: d.fx, 1: d.fy, 2: d.fz}
+    scale = scale if scale is not None else 1.0
+    data = dataDict[componentIndex]*scale
+    data = data.reshape(d.ny, d.nx)
+    label = ['x', 'y', 'z']
 
-    acceptableIndices = {0,1,2}
-    assert(componentIndex in acceptableIndices)
-
-    label = ["x", "y", "z"][componentIndex]
-
-    ci = -3 + componentIndex
-    
     _plt.figure()
-    ext = [_np.min(d.data[:,:,0]),_np.max(d.data[:,:,0]),_np.min(d.data[:,:,1]),_np.max(d.data[:,:,1])]
-    _plt.imshow(d.data[:,:,ci], extent=ext, origin='lower', aspect='equal', interpolation='none', cmap=_plt.cm.magma)
+    ext = [_np.min(d[:,:,0]),_np.max(d[:,:,0]),_np.min(d[:,:,1]),_np.max(d[:,:,1])]
+    _plt.imshow(data, extent=ext, origin='lower', aspect='equal', interpolation='none')
     if title:
         _plt.title(title)
-    _Niceties(d.columns[0]+' (cm)', d.columns[1]+' (cm)', zlabel="$B_"+label+"$ (T)", flipX=flipX, aspect=aspect)
+    _Niceties('X (cm)', 'Y (cm)', zlabel="$B_{}$ (T)".format(label[componentIndex]), flipX=flipX, aspect=aspect)
 
 def Plot2DXYBx(filename, scale=None, title=None, flipX=False, aspect='equal'):
     """
@@ -462,44 +454,34 @@ def Plot2DXYFxFyFz(filename, title=None, aspect="auto", extent=None, **imshowKwa
     :type extent: list,tuple
     """
     imshowKwargs['aspect'] = aspect
-    if type(filename) is str:
-        fd = _pybdsim.Field.Load(filename)
-    elif isinstance(filename, _pybdsim.Field._Field.Field2D):
-        fd = filename
-    else:
-        raise TypeError("'filename' must be either str or Field2D")
-    a = fd.data
+    d = TwoDData(filename)
     
     f   = _plt.figure(figsize=(7.5,4))
     ax  = f.add_subplot(131)
     ax2 = f.add_subplot(132)
     ax3 = f.add_subplot(133)
 
-    xmin = _np.min(a[:,:,0])
-    xmax = _np.max(a[:,:,0])
-    ymin = _np.min(a[:,:,1])
-    ymax = _np.max(a[:,:,1])
     if extent is None:
-        extent = [_np.min(a[:,:,0]), _np.max(a[:,:,0]), _np.min(a[:,:,1]), _np.max(a[:,:,1])]
+        extent = [_np.min(d[:,:,0]), _np.max(d[:,:,0]), _np.min(d[:,:,1]), _np.max(d[:,:,1])]
     imshowKwargs['extent'] = extent
 
     # determine a consistent colour min and max value for all three subplots
     if 'vmin' not in imshowKwargs:
-        imshowKwargs['vmin'] = _np.min(a[:,:,3:])
+        imshowKwargs['vmin'] = _np.min(d[:,:,3:])
     if 'vmax' not in imshowKwargs:
-        imshowKwargs['vmax'] = _np.max(a[:,:,3:])
+        imshowKwargs['vmax'] = _np.max(d[:,:,3:])
     
-    ax.imshow(a[:,:,2], interpolation='None', origin='lower', **imshowKwargs)
+    im = ax.imshow(d.fx.reshape(d.ny, d.nx), interpolation='None', origin='lower', **imshowKwargs)
     ax.set_xlabel('X (cm)')
     ax.set_ylabel('Y (cm)')
     ax.set_title('X-Component',size='medium')
     
-    im = ax2.imshow(a[:,:,3], interpolation='None', origin='lower', **imshowKwargs)
+    ax2.imshow(d.fy.reshape(d.ny, d.nx), interpolation='None', origin='lower', **imshowKwargs)
     ax2.set_xlabel('X (cm)')
     ax2.set_title('Y-Component',size='medium')
     ax2.get_yaxis().set_ticks([])
 
-    im = ax3.imshow(a[:,:,4], interpolation='None', origin='lower', **imshowKwargs)
+    ax3.imshow(d.fz.reshape(d.ny, d.nx), interpolation='None', origin='lower', **imshowKwargs)
     ax3.set_xlabel('X (cm)')
     ax3.set_title('Z-Component',size='medium')
     ax3.get_yaxis().set_ticks([])
@@ -528,3 +510,104 @@ def Plot3DXZ(filename, scale=None):
     _plt.figure()
     _plt.quiver(d.x,d.z,d.fx,d.fz,d.mag,cmap=_plt.cm.magma,pivot='mid',scale=scale)
     _Niceties('X (cm)', 'Z (cm)')
+
+def Plot3DPyVista(filenameE, filenameB=None, tindex = 0, scale=None) :
+    """
+    Plots E and B as a function of x, y and z using pyvista
+    """
+
+    try :
+        import pyvista as pv
+        pv.global_theme.allow_empty_mesh = True
+    except :
+        print("Need pyvista for 3d field plotting")
+        return
+
+    dE = _pybdsim.Field.Load(filenameE)
+
+    if len(dE.data.shape) == 5 : # deal with 4D field
+        timedependent = True
+    else :
+        timedependent = False
+
+    if timedependent : # deal with 4D field
+        dE.data = dE.data[tindex,:,:,:,:]
+
+    if filenameB :
+        dB = _pybdsim.Field.Load(filenameB)
+        if timedependent : # deal with 4D field
+            dB.data = dB.data[tindex,:,:,:,:]
+
+    x = dE.data[0,0,:,0]
+    y = dE.data[0,:,0,1]
+    z = dE.data[:,0,0,2]
+
+    dimensions = [dE.data.shape[0], dE.data.shape[1], dE.data.shape[2]]
+    spacing = [x[1]-x[0], y[1]-y[0], z[1]-z[0]]
+    origin = [x.min(), y.min(), z.min()]
+
+    grid = pv.ImageData(
+        dimensions=dimensions,
+        spacing=spacing,
+        origin=origin,
+    )
+
+    if not timedependent:
+        grid['E'] = _np.reshape(dE.data[:,:,:,3:], (dE.data.shape[0]*dE.data.shape[1]*dE.data.shape[2],3))
+    else :
+        grid['E'] = _np.reshape(dE.data[:,:,:,4:], (dE.data.shape[0]*dE.data.shape[1]*dE.data.shape[2],3))
+
+    if filenameB :
+        if not timedependent:
+            grid['B'] = _np.reshape(dB.data[:,:,:,3:], (dB.data.shape[0]*dB.data.shape[1]*dB.data.shape[2],3))
+        else :
+            grid['B'] = _np.reshape(dB.data[:,:,:,4:], (dB.data.shape[0]*dB.data.shape[1]*dB.data.shape[2],3))
+
+    pl = pv.Plotter()
+
+    # intensity
+
+
+    # arrows
+    glyphsE = grid.glyph(orient="E", factor=grid.x.max()/grid.get_array("E").max()/10)
+    glyphsB = grid.glyph(orient="B", factor=grid.x.max()/grid.get_array("B").max()/10)
+    # pl.add_mesh(glyphsE, show_scalar_bar=True, lighting=False, color="red")
+    # pl.add_mesh(glyphsB, show_scalar_bar=True, lighting=False, color="blue")
+
+    # streamlines
+
+    # compute derivatives (dEz/dz)
+    E = _np.reshape(grid['E'],(grid.dimensions[0],grid.dimensions[1],grid.dimensions[2],3))
+    x = _np.linspace(grid.bounds[0], grid.bounds[1],grid.dimensions[0])
+    y = _np.linspace(grid.bounds[2], grid.bounds[3],grid.dimensions[1])
+    z = _np.linspace(grid.bounds[4], grid.bounds[5],grid.dimensions[2])
+    Einter = _RegularGridInterpolator((x,y,z),_np.swapaxes(E,0,2))
+
+    Ez = Einter((0,0,z))[:,2]
+    LocZ  = z[_np.where(_np.diff(_np.sign(_np.diff(Ez))))] # find locations of derivative sign change
+
+    for LocZi in LocZ :
+        fieldLineSeedE = pv.Disc(center = [0,0,LocZi], inner=0.0, outer=grid.x.max(), r_res=5, c_res=10)
+        fieldLineE = grid.streamlines_from_source(fieldLineSeedE,
+                                                  vectors="E",
+                                                  max_step_length=0.2,
+                                                  max_time=50.0,
+                                                  integration_direction="both")
+        pl.add_mesh(fieldLineE.tube(radius=0.2),cmap="Reds")
+
+
+    if filenameB :
+        # compute derivatives (dBp/dp)
+
+        fieldLineSeedB = pv.Plane(center = [0,0,0], direction=[0,1,0], i_size=2*grid.x.max(), j_size=2*grid.y.max(), i_resolution=10, j_resolution=10)
+        fieldLineB = grid.streamlines_from_source(fieldLineSeedB,
+                                                  vectors="B",
+                                                  max_step_length=0.2,
+                                                  max_time=50.0,
+                                                  integration_direction="both")
+        pl.add_mesh(fieldLineB.tube(radius=0.2), cmap="Blues")
+
+    pl.camera.position = (100, 100, 100)
+    pl.show()
+
+    return dE, dB, grid
