@@ -159,7 +159,7 @@ class Study(object):
             self.outputsizes.append(0)
 
 
-def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
+def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
           silent=False, errorSilent=False, options=None, bdsimExecutable=None):
     """
     Runs bdsim with gmadpath as inputfile and outfile as outfile.
@@ -175,6 +175,8 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
             "--ngenerate={}".format(ngenerate)]
     if batch:
         args.append("--batch")
+    if seed is not None:
+        args.append("--seed={}".format(int(seed)))
 
     if isinstance(options, str):
         args.append(options)
