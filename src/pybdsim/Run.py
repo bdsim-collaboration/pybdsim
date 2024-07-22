@@ -9,6 +9,7 @@ import os as _os
 import subprocess as _subprocess
 import uuid as _uuid
 import time as _time
+import re as _re
 
 from . import Data as _Data
 from . import _General
@@ -221,6 +222,31 @@ def Rebdsim(rootpath, inpath, outpath, silent=False, rebdsimExecutable=None):
                                stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
+
+def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
+    jobs = []
+    if outfilelist is None:
+        outfilelist = []
+        for infile in infilelist:
+            outfilelist.append(_re.split(r'\.', _os.path.basename(infile))[0] + '_ana.root')
+    for infile, outfile in zip(infilelist, outfilelist):
+        jobs.append((rootpath, infile, outfile, silent, rebdsimExecutable))
+
+    if len(infilelist) > nCPUs:
+        howmanyJobs = divmod(len(infilelist), nCPUs)[0]
+        for i in range(howmanyJobs):
+            p = _mp.Pool(processes=nCPUs)
+            p.starmap(Rebdsim, jobs[i * nCPUs:(i + 1) * nCPUs])
+        remainingJobs = divmod(len(infilelist), nCPUs)[1]
+        if remainingJobs > 0:
+            p = _mp.Pool(processes=remainingJobs)
+            p.starmap(Rebdsim, jobs[howmanyJobs * nCPUs:])
+    else:
+        if len(infilelist) < nCPUs:
+            nCPUs = len(infilelist)
+        p = _mp.Pool(processes=nCPUs)
+        p.starmap(Rebdsim, jobs)
+
 def RebdsimOptics(rootpath, outpath, silent=False):
     """
     Run rebdsimOptics
