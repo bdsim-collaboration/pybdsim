@@ -8,6 +8,7 @@ import numpy as _np
 import os as _os
 import subprocess as _subprocess
 import uuid as _uuid
+import time as _time
 
 from . import Data as _Data
 from . import _General
@@ -190,7 +191,23 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
     else:
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
-def Rebdsim(rootpath, inpath, outpath,silent=False, rebdsimExecutable=None):
+def BdsimParallel(gmadpath, outfile, ngenerate=10000, startseed=None, batch=True,
+                  silent=False, errorSilent=False, options=None, bdsimExecutable=None, nCPUs=4):
+    if startseed is None:
+        seed = int(_time.time())
+    else:
+        seed = int(startseed)
+
+    jobs = []
+    for i in range(nCPUs):
+        jobs.append((gmadpath, outfile + '_' + str(i), ngenerate, seed, batch,
+                     silent, errorSilent, options, bdsimExecutable))
+        seed += 1
+
+    p = _mp.Pool(processes=nCPUs)
+    p.starmap(Bdsim, jobs)
+
+def Rebdsim(rootpath, inpath, outpath, silent=False, rebdsimExecutable=None):
     """
     Run rebdsim with rootpath as analysisConfig file, inpath as bdsim 
     file, and outpath as output analysis file.
@@ -204,7 +221,6 @@ def Rebdsim(rootpath, inpath, outpath,silent=False, rebdsimExecutable=None):
                                stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
-    
 def RebdsimOptics(rootpath, outpath, silent=False):
     """
     Run rebdsimOptics
