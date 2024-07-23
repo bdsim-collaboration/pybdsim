@@ -199,6 +199,11 @@ def BdsimParallel(gmadpath, outfile, ngenerate=10000, startseed=None, batch=True
     else:
         seed = int(startseed)
 
+    maxNumberOfCores = _mp.cpu_count() - 1
+    if nCPUs > maxNumberOfCores:
+        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
+        nCPUs = maxNumberOfCores
+
     jobs = []
     for i in range(nCPUs):
         jobs.append((gmadpath, outfile + '_' + str(i), ngenerate, seed, batch,
@@ -224,6 +229,11 @@ def Rebdsim(rootpath, inpath, outpath, silent=False, rebdsimExecutable=None):
         return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
 
 def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
+    maxNumberOfCores = _mp.cpu_count() - 1
+    if nCPUs > maxNumberOfCores:
+        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
+        nCPUs = maxNumberOfCores
+
     jobs = []
     if outfilelist is None:
         outfilelist = []
