@@ -1,7 +1,9 @@
 import gzip as _gzip
 import numpy as _np
 import tarfile as _tarfile
-from copy import deepcopy as _deepcopy
+import pkg_resources as _pkg_resources
+import os as _os    
+import pybdsim
 
 class Field(object):
     """
@@ -275,6 +277,28 @@ class Field2D(Field):
         self.header[scl+'max'] = _np.max(self.data[:,:,1])
         self.header['n'+scl]   = _np.shape(self.data)[inds[1]]
         self.nDimensions = 2
+    
+    def SortField(self):
+        """
+        Sort the field map in a linearly progressing loop of (x,y,z,t).
+        """
+        if self.nDimensions == 2:
+            field = SortUnorderedFieldMap2D(self)
+            self.data = field.data
+            self.header = field.header
+
+    def UseSymmetry(self, symmetry):
+        """
+        Expand the field map to include the symmetries of the field.
+
+        :param symmetry: Symmetry to apply to the field
+        :type symmetry: str
+        """
+        for sym in symmetry.split():
+            field = SortUnorderedFieldMap2D(self, sym)
+            self.data = field.data
+            self.header = field.header
+        
 
 
 class Field3D(Field):
@@ -530,36 +554,106 @@ def MirrorDipoleQuadrant1(field2D):
     return resultField
 
 
-def SortUnorderedFieldMap2D(field):
+_Symmetries = {
+    "none": [[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]],
+    "flipx": [[-1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0]],
+    "flipy": [[1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0]],
+    "flipz": [[1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0]],
+    "flipt": [[1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0]],
+    "reflectx": [
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        [-1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0]
+        ],
+    "reflecty": [
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        [1.0, -1.0, 1.0, 1.0, 1.0, -1.0, 1.0]
+        ],
+    "reflectz": [
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        [1.0, 1.0, -1.0, 1.0, 1.0, 1.0, -1.0]
+        ],
+    "reflectt": [
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        [1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0]
+        ],
+    "reflectxydipole": [
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        [-1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0],
+        [1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0],
+        [-1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0]
+        ],
+    "reflectxzdipole": [
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        [1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0]
+        ],
+    "reflectxzsolendoid": [
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        [1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0]
+        ],
+    "reflectxyquadrupole": [
+        [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        [-1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0],
+        [1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0],
+        [-1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0]
+        ]
+}
+
+# create _Symmetres2D from _Symmetries where index 2 and 3 are removed
+_Symmetries2D = {}
+for key in _Symmetries.keys():
+    _Symmetries2D[key] = []
+    for sym in _Symmetries[key]:
+        _Symmetries2D[key].append(sym[:2]+sym[4:])
+
+
+def SortUnorderedFieldMap2D(field, symmetry="none"):
     """
     Rearrange the data in a 2D field map to be in a linearly
     progressing loop of (x,y). In future this could be generalised
     to more dimensions and also any two dimensions, not just x,y.
+    The symmetry option allows the field to be expanded to include
+    the symmetries of the field.
 
     :param field: Incoming jumbled field map
     :type  field: pybdsim.Field.Field2D
-
-    Returns a new Field2D object
+    :param symmetry: Symmetry to apply to the field
+    :type  symmetry: str
     """
-    d  = field.data
-    sh = _np.shape(d)
-    d2 = fd.data.reshape((sh[0]*sh[1],sh[2]))
-
-    # build a dict with key (x,y)
-    dmap = {}
-    for v in d2:
-        dmap[(v[0],v[1])] = v[2:]
-
-    # build up new array now in order
-    dnew = []
-    h = fd.header
-    for y in np.linspace(h['ymin'], h['ymax'], h['ny']):
-        r = []
-        for x in np.linspace(h['xmin'], h['xmax'], h['nx']):
-            fv = dmap[(x,y)]
-            r.append([x,y,*fv])
-        dnew.append(r)
-
-    dnew = _np.array(dnew)
-    fdnew = Field2D(dnew)
-    return fdnew
+    if symmetry in _Symmetries2D.keys():
+        if symmetry in ['reflectx', 'reflectxydipole', 'reflectxyquadrupole', 'reflectxzsolendoid', 'reflectxzdipole']:
+            if (field.header['xmin'] < 0 and field.header['xmax'] > 0):
+                print("Warning: Field map has positive and negative x values. The symmetry may not be applied correctly and might lead to unexpected results. Please ensure the field map is symmetric around x=0.")
+        if symmetry in ['reflecty', 'reflectxydipole', 'reflectxyquadrupole']:
+            if (field.header['ymin'] < 0 and field.header['ymax'] > 0):
+                print("Warning: Field map has positive and negative y values. The symmetry may not be applied correctly and might lead to unexpected results. Please ensure the field map is symmetric around y=0.")
+        # create an empty numpy array with 6 columns and 0 rows that we can append to
+        data2D_original = field.data.reshape(-1, field.data.shape[-1])
+        # empty array to store the new data
+        data2D = _np.empty((0, field.data.shape[-1]))
+        for sym in _Symmetries2D[symmetry]:
+            symData = _np.copy(data2D_original)
+            for i in range(len(sym)):
+                if sym[i] == -1:
+                    symData[:,i] *= -1
+            data2D = _np.concatenate((data2D, symData))
+        # remove duplicates
+        data2D = _np.unique(data2D, axis=0)
+        fieldmap = []
+        for xi in _np.unique(data2D[:,0]):
+            v = []
+            for yi in _np.unique(data2D[:,1]):
+                # find the row in data2D that corresponds to xi,yi
+                row = data2D[(data2D[:,0] == xi) & (data2D[:,1] == yi)]
+                v.append([row[0,0], row[0,1], row[0,2], row[0,3], row[0,4]])
+            fieldmap.append(v)
+        # convert to numpy array
+        fieldmap = _np.array(fieldmap)
+        # construct a BDSIM format field object and write it out
+        field_new = pybdsim.Field.Field2D(fieldmap)
+        testfile = _pkg_resources.resource_filename("pybdsim", "testfield2D.dat")
+        field_new.Write(testfile)
+        field_new = pybdsim.Field.Load(testfile)
+        _os.remove(testfile)
+        return field_new
+    else:
+        raise ValueError("Symmetry not recognised. Options are: "+str(_Symmetries2D.keys()))
