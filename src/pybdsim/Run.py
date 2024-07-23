@@ -165,7 +165,7 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
           silent=False, errorSilent=False, options=None, bdsimExecutable=None):
     """
     Runs bdsim with gmadpath as inputfile and outfile as outfile.
-    Runs in batch mode by default, with 10,000 particles.  Any extra
+    Runs in batch mode by default, with 10,000 particles. Any extra
     options should be provided as a string or iterable of strings of
     the form "--vis_debug" or "--vis_mac=vis.mac", etc.
     """
@@ -194,6 +194,13 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
 
 def BdsimParallel(gmadpath, outfile, ngenerate=10000, startseed=None, batch=True,
                   silent=False, errorSilent=False, options=None, bdsimExecutable=None, nCPUs=4):
+    """
+    Runs multiple bdsim instances with gmadpath as inputfile and outfile as outfile.
+    The number of parallel jobs is defined by nCPUs, but limited to the total number
+    of cores available minus 1. Runs in batch mode by default, with 10,000 particles.
+    Any extra options should be provided as a string or iterable of strings of
+    the form "--vis_debug" or "--vis_mac=vis.mac", etc.
+    """
     if startseed is None:
         seed = int(_time.time())
     else:
@@ -229,6 +236,12 @@ def Rebdsim(rootpath, inpath, outpath, silent=False, rebdsimExecutable=None):
         return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
 
 def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
+    """
+    Run multiple rebdsim instances with rootpath as analysisConfig file,
+    inpath as bdsim file, and outpath as output analysis file. The number
+    of parallel jobs is defined by nCPUs, but limited to the total number
+    of cores available minus 1.
+    """
     maxNumberOfCores = _mp.cpu_count() - 1
     if nCPUs > maxNumberOfCores:
         print("Limiting the number of jobs to {}".format(maxNumberOfCores))
