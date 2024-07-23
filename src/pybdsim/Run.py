@@ -256,11 +256,10 @@ def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsi
         jobs.append((rootpath, infile, outfile, silent, rebdsimExecutable))
 
     if len(infilelist) > nCPUs:
-        howmanyJobs = divmod(len(infilelist), nCPUs)[0]
+        howmanyJobs, remainingJobs = divmod(len(infilelist), nCPUs)
         for i in range(howmanyJobs):
             p = _mp.Pool(processes=nCPUs)
             p.starmap(Rebdsim, jobs[i * nCPUs:(i + 1) * nCPUs])
-        remainingJobs = divmod(len(infilelist), nCPUs)[1]
         if remainingJobs > 0:
             p = _mp.Pool(processes=remainingJobs)
             p.starmap(Rebdsim, jobs[howmanyJobs * nCPUs:])
