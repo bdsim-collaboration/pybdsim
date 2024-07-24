@@ -37,14 +37,16 @@ class FourDData:
     """
     Class purely to simplify plotting of fields. Not for general use.
     """
-    def __init__(self, filename, xind=0, yind=1, zind=2, tind=3, symmetry="none"):
+    def __init__(self, filename, xind=0, yind=1, zind=2, tind=3, symmetry="none", transpose=False):
         # check for the dimensionality of the field
         self.nDim = 1 if yind == -1 else 2 if zind == -1 else 3 if tind == -1 else 4
         fm = _GetField(filename, self.nDim)
-        if symmetry is not None:
+        if symmetry is not None or transpose:
+            if symmetry is None:
+                symmetry = "none"
             # currently only works for 2D fields
             if self.nDim == 2:
-                fm.UseSymmetry(symmetry)
+                fm.UseSymmetry(symmetry, transpose)
         self.data = fm.data
             
         # '...' fills in unknown number of dimensions with ':' meaning
@@ -76,37 +78,37 @@ class ThreeDData(FourDData):
     """
     Class purely to simplify plotting of fields. Not for general use.
     """
-    def __init__(self, filename, symmetry="none"):
-        FourDData.__init__(self, filename, tind=-1, symmetry=symmetry)
+    def __init__(self, filename, symmetry="none", transpose=False):
+        FourDData.__init__(self, filename, tind=-1, symmetry=symmetry, transpose=transpose)
 
 class TwoDData(FourDData):
     """
     Class purely to simplify plotting of fields. Not for general use.
     """
-    def __init__(self, filename, symmetry="none"):
-        FourDData.__init__(self, filename, tind=-1, zind=-1, symmetry=symmetry)
+    def __init__(self, filename, symmetry="none", transpose=False):
+        FourDData.__init__(self, filename, tind=-1, zind=-1, symmetry=symmetry, transpose=transpose)
 
 class OneDData(FourDData):
     """
     Class purely to simplify plotting of fields. Not for general use.
     """
-    def __init__(self, filename, symmetry="none"):
-        FourDData.__init__(self, filename, tind=-1, zind=-1, yind=-1, symmetry=symmetry)
+    def __init__(self, filename, symmetry="none", transpose=False):
+        FourDData.__init__(self, filename, tind=-1, zind=-1, yind=-1, symmetry=symmetry, transpose=transpose)
 
 class NDData(FourDData):
     """
     Class purely to simplify plotting of fields. Not for general use.
     """
-    def __init__(self, filename, symmetry="none"):
+    def __init__(self, filename, symmetry="none", transpose=False):
         fm = _GetField(filename)
         if fm.nDimensions == 1:
-            OneDData.__init__(self, filename, symmetry)
+            OneDData.__init__(self, filename, symmetry, transpose)
         elif fm.nDimensions == 2:
-            TwoDData.__init__(self, filename, symmetry)
+            TwoDData.__init__(self, filename, symmetry, transpose)
         elif fm.nDimensions == 3:
-            ThreeDData.__init__(self, filename, symmetry)
+            ThreeDData.__init__(self, filename, symmetry, transpose)
         elif fm.nDimensions == 4:
-            FourDData.__init__(self, filename, symmetry)
+            FourDData.__init__(self, filename, symmetry, transpose)
         else:
             raise ValueError("Field must be of dimension 1, 2, 3 or 4")
 
@@ -122,7 +124,7 @@ def _Niceties(xlabel, ylabel, zlabel="", flipX=False, aspect='equal', vmin=None,
     _plt.tight_layout()
 
 
-def Plot1DFxFyFz(filename, symmetry="none"):
+def Plot1DFxFyFz(filename, symmetry="none", transpose=False):
     """
     Plot a bdsim 1D field map file.
 
@@ -130,7 +132,7 @@ def Plot1DFxFyFz(filename, symmetry="none"):
     :type filename: str, pybdsim.Field._Field.Field1D instance
     """
     fm = _GetField(filename, 1)
-    d = OneDData(filename, symmetry)
+    d = OneDData(filename, symmetry, transpose)
 
     f = _plt.figure(figsize=(7.5,4))
     axFz = f.add_subplot(313)
@@ -153,7 +155,7 @@ def Plot1DFxFyFz(filename, symmetry="none"):
     _plt.setp(axFy.get_xticklabels(), visible=False)
     _plt.tight_layout()
 
-def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal', figsize=(6,5), cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect='equal', figsize=(6,5), cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a bdsim field map file using the X,Y plane.
     
@@ -172,7 +174,7 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
     """
-    d = TwoDData(filename, symmetry)
+    d = TwoDData(filename, symmetry, transpose)
     _plt.figure(figsize=figsize)
     norm = _mpl.colors.Normalize(vmin=vmin, vmax=vmax)
     cmap = _mpl.colors.ListedColormap(_plt.cm.get_cmap(cmap)(_np.linspace(0, 1, 256)))
@@ -182,7 +184,7 @@ def Plot2DXY(filename, scale=None, title=None, flipX=False, firstDimension="X", 
     _Niceties(firstDimension+' (cm)', secondDimension+' (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX, aspect=aspect)
 
 
-def Plot2DXYMagnitude(filename, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect="equal", zlabel="|$B_{x,y}$| (T)", figsize=(6,5), cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot2DXYMagnitude(filename, title=None, flipX=False, firstDimension="X", secondDimension="Y", aspect="equal", zlabel="|$B_{x,y}$| (T)", figsize=(6,5), cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a the magnitude of a 2D bdsim field map file using any two planes.
 
@@ -201,7 +203,7 @@ def Plot2DXYMagnitude(filename, title=None, flipX=False, firstDimension="X", sec
     :param zlabel: Label for colour bar
     :type zlabel: str
     """
-    d = TwoDData(filename, symmetry)
+    d = TwoDData(filename, symmetry, transpose)
     _plt.figure(figsize=figsize)
     ext = [_np.min(d.x),_np.max(d.x),_np.min(d.y),_np.max(d.y)]
 
@@ -217,7 +219,7 @@ def Plot2DXYMagnitude(filename, title=None, flipX=False, firstDimension="X", sec
     _Niceties(fd+' (cm)', sd+' (cm)', zlabel=zlabel, flipX=flipX, aspect=aspect)
 
 
-def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDimension="X", secondDimension="Y", aspect="equal", cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDimension="X", secondDimension="Y", aspect="equal", cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a bdsim field map file using any two planes. The corresponding
     field components are plotted (e.g. X:Z -> Fx:Fz).
@@ -238,7 +240,7 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
     :type aspect: str
     """
     fm = _GetField(filename, 2)
-    d = TwoDData(filename, symmetry)
+    d = TwoDData(filename, symmetry, transpose)
     
     _plt.figure()
     assert(firstDimension != secondDimension)
@@ -262,7 +264,58 @@ def Plot2D(filename, scale=None, title=None, flipX=False, flipY=False, firstDime
     sd = secondDimension
     _Niceties(fd + ' (cm)', sd + ' (cm)', zlabel="|$B_{"+fd+","+sd+"}$| (T)", flipX=flipX, aspect=aspect)
 
-def Plot2DXYStream(filename, density=1, zInd=0, useColour=True, aspect='equal', cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot2DXYMagnitudeAndArrows(filename, xlabel="X (cm)", ylabel="Y (cm)", zlabel="|$B_{x,y}$| (T)", figsize=None, title=None, aspect="equal", cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None, scaleArrow=None, sparsity=5, bScaling=1):
+    """
+    Plot a bdsim field map file using any two planes. The corresponding
+    field components are plotted (e.g. X:Z -> Fx:Fz).
+
+    :param filename: name of field map file or object
+    :type filename: str, pybdsim.Field._Field.Field2D instance
+    :param scaleArrow: numerical scaling for quiver plot arrow lengths.
+    :type scaleArrow: float
+    :param title: title for plot
+    :type title: str
+    :param flipX: whether to plot x backwards to match the right hand coordinate system of Geant4.
+    :type flipX: bool
+    :param firstDimension: Name of first dimension, e.g. "X"
+    :type firstDimension: str
+    :param secondDimension: Name of second dimension, e.g. "Z"
+    :type secondDimension: str
+    :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
+    :type aspect: str
+    """
+    fm = _GetField(filename, 2)
+    d = TwoDData(filename, symmetry, transpose)
+    
+    fig, ax = _plt.subplots(figsize=figsize)
+    if scaleArrow is None:
+        scaleArrow = _ArrowSize(fm)
+    ci, cj = _np.meshgrid(_np.unique(d.x), _np.unique(d.y))
+    fi, fj = d.fx.reshape(d.ny, d.nx), d.fy.reshape(d.ny, d.nx)
+    skip = (slice(None, None, sparsity), slice(None, None, sparsity))
+    ax.quiver(ci[skip], cj[skip], fi[skip]*bScaling, fj[skip]*bScaling, pivot='mid', units='xy', scale_units='xy', scale=1.0/scaleArrow)
+    if title:
+        ax.set_title(title)
+    
+    ext = [_np.min(d.x),_np.max(d.x),_np.min(d.y),_np.max(d.y)]
+    # the data will write out flipped but we need to draw it the right way
+    theData = d.mag.reshape(d.ny, d.nx)*bScaling
+    maxMag = _np.max(theData)
+    extend = 'max' if vmax < maxMag else 'neither'
+    cmap = _mpl.colormaps.get_cmap(cmap)
+    cmap.set_under('white')
+    im = ax.imshow(theData, extent=ext, origin='lower', aspect=aspect, interpolation='none', cmap=cmap, vmin=vmin, vmax=vmax)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_aspect(aspect)
+    cax = fig.colorbar(im, ax=ax, extend=extend)
+    cax.set_label(zlabel)
+    _plt.tight_layout()
+
+
+
+def Plot2DXYStream(filename, density=1, zInd=0, useColour=True, aspect='equal', cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a bdsim field map file using the X,Y plane as a stream plot and plotting Fx, Fy.
     
@@ -277,7 +330,7 @@ def Plot2DXYStream(filename, density=1, zInd=0, useColour=True, aspect='equal', 
 
     Note, matplotlibs streamplot may raise an exception if the field is entriely 0 valued.
     """
-    d = NDData(filename, symmetry)
+    d = NDData(filename, symmetry, transpose)
     if d.nDim == 2:
         cx = _np.unique(d.x)
         cy = _np.unique(d.y)
@@ -310,7 +363,7 @@ def Plot2DXYStream(filename, density=1, zInd=0, useColour=True, aspect='equal', 
         _plt.streamplot(cx, cy, fx, fy, density=density, color='k', linewidth=lw)
     _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)", aspect=aspect)
 
-def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True, aspect='equal', cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True, aspect='equal', cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a bdsim field map file using the X,Z plane as a stream plot and plotting Fx, Fz.
     
@@ -327,7 +380,7 @@ def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True, aspect='eq
 
     Note, matplotlibs streamplot may raise an exception if the field is entriely 0 valued.
     """
-    d = TwoDData(filename, symmetry)
+    d = TwoDData(filename, symmetry, transpose)
 
     yInd = yIndexIf3D
     if d.nDim == 2:
@@ -360,7 +413,7 @@ def Plot2DXZStream(filename, density=1, yIndexIf3D=0, useColour=True, aspect='eq
         _plt.streamplot(cx, cz, fx, fz, density=density)
     _Niceties('X (cm)', 'Z (cm)', zlabel="|$B_{x,z}$| (T)", aspect=aspect)
 
-def Plot2DXYConnectionOrder(filename, symmetry=None):
+def Plot2DXYConnectionOrder(filename, symmetry=None, transpose=False):
     """
     Plot a point in orange and a line in blue (default matplotlib colours)
     for each location in the field map. If the field map is constructed
@@ -369,7 +422,7 @@ def Plot2DXYConnectionOrder(filename, symmetry=None):
     BDSIM loads the fields. So you might see an OK field map, but it could
     be wrong if handwritten.
     """
-    d = TwoDData(filename, symmetry)
+    d = TwoDData(filename, symmetry, transpose)
     _plt.figure()
     _plt.plot(d.x,d.y)
     _plt.plot(d.x,d.y,'.')
@@ -377,7 +430,7 @@ def Plot2DXYConnectionOrder(filename, symmetry=None):
     _plt.ylabel('Y (cm)')
     _plt.tight_layout()
 
-def Plot2DXYComponent(filename, componentIndex=2, scale=None, title=None, flipX=False, aspect='equal', cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot2DXYComponent(filename, componentIndex=2, scale=None, title=None, flipX=False, aspect='equal', cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a bdsim field map file use the X,Y plane, but plotting By component.
     
@@ -392,7 +445,7 @@ def Plot2DXYComponent(filename, componentIndex=2, scale=None, title=None, flipX=
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
     """
-    d = TwoDData(filename, symmetry)
+    d = TwoDData(filename, symmetry, transpose)
     dataDict = {0: d.fx, 1: d.fy, 2: d.fz}
     scale = scale if scale is not None else 1.0
     data = dataDict[componentIndex]*scale
@@ -406,7 +459,7 @@ def Plot2DXYComponent(filename, componentIndex=2, scale=None, title=None, flipX=
         _plt.title(title)
     _Niceties('X (cm)', 'Y (cm)', zlabel="$B_{}$ (T)".format(label[componentIndex]), flipX=flipX, aspect=aspect)
 
-def Plot2DXYBx(filename, scale=None, title=None, flipX=False, aspect='equal', cmap='magma', symmetry="none"):
+def Plot2DXYBx(filename, scale=None, title=None, flipX=False, aspect='equal', cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a bdsim field map file use the X,Y plane, but plotting By component.
     
@@ -419,9 +472,9 @@ def Plot2DXYBx(filename, scale=None, title=None, flipX=False, aspect='equal', cm
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
     """
-    Plot2DXYComponent(filename, 0, scale, title, flipX, aspect, cmap, symmetry)
+    Plot2DXYComponent(filename, 0, scale, title, flipX, aspect, cmap, symmetry, transpose, vmin, vmax)
 
-def Plot2DXYBy(filename, scale=None, title=None, flipX=False, aspect='equal', cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot2DXYBy(filename, scale=None, title=None, flipX=False, aspect='equal', cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a bdsim field map file use the X,Y plane, but plotting By component.
     
@@ -434,9 +487,9 @@ def Plot2DXYBy(filename, scale=None, title=None, flipX=False, aspect='equal', cm
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
     """
-    Plot2DXYComponent(filename, 1, scale, title, flipX, aspect, cmap, symmetry, vmin, vmax)
+    Plot2DXYComponent(filename, 1, scale, title, flipX, aspect, cmap, symmetry, transpose, vmin, vmax)
 
-def Plot2DXYBz(filename, scale=None, title=None, flipX=False, aspect='equal', cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot2DXYBz(filename, scale=None, title=None, flipX=False, aspect='equal', cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plot a bdsim field map file use the X,Y plane, but plotting By component.
     
@@ -449,10 +502,10 @@ def Plot2DXYBz(filename, scale=None, title=None, flipX=False, aspect='equal', cm
     :param aspect: Matplotlib axes aspect (e.g. 'auto' or 'equal')
     :type aspect: str
     """
-    Plot2DXYComponent(filename, 2, scale, title, flipX, aspect, cmap, symmetry, vmin, vmax)
+    Plot2DXYComponent(filename, 2, scale, title, flipX, aspect, cmap, symmetry, transpose, vmin, vmax)
 
 
-def Plot2DXYFxFyFz(filename, title=None, aspect="auto", extent=None, symmetry='none', **imshowKwargs):
+def Plot2DXYFxFyFz(filename, title=None, aspect="auto", extent=None, symmetry='none', transpose=False, **imshowKwargs):
     """
     Plot Fx,Fy,Fz components of a field separately as a function of X,Y.
 
@@ -466,7 +519,7 @@ def Plot2DXYFxFyFz(filename, title=None, aspect="auto", extent=None, symmetry='n
     :type extent: list,tuple
     """
     imshowKwargs['aspect'] = aspect
-    d = TwoDData(filename, symmetry)
+    d = TwoDData(filename, symmetry, transpose)
     
     f   = _plt.figure(figsize=(7.5,4))
     ax  = f.add_subplot(131)
@@ -507,22 +560,22 @@ def Plot2DXYFxFyFz(filename, title=None, aspect="auto", extent=None, symmetry='n
     if title:
         _plt.suptitle(title, size='x-large')
 
-def Plot3DXY(filename, scale=None, title=None, flipX=False, flipY=False, aspect='equal', cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot3DXY(filename, scale=None, title=None, flipX=False, flipY=False, aspect='equal', cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plots (B_x,B_y) as a function of x and y.
     """
-    d = ThreeDData(filename, symmetry)
+    d = ThreeDData(filename, symmetry, transpose)
     _plt.figure()
     _plt.quiver(d.x,d.y,d.fx,d.fy,d.mag,cmap=_mpl.colormaps.get_cmap(cmap),pivot='mid',scale=scale, vmin=vmin, vmax=vmax)
     if title:
         _plt.title(title)
     _Niceties('X (cm)', 'Y (cm)', zlabel="|$B_{x,y}$| (T)", flipX=flipX, aspect=aspect)
 
-def Plot3DXZ(filename, scale=None, title=None, flipX=False, flipZ=False, aspect='equal', cmap='magma', symmetry="none", vmin=None, vmax=None):
+def Plot3DXZ(filename, scale=None, title=None, flipX=False, flipZ=False, aspect='equal', cmap='magma', symmetry="none", transpose=False, vmin=None, vmax=None):
     """
     Plots (B_x,B_z) as a function of x and z.
     """
-    d = ThreeDData(filename, symmetry)
+    d = ThreeDData(filename, symmetry, transpose)
     _plt.figure()
     _plt.quiver(d.x,d.z,d.fx,d.fz,d.mag,cmap=_mpl.colormaps.get_cmap(cmap),pivot='mid',scale=scale, vmin=vmin, vmax=vmax)
     if title:

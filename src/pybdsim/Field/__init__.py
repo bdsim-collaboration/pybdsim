@@ -18,6 +18,7 @@ from .FieldPlotter import Plot1DFxFyFz
 from .FieldPlotter import Plot2D
 from .FieldPlotter import Plot2DXY
 from .FieldPlotter import Plot2DXYMagnitude
+from .FieldPlotter import Plot2DXYMagnitudeAndArrows
 from .FieldPlotter import Plot2DXYStream
 from .FieldPlotter import Plot2DXZStream
 from .FieldPlotter import Plot2DXYConnectionOrder
