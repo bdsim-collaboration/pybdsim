@@ -46,7 +46,7 @@ class FourDData:
                 symmetry = "none"
             # currently only works for 2D fields
             if self.nDim == 2:
-                fm.UseSymmetry(symmetry, transpose)
+                fm._UseSymmetry(symmetry, transpose)
         self.data = fm.data
             
         # '...' fills in unknown number of dimensions with ':' meaning
@@ -293,7 +293,7 @@ def Plot2DXYMagnitudeAndArrows(filename, xlabel="X (cm)", ylabel="Y (cm)", zlabe
     ci, cj = _np.meshgrid(_np.unique(d.x), _np.unique(d.y))
     fi, fj = d.fx.reshape(d.ny, d.nx), d.fy.reshape(d.ny, d.nx)
     skip = (slice(None, None, sparsity), slice(None, None, sparsity))
-    ax.quiver(ci[skip], cj[skip], fi[skip]*bScaling, fj[skip]*bScaling, pivot='mid', units='xy', scale_units='xy', scale=1.0/scaleArrow)
+    ax.quiver(ci[skip], cj[skip], fi[skip]*bScaling, fj[skip]*bScaling, pivot='mid', units='xy', scale_units='xy', scale=1.0/scaleArrow, color='white', width=0.6)
     if title:
         ax.set_title(title)
     
