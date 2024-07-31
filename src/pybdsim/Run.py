@@ -220,27 +220,43 @@ def BdsimParallel(gmadpath, outfile, ngenerate=10000, startseed=None, batch=True
     p = _mp.Pool(processes=nCPUs)
     p.starmap(Bdsim, jobs)
 
-def Rebdsim(rootpath, inpath, outpath, silent=False, rebdsimExecutable=None):
+def Rebdsim(analysis_config_file, bdsim_raw_output_file, output_file_name=None, silent=False, rebdsimExecutable=None):
     """
-    Run rebdsim with rootpath as analysisConfig file, inpath as bdsim 
-    file, and outpath as output analysis file.
-    """
-    if not rebdsimExecutable:
-        rebdsimExecutable = "rebdsim"
-    if not _General.IsROOTFile(inpath):
-        raise IOError("Not a ROOT file")
-    if silent:
-        return _subprocess.call([rebdsimExecutable, rootpath , inpath , outpath],
-                               stdout=open(_os.devnull, 'wb'))
-    else:
-        return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
+    Run rebdsim with rootpath as analysis configuration text file on a bdsim
+    raw output root file.
 
-def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
+    :param analysis_config_file: rebdsim analysis configuration text file
+    :type analysis_config_file: str
+    :param bdsim_raw_output_file: bdsim raw output root file to analyse
+    :type bdsim_raw_output_file: str
+    :param output_file_name: optional output file name, default is (raw_name)_ana.root
+    :type output_file_name: None, str
+    :param silent: whether to suppress the print-out
+    :type silent: bool
+    :param rebdsimExecutable: specific executable to use for developers
+    :type rebdsimExecutable: None, str
     """
-    Run multiple rebdsim instances with rootpath as analysisConfig file,
-    inpath as bdsim file, and outpath as output analysis file. The number
+    rebdsimExecutable = "rebdsim" if not rebdsimExecutable else rebdsimExecutable
+    if not _General.IsROOTFile(bdsim_raw_output_file):
+        raise IOError("Not a ROOT file")
+    args = [rebdsimExecutable, analysis_config_file, bdsim_raw_output_file]
+    if output_file_name is not None:
+        args.append(output_file_name)
+    if silent:
+        return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call(args)
+
+def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
+    """
+    Run multiple rebdsim instances with a single analysis config file. The number
     of parallel jobs is defined by nCPUs, but limited to the total number
     of cores available minus 1.
+
+    :param analysis_config_file: rebdsim analysis configuration text file
+    :type analysis_config_file: str
+    :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
+    :type bdsim_raw_output_file_list: list(str)
     """
     maxNumberOfCores = _mp.cpu_count() - 1
     if nCPUs > maxNumberOfCores:
@@ -250,13 +266,13 @@ def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsi
     jobs = []
     if outfilelist is None:
         outfilelist = []
-        for infile in infilelist:
+        for infile in bdsim_raw_output_file_list:
             outfilelist.append(_re.split(r'\.', _os.path.basename(infile))[0] + '_ana.root')
-    for infile, outfile in zip(infilelist, outfilelist):
-        jobs.append((rootpath, infile, outfile, silent, rebdsimExecutable))
+    for infile, outfile in zip(bdsim_raw_output_file_list, outfilelist):
+        jobs.append((analysis_config_file, infile, outfile, silent, rebdsimExecutable))
 
-    if len(infilelist) > nCPUs:
-        howmanyJobs, remainingJobs = divmod(len(infilelist), nCPUs)
+    if len(bdsim_raw_output_file_list) > nCPUs:
+        howmanyJobs, remainingJobs = divmod(len(bdsim_raw_output_file_list), nCPUs)
         for i in range(howmanyJobs):
             p = _mp.Pool(processes=nCPUs)
             p.starmap(Rebdsim, jobs[i * nCPUs:(i + 1) * nCPUs])
@@ -264,8 +280,8 @@ def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsi
             p = _mp.Pool(processes=remainingJobs)
             p.starmap(Rebdsim, jobs[howmanyJobs * nCPUs:])
     else:
-        if len(infilelist) < nCPUs:
-            nCPUs = len(infilelist)
+        if len(bdsim_raw_output_file_list) < nCPUs:
+            nCPUs = len(bdsim_raw_output_file_list)
         p = _mp.Pool(processes=nCPUs)
         p.starmap(Rebdsim, jobs)
 
