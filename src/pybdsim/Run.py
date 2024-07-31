@@ -8,6 +8,8 @@ import numpy as _np
 import os as _os
 import subprocess as _subprocess
 import uuid as _uuid
+import time as _time
+import re as _re
 
 from . import Data as _Data
 from . import _General
@@ -159,11 +161,11 @@ class Study(object):
             self.outputsizes.append(0)
 
 
-def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
+def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
           silent=False, errorSilent=False, options=None, bdsimExecutable=None):
     """
     Runs bdsim with gmadpath as inputfile and outfile as outfile.
-    Runs in batch mode by default, with 10,000 particles.  Any extra
+    Runs in batch mode by default, with 10,000 particles. Any extra
     options should be provided as a string or iterable of strings of
     the form "--vis_debug" or "--vis_mac=vis.mac", etc.
     """
@@ -175,6 +177,8 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
             "--ngenerate={}".format(ngenerate)]
     if batch:
         args.append("--batch")
+    if seed is not None:
+        args.append("--seed={}".format(int(seed)))
 
     if isinstance(options, str):
         args.append(options)
@@ -188,7 +192,35 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, batch=True,
     else:
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
-def Rebdsim(rootpath, inpath, outpath,silent=False, rebdsimExecutable=None):
+def BdsimParallel(gmadpath, outfile, ngenerate=10000, startseed=None, batch=True,
+                  silent=False, errorSilent=False, options=None, bdsimExecutable=None, nCPUs=4):
+    """
+    Runs multiple bdsim instances with gmadpath as inputfile and outfile as outfile.
+    The number of parallel jobs is defined by nCPUs, but limited to the total number
+    of cores available minus 1. Runs in batch mode by default, with 10,000 particles.
+    Any extra options should be provided as a string or iterable of strings of
+    the form "--vis_debug" or "--vis_mac=vis.mac", etc.
+    """
+    if startseed is None:
+        seed = int(_time.time())
+    else:
+        seed = int(startseed)
+
+    maxNumberOfCores = _mp.cpu_count() - 1
+    if nCPUs > maxNumberOfCores:
+        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
+        nCPUs = maxNumberOfCores
+
+    jobs = []
+    for i in range(nCPUs):
+        jobs.append((gmadpath, outfile + '_' + str(i), ngenerate, seed, batch,
+                     silent, errorSilent, options, bdsimExecutable))
+        seed += 1
+
+    p = _mp.Pool(processes=nCPUs)
+    p.starmap(Bdsim, jobs)
+
+def Rebdsim(rootpath, inpath, outpath, silent=False, rebdsimExecutable=None):
     """
     Run rebdsim with rootpath as analysisConfig file, inpath as bdsim 
     file, and outpath as output analysis file.
@@ -202,7 +234,41 @@ def Rebdsim(rootpath, inpath, outpath,silent=False, rebdsimExecutable=None):
                                stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
-    
+
+def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
+    """
+    Run multiple rebdsim instances with rootpath as analysisConfig file,
+    inpath as bdsim file, and outpath as output analysis file. The number
+    of parallel jobs is defined by nCPUs, but limited to the total number
+    of cores available minus 1.
+    """
+    maxNumberOfCores = _mp.cpu_count() - 1
+    if nCPUs > maxNumberOfCores:
+        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
+        nCPUs = maxNumberOfCores
+
+    jobs = []
+    if outfilelist is None:
+        outfilelist = []
+        for infile in infilelist:
+            outfilelist.append(_re.split(r'\.', _os.path.basename(infile))[0] + '_ana.root')
+    for infile, outfile in zip(infilelist, outfilelist):
+        jobs.append((rootpath, infile, outfile, silent, rebdsimExecutable))
+
+    if len(infilelist) > nCPUs:
+        howmanyJobs, remainingJobs = divmod(len(infilelist), nCPUs)
+        for i in range(howmanyJobs):
+            p = _mp.Pool(processes=nCPUs)
+            p.starmap(Rebdsim, jobs[i * nCPUs:(i + 1) * nCPUs])
+        if remainingJobs > 0:
+            p = _mp.Pool(processes=remainingJobs)
+            p.starmap(Rebdsim, jobs[howmanyJobs * nCPUs:])
+    else:
+        if len(infilelist) < nCPUs:
+            nCPUs = len(infilelist)
+        p = _mp.Pool(processes=nCPUs)
+        p.starmap(Rebdsim, jobs)
+
 def RebdsimOptics(rootpath, outpath, silent=False):
     """
     Run rebdsimOptics

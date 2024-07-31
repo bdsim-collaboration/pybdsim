@@ -475,12 +475,12 @@ class Spectra:
 def ParseSpectraName(hname):
     # expects a string of the form
     # Top10_Spectra_SamplerName_PDGID
-    hn = _re.sub("Top\d+_", "", hname)
+    hn = _re.sub(R'Top\d+_', "", hname)
     #hn = hname.replace('Top_','')
     #hn = hn.replace('Spectra_','')
     #rem = _re.compile(R"Spectra([\w\.\-]+)_(\d+)_([\-+]*\d+)$")
     # (TopN_)Spectra_(NAME)_Nth_+-PDGID(_Primary | _Secondary)  is the pattern of possible names
-    rem = _re.compile(R"Spectra_([\w\.\-]+)_(\d+)_([\-+]*\d+)((?:_Primary|_Secondary)*)$")
+    rem = _re.compile(R'Spectra_([\w\.\-]+)_(\d+)_([\-+]*\d+)((?:_Primary|_Secondary)*)$')
     match = _re.match(rem, hn)
     if not match:
         raise ValueError("Could not parse the spectra name", hname)
