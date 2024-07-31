@@ -34,14 +34,14 @@ def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, avera
 
     if size == 4 :
         sampler1_matrix = _np.array([sampler1_data.data['x'],
-                                        sampler1_data.data['xp'],
-                                        sampler1_data.data['y'],
-                                        sampler1_data.data['yp']])
+                                     sampler1_data.data['xp'],
+                                     sampler1_data.data['y'],
+                                     sampler1_data.data['yp']])
 
         sampler2_matrix = _np.array([sampler2_data.data['x'],
-                                        sampler2_data.data['xp'],
-                                        sampler2_data.data['y'],
-                                        sampler2_data.data['yp']])
+                                     sampler2_data.data['xp'],
+                                     sampler2_data.data['y'],
+                                     sampler2_data.data['yp']])
     elif size == 6:
         sampler1_time = sampler1_data.data['T']
         sampler2_time = sampler2_data.data['T']
