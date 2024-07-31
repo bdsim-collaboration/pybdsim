@@ -278,7 +278,7 @@ class Field2D(Field):
         self.header['n'+scl]   = _np.shape(self.data)[inds[1]]
         self.nDimensions = 2
     
-    def SortField(self):
+    def _SortField(self):
         """
         Sort the field map in a linearly progressing loop of (x,y,z,t).
         """
@@ -286,7 +286,7 @@ class Field2D(Field):
         self.data = field.data
         self.header = field.header
 
-    def UseSymmetry(self, symmetry='none', transpose=False):
+    def _UseSymmetry(self, symmetry='none', transpose=False):
         """
         Expand the field map to include the symmetries of the field.
 

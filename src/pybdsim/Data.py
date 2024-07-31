@@ -74,7 +74,7 @@ def LoadROOTLibraries():
     else:
         _libsLoaded = True
 
-def Load(filepath):
+def Load(filepath, messageio = True):
     """
     Load the data with the appropriate loader.
 
@@ -95,7 +95,7 @@ def Load(filepath):
         return _LoadAscii(filepath)
     elif extension == 'root':
         try:
-            return _LoadRoot(filepath)
+            return _LoadRoot(filepath, messageio)
         except NameError:
             #raise error rather than return None, saves later scripting errors.
             raise IOError('Root loader not available.')
@@ -173,7 +173,7 @@ def _ROOTFileType(filepath):
     f.Close()
     return result
 
-def _LoadRoot(filepath):
+def _LoadRoot(filepath, messageio):
     """
     Inspect file and check it's a BDSIM file of some kind and load.
     """
@@ -187,7 +187,8 @@ def _LoadRoot(filepath):
     fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
 
     if fileType == "BDSIM":
-        print('BDSIM output file - using DataLoader')
+        if messageio:
+            print('BDSIM output file - using DataLoader')
         d = _ROOT.DataLoader(filepath)
         d.model = GetModelForPlotting(d) # attach BDSAsciiData instance for convenience
         d.header = Header(HeaderTree=d.GetHeaderTree())

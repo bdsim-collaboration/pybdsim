@@ -1,7 +1,10 @@
 import numpy as _np
 import scipy.special as _special
 import scipy.constants as _constants
-import vtk as _vtk
+try :
+    import vtk as _vtk
+except ModuleNotFoundError :
+    pass
 
 
 def DriftTransverseMatrix(l) :

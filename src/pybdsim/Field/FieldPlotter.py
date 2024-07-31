@@ -46,7 +46,7 @@ class FourDData:
                 symmetry = "none"
             # currently only works for 2D fields
             if self.nDim == 2:
-                fm.UseSymmetry(symmetry, transpose)
+                fm._UseSymmetry(symmetry, transpose)
         self.data = fm.data
             
         # '...' fills in unknown number of dimensions with ':' meaning
@@ -112,7 +112,7 @@ class NDData(FourDData):
         else:
             raise ValueError("Field must be of dimension 1, 2, 3 or 4")
 
-def _Niceties(xlabel, ylabel, zlabel="", flipX=False, aspect='equal', vmin=None, vmax=None):
+def _Niceties(xlabel, ylabel, zlabel="", flipX=False, aspect='equal'):
     if flipX:
         cx = _plt.xlim()
         _plt.xlim(cx[1],cx[0]) # plot backwards in effect
@@ -293,7 +293,7 @@ def Plot2DXYMagnitudeAndArrows(filename, xlabel="X (cm)", ylabel="Y (cm)", zlabe
     ci, cj = _np.meshgrid(_np.unique(d.x), _np.unique(d.y))
     fi, fj = d.fx.reshape(d.ny, d.nx), d.fy.reshape(d.ny, d.nx)
     skip = (slice(None, None, sparsity), slice(None, None, sparsity))
-    ax.quiver(ci[skip], cj[skip], fi[skip]*bScaling, fj[skip]*bScaling, pivot='mid', units='xy', scale_units='xy', scale=1.0/scaleArrow)
+    ax.quiver(ci[skip], cj[skip], fi[skip]*bScaling, fj[skip]*bScaling, pivot='mid', units='xy', scale_units='xy', scale=1.0/scaleArrow, color='white', width=0.6)
     if title:
         ax.set_title(title)
     
@@ -301,7 +301,7 @@ def Plot2DXYMagnitudeAndArrows(filename, xlabel="X (cm)", ylabel="Y (cm)", zlabe
     # the data will write out flipped but we need to draw it the right way
     theData = d.mag.reshape(d.ny, d.nx)*bScaling
     maxMag = _np.max(theData)
-    extend = 'max' if vmax < maxMag else 'neither'
+    extend = 'max' if vmax is not None and vmax < maxMag else 'neither'
     cmap = _mpl.colormaps.get_cmap(cmap)
     cmap.set_under('white')
     im = ax.imshow(theData, extent=ext, origin='lower', aspect=aspect, interpolation='none', cmap=cmap, vmin=vmin, vmax=vmax)
