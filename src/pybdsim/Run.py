@@ -3,7 +3,8 @@ Utilities for running BDSIM and other tools from Python.
 
 """
 import glob as _glob
-import multiprocessing as _mp
+from multiprocessing import Pool as _Pool
+from multiprocessing import cpu_count as _cpu_count
 import numpy as _np
 import os as _os
 import subprocess as _subprocess
@@ -192,12 +193,12 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
     else:
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
-def BdsimParallel(gmadpath, outfile, ngenerate=10000, startseed=None, batch=True,
-                  silent=False, errorSilent=False, options=None, bdsimExecutable=None, nCPUs=4):
+def BdsimParallel(gmadpath, outfile, nJobs=None, ngenerate=10000, startseed=None, batch=True,
+                  silent=True, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
     """
     Runs multiple bdsim instances with gmadpath as inputfile and outfile as outfile.
-    The number of parallel jobs is defined by nCPUs, but limited to the total number
-    of cores available minus 1. Runs in batch mode by default, with 10,000 particles.
+    The number of parallel jobs is defined by nJobs. It can be sepcified how many cores are used with nCPUs (default is the total number
+    of cores available minus 1). Runs in batch mode by default, with 10,000 particles.
     Any extra options should be provided as a string or iterable of strings of
     the form "--vis_debug" or "--vis_mac=vis.mac", etc.
     """
@@ -206,19 +207,21 @@ def BdsimParallel(gmadpath, outfile, ngenerate=10000, startseed=None, batch=True
     else:
         seed = int(startseed)
 
-    maxNumberOfCores = _mp.cpu_count() - 1
-    if nCPUs > maxNumberOfCores:
-        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
+    maxNumberOfCores = _cpu_count() - 1
+    if nCPUs is None:
         nCPUs = maxNumberOfCores
-
-    jobs = []
-    for i in range(nCPUs):
-        jobs.append((gmadpath, outfile + '_' + str(i), ngenerate, seed, batch,
-                     silent, errorSilent, options, bdsimExecutable))
+    if nCPUs > maxNumberOfCores:
+        print("Limiting the number of cores to the maximum of {}".format(maxNumberOfCores))
+        nCPUs = maxNumberOfCores
+    
+    p = _Pool(processes=nCPUs)
+    for i in range(nJobs):
+        args = (gmadpath, outfile + '_' + str(i), ngenerate, seed, batch,
+                     silent, errorSilent, options, bdsimExecutable)
+        p.apply_async(Bdsim, args=args)
         seed += 1
-
-    p = _mp.Pool(processes=nCPUs)
-    p.starmap(Bdsim, jobs)
+    p.close()
+    p.join()
 
 def Rebdsim(analysis_config_file, bdsim_raw_output_file, output_file_name=None, silent=False, rebdsimExecutable=None):
     """
@@ -247,7 +250,7 @@ def Rebdsim(analysis_config_file, bdsim_raw_output_file, output_file_name=None, 
     else:
         return _subprocess.call(args)
 
-def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
+def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=True, rebdsimExecutable=None, nCPUs=None):
     """
     Run multiple rebdsim instances with a single analysis config file. The number
     of parallel jobs is defined by nCPUs, but limited to the total number
@@ -258,32 +261,25 @@ def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelis
     :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
     :type bdsim_raw_output_file_list: list(str)
     """
-    maxNumberOfCores = _mp.cpu_count() - 1
+    maxNumberOfCores = _cpu_count() - 1
+    if nCPUs is None:
+        nCPUs = maxNumberOfCores
     if nCPUs > maxNumberOfCores:
         print("Limiting the number of jobs to {}".format(maxNumberOfCores))
         nCPUs = maxNumberOfCores
 
-    jobs = []
-    if outfilelist is None:
-        outfilelist = []
-        for infile in bdsim_raw_output_file_list:
-            outfilelist.append(_re.split(r'\.', _os.path.basename(infile))[0] + '_ana.root')
-    for infile, outfile in zip(bdsim_raw_output_file_list, outfilelist):
-        jobs.append((analysis_config_file, infile, outfile, silent, rebdsimExecutable))
+    if outfilelist is not None and len(bdsim_raw_output_file_list) != len(outfilelist):
+        raise ValueError("Number of input files and output files do not match")
+    elif outfilelist is None:
+        outfilelist = [f[:-5] if f.endswith('.root') else f for f in bdsim_raw_output_file_list]
+        outfilelist = [f + '_ana.root' for f in outfilelist]
+    p = _Pool(processes=nCPUs)
 
-    if len(bdsim_raw_output_file_list) > nCPUs:
-        howmanyJobs, remainingJobs = divmod(len(bdsim_raw_output_file_list), nCPUs)
-        for i in range(howmanyJobs):
-            p = _mp.Pool(processes=nCPUs)
-            p.starmap(Rebdsim, jobs[i * nCPUs:(i + 1) * nCPUs])
-        if remainingJobs > 0:
-            p = _mp.Pool(processes=remainingJobs)
-            p.starmap(Rebdsim, jobs[howmanyJobs * nCPUs:])
-    else:
-        if len(bdsim_raw_output_file_list) < nCPUs:
-            nCPUs = len(bdsim_raw_output_file_list)
-        p = _mp.Pool(processes=nCPUs)
-        p.starmap(Rebdsim, jobs)
+    for infile, outfile in zip(bdsim_raw_output_file_list, outfilelist):
+        args = (analysis_config_file, infile, outfile, silent, rebdsimExecutable)
+        p.apply_async(Rebdsim, args=args)
+    p.close()
+    p.join()
 
 def RebdsimOptics(rootpath, outpath, silent=False):
     """
@@ -317,13 +313,16 @@ def RebdsimCombine(rootpath, outpath, silent=False, rebdsimHistoExecutable=None)
     """
     if not rebdsimHistoExecutable:
         rebdsimHistoExecutable = "rebdsimCombine"
-    if not _General.IsROOTFile(rootpath):
-        raise IOError("Not a ROOT file")
+    if type(rootpath) is "str":
+        rootpath = [rootpath]
+    for r in rootpath:
+        if not _General.IsROOTFile(r):
+            raise IOError("Not a ROOT file")
     if silent:
-        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath],
+        return _subprocess.call([rebdsimHistoExecutable, outpath, *rootpath],
                                stdout=open(_os.devnull, 'wb'))
     else:
-        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
+        return _subprocess.call([rebdsimHistoExecutable, outpath, *rootpath])
 
 def RebdsimOrbit(rootpath, outpath, index='1', silent=False, rebdsimHistoExecutable=None):
     """
