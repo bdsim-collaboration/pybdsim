@@ -32,7 +32,8 @@ dependencies = [
   "scipy",
   "fortranformat",
   "pymadx",
-  "pytransport"
+  "pytransport",
+  "jinja2"
 ]
 
 [project.optional-dependencies]
