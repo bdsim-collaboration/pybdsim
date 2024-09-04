@@ -295,19 +295,53 @@ def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=No
     else:
         return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
 
-def RebdsimCombine(rootpath, outpath, silent=False, rebdsimHistoExecutable=None):
+def RebdsimHistoMergeParallel(infilelist, outfilelist=None, silent=False,
+                              rebdsimHistoExecutable=None, nCPUs=4):
+    """
+
+    """
+    maxNumberOfCores = _mp.cpu_count() - 1
+    if nCPUs > maxNumberOfCores:
+        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
+        nCPUs = maxNumberOfCores
+
+    jobs = []
+    if outfilelist is None:
+        outfilelist = []
+        for infile in infilelist:
+            outfilelist.append(_re.split(r'\.', _os.path.basename(infile))[0] + '_histos.root')
+    for infile, outfile in zip(infilelist, outfilelist):
+        jobs.append((infile, outfile, silent, rebdsimHistoExecutable))
+
+    if len(infilelist) > nCPUs:
+        howmanyJobs, remainingJobs = divmod(len(infilelist), nCPUs)
+        for i in range(howmanyJobs):
+            p = _mp.Pool(processes=nCPUs)
+            p.starmap(RebdsimHistoMerge, jobs[i * nCPUs:(i + 1) * nCPUs])
+        if remainingJobs > 0:
+            p = _mp.Pool(processes=remainingJobs)
+            p.starmap(RebdsimHistoMerge, jobs[howmanyJobs * nCPUs:])
+    else:
+        if len(infilelist) < nCPUs:
+            nCPUs = len(infilelist)
+        p = _mp.Pool(processes=nCPUs)
+        p.starmap(RebdsimHistoMerge, jobs)
+
+def RebdsimCombine(infileList, outpath, silent=False, rebdsimCombineExecutable=None):
     """
     Run rebdsimCombine
     """
-    if not rebdsimHistoExecutable:
-        rebdsimHistoExecutable = "rebdsimCombine"
-    if not _General.IsROOTFile(rootpath):
-        raise IOError("Not a ROOT file")
+    if not rebdsimCombineExecutable:
+        rebdsimCombineExecutable = "rebdsimCombine"
+    for file in infileList:
+        if not _General.IsROOTFile(file):
+            raise IOError("Not a ROOT file")
+    job = [rebdsimCombineExecutable, outpath]
+    job.extend(infileList)
     if silent:
-        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath],
-                               stdout=open(_os.devnull, 'wb'))
+        return _subprocess.call(job, stdout=open(_os.devnull, 'wb'))
     else:
-        return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
+        return _subprocess.call(job)
 
 def RebdsimOrbit(rootpath, outpath, index='1', silent=False, rebdsimHistoExecutable=None):
     """
