@@ -447,5 +447,5 @@ def ReduceParallel(globcommand, nPerChunk, outputprefix, nCPUs=4):
         chunks.pop()
     chunkname = [prefix + str(i).zfill(nchars)+".root" for i in range(len(chunks))]
 
-    p = _mp.Pool(processes=nCPUs)
+    p = _Pool(processes=nCPUs)
     p.starmap(_Combine, zip(chunkname, chunks))
