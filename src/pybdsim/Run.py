@@ -220,9 +220,9 @@ def BdsimParallel(gmadpath, outfile, ngenerate=10000, startseed=None, batch=True
     p = _mp.Pool(processes=nCPUs)
     p.starmap(Bdsim, jobs)
 
-def Rebdsim(rootpath, inpath, outpath, silent=False, rebdsimExecutable=None):
+def Rebdsim(analysisConfig, inpath, outpath, silent=False, rebdsimExecutable=None):
     """
-    Run rebdsim with rootpath as analysisConfig file, inpath as bdsim 
+    Run rebdsim with analysisConfig as analysisConfig file, inpath as bdsim
     file, and outpath as output analysis file.
     """
     if not rebdsimExecutable:
@@ -230,14 +230,14 @@ def Rebdsim(rootpath, inpath, outpath, silent=False, rebdsimExecutable=None):
     if not _General.IsROOTFile(inpath):
         raise IOError("Not a ROOT file")
     if silent:
-        return _subprocess.call([rebdsimExecutable, rootpath , inpath , outpath],
+        return _subprocess.call([rebdsimExecutable, analysisConfig, inpath, outpath],
                                stdout=open(_os.devnull, 'wb'))
     else:
-        return _subprocess.call([rebdsimExecutable, rootpath, inpath, outpath])
+        return _subprocess.call([rebdsimExecutable, analysisConfig, inpath, outpath])
 
-def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
+def RebdsimParallel(analysisConfig, infilelist, outfilelist=None, silent=False, rebdsimExecutable=None, nCPUs=4):
     """
-    Run multiple rebdsim instances with rootpath as analysisConfig file,
+    Run multiple rebdsim instances with analysisConfig as analysisConfig file,
     inpath as bdsim file, and outpath as output analysis file. The number
     of parallel jobs is defined by nCPUs, but limited to the total number
     of cores available minus 1.
@@ -253,7 +253,7 @@ def RebdsimParallel(rootpath, infilelist, outfilelist=None, silent=False, rebdsi
         for infile in infilelist:
             outfilelist.append(_re.split(r'\.', _os.path.basename(infile))[0] + '_ana.root')
     for infile, outfile in zip(infilelist, outfilelist):
-        jobs.append((rootpath, infile, outfile, silent, rebdsimExecutable))
+        jobs.append((analysisConfig, infile, outfile, silent, rebdsimExecutable))
 
     if len(infilelist) > nCPUs:
         howmanyJobs, remainingJobs = divmod(len(infilelist), nCPUs)
