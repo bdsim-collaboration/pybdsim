@@ -250,7 +250,8 @@ def Rebdsim(analysis_config_file, bdsim_raw_output_file, output_file_name=None, 
     else:
         return _subprocess.call(args)
 
-def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=True, rebdsimExecutable=None, nCPUs=None):
+def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=True,
+                    rebdsimExecutable=None, nCPUs=None):
     """
     Run multiple rebdsim instances with a single analysis config file. The number
     of parallel jobs is defined by nCPUs, but limited to the total number
