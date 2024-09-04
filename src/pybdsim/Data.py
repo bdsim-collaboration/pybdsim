@@ -1311,6 +1311,21 @@ class TH2(TH1):
         h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
         return TH1(h1d)
 
+    def Integrate(self, xLow=None, xHigh=None, yLow=None, yHigh=None):
+        """
+        Integrate the histogram based on coordinates (not bins). The
+        default is to return the integral of the whole histogram.
+
+        returns the integral,error
+        """
+        xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
+        xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
+        yBinLow = self.hist.GetYaxis().FindBin(yLow) if xLow else self.hist.GetYaxis().GetFirst()
+        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if xHigh else self.hist.GetYaxis().GetLast()
+        error = _ctypes.c_double(0.0)
+        mean = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, error)
+
+        return mean, error.value
 
 class TH3(TH2):
     """
