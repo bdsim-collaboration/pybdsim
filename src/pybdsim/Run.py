@@ -308,37 +308,34 @@ def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=No
     else:
         return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
 
-def RebdsimHistoMergeParallel(infilelist, outfilelist=None, silent=False,
-                              rebdsimHistoExecutable=None, nCPUs=4):
+def RebdsimHistoMergeParallel(bdsim_raw_output_file_list, outfilelist=None, silent=False,
+                              rebdsimHistoExecutable=None, nCPUs=None):
     """
+    Run multiple rebdsimHistoMerge instances. The number of parallel jobs is defined by nCPUs,
+    but limited to the total number of cores available minus 1.
 
+    :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
+    :type bdsim_raw_output_file_list: list(str)
     """
-    maxNumberOfCores = _mp.cpu_count() - 1
+    maxNumberOfCores = _cpu_count() - 1
+    if nCPUs is None:
+        nCPUs = maxNumberOfCores
     if nCPUs > maxNumberOfCores:
         print("Limiting the number of jobs to {}".format(maxNumberOfCores))
         nCPUs = maxNumberOfCores
 
-    jobs = []
-    if outfilelist is None:
-        outfilelist = []
-        for infile in infilelist:
-            outfilelist.append(_re.split(r'\.', _os.path.basename(infile))[0] + '_histos.root')
-    for infile, outfile in zip(infilelist, outfilelist):
-        jobs.append((infile, outfile, silent, rebdsimHistoExecutable))
+    if outfilelist is not None and len(bdsim_raw_output_file_list) != len(outfilelist):
+        raise ValueError("Number of input files and output files do not match")
+    elif outfilelist is None:
+        outfilelist = [f[:-5] if f.endswith('.root') else f for f in bdsim_raw_output_file_list]
+        outfilelist = [f + '_histo.root' for f in outfilelist]
+    p = _Pool(processes=nCPUs)
 
-    if len(infilelist) > nCPUs:
-        howmanyJobs, remainingJobs = divmod(len(infilelist), nCPUs)
-        for i in range(howmanyJobs):
-            p = _mp.Pool(processes=nCPUs)
-            p.starmap(RebdsimHistoMerge, jobs[i * nCPUs:(i + 1) * nCPUs])
-        if remainingJobs > 0:
-            p = _mp.Pool(processes=remainingJobs)
-            p.starmap(RebdsimHistoMerge, jobs[howmanyJobs * nCPUs:])
-    else:
-        if len(infilelist) < nCPUs:
-            nCPUs = len(infilelist)
-        p = _mp.Pool(processes=nCPUs)
-        p.starmap(RebdsimHistoMerge, jobs)
+    for infile, outfile in zip(bdsim_raw_output_file_list, outfilelist):
+        args = (analysis_config_file, infile, outfile, silent, rebdsimHistoExecutable)
+        p.apply_async(Rebdsim, args=args)
+    p.close()
+    p.join()
 
 def RebdsimCombine(infileList, outpath, silent=False, rebdsimCombineExecutable=None):
     """
