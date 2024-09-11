@@ -332,8 +332,8 @@ def RebdsimHistoMergeParallel(bdsim_raw_output_file_list, outfilelist=None, sile
     p = _Pool(processes=nCPUs)
 
     for infile, outfile in zip(bdsim_raw_output_file_list, outfilelist):
-        args = (analysis_config_file, infile, outfile, silent, rebdsimHistoExecutable)
-        p.apply_async(Rebdsim, args=args)
+        args = (infile, outfile, silent, rebdsimHistoExecutable)
+        p.apply_async(RebdsimHistoMerge, args=args)
     p.close()
     p.join()
 
