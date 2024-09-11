@@ -337,6 +337,22 @@ def RebdsimHistoMergeParallel(bdsim_raw_output_file_list, outfilelist=None, sile
     p.close()
     p.join()
 
+def BdsimCombine(infileList, outpath, silent=False, bdsimCombineExecutable=None):
+    """
+    Run bdsimCombine
+    """
+    if not bdsimCombineExecutable:
+        bdsimCombineExecutable = "bdsimCombine"
+    for file in infileList:
+        if not _General.IsROOTFile(file):
+            raise IOError("Not a ROOT file")
+    job = [bdsimCombineExecutable, outpath]
+    job.extend(infileList)
+    if silent:
+        return _subprocess.call(job, stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call(job)
+
 def RebdsimCombine(infileList, outpath, silent=False, rebdsimCombineExecutable=None):
     """
     Run rebdsimCombine
