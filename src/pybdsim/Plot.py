@@ -492,7 +492,8 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
         print("Written ", output_filename)
 
 
-def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), log=False, ax=None, **errorbarKwargs):
+def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0,
+                figsize=(6.4, 4.8), swapXaxis=False, log=False, ax=None, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
 
@@ -561,6 +562,9 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
             ax.set_yscale('log', nonposy='clip')
     else:
         ax.set_ylim(ymin*0.8, ymax*1.05)
+
+    if swapXaxis:
+        ax.set_xlim(ax.get_xlim()[::-1])
 
     if not incomingAxis:
         _plt.tight_layout()
@@ -779,7 +783,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
 def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="",
                 zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0,
                 yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None,
-                colourbar=True, ax=None, cax=None, **imshowKwargs):
+                colourbar=True, ax=None, cax=None, swapXaxis=False, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -856,6 +860,9 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         pass
     else:
         ax.set_title(title)
+
+    if swapXaxis:
+        ax.set_xlim(ax.get_xlim()[::-1])
 
     if not incomingAxis:
         _plt.tight_layout()
