@@ -1,7 +1,7 @@
 import gzip as _gzip
 import numpy as _np
 import tarfile as _tarfile
-import pkg_resources as _pkg_resources
+import importlib_resources as _importlib_resources
 import os as _os    
 import pybdsim
 
@@ -498,7 +498,9 @@ def Load(filename, debug=False):
 
 
 def MirrorDipoleQuadrant1(field2D):
+
     """
+
     +-------+-------+
     |       |       |
     |   2   |   1   |
@@ -519,9 +521,9 @@ def MirrorDipoleQuadrant1(field2D):
     all four quadrants.
     
     1. original data
-    2. data mirrored in x, (x,Bx) \*= -1
-    3. data mirrored in x,y, (x,y,By) \*= -1
-    4. data mirrored in y, (y,Bx) \*= -1
+    2. data mirrored in x, (x,Bx) \\*= -1
+    3. data mirrored in x,y, (x,y,By) \\*= -1
+    4. data mirrored in y, (y,Bx) \\*= -1
 
     This is based on a dipole field.
     """
@@ -662,10 +664,10 @@ def SortUnorderedFieldMap2D(field, symmetry="none", transpose=False):
     fieldmap = _np.array(fieldmap)
     # construct a BDSIM format field object and write it out
     field_new = pybdsim.Field.Field2D(fieldmap)
-    testfile = _pkg_resources.resource_filename("pybdsim", "testfield2D.dat")
-    field_new.Write(testfile)
-    field_new = pybdsim.Field.Load(testfile)
-    _os.remove(testfile)
+    with importlib_resources.as_file(importlib_resources.files("pybdsim") / "testfield2D.dat") as testfile:
+        field_new.Write(testfile)
+        field_new = pybdsim.Field.Load(testfile)
+        _os.remove(testfile)
     return field_new
     
 def TransposeFieldMap2D(field):
