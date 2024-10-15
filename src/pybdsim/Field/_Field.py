@@ -157,7 +157,7 @@ class Field(object):
         
         f.close()
 
-    def WriteMGNDataCard(self, fileName, name = 'magnet', symmetry = '0.0'):
+    def WriteMGNDataCard2D(self, fileName, name = 'magnet', symmetry = '0.0'):
         """
         :param fileName: Name of file to write the fieldmap to.
         :type fileName: str
@@ -218,6 +218,72 @@ class Field(object):
             f.write(line)
         else:
             f.write('FIXED')
+
+    def WriteMGNDataCard3D(self, fileName, name = 'magnet'):
+        """
+        :param fileName: Name of file to write the fieldmap to.
+        :type fileName: str
+        :param name: Name of the magnetic field in the MGNCREAT card.
+        :type name: str
+        :param symmetry: Symmetry that gets applied to the fieldmap inside FLUKA.
+        :type symmetry: str
+
+        Write 2D field maps stored in Field2D to FLUKA format which can be loaded with MGN data cards.
+        Therefore, we create a magnet which is purely based on a fieldmap (200.0) without offsetting it, as
+        (0,0) in the fieldmap is, where the beam is (and it's only used for analytical fields).
+        The symmetry needs to be specified in accordance to Sx + Sy*10 + Sz*100, for example for a quadrupole
+        it's 12.0 and for a C-shaped bend it's 10.0. 0.0 means no symmetry.
+        In the final file, one can see three field points per MGNDATA card without specifying the location,
+        as this is given by the grid definition. In the file, the points need to go from low x and y
+        to high x and y, with looping first over y and then x.
+        """
+        if self.nDimensions != 3:
+            raise ValueError("This field map is not 3D - it's ",self.nDimensions,"D")
+        f = open(fileName, 'w')
+
+        numberOfDigits = 9
+
+        f.write('FREE\n')
+        f.write('MGNCREAT, 300.0, , 0.0, 0.0, 0.0, , ' + name + '\n')
+        f.write('MGNCREAT, , , , ' + str(self.header['nx']) + ', ' + str(self.header['ny'])
+                + ', ' + str(self.header['nz']) + ', &\n')
+        f.write('MGNCREAT, ' +  str(self.header['xmin']) + ', ' + str(self.header['ymin'])
+                + ', ' + str(self.header['zmin']) + ', ' + str(self.header['xmax']) + ', ' + str(self.header['ymax'])
+                + ', ' + str(self.header['zmax']) + ', &&\n')
+        fieldPointCounter = 0 #Maximal 2 points per card
+        lineCounter = 0 #First card ends with name of mgncreat card, second one with & and then &&
+        line = 'MGNDATA, '
+        for zi in range(self.header['nz']):
+            for yi in range(self.header['ny']):
+                for xi in range(self.header['nx']):
+                    line += ("{0:.4e}".format(self.data[xi][yi][zi][3]) + ', '
+                             + "{0:.4e}".format(self.data[xi][yi][zi][4]) + ', '
+                             + "{0:.4e}".format(self.data[xi][yi][zi][5]) + ', ')
+                    if fieldPointCounter == 1 and lineCounter == 0:
+                        line += ' ' + name + '\n'
+                        f.write(line)
+                        line = 'MGNDATA, '
+                        lineCounter += 1
+                        fieldPointCounter = 0
+                    elif fieldPointCounter == 1 and lineCounter == 1:
+                        line += '&\n'
+                        f.write(line)
+                        line = 'MGNDATA, '
+                        lineCounter += 1
+                        fieldPointCounter = 0
+                    elif fieldPointCounter == 1 and lineCounter > 1:
+                        line += '&&\n'
+                        f.write(line)
+                        line = 'MGNDATA, '
+                        fieldPointCounter = 0
+                    elif fieldPointCounter < 1:
+                        fieldPointCounter += 1
+
+        if fieldPointCounter != 0:
+            line += ', , , ' * (2 - fieldPointCounter) + '&&'#\nFIXED'
+            f.write(line)
+        #else:
+        #    f.write('FIXED')
 
 class Field1D(Field):
     """
