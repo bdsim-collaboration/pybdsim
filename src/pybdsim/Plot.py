@@ -910,7 +910,22 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
               xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8),
               swapXaxis=False, log=False, ax=None, **errorbarKwargs):
     """
-    endSlice is inclusive meaning this slice will be included in the plot
+    Plot multiple 1D histograms along a given dimension integrateAlong. The integrated 2D histogram originates
+    from slices along dimension sliceDimension. By default, the slices are from 0 to len(th3.zcentres)-1.
+    endSlice is inclusive meaning this slice will be included in the plot The slice index is represented
+    by a colour scale. Only every second histogram is plotted. This function is useful to visualise properties
+    of a scoring mesh. All variables referring to properties of the plot are pushed through to Histogram1D().
+
+    :param th3: 3D histogram containing the
+    :type  th3: TH3
+    :param sliceDimension: string specifying the dimension along which to slice the histogram.
+    :type sliceDimension: str
+    :param integrateAlong: string specifying to integrate the 2D along which dimension.
+    :type integrateAlong: str
+    :param startSlice: first index of the 2D slices
+    :type startSlice: int
+    :param endSlice: last index of the 2D slices
+    :type endSlice: int
     """
     if ax is None:
         f = _plt.figure(figsize=figsize)
