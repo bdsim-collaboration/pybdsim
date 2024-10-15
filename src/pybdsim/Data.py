@@ -1302,14 +1302,14 @@ class TH2(TH1):
         """
         Integrate along the x axis returning a TH1 in y.
         """
-        h1d = self.hist.ProjectionX(self.name+"_int_x", 0, -1, "e")
+        h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
         return TH1(h1d)
 
     def IntegrateAlongY(self):
         """
         Integrate along the y axis returning a TH1 in x.
         """
-        h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
+        h1d = self.hist.ProjectionX(self.name+"_int_x", 0, -1, "e")
         return TH1(h1d)
 
     def Integrate(self, xLow=None, xHigh=None, yLow=None, yHigh=None):

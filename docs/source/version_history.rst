@@ -6,6 +6,9 @@ V3.6.2 - 2024 / 05 / 15
 =======================
 
 * Typo fixed for :code:`IntegateAlong1Dimension` and :code:`IntegateAlong2Dimensions`.
+* Bug fixed for Integration of 2D Histograms, i.e. :code:`IntegrateAlongX` and :code:`IntegrateAlongY`.
+  For obtaining a 1D Histogram in x, one must call ROOT's :code:`TH2::ProjectionY()`.
+  Similarly, for getting the histogram along y, one needs to call :code:`TH2::ProjectionX()`.
 
 V3.6.1 - 2024 / 01 / 30
 =======================
