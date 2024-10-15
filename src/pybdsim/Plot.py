@@ -905,7 +905,44 @@ def Histogram3D(th3):
     ax.voxels(fill, facecolors=colours)
     #return colours
     return f
-    
+
+def PlotMeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlice=None,
+                  xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8),
+                  swapXaxis=False, log=False, ax=None, **errorbarKwargs):
+    """
+    endSlice is inclusive meaning this slice will be included in the plot
+    """
+    if ax is None:
+        f = _plt.figure(figsize=figsize)
+        ax = f.add_subplot(111)
+    if endSlice is None:
+        if sliceDimension == 'x':
+            endSlice = len(th3.xcentres) - 1
+        elif sliceDimension == 'y':
+            endSlice = len(th3.ycentres) - 1
+        elif sliceDimension == 'z':
+            endSlice = len(th3.zcentres) - 1
+        else:
+            raise ValueError("sliceDimension must be x, y or z")
+    colours = _plt.cm.viridis(_np.linspace(0, 1, int(endSlice/2)+1))
+    for i in range(startSlice, endSlice + 1, 1):
+        if sliceDimension == 'x':
+            hist = th3.Slice2DZY(i)
+        elif sliceDimension == 'y':
+            hist = th3.Slice2DXZ(i)
+        elif sliceDimension == 'z':
+            hist = th3.Slice2DXY(i)
+        else:
+            raise ValueError("sliceDimension must be x, y or z")
+        if integrateAlong == 'x':
+            histo = hist.IntegrateAlongX()
+        elif integrateAlong == 'y':
+            histo = hist.IntegrateAlongY()
+        else:
+            raise ValueError("integrateAlong must be x or y")
+        if i % 2 == 0:
+            Histogram1D(histo, xlabel, ylabel, title, scalingFactor, xScalingFactor, figsize, swapXaxis, log, ax,
+                        c=colours[i // 2])
 
 def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
     """
