@@ -906,9 +906,9 @@ def Histogram3D(th3):
     #return colours
     return f
 
-def PlotMeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlice=None,
-                  xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8),
-                  swapXaxis=False, log=False, ax=None, **errorbarKwargs):
+def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlice=None,
+              xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8),
+              swapXaxis=False, log=False, ax=None, **errorbarKwargs):
     """
     endSlice is inclusive meaning this slice will be included in the plot
     """
