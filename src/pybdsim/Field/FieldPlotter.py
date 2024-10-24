@@ -41,12 +41,12 @@ class FourDData:
         # check for the dimensionality of the field
         self.nDim = 1 if yind == -1 else 2 if zind == -1 else 3 if tind == -1 else 4
         fm = _GetField(filename, self.nDim)
-        if symmetry is not None or transpose:
-            if symmetry is None:
-                symmetry = "none"
-            # currently only works for 2D fields
-            if self.nDim == 2:
-                fm._UseSymmetry(symmetry, transpose)
+        #if symmetry is not None or transpose:
+        #    if symmetry is None:
+        #        symmetry = "none"
+        #    # currently only works for 2D fields
+        #    if self.nDim == 2:
+        #        fm._UseSymmetry(symmetry, transpose)
         self.data = fm.data
             
         # '...' fills in unknown number of dimensions with ':' meaning
