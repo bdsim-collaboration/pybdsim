@@ -362,7 +362,6 @@ class Field2D(Field):
         field = SortUnorderedFieldMap2D(self, symmetry, transpose)
         self.data = field.data
         self.header = field.header
-        
 
 
 class Field3D(Field):
@@ -730,7 +729,7 @@ def SortUnorderedFieldMap2D(field, symmetry="none", transpose=False):
     fieldmap = _np.array(fieldmap)
     # construct a BDSIM format field object and write it out
     field_new = pybdsim.Field.Field2D(fieldmap)
-    with importlib_resources.as_file(importlib_resources.files("pybdsim") / "testfield2D.dat") as testfile:
+    with _importlib_resources.as_file(_importlib_resources.files("pybdsim") / "testfield2D.dat") as testfile:
         field_new.Write(testfile)
         field_new = pybdsim.Field.Load(testfile)
         _os.remove(testfile)
