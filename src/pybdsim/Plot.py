@@ -946,6 +946,17 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
     if ax is None:
         f = _plt.figure(figsize=figsize)
         ax = f.add_subplot(111)
+
+    # for colour normalisation
+    ar = getattr(th3, sliceDimension+"centres")
+    color_low = ar[0]
+    colour_high = ar[-1]
+
+    xaxis = ['x', 'y', 'z']
+    xaxis.pop(xaxis.index(sliceDimension))
+    xaxis.pop(xaxis.index(integrateAlong))
+    xaxis = xaxis[0]
+
     if endSlice is None:
         if sliceDimension == 'x':
             endSlice = len(th3.xcentres) - 1
@@ -956,6 +967,8 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
         else:
             raise ValueError("sliceDimension must be x, y or z")
     colours = _plt.cm.viridis(_np.linspace(0, 1, int(endSlice/2)+1))
+    miny = 0
+    maxy = 0
     for i in range(startSlice, endSlice + 1, 1):
         if sliceDimension == 'x':
             hist = th3.Slice2DZY(i)
@@ -972,8 +985,23 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
         else:
             raise ValueError("integrateAlong must be x or y")
         if i % 2 == 0:
-            Histogram1D(histo, xlabel, ylabel, title, scalingFactor, xScalingFactor, figsize, swapXaxis, log, ax,
-                        c=colours[i // 2])
+            miny = min(miny, _np.min(histo.contents))
+            maxy = max(maxy, _np.max(histo.contents + histo.errors))
+            Histogram1D(histo, scalingFactor=scalingFactor, xScalingFactor=xScalingFactor,
+                        figsize=figsize, swapXaxis=swapXaxis, log=log, ax=ax, c=colours[i // 2])
+
+    sm = _plt.cm.ScalarMappable(cmap="viridis", norm=_plt.Normalize(vmin=color_low, vmax=colour_high))
+    _plt.colorbar(sm, label=sliceDimension + " (m)")
+    if xlabel:
+        _plt.xlabel(xlabel)
+    else:
+        _plt.xlabel(xaxis + " (m)")
+    if ylabel:
+        _plt.ylabel(ylabel)
+    if title:
+        _plt.title(title)
+    _plt.ylim(miny, maxy*1.05)
+
 
 def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
     """
