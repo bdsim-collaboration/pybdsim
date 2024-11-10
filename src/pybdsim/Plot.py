@@ -895,7 +895,8 @@ def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False
     h2.contents = h2.errors # set contents as errors and just use regular plot
     return Histogram2D(h2, logNorm, xLogScale, yLogScale, xlabel, ylabel, zlabel, title, aspect, scalingFactor,
                        xScalingFactor, yScalingFactor, figsize, vmin, autovmin, vmax,
-                       colorbar, ax, cax, **imshowKwargs)
+                       colourbar, ax, cax, **imshowKwargs)
+
 
 def Histogram3D(th3):
     """
