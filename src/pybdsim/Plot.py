@@ -20,6 +20,7 @@ import os.path as _ospath
 from .Data import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
 from .Data import CheckBdsimDataHasSurveyModel as _CheckBdsimDataHasSurveyModel
 
+
 class _My_Axes(_matplotlib.axes.Axes):
     """
     Inherit matplotlib.axes.Axes but override pan action for mouse.
@@ -34,11 +35,13 @@ _matplotlib.projections.register_projection(_My_Axes)
 
 _defaultFigureSize=(12,6)
 
+
 def MadxTfsBeta(tfsfile, title='', outputfilename=None):
     """
     A forward to the pymadx.Plot.PlotTfsBeta function.
     """
     _pymadx.Plot.Beta(tfsfile,title,outputfilename)
+
 
 def ProvideWrappedS(sArray, index):
     s = sArray #shortcut
@@ -51,6 +54,7 @@ def ProvideWrappedS(sArray, index):
     snew  = _np.concatenate((snewa,snewb))
     return snew
 
+
 def _SetMachineAxesStyle(ax):
     ax.set_facecolor('none') # make background transparent to allow scientific notation
     ax.get_xaxis().set_visible(False)
@@ -60,11 +64,13 @@ def _SetMachineAxesStyle(ax):
     ax.spines['left'].set_visible(False)
     ax.spines['right'].set_visible(False)
 
+
 def _PrepareMachineAxes(figure):
     # create new machine axis with proportions 6 : 1
     axmachine = figure.add_subplot(911, projection="_My_Axes")
     _SetMachineAxesStyle(axmachine)
     return axmachine
+
 
 def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
     """
@@ -84,6 +90,7 @@ def _AdjustExistingAxes(figure, fraction=0.9, tightLayout=True):
         bbox.y1 = bbox.y1 * fraction
         ax.set_position(bbox)
 
+
 def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=True):
     """
     Similar to AddMachineLatticeFromSurveyToFigure() but accepts multiple machines.
@@ -93,6 +100,7 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
         for machine in machines[1:]:
             d.ConcatenateMachine(machine)
     return d
+
 
 def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sOffset=0., fraction=0.9):
     """
@@ -135,7 +143,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sO
         for ax in axoptics:
             ax.set_xlim(axmachine.get_xlim())
 
-    def Click(a) :
+    def Click(a):
         if a.button == 3:
             try:
                 print('Closest element: ',sf.NameFromNearestS(a.xdata - sOffset))
@@ -249,6 +257,7 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     ax.set_ylim(-0.2,0.2)
     ax.set_xlim(starts[0] + sOffset, smax)
 
+
 def SubplotsWithDrawnMachineLattice(survey, nrows=2, machine_plot_gap=0.01, gridspec_kw=None, subplots_kw=None, **fig_kw):
     """
     Create a figure with a single column of axes, sharing the
@@ -329,7 +338,6 @@ def SubplotsWithDrawnMachineLattice(survey, nrows=2, machine_plot_gap=0.01, grid
     return fig, machine_axes, axes[1:]
 
 
-
 # Predefined lists of tuples for making the standard plots,
 # format = (optical_var_name, optical_var_error_name, legend_name)
 
@@ -356,6 +364,7 @@ _MEAN = [("Mean_x", "Sigma_Mean_x", r"$\bar{x}$"),
 
 _EMITT = [("Emitt_x", "Sigma_Emitt_x", r"$\epsilon_{x}$"),
           ("Emitt_y", "Sigma_Emitt_y", r"$\epsilon_{y}$")]
+
 
 def _MakePlotter(plot_info_tuples, x_label, y_label, title):
     def f_out(bds, outputfilename=None, survey=None, **kwargs):
@@ -402,6 +411,7 @@ def _MakePlotter(plot_info_tuples, x_label, y_label, title):
         return plot
     return f_out
 
+
 PlotBeta   = _MakePlotter(_BETA,    "S / m", r"$\beta_{x,y}$ / m",      "Beta")
 PlotAlpha  = _MakePlotter(_ALPHA,   "S / m", r"$\alpha_{x,y}$ / m",     "Alpha")
 PlotDisp   = _MakePlotter(_DISP,    "S / m", r"$D_{x,y} / m$",          "Dispersion")
@@ -410,6 +420,7 @@ PlotSigma  = _MakePlotter(_SIGMA,   "S / m", r"$\sigma_{x,y}$ / m",     "Sigma")
 PlotSigmaP = _MakePlotter(_SIGMA_P, "S / m", r"$\sigma_{xp,yp}$ / rad", "SigmaP")
 PlotMean   = _MakePlotter(_MEAN,    "S / m", r"$\bar{x}, \bar{y}$ / m", "Mean")
 PlotEmittance = _MakePlotter(_EMITT, "S / m", r"$\epsilon_{x,y}$ / m rad", "Emittance")
+
 
 def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
     # options
@@ -441,6 +452,7 @@ def PlotNPart(bds, outputfilename=None, survey=None, **kwargs):
         _plt.savefig(outputfilename + '_Npart.pdf')
         #_plt.savefig(outputfilename + '_Npart.png')
     return plot
+
 
 def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=None, **kwargs):
     """
@@ -570,6 +582,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         _plt.tight_layout()
     
     return _plt.gcf()
+
 
 def SpectraSelect(spectra, pdgids,
                   log=False, xlog=False, xlabel=None, ylabel=None, title=None,
@@ -780,6 +793,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     
     return _plt.gcf()
 
+
 def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="",
                 zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0,
                 yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None,
@@ -868,6 +882,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         _plt.tight_layout()
     return _plt.gcf()
 
+
 def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="",
                       title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0,
                       figsize=(6,5), vmin=None, autovmin=False, vmax=None, colourbar=True, ax=None,
@@ -903,8 +918,8 @@ def Histogram3D(th3):
     colours = _plt.cm.viridis(l(th3.contents))
     colours[:,:,:,3] = d.data
     ax.voxels(fill, facecolors=colours)
-    #return colours
     return f
+
 
 def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlice=None,
               xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8),
@@ -1054,6 +1069,7 @@ def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=Fal
 
     return fig
 
+
 def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):
     """
     Load a BDSIM output file and plot primary phase space. Only accepts raw BDSIM output.
@@ -1063,6 +1079,7 @@ def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):
     the 'extension' kwarg, e.g. extension='.png'.
     """
     PhaseSpaceFromFile(filename, 0, outputfilename=outputfilename, extension=extension)
+
 
 def PhaseSpaceFromFile(filename, samplerIndexOrName=0, nbins=None, outputfilename=None, extension='.pdf'):
     """
@@ -1080,6 +1097,7 @@ def PhaseSpaceFromFile(filename, samplerIndexOrName=0, nbins=None, outputfilenam
     d = _Data.Load(filename)
     psd = _Data.PhaseSpaceData(d,samplerIndexOrName=samplerIndexOrName)
     PhaseSpace(psd, nbins=nbins, outputfilename=outputfilename, extension=extension)
+
 
 def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, extension='.pdf',
                            nbins=None, energy='total', offsetTime=True, includeSecondaries=False,
@@ -1375,6 +1393,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
         fcoordLong.savefig(outputfilename + '_long_coords' + extension, **kwargs)
         fcorrLong.savefig(outputfilename + '_long_correlations' + extension, **kwargs)
 
+
 def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
     """
     Make two figures for coordinates and correlations.
@@ -1471,6 +1490,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
         f.savefig(outputfilename + '_coords'+extension)
         f2.savefig(outputfilename + '_correlations'+extension)
 
+
 def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
     """
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
@@ -1503,6 +1523,7 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
         _plt.savefig(outputfilename)
     else:
         _plt.show()
+
 
 def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
     """
@@ -1668,6 +1689,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
     if outputfilename is not None:
         _plt.savefig(outputfilename)
 
+
 def PrimarySurvival(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
 
     from . import Data as _Data
@@ -1695,6 +1717,7 @@ def PrimarySurvival(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=N
 
     if outputfilename is not None:
         _plt.savefig(outputfilename)
+
 
 def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, hitslegendloc='upper left', elosslegendloc='upper right', perelement=False, elossylim=None, phitsylim=None):
     """
@@ -1763,6 +1786,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     if outputfilename is not None:
         _plt.savefig(outputfilename)
 
+
 def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
     if float(x) == 1.0:
         fst = r"$1$" #For a histogram valuesa smalled that 1 are set to 0
@@ -1771,6 +1795,7 @@ def _fmtCbar(x, pos): #Format in scientific notation and make vals < 1 = 0
         b = int(b)
         fst = r'$10^{{{}}}$'.format(b)
     return fst
+
 
 def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
     """
@@ -1818,6 +1843,7 @@ def Trajectory3D(rootFileName, eventNumber=0, bottomLeft=None, topRight=None):
 
     ax0.legend(fontsize='small')
 
+
 def Aperture(rootFileName, filterThin = False, surveyFileName = None):
 
     d =  _Data.Load(rootFileName)
@@ -1846,6 +1872,7 @@ def Aperture(rootFileName, filterThin = False, surveyFileName = None):
         AddMachineLatticeFromSurveyToFigure(plot, surveyFile, tightLayout=True)
 
     _plt.show()
+
 
 def PrimaryTrajectoryAndProcess(rootData, eventNumber) : 
 
@@ -1924,12 +1951,14 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     
         fig.subplots_adjust(hspace=0.05)
 
+
 def BDSIMApertureFromFile(filename, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
     """
     Plot the aperture from a BDSIM output file. By default it's colour coded and excludes any 0s.
     """
     d = _Data.Load(filename)
     BDSIMAperture(d, machineDiagram, plot, plotApertureType, removeZeroLength, removeZeroApertures)
+
 
 def BDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=True, removeZeroLength=False, removeZeroApertures=True):
     """
@@ -1979,6 +2008,7 @@ def BDSIMAperture(data, machineDiagram=True, plot="xy", plotApertureType=True, r
 
     _plt.show()
 
+
 def _ApertureTypeColourMap():
     # these are taken from pymadx.Plot and are reordered to be the same as the madx
     # colour coding for the appropriate bdsim ones. The order is from pybdsim.Data._bdsimApertureTypes
@@ -1996,6 +2026,7 @@ def _ApertureTypeColourMap():
     typeToCol = dict(zip(_Data._bdsimApertureTypes, _colourCodes))
     return typeToCol
 
+
 def _AddColourLegend(apertureTypes, cmap=_ApertureTypeColourMap()):
     """
     Make a legend with the set of colours used.
@@ -2004,6 +2035,7 @@ def _AddColourLegend(apertureTypes, cmap=_ApertureTypeColourMap()):
     for apertureType in apertureTypes:
         colour = cmap[apertureType]
         _plt.scatter(None,None,color=colour, label=apertureType.lower())
+
 
 def _ApertureTypeToColour(apertureType, cmap=_ApertureTypeColourMap()):
     """
@@ -2016,6 +2048,7 @@ def _ApertureTypeToColour(apertureType, cmap=_ApertureTypeColourMap()):
         colour =(0.8,0.8,0.8) # greyish
         
     return colour
+
 
 def LossMap(ax, xcentres, y, ylow=None, **kwargs):
     """
@@ -2088,6 +2121,7 @@ def ModelBDSIMXZ(model, ax=None):
     _plt.ylabel('X (m)')
     _plt.tight_layout()
 
+
 def ModelBDSIMYZ(model, ax=None):
     """
     The ModelBDSIMXZ and ModelBDSIMYZ functions add the possibility to plot a survey
@@ -2115,6 +2149,7 @@ def ModelBDSIMYZ(model, ax=None):
     _plt.xlabel('Z (m)')
     _plt.ylabel('Y (m)')
     _plt.tight_layout()
+
 
 def ModelElegantXZ(model, ax=None, transpose=False):
     """
@@ -2147,6 +2182,7 @@ def ModelElegantXZ(model, ax=None, transpose=False):
         _plt.xlabel('Z (m)')
         _plt.ylabel('X (m)')
     _plt.tight_layout()
+
 
 def ModelElegantYZ(model, ax=None, transpose=False):
     """
