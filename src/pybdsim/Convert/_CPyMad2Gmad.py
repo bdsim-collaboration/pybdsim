@@ -101,7 +101,7 @@ class CPyMad2Gmad:
         self.model = _merge(self.model, _)
         self.model = _merge(self.model, model or {})
 
-        # Add quotes for BDSim options
+        # Add quotes for BDSIM options
         for k, v in self.model['options'].items():
             if isinstance(v, str) and '*' not in v:  # Physical quantity with units should not be quoted
                 self.model['options'][k] = '"' + v + '"'
