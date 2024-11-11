@@ -2,22 +2,39 @@
 Version History
 ===============
 
-V3.6.2 - 2024 / 05 / 15
+v3.7.0 - 2024 / 11 / XX
 =======================
 
+* New parallelisation functions in :code:`pybdsim.Run` module for each tool.
+* New Analysis module that is a work in progress.
+* Run data now loaded when loading a BDSIM output file.
+* Utility function to write a simple ROOT ntuple from BDSIM sampler data. This desroys
+  the per-event structure, but in some cases this is acceptable for handover to an experiment.
+* Function :code:`pybdsim.Data.TH2.Integrate` to integrate by spatial coordinates and not bin index.
+* Conversion of :code:`MATRIX` element from MADX.
+* Internal changes to field map loading for plotting.
+* Gabor lens from BDSIM will be plotted in machine diagram.
+* Dependency on `jinja2` introduced.
+
+
+* Fix spelling of integrate functions in TH1 and TH2.
+* New :code:`pybdsim.Plot.MeshSteps` to plot projected layers through a scoring mesh (i.e. TH3).
 * Typo fixed for :code:`IntegateAlong1Dimension` and :code:`IntegateAlong2Dimensions`.
 * Bug fixed for Integration of 2D Histograms, i.e. :code:`IntegrateAlongX` and :code:`IntegrateAlongY`.
   For obtaining a 1D Histogram in x, one must call ROOT's :code:`TH2::ProjectionY()`.
   Similarly, for getting the histogram along y, one needs to call :code:`TH2::ProjectionX()`.
+* Fix for no total energy specified for BDSIM primaries to PTC inrays.
+* GMAD strength from TFS file fix for hkickers and vkickers which used `angle`.
 
-V3.6.1 - 2024 / 01 / 30
+
+v3.6.1 - 2024 / 01 / 30
 =======================
 
 * Bug fix for type comparison when plotting optics.
 * Improve documentation for plotting multiple machines / optics.
 
 
-V3.6.0 - 2024 / 01 / 12
+v3.6.0 - 2024 / 01 / 12
 =======================
 
 * :code:`pybdsim.Plot.Spectra` arguments have changed from `scalingFactors` to
@@ -50,7 +67,7 @@ V3.6.0 - 2024 / 01 / 12
 * Update copyright year.
 
 
-V3.5.1 - 2023 / 10 / 03
+v3.5.1 - 2023 / 10 / 03
 =======================
 
 * Fix 1D histogram y range in plots if a bin has a 100% error on it.
@@ -59,7 +76,7 @@ V3.5.1 - 2023 / 10 / 03
   saving a figure as a png for 2D histogram plots.
 
 
-V3.5.0 - 2023 / 08 / 25
+v3.5.0 - 2023 / 08 / 25
 =======================
 
 * Fix x axis range in optics plot when the initial S of a beamline is not 0.
@@ -69,7 +86,7 @@ V3.5.0 - 2023 / 08 / 25
   :code:`pybdsim.Run.Reduce` and `ReduceParallel`.
 
 
-V3.4.0 - 2023 / 08 / 12
+v3.4.0 - 2023 / 08 / 12
 =======================
 
 * Fix for spectra name parsing when loading a rebdsim output file.
@@ -80,13 +97,13 @@ V3.4.0 - 2023 / 08 / 12
   the AddElement function when building models.
 
 
-V3.3.3 - 2023 / 07 / 17
+v3.3.3 - 2023 / 07 / 17
 =======================
 
 * Fix for missing functions due to recent refactor in `Data.General`.
 
 
-V3.3.2 - 2023 / 06 / 29
+v3.3.2 - 2023 / 06 / 29
 =======================
 
 * Fix loading of new header variables with backwards compatibility.
@@ -99,13 +116,13 @@ V3.3.2 - 2023 / 06 / 29
 * Fix circular import from Data.py and _General.py.
 
 
-V3.3.1 - 2023 / 05 / 15
+v3.3.1 - 2023 / 05 / 15
 =======================
 
 * Reduce Python version requirement to >3.6 instead of 3.7.
 
 
-V3.3.0 - 2023 / 05 / 08
+v3.3.0 - 2023 / 05 / 08
 =======================
 
 * Fix installation where there was a missing dependency of pandas with pymad8. pymad8 is
@@ -114,7 +131,7 @@ V3.3.0 - 2023 / 05 / 08
 * Add new :code:`pybdsim.Data.GetHistoryPDGTuple()` function to aid trajectory analysis.
 
 
-V3.2.0 - 2023 / 04 / 26
+v3.2.0 - 2023 / 04 / 26
 =======================
 
 * Remove the function :code:`pybdsim.Plot.AddMachineLatticeToFigure()`. This was just a forward to
@@ -125,7 +142,7 @@ V3.2.0 - 2023 / 04 / 26
 * Increase the visibility of light grey elements in the machine diagram from alpha 0.1 to 0.4.
   
 
-V3.1.1 - 2023 / 04 / 23
+v3.1.1 - 2023 / 04 / 23
 =======================
 
 * Fixed spectra loading and plotting for when the 'p' and 's' prefixes are used
@@ -137,7 +154,7 @@ V3.1.1 - 2023 / 04 / 23
 * Recognised PDG ID 0 as "total" from BDSIM.
 
 
-V3.1.0 - 2023 / 04 / 02
+v3.1.0 - 2023 / 04 / 02
 =======================
 
 * Add the writing and reading of comment lines in field maps.
@@ -145,7 +162,7 @@ V3.1.0 - 2023 / 04 / 02
 * Clean imports in cpymad interface as well as in Convert functions.
 
 
-V3.0.1 - 2023 / 03 / 22
+v3.0.1 - 2023 / 03 / 22
 =======================
 
 * Fix import for pybdsim when ROOT is present but librebdsim etc. are not available
@@ -156,7 +173,7 @@ V3.0.1 - 2023 / 03 / 22
   the units of the file.
 
 
-V3.0.0 - 2023 / 03 / 19
+v3.0.0 - 2023 / 03 / 19
 =======================
 
 * Restructure package into a declarative Python package where all source files are now in
