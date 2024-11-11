@@ -1456,9 +1456,47 @@ class TH3(TH2):
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
-        self.hist.GetXaxis().SetRange(index+1,index+2)
+        self.hist.GetXaxis().SetRange(index+1, index+2)
         h2d = self.hist.Project3D("yze")
         return TH2(h2d)
+
+    def ApplyTransform(self, dx=0.0, dy=0.0, dz=0.0):
+        """
+        Add an offset to the x,y,z coordinates of the mesh independently.
+
+        :param dx: x offset to apply
+        :type dx: float, int
+        :param dy: y offset to apply
+        :type dy: float, int
+        :param dz: z offset to apply
+        :type dz: float, int
+        """
+        parameters = ['centres', 'lowedge', 'highedge', 'edges']
+        axes = ['x', 'y', 'z']
+        for p in parameters:
+            for t, ax in zip((dx,dy,dz), axes):
+                n = ax+p
+                setattr(self, n, getattr(self, n) + t)
+        for t, ax in zip((dx, dy, dz), axes):
+            r = getattr(self, ax + "range")
+            r2 = (r[0] + t, r[1] + t)
+            setattr(self, ax+"range",  r2)
+
+    def FlipAxis(self, axis):
+        """
+        Multiply the spatial coordinates of a mesh along an axis by -1.0. The order is preserved.
+
+        :param axis: name of axis - 'x', 'y', 'z' accepted
+        :type axis: str
+        """
+        assert axis in ['x', 'y', 'z']
+        parameters = ['centres', 'lowedge', 'highedge', 'edges']
+        for p in parameters:
+            n = axis + p
+            setattr(self, n, getattr(self, n) * -1.0)
+        r = getattr(self, axis + "range")
+        r2 = (r[0] * -1.0, r[1] * -1.0)
+        setattr(self, axis+"range",  r2)
 
     def WriteASCII(self, filename, scalingFactor=1.0, comments=None):
         """
