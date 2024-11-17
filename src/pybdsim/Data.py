@@ -1196,7 +1196,10 @@ class TH1(ROOTHist):
     def Integrate(self, xLow=None, xHigh=None):
         """
         Integrate the histogram based on coordinates (not bins). The
-        default is to return the integral of the whole histogram.
+        default is to return the integral of the whole histogram. This
+        will round to the nearest bin though. Firstly, the bin index is
+        found with TH1.FindBin(xLow) and that bin is used for the
+        integration range.
 
         returns the integral,error
         """
@@ -1331,9 +1334,9 @@ class TH2(TH1):
         yBinLow = self.hist.GetYaxis().FindBin(yLow) if xLow else self.hist.GetYaxis().GetFirst()
         yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if xHigh else self.hist.GetYaxis().GetLast()
         error = _ctypes.c_double(0.0)
-        mean = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, error)
+        integral = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, error)
+        return integral, error.value
 
-        return mean, error.value
 
 class TH3(TH2):
     """
