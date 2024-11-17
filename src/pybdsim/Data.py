@@ -1520,7 +1520,9 @@ class TH3(TH2):
         shape = self.contents.shape
         if comments:
             for comment in comments:
-                fo.write("# " + str(comment) + "\n")
+                if not comment.isspace():
+                    fo.write("# " + str(comment) + "\n")
+            fo.write("# " + "-*-"*30+"\n")
         fo.write("# scalingFactor: "+str(scalingFactor)+"\n")
         fo.write("# unscaled integral: "+str(self.integral)+" +- "+str(self.integralError)+"\n")
         fo.write("# scaled integral: " + str(self.integral*scalingFactor) + " +- " + str(self.integralError*scalingFactor) + "\n")
