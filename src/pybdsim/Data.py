@@ -1385,6 +1385,43 @@ class TH3(TH2):
                     self.contents[i, j, k] = self.hist.GetBinContent(i+1, j+1, k+1)
                     self.errors[i, j, k]   = self.hist.GetBinError(i+1, j+1, k+1)
 
+    def SetSliceToZero(self, xIndLow=0, xIndHigh=-1, yIndLow=0, yIndHigh=-1, zIndLow=0, zIndHigh=-1):
+        """
+        Set the portion between [xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0.
+
+        Applies to the errors also, and recalculates the integral and error.
+
+        The numbers should be integer bin indices for self.contents.
+        """
+        self.contents[xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0
+        self.errors[xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0
+        self.integral = _np.sum(self.contents)
+        self.integralError = _np.sqrt((self.errors ** 2).sum())
+
+    def SetCentralVolumeToZero(self, xWidth=None, yWidth=None, zWidth=None):
+        """
+        Set a symmetric portion of width xWidth, yWidth, zWidth to 0 values.
+
+        Applies to the errors also, and recalculates the integral and error.
+
+        Numbers should be floats in spatial sizes. The default is to not slice
+        at all in that dimension if not specified.
+        """
+        if not xWidth:
+            xWidth = self.XRange()
+        if not yWidth:
+            yWidth = self.YRange()
+        if not zWidth:
+            zWidth = self.ZRange()
+
+        xIndLow = _np.argmin(_np.abs(self.xlowedge + 0.5*xWidth))
+        xIndHigh = _np.argmin(_np.abs(self.xhighedge - 0.5*xWidth))
+        yIndLow = _np.argmin(_np.abs(self.ylowedge + 0.5 * yWidth))
+        yIndHigh = _np.argmin(_np.abs(self.yhighedge - 0.5 * yWidth))
+        zIndLow = _np.argmin(_np.abs(self.zlowedge + 0.5 * zWidth))
+        zIndHigh = _np.argmin(_np.abs(self.zhighedge - 0.5 * zWidth))
+
+        self.SetSliceToZero(xIndLow, xIndHigh, yIndLow, yIndHigh, zIndLow, zIndHigh)
 
     def IntegrateAlong1Dimension(self, dimension):
         """
