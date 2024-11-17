@@ -1499,12 +1499,9 @@ class TH3(TH2):
         r2 = (r[0] * -1.0, r[1] * -1.0)
         setattr(self, axis+"range",  r2)
 
-    def WriteASCII(self, filename, scalingFactor=1.0, comments=None):
+    def WriteASCII(self, filename, scalingFactor=1.0, comments=None, appendHistogramName=True):
         """
         Write the contents to a text file. Optionally multiply contents by a numerical factor.
-
-        Adds the histogram name (self.name) to the filename, e.g. filename-name.dat. Returns
-        name that was built up.
 
         :param filename: output name to write to - can optionally include .dat suffix.
         :type filename: str
@@ -1512,12 +1509,18 @@ class TH3(TH2):
         :type scalingFactor: float
         :param comments: list of comments to be written at the top of the file.
         :type comments: list(str)
+        :param appendHistogramName: whether to insert the histogram object name before the extension
+        :type appendHistogramName: bool
+
+        If appendHistogramName is used, the histogram name (self.name) is added to the
+        filename, e.g. filename-name.dat. Returns the name used.
         """
         filename = str(filename)
-        if filename.endswith('.dat'):
-            filename = filename[:-4]
-        fn = filename + "-" + self.name + ".dat"
-        fo = open(fn, "w")
+        if appendHistogramName:
+            if filename.endswith('.dat'):
+                filename = filename[:-4]
+            filename = filename + "-" + self.name + ".dat"
+        fo = open(filename, "w")
         shape = self.contents.shape
         if comments:
             for comment in comments:
@@ -1540,7 +1543,7 @@ class TH3(TH2):
                     stringsFW = ['%18s' % s for s in strings]
                     fo.write("\t".join(stringsFW) + "\n")
         fo.close()
-        return fn
+        return filename
 
     
 class BDSBH4D():
