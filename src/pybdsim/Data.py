@@ -1382,8 +1382,9 @@ class TH3(TH2):
         for i in range(self.nbinsx):
             for j in range(self.nbinsy):
                 for k in range(self.nbinsz):
-                    self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
-                    self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
+                    self.contents[i, j, k] = self.hist.GetBinContent(i+1, j+1, k+1)
+                    self.errors[i, j, k]   = self.hist.GetBinError(i+1, j+1, k+1)
+
 
     def IntegrateAlong1Dimension(self, dimension):
         """
