@@ -1173,6 +1173,9 @@ class TH1(ROOTHist):
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
 
+    def XRange(self):
+        return self.xrange[1] - self.xrange[0]
+
     def IntegrateFromBins(self, startBin=None, endBin=None):
         """
         Calculate the integral from start bin index to end bin index in ROOT's
@@ -1253,6 +1256,9 @@ class TH2(TH1):
         self.integral = _np.sum(self.contents)
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
+
+    def YRange(self):
+        return self.yrange[1] - self.yrange[0]
         
     def SwapAxes(self):
         """
@@ -1365,6 +1371,9 @@ class TH3(TH2):
         self.integral = _np.sum(self.contents)
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
+
+    def ZRange(self):
+        return self.zrange[1] - self.zrange[0]
 
     def _GetContents(self):
         for i in range(self.nbinsx):
