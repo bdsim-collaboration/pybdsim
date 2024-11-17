@@ -1149,7 +1149,7 @@ class TH1(ROOTHist):
         self.xlowedge   = _np.zeros(self.nbinsx)
         self.xhighedge  = _np.zeros(self.nbinsx)
         self.xedges     = _np.zeros(self.nbinsx+1)
-        self.xrange     = (0,0)
+        self.xrange     = (0, 0)
 
         # data holders
         self.contents  = _np.zeros(self.nbinsx)
@@ -1163,7 +1163,7 @@ class TH1(ROOTHist):
             self.xlowedge[i]  = xaxis.GetBinLowEdge(i+1)
             self.xhighedge[i] = self.xlowedge[i] + self.xwidths[i]
             self.xcentres[i]  = xaxis.GetBinCenter(i+1)
-        self.xrange = (self.xlowedge[0],self.xhighedge[-1])
+        self.xrange = (self.xlowedge[0], self.xhighedge[-1])
         self.xedges = _np.append(self.xlowedge, self.xhighedge[-1])
 
         if extractData:
@@ -1214,6 +1214,7 @@ class TH1(ROOTHist):
         htemp = self.hist.Rebin(nBins, self.name+"_rebin_"+str(nBins))
         return TH1(htemp)
 
+
 class TH2(TH1):
     """
     Wrapper for a ROOT TH2 instance. Converts to numpy data.
@@ -1229,10 +1230,10 @@ class TH2(TH1):
         self.ylowedge  = _np.zeros(self.nbinsy)
         self.yhighedge = _np.zeros(self.nbinsy)
         self.yedges    = _np.zeros(self.nbinsy+1)
-        self.yrange    = (0,0)
+        self.yrange    = (0, 0)
 
-        self.contents = _np.zeros((self.nbinsx,self.nbinsy))
-        self.errors   = _np.zeros((self.nbinsx,self.nbinsy))
+        self.contents = _np.zeros((self.nbinsx, self.nbinsy))
+        self.errors   = _np.zeros((self.nbinsx, self.nbinsy))
 
         self.yunderflow = "not implemented"
         self.yoverflow  = "not implemented"
@@ -1243,7 +1244,7 @@ class TH2(TH1):
             self.ylowedge[i]  = yaxis.GetBinLowEdge(i+1)
             self.yhighedge[i] = self.ylowedge[i] + self.ywidths[i]
             self.ycentres[i]  = yaxis.GetBinCenter(i+1)
-        self.yrange = (self.ylowedge[0],self.yhighedge[-1])
+        self.yrange = (self.ylowedge[0], self.yhighedge[-1])
         self.yedges = _np.append(self.ylowedge, self.yhighedge[-1])
 
         if extractData:
@@ -1300,14 +1301,14 @@ class TH2(TH1):
 
     def IntegrateAlongX(self):
         """
-        Integrate along the x axis returning a TH1 in y.
+        Integrate along the x-axis returning a TH1 in y.
         """
         h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
         return TH1(h1d)
 
     def IntegrateAlongY(self):
         """
-        Integrate along the y axis returning a TH1 in x.
+        Integrate along the y-axis returning a TH1 in x.
         """
         h1d = self.hist.ProjectionX(self.name+"_int_x", 0, -1, "e")
         return TH1(h1d)
@@ -1343,11 +1344,11 @@ class TH3(TH2):
         self.zcentres  = _np.zeros(self.nbinsz)
         self.zlowedge  = _np.zeros(self.nbinsz)
         self.zhighedge = _np.zeros(self.nbinsz)
-        self.zedges    = _np.zeros(self.nbinsz+1)
-        self.zrange    = (0,0)
+        self.zedges    = _np.zeros(self.nbinsz + 1)
+        self.zrange    = (0, 0)
 
-        self.contents = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
-        self.errors   = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
+        self.contents = _np.zeros((self.nbinsx, self.nbinsy, self.nbinsz))
+        self.errors   = _np.zeros((self.nbinsx, self.nbinsy, self.nbinsz))
 
         for i in range(self.nbinsz):
             zaxis = hist.GetZaxis()
@@ -1355,7 +1356,7 @@ class TH3(TH2):
             self.zlowedge[i]  = zaxis.GetBinLowEdge(i+1)
             self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
             self.zcentres[i]  = zaxis.GetBinCenter(i+1)
-        self.zrange = (self.zlowedge[0],self.zhighedge[-1])
+        self.zrange = (self.zlowedge[0], self.zhighedge[-1])
         self.zedges = _np.append(self.zlowedge, self.zhighedge[-1])
 
         if extractData:
