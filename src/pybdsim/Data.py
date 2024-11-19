@@ -1606,6 +1606,7 @@ class BDSBH4D():
         self.hist   = hist
         self.name   = hist.GetName()
         self.title  = hist.GetTitle()
+        self.entries = 0  # TBC - not implemented
         self.xlabel = ""
         self.ylabel = ""
         self.errorsAreErrorOnMean = True
