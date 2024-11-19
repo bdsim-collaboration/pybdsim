@@ -1149,7 +1149,7 @@ class TH1(ROOTHist):
         self.xlowedge   = _np.zeros(self.nbinsx)
         self.xhighedge  = _np.zeros(self.nbinsx)
         self.xedges     = _np.zeros(self.nbinsx+1)
-        self.xrange     = (0,0)
+        self.xrange     = (0, 0)
 
         # data holders
         self.contents  = _np.zeros(self.nbinsx)
@@ -1163,7 +1163,7 @@ class TH1(ROOTHist):
             self.xlowedge[i]  = xaxis.GetBinLowEdge(i+1)
             self.xhighedge[i] = self.xlowedge[i] + self.xwidths[i]
             self.xcentres[i]  = xaxis.GetBinCenter(i+1)
-        self.xrange = (self.xlowedge[0],self.xhighedge[-1])
+        self.xrange = (self.xlowedge[0], self.xhighedge[-1])
         self.xedges = _np.append(self.xlowedge, self.xhighedge[-1])
 
         if extractData:
@@ -1172,6 +1172,9 @@ class TH1(ROOTHist):
         self.integral = _np.sum(self.contents)
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
+
+    def XRange(self):
+        return self.xrange[1] - self.xrange[0]
 
     def IntegrateFromBins(self, startBin=None, endBin=None):
         """
@@ -1193,7 +1196,10 @@ class TH1(ROOTHist):
     def Integrate(self, xLow=None, xHigh=None):
         """
         Integrate the histogram based on coordinates (not bins). The
-        default is to return the integral of the whole histogram.
+        default is to return the integral of the whole histogram. This
+        will round to the nearest bin though. Firstly, the bin index is
+        found with TH1.FindBin(xLow) and that bin is used for the
+        integration range.
 
         returns the integral,error
         """
@@ -1214,6 +1220,7 @@ class TH1(ROOTHist):
         htemp = self.hist.Rebin(nBins, self.name+"_rebin_"+str(nBins))
         return TH1(htemp)
 
+
 class TH2(TH1):
     """
     Wrapper for a ROOT TH2 instance. Converts to numpy data.
@@ -1229,10 +1236,10 @@ class TH2(TH1):
         self.ylowedge  = _np.zeros(self.nbinsy)
         self.yhighedge = _np.zeros(self.nbinsy)
         self.yedges    = _np.zeros(self.nbinsy+1)
-        self.yrange    = (0,0)
+        self.yrange    = (0, 0)
 
-        self.contents = _np.zeros((self.nbinsx,self.nbinsy))
-        self.errors   = _np.zeros((self.nbinsx,self.nbinsy))
+        self.contents = _np.zeros((self.nbinsx, self.nbinsy))
+        self.errors   = _np.zeros((self.nbinsx, self.nbinsy))
 
         self.yunderflow = "not implemented"
         self.yoverflow  = "not implemented"
@@ -1243,7 +1250,7 @@ class TH2(TH1):
             self.ylowedge[i]  = yaxis.GetBinLowEdge(i+1)
             self.yhighedge[i] = self.ylowedge[i] + self.ywidths[i]
             self.ycentres[i]  = yaxis.GetBinCenter(i+1)
-        self.yrange = (self.ylowedge[0],self.yhighedge[-1])
+        self.yrange = (self.ylowedge[0], self.yhighedge[-1])
         self.yedges = _np.append(self.ylowedge, self.yhighedge[-1])
 
         if extractData:
@@ -1252,7 +1259,10 @@ class TH2(TH1):
         self.integral = _np.sum(self.contents)
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
-        
+
+    def YRange(self):
+        return self.yrange[1] - self.yrange[0]
+
     def SwapAxes(self):
         """
         Swap X and Y for all members. Returns a new copy of the histogram.
@@ -1300,14 +1310,14 @@ class TH2(TH1):
 
     def IntegrateAlongX(self):
         """
-        Integrate along the x axis returning a TH1 in y.
+        Integrate along the x-axis returning a TH1 in y.
         """
         h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
         return TH1(h1d)
 
     def IntegrateAlongY(self):
         """
-        Integrate along the y axis returning a TH1 in x.
+        Integrate along the y-axis returning a TH1 in x.
         """
         h1d = self.hist.ProjectionX(self.name+"_int_x", 0, -1, "e")
         return TH1(h1d)
@@ -1324,9 +1334,9 @@ class TH2(TH1):
         yBinLow = self.hist.GetYaxis().FindBin(yLow) if xLow else self.hist.GetYaxis().GetFirst()
         yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if xHigh else self.hist.GetYaxis().GetLast()
         error = _ctypes.c_double(0.0)
-        mean = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, error)
+        integral = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, error)
+        return integral, error.value
 
-        return mean, error.value
 
 class TH3(TH2):
     """
@@ -1343,11 +1353,11 @@ class TH3(TH2):
         self.zcentres  = _np.zeros(self.nbinsz)
         self.zlowedge  = _np.zeros(self.nbinsz)
         self.zhighedge = _np.zeros(self.nbinsz)
-        self.zedges    = _np.zeros(self.nbinsz+1)
-        self.zrange    = (0,0)
+        self.zedges    = _np.zeros(self.nbinsz + 1)
+        self.zrange    = (0, 0)
 
-        self.contents = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
-        self.errors   = _np.zeros((self.nbinsx,self.nbinsy,self.nbinsz))
+        self.contents = _np.zeros((self.nbinsx, self.nbinsy, self.nbinsz))
+        self.errors   = _np.zeros((self.nbinsx, self.nbinsy, self.nbinsz))
 
         for i in range(self.nbinsz):
             zaxis = hist.GetZaxis()
@@ -1355,7 +1365,7 @@ class TH3(TH2):
             self.zlowedge[i]  = zaxis.GetBinLowEdge(i+1)
             self.zhighedge[i] = self.zlowedge[i] + self.zwidths[i]
             self.zcentres[i]  = zaxis.GetBinCenter(i+1)
-        self.zrange = (self.zlowedge[0],self.zhighedge[-1])
+        self.zrange = (self.zlowedge[0], self.zhighedge[-1])
         self.zedges = _np.append(self.zlowedge, self.zhighedge[-1])
 
         if extractData:
@@ -1365,12 +1375,53 @@ class TH3(TH2):
         # this assumes uncorrelated
         self.integralError = _np.sqrt((self.errors**2).sum())
 
+    def ZRange(self):
+        return self.zrange[1] - self.zrange[0]
+
     def _GetContents(self):
         for i in range(self.nbinsx):
             for j in range(self.nbinsy):
                 for k in range(self.nbinsz):
-                    self.contents[i,j,k] = self.hist.GetBinContent(i+1,j+1,k+1)
-                    self.errors[i,j,k]   = self.hist.GetBinError(i+1,j+1,k+1)
+                    self.contents[i, j, k] = self.hist.GetBinContent(i+1, j+1, k+1)
+                    self.errors[i, j, k]   = self.hist.GetBinError(i+1, j+1, k+1)
+
+    def SetSliceToZero(self, xIndLow=0, xIndHigh=-1, yIndLow=0, yIndHigh=-1, zIndLow=0, zIndHigh=-1):
+        """
+        Set the portion between [xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0.
+
+        Applies to the errors also, and recalculates the integral and error.
+
+        The numbers should be integer bin indices for self.contents.
+        """
+        self.contents[xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0
+        self.errors[xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0
+        self.integral = _np.sum(self.contents)
+        self.integralError = _np.sqrt((self.errors ** 2).sum())
+
+    def SetCentralVolumeToZero(self, xWidth=None, yWidth=None, zWidth=None):
+        """
+        Set a symmetric portion of width xWidth, yWidth, zWidth to 0 values.
+
+        Applies to the errors also, and recalculates the integral and error.
+
+        Numbers should be floats in spatial sizes. The default is to not slice
+        at all in that dimension if not specified.
+        """
+        if not xWidth:
+            xWidth = self.XRange()
+        if not yWidth:
+            yWidth = self.YRange()
+        if not zWidth:
+            zWidth = self.ZRange()
+
+        xIndLow = _np.argmin(_np.abs(self.xlowedge + 0.5*xWidth))
+        xIndHigh = _np.argmin(_np.abs(self.xhighedge - 0.5*xWidth))
+        yIndLow = _np.argmin(_np.abs(self.ylowedge + 0.5 * yWidth))
+        yIndHigh = _np.argmin(_np.abs(self.yhighedge - 0.5 * yWidth))
+        zIndLow = _np.argmin(_np.abs(self.zlowedge + 0.5 * zWidth))
+        zIndHigh = _np.argmin(_np.abs(self.zhighedge - 0.5 * zWidth))
+
+        self.SetSliceToZero(xIndLow, xIndHigh, yIndLow, yIndHigh, zIndLow, zIndHigh)
 
     def IntegrateAlong1Dimension(self, dimension):
         """
@@ -1456,35 +1507,51 @@ class TH3(TH2):
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
-        self.hist.GetXaxis().SetRange(index+1,index+2)
+        self.hist.GetXaxis().SetRange(index+1, index+2)
         h2d = self.hist.Project3D("yze")
         return TH2(h2d)
 
-    def Rebin(self, nBinsX, nBinsY=None, nBinsZ=None):
-        if type(nBinsX) is not int or nBinsX < 0:
-            raise TypeError("nBinsX must be a positive integer")
-        if nBinsY is None:
-            nBinsY = nBinsX
-        else:
-            if type(nBinsY) is not int or nBinsY < 0:
-                raise TypeError("nBinsY must be a positive integer")
-        if nBinsZ is None:
-            nBinsZ = nBinsX
-        else:
-            if type(nBinsZ) is not int or nBinsZ < 0:
-                raise TypeError("nBinsZ must be a positive integer")
-        if nBinsX == 1 and nBinsY == 1 and nBinsZ == 1:
-            return self
-        htemp = self.hist.Rebin3D(nBinsX, nBinsY, nBinsZ,
-                                  self.name+"_rebin_"+str(nBinsX)+"_"+str(nBinsY)+"_"+str(nBinsZ))
-        return TH3(htemp)
+    def ApplyTransform(self, dx=0.0, dy=0.0, dz=0.0):
+        """
+        Add an offset to the x,y,z coordinates of the mesh independently.
 
-    def WriteASCII(self, filename, scalingFactor=1.0, comments=None):
+        :param dx: x offset to apply
+        :type dx: float, int
+        :param dy: y offset to apply
+        :type dy: float, int
+        :param dz: z offset to apply
+        :type dz: float, int
+        """
+        parameters = ['centres', 'lowedge', 'highedge', 'edges']
+        axes = ['x', 'y', 'z']
+        for p in parameters:
+            for t, ax in zip((dx,dy,dz), axes):
+                n = ax+p
+                setattr(self, n, getattr(self, n) + t)
+        for t, ax in zip((dx, dy, dz), axes):
+            r = getattr(self, ax + "range")
+            r2 = (r[0] + t, r[1] + t)
+            setattr(self, ax+"range",  r2)
+
+    def FlipAxis(self, axis):
+        """
+        Multiply the spatial coordinates of a mesh along an axis by -1.0. The order is preserved.
+
+        :param axis: name of axis - 'x', 'y', 'z' accepted
+        :type axis: str
+        """
+        assert axis in ['x', 'y', 'z']
+        parameters = ['centres', 'lowedge', 'highedge', 'edges']
+        for p in parameters:
+            n = axis + p
+            setattr(self, n, getattr(self, n) * -1.0)
+        r = getattr(self, axis + "range")
+        r2 = (r[0] * -1.0, r[1] * -1.0)
+        setattr(self, axis+"range",  r2)
+
+    def WriteASCII(self, filename, scalingFactor=1.0, comments=None, appendHistogramName=True):
         """
         Write the contents to a text file. Optionally multiply contents by a numerical factor.
-
-        Adds the histogram name (self.name) to the filename, e.g. filename-name.dat. Returns
-        name that was built up.
 
         :param filename: output name to write to - can optionally include .dat suffix.
         :type filename: str
@@ -1492,16 +1559,24 @@ class TH3(TH2):
         :type scalingFactor: float
         :param comments: list of comments to be written at the top of the file.
         :type comments: list(str)
+        :param appendHistogramName: whether to insert the histogram object name before the extension
+        :type appendHistogramName: bool
+
+        If appendHistogramName is used, the histogram name (self.name) is added to the
+        filename, e.g. filename-name.dat. Returns the name used.
         """
         filename = str(filename)
-        if filename.endswith('.dat'):
-            filename = filename[:-4]
-        fn = filename + "-" + self.name + ".dat"
-        fo = open(fn, "w")
+        if appendHistogramName:
+            if filename.endswith('.dat'):
+                filename = filename[:-4]
+            filename = filename + "-" + self.name + ".dat"
+        fo = open(filename, "w")
         shape = self.contents.shape
         if comments:
             for comment in comments:
-                fo.write("# " + str(comment) + "\n")
+                if not comment.isspace():
+                    fo.write("# " + str(comment) + "\n")
+            fo.write("# " + "-*-"*30+"\n")
         fo.write("# scalingFactor: "+str(scalingFactor)+"\n")
         fo.write("# unscaled integral: "+str(self.integral)+" +- "+str(self.integralError)+"\n")
         fo.write("# scaled integral: " + str(self.integral*scalingFactor) + " +- " + str(self.integralError*scalingFactor) + "\n")
@@ -1518,7 +1593,7 @@ class TH3(TH2):
                     stringsFW = ['%18s' % s for s in strings]
                     fo.write("\t".join(stringsFW) + "\n")
         fo.close()
-        return fn
+        return filename
 
     
 class BDSBH4D():
