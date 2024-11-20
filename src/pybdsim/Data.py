@@ -1422,11 +1422,11 @@ class TH3(TH2):
             zWidth = self.ZRange()
 
         xIndLow = _np.argmin(_np.abs(self.xlowedge + 0.5*xWidth))
-        xIndHigh = _np.argmin(_np.abs(self.xhighedge - 0.5*xWidth))
+        xIndHigh = _np.argmin(_np.abs(self.xhighedge - 0.5*xWidth)) + 1
         yIndLow = _np.argmin(_np.abs(self.ylowedge + 0.5 * yWidth))
-        yIndHigh = _np.argmin(_np.abs(self.yhighedge - 0.5 * yWidth))
+        yIndHigh = _np.argmin(_np.abs(self.yhighedge - 0.5 * yWidth)) + 1
         zIndLow = _np.argmin(_np.abs(self.zlowedge + 0.5 * zWidth))
-        zIndHigh = _np.argmin(_np.abs(self.zhighedge - 0.5 * zWidth))
+        zIndHigh = _np.argmin(_np.abs(self.zhighedge - 0.5 * zWidth)) + 1
 
         self.SetSliceToZero(xIndLow, xIndHigh, yIndLow, yIndHigh, zIndLow, zIndHigh)
 
