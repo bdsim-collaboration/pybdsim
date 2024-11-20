@@ -1393,8 +1393,15 @@ class TH3(TH2):
 
         The numbers should be integer bin indices for self.contents.
         """
-        self.contents[xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0
-        self.errors[xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0
+        for xi in range(xIndLow, xIndHigh):
+            for yi in range(yIndLow, yIndHigh):
+                for zi in range(zIndLow, zIndHigh):
+                    self.hist.SetBinContent(xi+1, yi+1, zi+1, 0)
+                    self.hist.SetBinError(xi+1, yi+1, zi+1, 0)
+        # update numpy representation
+        self._GetContents()
+
+        # update integral
         self.integral = _np.sum(self.contents)
         self.integralError = _np.sqrt((self.errors ** 2).sum())
 
