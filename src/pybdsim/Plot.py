@@ -797,7 +797,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
 def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="",
                 zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0,
                 yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None,
-                colourbar=True, ax=None, cax=None, swapXaxis=False, **imshowKwargs):
+                colourbar=True, ax=None, cax=None, swapXAxis=False, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -813,6 +813,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     vmax           - explicitly control the vmax for the colour normalisation
     ax             - optional matplotlib axes to draw into
     cax            - optional axes to draw coloubar into
+    swapXAxis      - flip the plotting of the x axis
 
     return figure instance
     """
@@ -875,7 +876,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     else:
         ax.set_title(title)
 
-    if swapXaxis:
+    if swapXAxis:
         ax.set_xlim(ax.get_xlim()[::-1])
 
     if not incomingAxis:
@@ -924,7 +925,7 @@ def Histogram3D(th3):
 
 def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlice=None,
               xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8),
-              swapXaxis=False, log=False, ax=None, **errorbarKwargs):
+              swapXAxis=False, log=False, ax=None, **errorbarKwargs):
     """
     Plot multiple 1D histograms along a given dimension integrateAlong. The integrated 2D histogram originates
     from slices along dimension sliceDimension. By default, the slices are from 0 to len(th3.zcentres)-1.
@@ -988,7 +989,7 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
             miny = min(miny, _np.min(histo.contents))
             maxy = max(maxy, _np.max(histo.contents + histo.errors))
             Histogram1D(histo, scalingFactor=scalingFactor, xScalingFactor=xScalingFactor,
-                        figsize=figsize, swapXaxis=swapXaxis, log=log, ax=ax, c=colours[i // 2])
+                        figsize=figsize, swapXAxis=swapXAxis, log=log, ax=ax, c=colours[i // 2])
 
     sm = _plt.cm.ScalarMappable(cmap="viridis", norm=_plt.Normalize(vmin=color_low, vmax=colour_high))
     _plt.colorbar(sm, label=sliceDimension + " (m)")
