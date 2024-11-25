@@ -1430,6 +1430,24 @@ class TH3(TH2):
 
         self.SetSliceToZero(xIndLow, xIndHigh, yIndLow, yIndHigh, zIndLow, zIndHigh)
 
+    def IntegrateAlongX(self):
+        """
+        Override from TH2 class to implement 3D version. Returns TH2.
+        """
+        return self.IntegrateAlong1Dimension('x')
+
+    def IntegrateAlongY(self):
+        """
+        Override from TH2 class to implement 3D version. Returns TH2.
+        """
+        return self.IntegrateAlong1Dimension('y')
+
+    def IntegrateAlongZ(self):
+        """
+        Override from TH2 class to implement 3D version. Returns TH2.
+        """
+        return self.IntegrateAlong1Dimension('z')
+
     def IntegrateAlong1Dimension(self, dimension):
         """
         Integrate along a dimension returning a new 2D histogram.
