@@ -2,23 +2,24 @@
 Useful plots for bdsim output
 
 """
-from .import Data as _Data
-from .import Constants as _Constants
+from . import Data as _Data
+from . import Constants as _Constants
+
+from .Data import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
+from .Data import CheckBdsimDataHasSurveyModel as _CheckBdsimDataHasSurveyModel
+
 import pymadx as _pymadx
 
 import copy as _copy
+import datetime as _datetime
 import matplotlib as _matplotlib
+from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 from matplotlib.colors import LogNorm as _LogNorm
 import matplotlib.pyplot as _plt
 import matplotlib.patches as _patches
 import numpy as _np
-import datetime as _datetime
-from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
-from scipy import constants as _con
 import os.path as _ospath
-
-from .Data import CheckItsBDSAsciiData as _CheckItsBDSAsciiData
-from .Data import CheckBdsimDataHasSurveyModel as _CheckBdsimDataHasSurveyModel
+from scipy import constants as _con
 
 
 class _My_Axes(_matplotlib.axes.Axes):
