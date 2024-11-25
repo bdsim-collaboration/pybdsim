@@ -1393,8 +1393,15 @@ class TH3(TH2):
 
         The numbers should be integer bin indices for self.contents.
         """
-        self.contents[xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0
-        self.errors[xIndLow:xIndHigh, yIndLow:yIndHigh, zIndLow:zIndHigh] = 0
+        for xi in range(xIndLow, xIndHigh):
+            for yi in range(yIndLow, yIndHigh):
+                for zi in range(zIndLow, zIndHigh):
+                    self.hist.SetBinContent(xi+1, yi+1, zi+1, 0)
+                    self.hist.SetBinError(xi+1, yi+1, zi+1, 0)
+        # update numpy representation
+        self._GetContents()
+
+        # update integral
         self.integral = _np.sum(self.contents)
         self.integralError = _np.sqrt((self.errors ** 2).sum())
 
@@ -1415,11 +1422,11 @@ class TH3(TH2):
             zWidth = self.ZRange()
 
         xIndLow = _np.argmin(_np.abs(self.xlowedge + 0.5*xWidth))
-        xIndHigh = _np.argmin(_np.abs(self.xhighedge - 0.5*xWidth))
+        xIndHigh = _np.argmin(_np.abs(self.xhighedge - 0.5*xWidth)) + 1
         yIndLow = _np.argmin(_np.abs(self.ylowedge + 0.5 * yWidth))
-        yIndHigh = _np.argmin(_np.abs(self.yhighedge - 0.5 * yWidth))
+        yIndHigh = _np.argmin(_np.abs(self.yhighedge - 0.5 * yWidth)) + 1
         zIndLow = _np.argmin(_np.abs(self.zlowedge + 0.5 * zWidth))
-        zIndHigh = _np.argmin(_np.abs(self.zhighedge - 0.5 * zWidth))
+        zIndHigh = _np.argmin(_np.abs(self.zhighedge - 0.5 * zWidth)) + 1
 
         self.SetSliceToZero(xIndLow, xIndHigh, yIndLow, yIndHigh, zIndLow, zIndHigh)
 
@@ -1625,6 +1632,7 @@ class BDSBH4D():
         self.hist   = hist
         self.name   = hist.GetName()
         self.title  = hist.GetTitle()
+        self.entries = 0  # TBC - not implemented
         self.xlabel = ""
         self.ylabel = ""
         self.errorsAreErrorOnMean = True
