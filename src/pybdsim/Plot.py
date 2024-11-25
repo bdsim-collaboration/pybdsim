@@ -133,9 +133,10 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sO
     # BDSIM survey contents.
 
     axoptics  = figure.get_axes()
-    _AdjustExistingAxes(figure, fraction=fraction, tightLayout=tightLayout)
-    axmachine = _PrepareMachineAxes(figure)
-    axmachine.margins(x=0.02)
+    axmachine = _pymadx.Plot._AdjustExistingAxesAndAddMachineAxis(figure)
+    #_AdjustExistingAxes(figure, fraction=fraction, tightLayout=tightLayout)
+    #axmachine = _PrepareMachineAxes(figure)
+    #axmachine.margins(x=0.02)
 
     DrawMachineLattice(axmachine, sf, sOffset=sOffset)
     #put callbacks for linked scrolling
