@@ -1262,7 +1262,7 @@ class TH2(TH1):
 
     def YRange(self):
         return self.yrange[1] - self.yrange[0]
-        
+
     def SwapAxes(self):
         """
         Swap X and Y for all members. Returns a new copy of the histogram.
@@ -1535,6 +1535,25 @@ class TH3(TH2):
         self.hist.GetXaxis().SetRange(index+1, index+2)
         h2d = self.hist.Project3D("yze")
         return TH2(h2d)
+
+    def Rebin(self, nBinsX, nBinsY=None, nBinsZ=None):
+        if type(nBinsX) is not int or nBinsX < 0:
+            raise TypeError("nBinsX must be a positive integer")
+        if nBinsY is None:
+            nBinsY = nBinsX
+        else:
+            if type(nBinsY) is not int or nBinsY < 0:
+                raise TypeError("nBinsY must be a positive integer")
+        if nBinsZ is None:
+            nBinsZ = nBinsX
+        else:
+            if type(nBinsZ) is not int or nBinsZ < 0:
+                raise TypeError("nBinsZ must be a positive integer")
+        if nBinsX == 1 and nBinsY == 1 and nBinsZ == 1:
+            return self
+        htemp = self.hist.Rebin3D(nBinsX, nBinsY, nBinsZ,
+                                  self.name+"_rebin_"+str(nBinsX)+"_"+str(nBinsY)+"_"+str(nBinsZ))
+        return TH3(htemp)
 
     def ApplyTransform(self, dx=0.0, dy=0.0, dz=0.0):
         """
