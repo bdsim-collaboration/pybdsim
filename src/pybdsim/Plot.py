@@ -1014,6 +1014,58 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
     _plt.ylim(miny, maxy*1.05)
 
 
+def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
+                      xlabel=None, ylabel=None, scalingFactor=1.0, swapXAxis=False,
+                      figsize=(6.4, 4.8), logNorm=False, vmax=None, vmin=None, savingPrefix=None):
+    """
+    Plot multiple 1D histograms along a given dimension integrateAlong. The integrated 2D histogram originates
+    from slices along dimension sliceDimension. By default, the slices are from 0 to len(th3.zcentres)-1.
+    endSlice is inclusive meaning this slice will be included in the plot The slice index is represented
+    by a colour scale. Only every second histogram is plotted. This function is useful to visualise properties
+    of a scoring mesh. All variables referring to properties of the plot are pushed through to Histogram1D().
+
+    :param th3: 3D histogram containing the
+    :type  th3: TH3
+    :param sliceDimension: string specifying the dimension along which to slice the histogram.
+    :type sliceDimension: str
+    :param integrateAlong: string specifying to integrate the 2D along which dimension.
+    :type integrateAlong: str
+    :param startSlice: first index of the 2D slices
+    :type startSlice: int
+    :param endSlice: last index of the 2D slices
+    :type endSlice: int
+    """
+    if sliceDimension not in ['x', 'y', 'z']:
+        raise ValueError("sliceDimension must be 'x', 'y' or 'z'")
+
+    axes = ['x', 'y', 'z']
+    axes.pop(axes.index(sliceDimension))
+    xaxis = axes[0]
+    yaxis = axes[1]
+
+    functions = (th3.Slice2DZY, th3.Slice2DXZ, th3.Slice2DXY)
+    slice_index = ['x', 'y', 'z'].index(sliceDimension)
+    f = functions[slice_index]
+    sliceDimCentres = getattr(th3, sliceDimension+"centres")
+    if endSlice == -1:
+        endSlice = getattr(th3, "nbins"+sliceDimension)
+    if not xlabel:
+        xlabel = xaxis + " (m)"
+    if not ylabel:
+        ylabel = yaxis + " (m)"
+    if not vmin:
+        vmin = _np.min(th3.contents[th3.contents>0])
+    if not vmax:
+        vmax = _np.max(th3.contents)
+    for i in range(startSlice, endSlice):
+        slice = f(i)
+        title = "Slice " + str(i) + " at " + sliceDimension + " = "+"{:.2f}".format(sliceDimCentres[i])
+        Histogram2D(slice, logNorm=logNorm, xlabel=xlabel, ylabel=ylabel, title=title,
+                    figsize=figsize, scalingFactor=scalingFactor, vmin=vmin, vmax=vmax, swapXAxis=swapXAxis)
+        if savingPrefix:
+            _plt.savefig(savingPrefix+"slice_"+f'{i:03}'+".png", dpi=400)
+
+
 def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
     """
     Plot two histograms with their ratio (#1 / #2) in a subplot below.
