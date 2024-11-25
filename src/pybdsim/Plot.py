@@ -925,8 +925,8 @@ def Histogram3D(th3):
 
 
 def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlice=None,
-              xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8),
-              swapXAxis=False, log=False, ax=None, **errorbarKwargs):
+              moduloFraction=1, xlabel=None, ylabel=None, title=None, scalingFactor=1.0,
+              xScalingFactor=1.0, figsize=(6.4, 4.8), swapXAxis=False, log=False, ax=None, **errorbarKwargs):
     """
     Plot multiple 1D histograms along a given dimension integrateAlong. The integrated 2D histogram originates
     from slices along dimension sliceDimension. By default, the slices are from 0 to len(th3.zcentres)-1.
@@ -934,17 +934,30 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
     by a colour scale. Only every second histogram is plotted. This function is useful to visualise properties
     of a scoring mesh. All variables referring to properties of the plot are pushed through to Histogram1D().
 
-    :param th3: 3D histogram containing the
-    :type  th3: TH3
-    :param sliceDimension: string specifying the dimension along which to slice the histogram.
+    :param th3: 3D histogram containing the data.
+    :type th3: TH3
+    :param sliceDimension: dimension to slice the histogram.
     :type sliceDimension: str
-    :param integrateAlong: string specifying to integrate the 2D along which dimension.
+    :param integrateAlong: dimension to integrate the 2D slice along to reduce it to 1D.
     :type integrateAlong: str
     :param startSlice: first index of the 2D slices
     :type startSlice: int
-    :param endSlice: last index of the 2D slices
-    :type endSlice: int
+    :param endSlice: last index of the 2D slices. None means the end.
+    :type endSlice: int, None
+    :param moduloFraction: plot every nth slice, ie 2 for every second slice
+    :type moduloFraction: int
+    :param xlabel: xlabel to use on final plot
+    :type xlabel: str
+    :type ylabel: ylabel to use on final plot
+    :type ylabel: str
     """
+    allowedDimensions = ['x', 'y', 'z']
+    if sliceDimension not in allowedDimensions:
+        raise ValueError("sliceDimension must be 'x', 'y' or 'z'")
+    if integrateAlong not in allowedDimensions:
+        raise ValueError("integrateAlong must be 'x', 'y' or 'z'")
+    assert sliceDimension != integrateAlong
+    
     if ax is None:
         f = _plt.figure(figsize=figsize)
         ax = f.add_subplot(111)
@@ -954,39 +967,35 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
     color_low = ar[0]
     colour_high = ar[-1]
 
-    xaxis = ['x', 'y', 'z']
+    xaxis = [*allowedDimensions] # make a copy
     xaxis.pop(xaxis.index(sliceDimension))
     xaxis.pop(xaxis.index(integrateAlong))
     xaxis = xaxis[0]
 
+    slice_index = allowedDimensions.index(sliceDimension)
     if endSlice is None:
-        if sliceDimension == 'x':
-            endSlice = len(th3.xcentres) - 1
-        elif sliceDimension == 'y':
-            endSlice = len(th3.ycentres) - 1
-        elif sliceDimension == 'z':
-            endSlice = len(th3.zcentres) - 1
-        else:
-            raise ValueError("sliceDimension must be x, y or z")
+        endSlice = len([th3.xcentres, th3.ycentres, th3.zcentres][slice_index]) - 1
+
+    functions = (th3.Slice2DZY, th3.Slice2DXZ, th3.Slice2DXY)
+    f = functions[slice_index]
+
+    # Once a 2d histogram, we have only 'x' and 'y' but these might represent
+    # other dimensions. Work out which function to call for which dimension.
+    functions_int = (_Data.TH2.IntegrateAlongX, _Data.TH2.IntegrateAlongY) # unbound function references
+    int_index = [*allowedDimensions]
+    pop_index = int_index.index(sliceDimension)
+    int_index.pop(pop_index)
+    int_index = int_index.index(integrateAlong)
+    f_int = functions_int[int_index]
+    
     colours = _plt.cm.viridis(_np.linspace(0, 1, int(endSlice/2)+1))
     miny = 0
     maxy = 0
     for i in range(startSlice, endSlice + 1, 1):
-        if sliceDimension == 'x':
-            hist = th3.Slice2DZY(i)
-        elif sliceDimension == 'y':
-            hist = th3.Slice2DXZ(i)
-        elif sliceDimension == 'z':
-            hist = th3.Slice2DXY(i)
-        else:
-            raise ValueError("sliceDimension must be x, y or z")
-        if integrateAlong == 'x':
-            histo = hist.IntegrateAlongX()
-        elif integrateAlong == 'y':
-            histo = hist.IntegrateAlongY()
-        else:
-            raise ValueError("integrateAlong must be x or y")
-        if i % 2 == 0:
+        hist = f(i)
+        histo = f_int(hist) # call it on an instance
+
+        if i % moduloFraction == 0:
             miny = min(miny, _np.min(histo.contents))
             maxy = max(maxy, _np.max(histo.contents + histo.errors))
             Histogram1D(histo, scalingFactor=scalingFactor, xScalingFactor=xScalingFactor,
