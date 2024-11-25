@@ -506,7 +506,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
 
 
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0,
-                figsize=(6.4, 4.8), swapXaxis=False, log=False, ax=None, **errorbarKwargs):
+                figsize=(6.4, 4.8), swapXAxis=False, log=False, ax=None, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
 
@@ -576,7 +576,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     else:
         ax.set_ylim(ymin*0.8, ymax*1.05)
 
-    if swapXaxis:
+    if swapXAxis:
         ax.set_xlim(ax.get_xlim()[::-1])
 
     if not incomingAxis:
