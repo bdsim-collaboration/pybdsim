@@ -17,6 +17,7 @@ v3.7.0 - 2024 / 11 / XX
 * Dependency on `jinja2` introduced.
 
 
+* Fix :code:`pybdsim.Plot.Spectra` when exactly 9 particles types were used.
 * Fix spelling of integrate functions in TH1 and TH2.
 * New :code:`pybdsim.Plot.MeshSteps` to plot projected layers through a scoring mesh (i.e. TH3).
 * Typo fixed for :code:`IntegateAlong1Dimension` and :code:`IntegateAlong2Dimensions`.

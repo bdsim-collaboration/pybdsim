@@ -605,7 +605,8 @@ def SpectraSelect(spectra, pdgids,
 
 def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None,
             scalingFactor=1.0, xScalingFactor=1.0,
-            figsize=(10,5), legendKwargs={}, vmin=None, vmax=None, **errorbarKwargs):
+            figsize=(10,5), legendKwargs=None, vmin=None, vmax=None,
+            maxLinesPerPlot=8, **errorbarKwargs):
     """
     Plot a Spectra object loaded from data that represents a set of histograms.
 
@@ -616,6 +617,8 @@ def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None
 
     returns a list of figure objects.
     """
+    if legendKwargs is None:
+        legendKwargs = {}
     histograms = [spectra.histogramspy[(pdgid,flag)] for (pdgid,flag) in spectra.pdgidsSorted]
 
     scalingFactors = [scalingFactor]*len(histograms)
@@ -642,11 +645,11 @@ def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None
         title = spectra.name
 
     # avoid overly busy plots... if more than 8 lines, split into 2. Copy the total to both.
-    if len(histograms) > 8:
-        histogramsA = histograms[:9]
-        histogramsB = histograms[9:]
-        labelsA = labels[:9]
-        labelsB = labels[9:]
+    if len(histograms) > maxLinesPerPlot:
+        histogramsA = histograms[:maxLinesPerPlot]
+        histogramsB = histograms[maxLinesPerPlot:]
+        labelsA = labels[:maxLinesPerPlot]
+        labelsB = labels[maxLinesPerPlot:]
         if (0,'n') in spectra.pdgidsSorted:
             # if pdgid of 0, which is the 'total' histogram is present,
             # then it's integral must be the greatest and it should be first
@@ -685,7 +688,7 @@ def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None
 
 def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None,
                         title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),
-                        legendKwargs={}, ax=None, **errorbarKwargs):
+                        legendKwargs=None, ax=None, **errorbarKwargs):
     """
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
@@ -710,6 +713,8 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     """
     if "xScalingFactor" in errorbarKwargs:
         raise ValueError("'xScalingFactor' - did you mean 'xScalingFactors'?")
+    if legendKwargs is None:
+        legendKwargs = {}
 
     incomingAxis = bool(ax)
     if not ax:
