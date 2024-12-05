@@ -10,7 +10,6 @@ import os as _os
 import subprocess as _subprocess
 import uuid as _uuid
 import time as _time
-import re as _re
 
 from . import Data as _Data
 from . import _General
@@ -60,6 +59,7 @@ class ExecOptions(dict):
         result = dict((k,self[k]) for k in list(self.keys()) if k in self._okArgs)
         return result
 
+
 class GmadModifier(object):
     def __init__(self, rootgmadfilename):
         self.rootgmadfilename = rootgmadfilename
@@ -82,6 +82,7 @@ class GmadModifier(object):
     
     def ReplaceTokens(self,tokenDict) :
         pass
+
 
 class Study(object):
     """
@@ -189,7 +190,7 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
     if not silent:
         return _subprocess.call(args)
     elif silent and errorSilent:
-        return _subprocess.call(args, stdout=open(_os.devnull, 'wb'),stderr=open(_os.devnull, 'wb'))
+        return _subprocess.call(args, stdout=open(_os.devnull, 'wb'), stderr=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
@@ -197,8 +198,9 @@ def BdsimParallel(gmadpath, outfile, nJobs=None, ngenerate=10000, startseed=None
                   silent=True, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
     """
     Runs multiple bdsim instances with gmadpath as inputfile and outfile as outfile.
-    The number of parallel jobs is defined by nJobs. It can be sepcified how many cores are used with nCPUs (default is the total number
-    of cores available minus 1). Runs in batch mode by default, with 10,000 particles.
+    The number of parallel jobs is defined by nJobs. It can be specified how many cores
+    are used with nCPUs (default is the total number of cores available minus 1). Runs
+    in batch mode by default, with 10,000 particles.
     Any extra options should be provided as a string or iterable of strings of
     the form "--vis_debug" or "--vis_mac=vis.mac", etc.
     """

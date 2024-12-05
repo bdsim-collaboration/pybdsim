@@ -211,7 +211,6 @@ class Element(ElementBase):
         m1: multipole, l=0.0;
         m2: m1, knl ={};
         """
-
         if category not in bdsimcategories:
             raise ValueError("Not a valid BDSIM element type: {}".format(category))
 
@@ -287,10 +286,8 @@ class Element(ElementBase):
 
     def _split_length_with_length_scaled_parameters(self, points, parameters):
         split_elements = self._split_length(points)
-        parameters_and_original_values = [(parameter, self[parameter])
-                                          for parameter in parameters]
-        _scale_element_parameters_by_length(parameters_and_original_values,
-                                            split_elements, self['l'])
+        parameters_and_original_values = [(parameter, self[parameter]) for parameter in parameters]
+        _scale_element_parameters_by_length(parameters_and_original_values, split_elements, self['l'])
         return split_elements
 
     def split(self, points):
@@ -450,8 +447,7 @@ class ApertureModel(dict):
 
     def __repr__(self):
         # aper1 is always present at least.
-        out = ('apertureType="{}", aper1={}*m').format(self["apertureType"],
-                                                       self["aper1"])
+        out = ('apertureType="{}", aper1={}*m').format(self["apertureType"], self["aper1"])
         # Append any non-zero apertures.
         for i in [2,3,4]:
             aperKey = "aper{}".format(i)
@@ -471,40 +467,30 @@ class HKicker(Element):
         Element.__init__(self, name, 'hkicker', hkick=hkick, **kwargs)
 
     def split(self, points):
-        return self._split_length_with_length_scaled_parameters(points,
-                                                                ['hkick'])
-
+        return self._split_length_with_length_scaled_parameters(points, ['hkick'])
 
 class VKicker(Element):
     def __init__(self, name, vkick, **kwargs):
         Element.__init__(self, name, 'vkicker', vkick=vkick, **kwargs)
 
-
     def split(self, points):
-        return self._split_length_with_length_scaled_parameters(points,
-                                                                ['vkick'])
+        return self._split_length_with_length_scaled_parameters(points, ['vkick'])
 
 
 class Kicker(Element):
     def __init__(self, name, hkick, vkick, **kwargs):
-        Element.__init__(self, name, 'kicker', hkick=hkick,
-                         vkick=vkick, **kwargs)
+        Element.__init__(self, name, 'kicker', hkick=hkick, vkick=vkick, **kwargs)
 
     def split(self, points):
-        return self._split_length_with_length_scaled_parameters(points,
-                                                                ['vkick',
-                                                                 'hkick'])
+        return self._split_length_with_length_scaled_parameters(points, ['vkick', 'hkick'])
 
 
 class TKicker(Element):
     def __init__(self, name, hkick, vkick, **kwargs):
-        Element.__init__(self, name, 'tkicker', hkick=hkick,
-                         vkick=vkick, **kwargs)
+        Element.__init__(self, name, 'tkicker', hkick=hkick, vkick=vkick, **kwargs)
 
     def split(self, points):
-        return self._split_length_with_length_scaled_parameters(points,
-                                                                ['vkick',
-                                                                 'hkick'])
+        return self._split_length_with_length_scaled_parameters(points, ['vkick', 'hkick'])
 
 
 class Gap(Element):
@@ -519,8 +505,7 @@ class Marker(Element):
 
 class Multipole(Element):
     def __init__(self, name, l, knl, ksl, **kwargs):
-        Element.__init__(self, name, 'multipole', l=l,
-                         knl=knl, ksl=ksl, **kwargs)
+        Element.__init__(self, name, 'multipole', l=l, knl=knl, ksl=ksl, **kwargs)
 
     def split(self, points):
         split_mps = self._split_length(points)
@@ -616,36 +601,30 @@ class RBend(_Dipole):
 
 class RFCavity(Element):
     def __init__(self, name, l, gradient, **kwargs):
-        Element.__init__(self, name, 'rfcavity', l=l,
-                         gradient=gradient, **kwargs)
+        Element.__init__(self, name, 'rfcavity', l=l, gradient=gradient, **kwargs)
 
 
 class _Col(Element):
     def __init__(self, name, category, l, xsize, ysize, **kwargs):
         d = {}
         # Strip aperture information:
-        kwargs = {key: value for key, value in kwargs.items() if
-                  "aper" not in key.lower()}
-        Element.__init__(self, name, category, l=l, xsize=xsize,
-                         ysize=ysize, **kwargs)
+        kwargs = {key: value for key, value in kwargs.items() if "aper" not in key.lower()}
+        Element.__init__(self, name, category, l=l, xsize=xsize, ysize=ysize, **kwargs)
 
 
 class RCol(_Col):
     def __init__(self, name, l, xsize, ysize, **kwargs):
-        _Col.__init__(self, name, "rcol", l,
-                      xsize, ysize, **kwargs)
+        _Col.__init__(self, name, "rcol", l, xsize, ysize, **kwargs)
 
 
 class ECol(_Col):
     def __init__(self, name, l, xsize, ysize, **kwargs):
-        _Col.__init__(self, name, "ecol", l,
-                      xsize, ysize, **kwargs)
+        _Col.__init__(self, name, "ecol", l, xsize, ysize, **kwargs)
 
 
 class JCol(_Col):
     def __init__(self, name, l, xsize, ysize, **kwargs):
-        _Col.__init__(self, name, "jcol", l,
-                      xsize, ysize, **kwargs)
+        _Col.__init__(self, name, "jcol", l, xsize, ysize, **kwargs)
 
 
 class Degrader(Element):
@@ -676,21 +655,17 @@ class MuSpoiler(Element):
 
 class Solenoid(Element):
     def __init__(self, name, l, ks, **kwargs):
-        Element.__init__(self, name,'solenoid',l=l,ks=ks,**kwargs)
+        Element.__init__(self, name, 'solenoid', l=l, ks=ks, **kwargs)
 
 
 class Shield(Element):
     def __init__(self, name, l, **kwargs):
-        Element.__init__(self, name,'shield',l=l,**kwargs)
+        Element.__init__(self, name, 'shield', l=l, **kwargs)
 
 
 class Laser(Element):
-    def __init__(self, name, l, x, y, z,
-                 waveLength, **kwargs):
-        Element.__init__(self, name,'laser',
-                         l=l,x=x,y=y,z=z,
-                         waveLength=waveLength,
-                         **kwargs)
+    def __init__(self, name, l, x, y, z, waveLength, **kwargs):
+        Element.__init__(self, name, 'laser', l=l, x=x, y=y, z=z, waveLength=waveLength, **kwargs)
 
 
 class WireScanner(Element):
@@ -704,17 +679,12 @@ class WireScanner(Element):
 
 class CrystalCol(Element):
     def __init__(self, name, l, xsize, material, **kwargs):
-        Element.__init__(self, name,'crystalcol',l=l,
-                         xsize=xsize,
-                         material=material,
-                         **kwargs)
+        Element.__init__(self, name,'crystalcol', l=l, xsize=xsize, material=material, **kwargs)
 
 
 class Undulator(Element):
     def __init__(self, name, l, b, undulatorPeriod, **kwargs):
-        Element.__init__(self, name,'undulator',l=l,B=b,
-                         undulatorPeriod=undulatorPeriod,
-                         **kwargs)
+        Element.__init__(self, name, 'undulator', l=l, B=b, undulatorPeriod=undulatorPeriod, **kwargs)
 
 
 class Dump(Element):
@@ -724,8 +694,7 @@ class Dump(Element):
 
 class ExternalGeometry(Element):
     def __init__(self, name, l, geometryFile, **kwargs):
-        Element.__init__(self, name, 'element', l=l,
-                         geometryFile=geometryFile, **kwargs)
+        Element.__init__(self, name, 'element', l=l, geometryFile=geometryFile, **kwargs)
 
 
 class Transform3D(Element):
