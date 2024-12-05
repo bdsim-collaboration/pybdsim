@@ -271,11 +271,13 @@ class Element(ElementBase):
         del other_kwargs['name']
         del other_kwargs['category'] # boilerplate argument we have to remove
 
-        for i, point in enumerate(sorted(points)):
+        i = 0
+        for point in sorted(points):
             name = "{}_split_{}".format(self['name'], i)
             length = round(point - accumulated_length, 15)
             accumulated_length += length
             split_elements.append(This(name, l=length, **other_kwargs))
+            i += 1
         # Add the final element (for n points we have n+1 elements, so
         # we add the last one here "by hand").
         split_elements.append(This("{}_split_{}".format(self['name'], i + 1),
