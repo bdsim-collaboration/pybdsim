@@ -1331,8 +1331,8 @@ class TH2(TH1):
         """
         xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
         xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
-        yBinLow = self.hist.GetYaxis().FindBin(yLow) if xLow else self.hist.GetYaxis().GetFirst()
-        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if xHigh else self.hist.GetYaxis().GetLast()
+        yBinLow = self.hist.GetYaxis().FindBin(yLow) if yLow else self.hist.GetYaxis().GetFirst()
+        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if yHigh else self.hist.GetYaxis().GetLast()
         error = _ctypes.c_double(0.0)
         integral = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, error)
         return integral, error.value
