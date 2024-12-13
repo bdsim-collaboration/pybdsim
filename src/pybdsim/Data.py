@@ -1203,9 +1203,11 @@ class TH1(ROOTHist):
 
         returns the integral,error
         """
-        startBin = self.hist.FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
-        endBin = self.hist.FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
-        return self.IntegrateFromBins(startBin, endBin)
+        xBinLow = self.hist.FindBin(xLow) if xLow is not None else self.hist.GetXaxis().GetFirst()
+        xBinHigh = self.hist.FindBin(xHigh) if xHigh is not None else self.hist.GetXaxis().GetLast()
+        error = _ctypes.c_double(0.0)
+        integral = self.hist.IntegralAndError(xBinLow, xBinHigh, error)
+        return integral, error.value
 
     def _GetContents(self):
         for i in range(self.nbinsx):
