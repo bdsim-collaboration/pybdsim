@@ -1329,10 +1329,10 @@ class TH2(TH1):
 
         returns the integral,error
         """
-        xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
-        xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
-        yBinLow = self.hist.GetYaxis().FindBin(yLow) if yLow else self.hist.GetYaxis().GetFirst()
-        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if yHigh else self.hist.GetYaxis().GetLast()
+        xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow is not None else self.hist.GetXaxis().GetFirst()
+        xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh is not None else self.hist.GetXaxis().GetLast()
+        yBinLow = self.hist.GetYaxis().FindBin(yLow) if yLow is not None else self.hist.GetYaxis().GetFirst()
+        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if yHigh is not None else self.hist.GetYaxis().GetLast()
         error = _ctypes.c_double(0.0)
         integral = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, error)
         return integral, error.value
@@ -1646,12 +1646,12 @@ class TH3(TH2):
 
         returns the integral,error
         """
-        xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
-        xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
-        yBinLow = self.hist.GetYaxis().FindBin(yLow) if yLow else self.hist.GetYaxis().GetFirst()
-        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if yHigh else self.hist.GetYaxis().GetLast()
-        zBinLow = self.hist.GetZaxis().FindBin(zLow) if zLow else self.hist.GetZaxis().GetFirst()
-        zBinHigh = self.hist.GetZaxis().FindBin(zHigh) if zHigh else self.hist.GetZaxis().GetLast()
+        xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow is not None else self.hist.GetXaxis().GetFirst()
+        xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh is not None else self.hist.GetXaxis().GetLast()
+        yBinLow = self.hist.GetYaxis().FindBin(yLow) if yLow is not None else self.hist.GetYaxis().GetFirst()
+        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if yHigh is not None else self.hist.GetYaxis().GetLast()
+        zBinLow = self.hist.GetZaxis().FindBin(zLow) if zLow is not None else self.hist.GetZaxis().GetFirst()
+        zBinHigh = self.hist.GetZaxis().FindBin(zHigh) if zHigh is not None else self.hist.GetZaxis().GetLast()
         error = _ctypes.c_double(0.0)
         integral = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, zBinLow, zBinHigh, error)
         return integral, error.value
