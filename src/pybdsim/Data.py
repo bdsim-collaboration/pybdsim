@@ -1203,9 +1203,11 @@ class TH1(ROOTHist):
 
         returns the integral,error
         """
-        startBin = self.hist.FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
-        endBin = self.hist.FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
-        return self.IntegrateFromBins(startBin, endBin)
+        xBinLow = self.hist.FindBin(xLow) if xLow is not None else self.hist.GetXaxis().GetFirst()
+        xBinHigh = self.hist.FindBin(xHigh) if xHigh is not None else self.hist.GetXaxis().GetLast()
+        error = _ctypes.c_double(0.0)
+        integral = self.hist.IntegralAndError(xBinLow, xBinHigh, error)
+        return integral, error.value
 
     def _GetContents(self):
         for i in range(self.nbinsx):
@@ -1329,10 +1331,10 @@ class TH2(TH1):
 
         returns the integral,error
         """
-        xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow else self.hist.GetXaxis().GetFirst()
-        xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh else self.hist.GetXaxis().GetLast()
-        yBinLow = self.hist.GetYaxis().FindBin(yLow) if xLow else self.hist.GetYaxis().GetFirst()
-        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if xHigh else self.hist.GetYaxis().GetLast()
+        xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow is not None else self.hist.GetXaxis().GetFirst()
+        xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh is not None else self.hist.GetXaxis().GetLast()
+        yBinLow = self.hist.GetYaxis().FindBin(yLow) if yLow is not None else self.hist.GetYaxis().GetFirst()
+        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if yHigh is not None else self.hist.GetYaxis().GetLast()
         error = _ctypes.c_double(0.0)
         integral = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, error)
         return integral, error.value
@@ -1638,6 +1640,23 @@ class TH3(TH2):
                     fo.write("\t".join(stringsFW) + "\n")
         fo.close()
         return filename
+
+    def Integrate(self, xLow=None, xHigh=None, yLow=None, yHigh=None, zLow=None, zHigh=None):
+        """
+        Integrate the histogram based on coordinates (not bins). The
+        default is to return the integral of the whole histogram.
+
+        returns the integral,error
+        """
+        xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow is not None else self.hist.GetXaxis().GetFirst()
+        xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh is not None else self.hist.GetXaxis().GetLast()
+        yBinLow = self.hist.GetYaxis().FindBin(yLow) if yLow is not None else self.hist.GetYaxis().GetFirst()
+        yBinHigh = self.hist.GetYaxis().FindBin(yHigh) if yHigh is not None else self.hist.GetYaxis().GetLast()
+        zBinLow = self.hist.GetZaxis().FindBin(zLow) if zLow is not None else self.hist.GetZaxis().GetFirst()
+        zBinHigh = self.hist.GetZaxis().FindBin(zHigh) if zHigh is not None else self.hist.GetZaxis().GetLast()
+        error = _ctypes.c_double(0.0)
+        integral = self.hist.IntegralAndError(xBinLow, xBinHigh, yBinLow, yBinHigh, zBinLow, zBinHigh, error)
+        return integral, error.value
 
     
 class BDSBH4D():
