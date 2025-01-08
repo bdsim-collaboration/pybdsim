@@ -168,6 +168,18 @@ def _scale_element_parameters_by_length(parameters, elements, total_length):
         for element in elements:
             element[parameter] = total_parameter * element['l'] / total_length
 
+def EvaluateLength(length):
+    if type(length) is float:
+        return length
+    elif type(length) is tuple:
+        l, unit = length
+        units = {
+            'm' : 1.0,
+            'mm' : 1e-3,
+            'um' : 1e-6
+        }
+        return l * units[unit]
+
 
 class Element(ElementBase):
     """
@@ -253,8 +265,10 @@ class Element(ElementBase):
 
     def _split_length(self, points):
         """
-        points = points along the start of the element.  So n
-        points will return n+1 elements.
+        :param points: Distance from start of element to split the element
+        :type points: list(float)
+
+        Note that for n points of division there will therefore be n+1 new elements returned.
         """
         try:
             total_length = self['l']
@@ -294,11 +308,26 @@ class Element(ElementBase):
 
     def split(self, points):
         """
-        Split this element into len(points)+1 elements, with the
-        correct lengths.  This does not affect magnetic strengths,
-        etc, which is left to derived classes where appropriate.
+        :param points: Distance from start of element to split the element
+        :type points: list(float)
+
+        Note that for n points of division there will therefore be n+1 new elements returned.
+
+        Split this element into len(points)+1 elements, with the correct lengths. This
+        does not affect magnetic strengths etc., which is left to derived classes where appropriate.
         """
         return self._split_length(points)
+
+    def __truediv__(self, other):
+        if type(other) is int:
+            try:
+                total_length = EvaluateLength(self['l'])
+            except:
+                raise TypeError("Element has no length, cannot be split.")
+            split_points = _np.linspace(0, total_length, other + 1)
+            return self.split(split_points)
+        else:
+            raise TypeError("Division only support for integers")
 
     @classmethod
     def from_element(cls, parent_element_name: str, isMultipole=False, **kwargs):
