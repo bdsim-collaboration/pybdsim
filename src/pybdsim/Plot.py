@@ -804,7 +804,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
 def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="",
                 zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0,
                 yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None,
-                colourbar=True, ax=None, cax=None, swapXAxis=False, **imshowKwargs):
+                colourbar=True, ax=None, cax=None, shrink=1.0, swapXAxis=False, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
     logNorm        - logarithmic colour scale
@@ -851,11 +851,11 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         im = ax.pcolormesh(h.xedges*xsf, h.yedges*ysf, d, norm=norm, rasterized=True, **imshowKwargs)
         #_plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
         if colourbar:
-            _plt.colorbar(im, label=zlabel, cax=cax)
+            _plt.colorbar(im, label=zlabel, cax=cax, shrink=shrink)
     else:
         axim = ax.imshow(sf*h.contents.T, extent=ext, origin='lower', aspect=aspect, interpolation='none', vmin=vmin, vmax=vmax,**imshowKwargs)
         if colourbar:
-            _plt.colorbar(axim, format='%.0e', label=zlabel, cax=cax)
+            _plt.colorbar(axim, format='%.0e', label=zlabel, cax=cax, shrink=shrink)
 
     ax.set_aspect(aspect)
 
