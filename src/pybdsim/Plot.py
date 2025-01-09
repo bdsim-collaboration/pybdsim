@@ -1591,7 +1591,7 @@ def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
 
 def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None):
     """
-    Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
+    Plot the energy deposition from a REBDSIM output file - uses pre-made merged histograms.
 
     Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot. If both are provided,
     the machine diagram is plotted from the MADX survey.
@@ -1621,6 +1621,28 @@ def EnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=
         _plt.savefig(outputfilename)
     else:
         _plt.show()
+
+
+def EnergyDepositionPE(filename, outputfilename=None):
+    """
+    Plot the energy deposition per-element from a REBDSIM output file - uses pre-made merged histograms.
+
+    :param filename: path to rebdsim output file
+    :type filename: str
+    :param outputfilename: optional name to save the plot with savefig.
+    :type outputfilename: str
+    """
+    from . import Data as _Data
+    d = _Data.Load(filename)
+    if type(d) is not _Data.RebdsimFile:
+        raise IOError("Not a rebdsim file")
+    eloss = d.histogramspy['Event/MergedHistograms/ElossPEHisto']
+    f = Histogram1D(eloss, xlabel='S (m)', ylabel="Energy Deposition / Event (GeV / Element)", log=True)
+
+    AddMachineLatticeFromSurveyToFigure(f, d)
+
+    if outputfilename is not None:
+        _plt.savefig(outputfilename)
 
 
 def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
