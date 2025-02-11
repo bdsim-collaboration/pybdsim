@@ -801,6 +801,8 @@ def WriteSamplerDataToROOTFile(inputFileName, outputFileName, samplerName):
     samplerPartID = sampler.data['partID']
     samplerWeight = sampler.data['weight']
 
+    outputFile.cd()
+
     for i in range(len(samplerX)):
         x[0] = samplerX[i]
         y[0] = samplerY[i]
