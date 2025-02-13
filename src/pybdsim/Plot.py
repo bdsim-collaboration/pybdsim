@@ -490,7 +490,8 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
     PlotSigma(optics,  survey=survey, outputfilename=outputfilename, **kwargs),
     PlotSigmaP(optics, survey=survey, outputfilename=outputfilename, **kwargs),
     PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs),
-    PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs),
+        PlotEmittance(optics, survey=survey, outputfilename=outputfilename, **kwargs)
     ]
 
     if saveall:
