@@ -26,6 +26,7 @@ v3.7.0 - 2024 / 11 / XX
   Similarly, for getting the histogram along y, one needs to call :code:`TH2::ProjectionX()`.
 * Fix for no total energy specified for BDSIM primaries to PTC inrays.
 * GMAD strength from TFS file fix for hkickers and vkickers which used `angle`.
+* Fix MADX conversion for `VMONITOR` and `HMONITOR` and warn about `TRANSFORM` conversion (cannot be converted).
 
 
 v3.6.1 - 2024 / 01 / 30

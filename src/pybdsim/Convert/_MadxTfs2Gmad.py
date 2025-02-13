@@ -15,9 +15,8 @@ _requiredKeys = frozenset([
     'TILT', 'KEYWORD', 'ALFX', 'ALFY', 'BETX', 'BETY',
     'VKICK', 'HKICK', 'E1', 'E2', 'FINT', 'FINTX', 'HGAP'])
 
-_ignoreableThinElements = {"MONITOR", "PLACEHOLDER", "MARKER",
-                           "RCOLLIMATOR", "ECOLLIMATOR",
-                           "COLLIMATOR", "INSTRUMENT"}
+_ignoreableThinElements = {"MONITOR", "VMONITOR", "HMONITOR", "PLACEHOLDER", "MARKER",
+                           "RCOLLIMATOR", "ECOLLIMATOR", "COLLIMATOR", "INSTRUMENT"}
 
 # Constants
 # anything below this length is treated as a thin element
@@ -45,11 +44,13 @@ def ZeroMissingRequiredColumns(tfsinstance):
            " to zero.").format(missingColsString)
     print(msg)
 
+
 def _WillIgnoreItem(item, tfsinstance, ignoreZeroLength, ignoreableThinElements):
     tresult    = item['KEYWORD'] in ignoreableThinElements    
     zerolength = item['L'] < 1e-9
     result     = not tfsinstance.ElementPerturbs(item) and zerolength and ignoreZeroLength and tresult
     return result
+
 
 def MadxTfs2Gmad(tfs, outputfilename,
                  startname             = None,
@@ -438,7 +439,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
     elif t == 'MARKER':
         if not ignorezerolengthitems:
             return _Builder.Marker(rname)
-    elif t == 'MONITOR':
+    elif t in {'MONITOR', "VMONITOR", "HMONITOR"}:
         # most monitors are just markers
         if zerolength and not ignorezerolengthitems:
             return _Builder.Marker(rname)
@@ -460,8 +461,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         knl = (k1,  k2,  k3,  k4,  k5,  k6)
         ksl = (k1s, k2s, k3s, k4s, k5s, k6s)
 
-        finiteStrength = _np.any(
-            [k1, k2, k3, k4, k5, k6, k1s, k2s, k3s, k4s, k5s, k6s])
+        finiteStrength = _np.any([k1, k2, k3, k4, k5, k6, k1s, k2s, k3s, k4s, k5s, k6s])
 
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
@@ -631,7 +631,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
             return None
         ks = item['KSI'] / l
         return _Builder.Solenoid(rname, l, ks=ks, **kws)
-    elif t == "MATRIX" :
+    elif t == "MATRIX":
         if l == 0:
             return _Builder.ThinRmat(rname,
                                      item['RMAT11'], item['RMAT12'], item['RMAT13'], item['RMAT14'],
@@ -644,6 +644,9 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                                      item['RMAT21'], item['RMAT22'], item['RMAT23'], item['RMAT24'],
                                      item['RMAT31'], item['RMAT32'], item['RMAT33'], item['RMAT34'],
                                      item['RMAT41'], item['RMAT42'], item['RMAT43'], item['RMAT44'])
+    elif t == "TRANSFORM":
+        print("warning: cannot convert TRANSFORM from TWISS file - no information on shift: ",name)
+        return _Builder.Transform3D(x=0)
     else:
         print('unknown element type:', t, 'for element named: ', name)
         if zerolength and not ignorezerolengthitems:
@@ -653,6 +656,7 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         return _Builder.Drift(rname, l)
 
     raise ValueError("Unable to construct Element: {}, {}".format(t, name))
+
 
 def _GetElementSplitByAperture(gmadElement, localApertures):
     # tolerate any bad apertures - like only a few - and just don't append them
@@ -678,6 +682,7 @@ def _GetElementSplitByAperture(gmadElement, localApertures):
         return [gmadElement]
     raise ValueError("Unable to split element by apertures.")
 
+
 def _GetSingleElementWithAper(item, gmadElement,
                               aperturedict, defaultAperture):
     """Returns the raw aperture model (i.e. unsplit), and a list of
@@ -701,6 +706,7 @@ def _GetSingleElementWithAper(item, gmadElement,
 
     gmadElement.update(aper)
     return gmadElement
+
 
 def _CalculateElementRmat(item, oldItem):
     if oldItem:
@@ -739,6 +745,7 @@ def _CalculateElementRmat(item, oldItem):
     item['RMAT43'] = m[3][2]
     item['RMAT44'] = m[3][3]
 
+
 def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, extraParamsDict={}):
     """
     Takes a pymadx.Data.Tfs instance and extracts information from first line to
@@ -749,7 +756,6 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, extraParamsDict={}):
 
     Works for e+, e- and proton.
     Default emittance is 1e-9mrad if 1 in tfs file.
-
 
     """
     print('Warning - using automatic generation of input beam distribution from madx tfs file - PLEASE CHECK!')
