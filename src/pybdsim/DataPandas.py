@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as _pd
 import os.path as _path
 from .Data import LoadROOTLibraries as _LoadROOTLibraries
 from .Data import RebdsimFile as _RebdsimFile
@@ -34,7 +34,7 @@ class REBDSIMOptics:
             d = self.root_file.optics.GetColumn(c)
             dd[c] = d
 
-        df = pd.DataFrame(dd)
+        df = _pd.DataFrame(dd)
         return df
 
 
@@ -194,7 +194,7 @@ class BDSIMOutput:
         dd['eField'] = eField
 
 
-        df = pd.DataFrame(dd)
+        df = _pd.DataFrame(dd)
 
         return df
 
@@ -289,7 +289,7 @@ class BDSIMOutput:
         dd['neloss_world_exit'] = neloss_world_exit
         dd['ntraj'] = ntraj
 
-        df = pd.DataFrame(dd)
+        df = _pd.DataFrame(dd)
         return df
 
     def get_primary(self):
@@ -345,7 +345,7 @@ class BDSIMOutput:
         dd['weight'] = weight
         dd['turnNumber'] = turnNumber
 
-        df = pd.DataFrame(dd)
+        df = _pd.DataFrame(dd)
         return df
 
     def get_primary_global(self):
@@ -374,7 +374,7 @@ class BDSIMOutput:
             dd['partID'] = partID
 
 
-        df = pd.DataFrame(dd)
+        df = _pd.DataFrame(dd)
         return df
 
 
@@ -408,7 +408,7 @@ class BDSIMOutput:
         dd['partID'] = partID
         dd['trackID'] = trackID
 
-        df = pd.DataFrame(dd)
+        df = _pd.DataFrame(dd)
 
         return df
 
@@ -439,7 +439,7 @@ class BDSIMOutput:
         dd['Z'] = Z
         dd['kineticEnergy'] = KE
 
-        df = pd.DataFrame(dd)
+        df = _pd.DataFrame(dd)
 
         return df
 
@@ -495,7 +495,7 @@ class BDSIMOutput:
         dd['partID'] = partID
         dd['trackID'] = trackID
 
-        df = pd.DataFrame(dd)
+        df = _pd.DataFrame(dd)
         return df
 
 
