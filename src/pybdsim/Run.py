@@ -339,7 +339,7 @@ def RebdsimHistoMergeParallel(bdsim_raw_output_file_list, outfilelist=None, sile
     p.close()
     p.join()
 
-def BdsimCombine(infileList, outpath, silent=False, bdsimCombineExecutable=None):
+def RebdsimCombine(infileList, outpath, silent=False, bdsimCombineExecutable=None):
     """
     Run bdsimCombine
     """
