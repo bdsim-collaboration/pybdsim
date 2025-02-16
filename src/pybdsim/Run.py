@@ -467,3 +467,22 @@ def ReduceParallel(globcommand, nPerChunk, outputprefix, nCPUs=4):
 
     p = _Pool(processes=nCPUs)
     p.starmap(_Combine, zip(chunkname, chunks))
+
+def RenderGmadJinjaTemplate(template_file, output_file, data, path=".") :
+    from jinja2 import Environment, FileSystemLoader
+    import os
+
+    # Set up Jinja2 environment and load the template file
+    file_loader = FileSystemLoader(path)
+    env = Environment(loader=file_loader)
+
+    # Load the template from the file
+    template = env.get_template(template_file)
+
+    # Render the template with the data
+    output = template.render(data)
+
+    # Write output
+    f = open(output_file,"w")
+    f.write(output)
+    f.close()

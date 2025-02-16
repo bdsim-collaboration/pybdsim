@@ -75,6 +75,8 @@ from . import ModelProcessing
 from . import Visualisation
 from . import XSecBias
 from . import _General
+from . import Theory
+from . import Testing
 
 __all__ = ['Beam',
            'Builder',

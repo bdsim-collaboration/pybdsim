@@ -32,46 +32,55 @@ def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, avera
     sampler1_data = _Data.SamplerData(root_file, sampler1_name)
     sampler2_data = _Data.SamplerData(root_file, sampler2_name)
 
-    if size == 4 :
-        sampler1_matrix = _np.array([sampler1_data.data['x'],
-                                     sampler1_data.data['xp'],
-                                     sampler1_data.data['y'],
-                                     sampler1_data.data['yp']])
+    sampler1_x  = sampler1_data.data['x']
+    sampler1_xp = sampler1_data.data['xp']
+    sampler1_y  = sampler1_data.data['y']
+    sampler1_yp = sampler1_data.data['yp']
 
-        sampler2_matrix = _np.array([sampler2_data.data['x'],
-                                     sampler2_data.data['xp'],
-                                     sampler2_data.data['y'],
-                                     sampler2_data.data['yp']])
-    elif size == 6:
-        sampler1_time = sampler1_data.data['T']
-        sampler2_time = sampler2_data.data['T']
-        sampler1_energy = sampler1_data.data['energy']
-        sampler2_energy = sampler2_data.data['energy']
+    sampler2_x  = sampler2_data.data['x']
+    sampler2_xp = sampler2_data.data['xp']
+    sampler2_y  = sampler2_data.data['y']
+    sampler2_yp = sampler2_data.data['yp']
 
-        if average :
-            sampler1_time = sampler1_time - sampler1_time.mean()
-            sampler2_time = sampler2_time - sampler2_time.mean()
-            sampler1_energy = sampler1_energy - sampler1_time.mean()
-            sampler2_energy = sampler2_energy - sampler2_time.mean()
-        else :
-            sampler1_time = sampler1_time - sampler1_time[0]
-            sampler2_time = sampler2_time - sampler2_time[0]
-            sampler1_energy = sampler1_energy - sampler1_time[0]
-            sampler2_energy = sampler2_energy - sampler2_time[0]
+    sampler1_time = sampler1_data.data['T']
+    sampler2_time = sampler2_data.data['T']
+    sampler1_energy = sampler1_data.data['energy']
+    sampler2_energy = sampler2_data.data['energy']
 
-        sampler1_matrix = _np.array([sampler1_data.data['x'],
-                                     sampler1_data.data['xp'],
-                                     sampler1_data.data['y'],
-                                     sampler1_data.data['yp'],
+    if average :
+        sampler1_x  = sampler1_x - sampler1_x.mean()
+        sampler1_xp = sampler1_xp - sampler1_xp.mean()
+        sampler1_y  = sampler1_y - sampler1_y.mean()
+        sampler1_yp = sampler1_yp - sampler1_yp.mean()
+
+        sampler2_x  = sampler2_x - sampler2_x.mean()
+        sampler2_xp = sampler2_xp - sampler2_xp.mean()
+        sampler2_y  = sampler2_y - sampler2_y.mean()
+        sampler2_yp = sampler2_yp - sampler2_yp.mean()
+
+        sampler1_time = sampler1_time - sampler1_time.mean()
+        sampler2_time = sampler2_time - sampler2_time.mean()
+        sampler1_energy = sampler1_energy - sampler1_energy.mean()
+        sampler2_energy = sampler2_energy - sampler2_energy.mean()
+
+    if size == 6:
+        sampler1_matrix = _np.array([sampler1_x,
+                                     sampler1_xp,
+                                     sampler1_y,
+                                     sampler1_yp,
                                      sampler1_time,
                                      sampler1_energy])
 
-        sampler2_matrix = _np.array([sampler2_data.data['x'],
-                                     sampler2_data.data['xp'],
-                                     sampler2_data.data['y'],
-                                     sampler2_data.data['yp'],
+        sampler2_matrix = _np.array([sampler2_x,
+                                     sampler2_xp,
+                                     sampler2_y,
+                                     sampler2_yp,
                                      sampler2_time,
                                      sampler2_energy])
+
+    else :
+        sampler1_matrix = _np.array([sampler1_x,sampler1_xp,sampler1_y,sampler1_yp])
+        sampler2_matrix = _np.array([sampler2_x,sampler2_xp,sampler2_y,sampler2_yp])
 
     sampler1_matrix_inv = _np.linalg.pinv(sampler1_matrix)
 
