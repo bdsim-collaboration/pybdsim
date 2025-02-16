@@ -107,3 +107,9 @@ try:
     __all__.append("DataUproot")
 except:
     pass
+
+try:
+    from . import DataPandas
+    __all__.append("DataPandas")
+except:
+    pass
