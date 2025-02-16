@@ -185,6 +185,8 @@ class BDSIMOutput:
         model_number = []
         component_name = []
         component_type = []
+        placement_name = []
+
         length = []
         angle = []
         k1 = []
@@ -211,6 +213,34 @@ class BDSIMOutput:
         k10s = []
         k11s = []
         k12s = []
+        ks   = []
+        material = []
+
+        staPos_x = []
+        staPos_y = []
+        staPos_z = []
+        staRefPos_x = []
+        staRefPos_y = []
+        staRefPos_z = []
+        staS = []
+
+        midPos_x = []
+        midPos_y = []
+        midPos_z = []
+        midRefPos_x = []
+        midRefPos_y = []
+        midRefPos_z = []
+        midS = []
+        midT = []
+
+        endPos_x = []
+        endPos_y = []
+        endPos_z = []
+        endRefPos_x = []
+        endRefPos_y = []
+        endRefPos_z = []
+        endS = []
+
         e1 = []
         e2 = []
         beamPipeAper1 = []
@@ -220,13 +250,29 @@ class BDSIMOutput:
         beamPipeType = []
         bField = []
         eField = []
+        fint = []
+        fintx = []
+        fintk2 = []
+        fintxk2 = []
+        hgap = []
 
+        offsetX = []
+        offsetY = []
+
+        pvName = []
+        staEk = []
+        staP = []
+
+        tilt = []
+        hkick = []
+        vkick = []
 
         for imodel in range(0, self.mt.GetEntries()) :
             self.mt.GetEntry(imodel)
             for ielement in range(0, self.m.model.n) :
                 model_number.append(imodel)
                 component_name.append(self.m.model.componentName[ielement])
+                placement_name.append(self.m.model.placementName[ielement])
                 component_type.append(self.m.model.componentType[ielement])
                 length.append(self.m.model.length[ielement])
                 angle.append(self.m.model.angle[ielement])
@@ -254,6 +300,40 @@ class BDSIMOutput:
                 k10s.append(self.m.model.k10s[ielement])
                 k11s.append(self.m.model.k11s[ielement])
                 k12s.append(self.m.model.k12s[ielement])
+                ks.append(self.m.model.ks[ielement])
+                material.append(self.m.model.material[ielement])
+
+                staPos_x.append(self.m.model.staPos[ielement].x())
+                staPos_y.append(self.m.model.staPos[ielement].y())
+                staPos_z.append(self.m.model.staPos[ielement].z())
+                # TODO staRot
+                staRefPos_x.append(self.m.model.staRefPos[ielement].x())
+                staRefPos_y.append(self.m.model.staRefPos[ielement].y())
+                staRefPos_z.append(self.m.model.staRefPos[ielement].z())
+                # TODO staRefRot
+                staS.append(self.m.model.staS[ielement])
+
+                midPos_x.append(self.m.model.midPos[ielement].x())
+                midPos_y.append(self.m.model.midPos[ielement].y())
+                midPos_z.append(self.m.model.midPos[ielement].z())
+                # TODO midRot
+                midRefPos_x.append(self.m.model.midRefPos[ielement].x())
+                midRefPos_y.append(self.m.model.midRefPos[ielement].y())
+                midRefPos_z.append(self.m.model.midRefPos[ielement].z())
+                # TODO midRefRot
+                midS.append(self.m.model.midS[ielement])
+                midT.append(self.m.model.midT[ielement])
+
+                endPos_x.append(self.m.model.endPos[ielement].x())
+                endPos_y.append(self.m.model.endPos[ielement].y())
+                endPos_z.append(self.m.model.endPos[ielement].z())
+                # TODO endRot
+                endRefPos_x.append(self.m.model.endRefPos[ielement].x())
+                endRefPos_y.append(self.m.model.endRefPos[ielement].y())
+                endRefPos_z.append(self.m.model.endRefPos[ielement].z())
+                # TODO endRefRot
+                endS.append(self.m.model.endS[ielement])
+
                 e1.append(self.m.model.e1[ielement])
                 e2.append(self.m.model.e2[ielement])
                 beamPipeAper1.append(self.m.model.beamPipeAper1[ielement])
@@ -263,10 +343,28 @@ class BDSIMOutput:
                 beamPipeType.append(self.m.model.beamPipeType[ielement])
                 bField.append(self.m.model.bField[ielement])
                 eField.append(self.m.model.eField[ielement])
+                fint.append(self.m.model.fint[ielement])
+                fintx.append(self.m.model.fintx[ielement])
+                fintk2.append(self.m.model.fintk2[ielement])
+                fintxk2.append(self.m.model.fintxk2[ielement])
+                hgap.append(self.m.model.hgap[ielement])
+
+                offsetX.append(self.m.model.offsetX[ielement])
+                offsetY.append(self.m.model.offsetY[ielement])
+
+                pvName.append(' '.join([str(s) for s in self.m.model.pvName[ielement]]))
+                staEk.append(self.m.model.staEk[ielement])
+                staP.append(self.m.model.staP[ielement])
+
+                tilt.append(self.m.model.tilt[ielement])
+                hkick.append(self.m.model.hkick[ielement])
+                vkick.append(self.m.model.vkick[ielement])
+
 
         dd = {}
         dd['model_number'] = model_number
         dd['component_name'] = component_name
+        dd['placement_name'] = placement_name
         dd['component_type'] = component_type
         dd['length'] = length
         dd['angle'] = angle
@@ -294,6 +392,31 @@ class BDSIMOutput:
         dd['k10s'] = k10s
         dd['k11s'] = k11s
         dd['k12s'] = k12s
+        dd['ks'] = ks
+        dd['material'] = material
+        dd['staPos_x'] = staPos_x
+        dd['staPos_y'] = staPos_y
+        dd['staPos_z'] = staPos_z
+        dd['staRefPos_x'] = staRefPos_x
+        dd['staRefPos_y'] = staRefPos_y
+        dd['staRefPos_z'] = staRefPos_z
+        dd['staS'] = staS
+        dd['midPos_x'] = midPos_x
+        dd['midPos_y'] = midPos_y
+        dd['midPos_z'] = midPos_z
+        dd['midRefPos_x'] = midRefPos_x
+        dd['midRefPos_y'] = midRefPos_y
+        dd['midRefPos_z'] = midRefPos_z
+        dd['midS'] = midS
+        dd['midT'] = midT
+        dd['endPos_x'] = endPos_x
+        dd['endPos_y'] = endPos_y
+        dd['endPos_z'] = endPos_z
+        dd['endRefPos_x'] = endRefPos_x
+        dd['endRefPos_y'] = endRefPos_y
+        dd['endRefPos_z'] = endRefPos_z
+        dd['endS'] = endS
+
         dd['e1'] = e1
         dd['e2'] = e2
         dd['beamPipeAper1'] = beamPipeAper1
@@ -303,7 +426,22 @@ class BDSIMOutput:
         dd['beamPipeType'] = beamPipeType
         dd['bField'] = bField
         dd['eField'] = eField
+        dd['fint'] = fint
+        dd['fintx'] = fintx
+        dd['fintk2'] = fintk2
+        dd['fintxk2'] = fintxk2
+        dd['hgap'] = hgap
 
+        dd['offsetX'] = offsetX
+        dd['offsetY'] = offsetY
+
+        dd['pvName'] = pvName
+        dd['staEk'] = staEk
+        dd['staP'] = staP
+
+        dd['tilt'] = tilt
+        dd['hkick'] = hkick
+        dd['vkick'] = vkick
 
         df = _pd.DataFrame(dd)
 
