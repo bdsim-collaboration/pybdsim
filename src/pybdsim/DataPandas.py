@@ -2,6 +2,10 @@ import pandas as _pd
 import os.path as _path
 from .Data import LoadROOTLibraries as _LoadROOTLibraries
 from .Data import RebdsimFile as _RebdsimFile
+from .Data import TH1 as _TH1
+from .Data import TH2 as _TH2
+from .Data import TH3 as _TH3
+
 try:
     import ROOT as _ROOT
     _LoadROOTLibraries()
@@ -38,7 +42,6 @@ class REBDSIMOptics:
         return df
 
 
-
 class BDSIMOutput:
     def __init__(self, filepath):
 
@@ -50,6 +53,7 @@ class BDSIMOutput:
 
         self.et = self.root_file.GetEventTree()
         self.e  = self.root_file.GetEvent()
+        self.et.GetEntry(0)
         self.sampler_names = list(self.root_file.GetSamplerNames())
 
         self.mt = self.root_file.GetModelTree()
@@ -64,8 +68,115 @@ class BDSIMOutput:
         self.o = self.root_file.GetOptions()
         self.ot.GetEntry(0)
 
+        self.rt = self.root_file.GetRunTree()
+        self.r = self.root_file.GetRun()
+        self.rt.GetEntry(0)
+
     def get_sampler_names(self):
         return self.sampler_names
+
+    def get_1dhisto_names(self):
+        hist_names = []
+        for h in self.r.Histos.Get1DHistograms():
+            hist_names.append(h.GetName())
+
+        return hist_names
+
+    def get_2dhisto_names(self):
+        hist_names = []
+        for h in self.r.Histos.Get2DHistograms():
+            hist_names.append(h.GetName())
+
+        return hist_names
+
+    def get_3dhisto_names(self):
+        hist_names = []
+        for h in self.r.Histos.Get3DHistograms():
+            hist_names.append(h.GetName())
+
+        return hist_names
+
+    def get_4dhisto_names(self):
+        hist_names = []
+        for h in self.r.Histos.Get4DHistograms():
+            hist_names.append(h.GetName())
+
+        return hist_names
+
+    def get_1dhisto(self, name, evnt = -1):
+
+        # Check event number
+        if evnt > self.et.GetEntries()-1 :
+            print("event number beyond end of file")
+            return
+
+        # Find histogram index
+        ind = -1
+        hist_list = self.r.Histos.Get1DHistograms()
+        for h, i in zip(hist_list,range(0,len(hist_list))) :
+            if name == h.GetName() :
+                ind = i
+        if ind == -1 :
+            print("histogram not found")
+            return
+
+        if evnt < 0 :
+            h = self.r.Histos.Get1DHistogram(ind)
+        else :
+            self.et.GetEntry(evnt)
+            h = self.e.Histos.Get1DHistogram(ind)
+
+        return _TH1(h)
+
+    def get_2dhisto(self, name, evnt = -1):
+
+        # Check event number
+        if evnt > self.et.GetEntries()-1 :
+            print("event number beyond end of file")
+            return
+
+        # Find histogram index
+        ind = -1
+        hist_list = self.r.Histos.Get2DHistograms()
+        for h, i in zip(hist_list,range(0,len(hist_list))) :
+            if name == h.GetName() :
+                ind = i
+        if ind == -1 :
+            print("histogram not found")
+            return
+
+        if evnt < 0 :
+            h = self.r.Histos.Get2DHistogram(ind)
+        else :
+            self.et.GetEntry(evnt)
+            h = self.e.Histos.Get2DHistogram(ind)
+
+        return _TH2(h)
+
+    def get_3dhisto(self, name, evnt = -1):
+
+        # Check event number
+        if evnt > self.et.GetEntries()-1 :
+            print("event number beyond end of file")
+            return
+
+        # Find histogram index
+        ind = -1
+        hist_list = self.r.Histos.Get3DHistograms()
+        for h, i in zip(hist_list,range(0,len(hist_list))) :
+            if name == h.GetName() :
+                ind = i
+        if ind == -1 :
+            print("histogram not found")
+            return
+
+        if evnt < 0 :
+            h = self.r.Histos.Get3DHistogram(ind)
+        else :
+            self.et.GetEntry(evnt)
+            h = self.e.Histos.Get3DHistogram(ind)
+
+        return _TH3(h)
 
     def get_header(self):
         pass
