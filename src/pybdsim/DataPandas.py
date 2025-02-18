@@ -75,35 +75,35 @@ class BDSIMOutput:
     def get_sampler_names(self):
         return self.sampler_names
 
-    def get_1dhisto_names(self):
+    def get_histo1d_names(self):
         hist_names = []
         for h in self.r.Histos.Get1DHistograms():
             hist_names.append(h.GetName())
 
         return hist_names
 
-    def get_2dhisto_names(self):
+    def get_histo2d_names(self):
         hist_names = []
         for h in self.r.Histos.Get2DHistograms():
             hist_names.append(h.GetName())
 
         return hist_names
 
-    def get_3dhisto_names(self):
+    def get_histo3d_names(self):
         hist_names = []
         for h in self.r.Histos.Get3DHistograms():
             hist_names.append(h.GetName())
 
         return hist_names
 
-    def get_4dhisto_names(self):
+    def get_histo4d_names(self):
         hist_names = []
         for h in self.r.Histos.Get4DHistograms():
             hist_names.append(h.GetName())
 
         return hist_names
 
-    def get_1dhisto(self, name, evnt = -1):
+    def get_histo1d(self, name, evnt = -1):
 
         # Check event number
         if evnt > self.et.GetEntries()-1 :
@@ -128,7 +128,7 @@ class BDSIMOutput:
 
         return _TH1(h)
 
-    def get_2dhisto(self, name, evnt = -1):
+    def get_histo2d(self, name, evnt = -1):
 
         # Check event number
         if evnt > self.et.GetEntries()-1 :
@@ -153,7 +153,7 @@ class BDSIMOutput:
 
         return _TH2(h)
 
-    def get_3dhisto(self, name, evnt = -1):
+    def get_histo3d(self, name, evnt = -1):
 
         # Check event number
         if evnt > self.et.GetEntries()-1 :
