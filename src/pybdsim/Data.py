@@ -1224,6 +1224,9 @@ class TH1(ROOTHist):
         htemp = self.hist.Rebin(nBins, self.name+"_rebin_"+str(nBins))
         return TH1(htemp)
 
+    def GetContentsAt(self, x):
+        ibin = _np.searchsorted(self.xedges, x) - 1
+        return self.contents[ibin]
 
 class TH2(TH1):
     """
