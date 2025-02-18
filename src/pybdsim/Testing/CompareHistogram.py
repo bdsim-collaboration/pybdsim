@@ -14,7 +14,7 @@ def compare_hist1d_array(h1, data) :
     # normalise h1 into pdf like distribution
     h1.contents = h1.contents/h1.contents.sum()
 
-    # compute liklihood
+    # compute likelihood
     lh = 1.0
     for d in data :
         p = h1.GetContentsAt(d)
