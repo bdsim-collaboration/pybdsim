@@ -219,26 +219,44 @@ class BDSIMOutput:
         staPos_x = []
         staPos_y = []
         staPos_z = []
+        staRot_thetaX = []
+        staRot_thetaY = []
+        staRot_thetaZ = []
         staRefPos_x = []
         staRefPos_y = []
         staRefPos_z = []
+        staRefRot_thetaX = []
+        staRefRot_thetaY = []
+        staRefRot_thetaZ = []
         staS = []
 
         midPos_x = []
         midPos_y = []
         midPos_z = []
+        midRot_thetaX = []
+        midRot_thetaY = []
+        midRot_thetaZ = []
         midRefPos_x = []
         midRefPos_y = []
         midRefPos_z = []
+        midRefRot_thetaX = []
+        midRefRot_thetaY = []
+        midRefRot_thetaZ = []
         midS = []
         midT = []
 
         endPos_x = []
         endPos_y = []
         endPos_z = []
+        endRot_thetaX = []
+        endRot_thetaY = []
+        endRot_thetaZ = []
         endRefPos_x = []
         endRefPos_y = []
         endRefPos_z = []
+        endRefRot_thetaX = []
+        endRefRot_thetaY = []
+        endRefRot_thetaZ = []
         endS = []
 
         e1 = []
@@ -306,32 +324,44 @@ class BDSIMOutput:
                 staPos_x.append(self.m.model.staPos[ielement].x())
                 staPos_y.append(self.m.model.staPos[ielement].y())
                 staPos_z.append(self.m.model.staPos[ielement].z())
-                # TODO staRot
+                staRot_thetaX.append(self.m.model.staRot[ielement].ThetaX())
+                staRot_thetaY.append(self.m.model.staRot[ielement].ThetaY())
+                staRot_thetaZ.append(self.m.model.staRot[ielement].ThetaZ())
                 staRefPos_x.append(self.m.model.staRefPos[ielement].x())
                 staRefPos_y.append(self.m.model.staRefPos[ielement].y())
                 staRefPos_z.append(self.m.model.staRefPos[ielement].z())
-                # TODO staRefRot
+                staRefRot_thetaX.append(self.m.model.staRefRot[ielement].ThetaX())
+                staRefRot_thetaY.append(self.m.model.staRefRot[ielement].ThetaY())
+                staRefRot_thetaZ.append(self.m.model.staRefRot[ielement].ThetaZ())
                 staS.append(self.m.model.staS[ielement])
 
                 midPos_x.append(self.m.model.midPos[ielement].x())
                 midPos_y.append(self.m.model.midPos[ielement].y())
                 midPos_z.append(self.m.model.midPos[ielement].z())
-                # TODO midRot
+                midRot_thetaX.append(self.m.model.midRot[ielement].ThetaX())
+                midRot_thetaY.append(self.m.model.midRot[ielement].ThetaY())
+                midRot_thetaZ.append(self.m.model.midRot[ielement].ThetaZ())
                 midRefPos_x.append(self.m.model.midRefPos[ielement].x())
                 midRefPos_y.append(self.m.model.midRefPos[ielement].y())
                 midRefPos_z.append(self.m.model.midRefPos[ielement].z())
-                # TODO midRefRot
+                midRefRot_thetaX.append(self.m.model.midRefRot[ielement].ThetaX())
+                midRefRot_thetaY.append(self.m.model.midRefRot[ielement].ThetaY())
+                midRefRot_thetaZ.append(self.m.model.midRefRot[ielement].ThetaZ())
                 midS.append(self.m.model.midS[ielement])
                 midT.append(self.m.model.midT[ielement])
 
                 endPos_x.append(self.m.model.endPos[ielement].x())
                 endPos_y.append(self.m.model.endPos[ielement].y())
                 endPos_z.append(self.m.model.endPos[ielement].z())
-                # TODO endRot
+                endRot_thetaX.append(self.m.model.endRot[ielement].ThetaX())
+                endRot_thetaY.append(self.m.model.endRot[ielement].ThetaY())
+                endRot_thetaZ.append(self.m.model.endRot[ielement].ThetaZ())
                 endRefPos_x.append(self.m.model.endRefPos[ielement].x())
                 endRefPos_y.append(self.m.model.endRefPos[ielement].y())
                 endRefPos_z.append(self.m.model.endRefPos[ielement].z())
-                # TODO endRefRot
+                endRefRot_thetaX.append(self.m.model.endRot[ielement].ThetaX())
+                endRefRot_thetaY.append(self.m.model.endRot[ielement].ThetaY())
+                endRefRot_thetaZ.append(self.m.model.endRot[ielement].ThetaZ())
                 endS.append(self.m.model.endS[ielement])
 
                 e1.append(self.m.model.e1[ielement])
@@ -397,24 +427,42 @@ class BDSIMOutput:
         dd['staPos_x'] = staPos_x
         dd['staPos_y'] = staPos_y
         dd['staPos_z'] = staPos_z
+        dd['staRot_thetaX'] = staRefRot_thetaX
+        dd['staRot_thetaY'] = staRefRot_thetaY
+        dd['staRot_thetaZ'] = staRefRot_thetaZ
         dd['staRefPos_x'] = staRefPos_x
         dd['staRefPos_y'] = staRefPos_y
         dd['staRefPos_z'] = staRefPos_z
+        dd['staRefRot_thetaX'] = staRefRot_thetaX
+        dd['staRefRot_thetaY'] = staRefRot_thetaY
+        dd['staRefRot_thetaZ'] = staRefRot_thetaZ
         dd['staS'] = staS
         dd['midPos_x'] = midPos_x
         dd['midPos_y'] = midPos_y
         dd['midPos_z'] = midPos_z
+        dd['midRot_thetaX'] = midRot_thetaX
+        dd['midRot_thetaY'] = midRot_thetaY
+        dd['midRot_thetaZ'] = midRot_thetaZ
         dd['midRefPos_x'] = midRefPos_x
         dd['midRefPos_y'] = midRefPos_y
         dd['midRefPos_z'] = midRefPos_z
+        dd['midRefRot_thetaX'] = midRefRot_thetaX
+        dd['midRefRot_thetaY'] = midRefRot_thetaY
+        dd['midRefRot_thetaZ'] = midRefRot_thetaZ
         dd['midS'] = midS
         dd['midT'] = midT
         dd['endPos_x'] = endPos_x
         dd['endPos_y'] = endPos_y
         dd['endPos_z'] = endPos_z
+        dd['endRot_thetaX'] = endRot_thetaX
+        dd['endRot_thetaY'] = endRot_thetaY
+        dd['endRot_thetaZ'] = endRot_thetaZ
         dd['endRefPos_x'] = endRefPos_x
         dd['endRefPos_y'] = endRefPos_y
         dd['endRefPos_z'] = endRefPos_z
+        dd['endRefRot_thetaX'] = endRefRot_thetaX
+        dd['endRefRot_thetaY'] = endRefRot_thetaY
+        dd['endRefRot_thetaZ'] = endRefRot_thetaZ
         dd['endS'] = endS
 
         dd['e1'] = e1
