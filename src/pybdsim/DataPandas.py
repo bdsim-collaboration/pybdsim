@@ -10,7 +10,7 @@ try:
     import ROOT as _ROOT
     _LoadROOTLibraries()
 except ImportError:
-    print("fail")
+    print("ROOT load fail")
     _useRoot = False
 
 
@@ -54,7 +54,9 @@ class BDSIMOutput:
         self.et = self.root_file.GetEventTree()
         self.e  = self.root_file.GetEvent()
         self.et.GetEntry(0)
-        self.sampler_names = list(self.root_file.GetSamplerNames())
+        self.sampler_names  = list(self.root_file.GetSamplerNames())
+        #self.csampler_names = list(self.root_file.GetCSamplerNames())
+        #self.ssampler_names = list(self.root_file.GetSSamplerNames())
 
         self.mt = self.root_file.GetModelTree()
         self.m  = self.root_file.GetModel()
@@ -74,6 +76,12 @@ class BDSIMOutput:
 
     def get_sampler_names(self):
         return self.sampler_names
+
+    def get_csampler_names(self):
+        return self.csampler_names
+
+    def get_ssampler_names(self):
+        return self.ssampler_names
 
     def get_histo1d_names(self):
         hist_names = []
@@ -348,7 +356,10 @@ class BDSIMOutput:
                 midRefRot_thetaY.append(self.m.model.midRefRot[ielement].ThetaY())
                 midRefRot_thetaZ.append(self.m.model.midRefRot[ielement].ThetaZ())
                 midS.append(self.m.model.midS[ielement])
-                midT.append(self.m.model.midT[ielement])
+                try :
+                    midT.append(self.m.model.midT[ielement])
+                except IndexError:
+                    midT.append(0)
 
                 endPos_x.append(self.m.model.endPos[ielement].x())
                 endPos_y.append(self.m.model.endPos[ielement].y())
@@ -383,8 +394,12 @@ class BDSIMOutput:
                 offsetY.append(self.m.model.offsetY[ielement])
 
                 pvName.append(' '.join([str(s) for s in self.m.model.pvName[ielement]]))
-                staEk.append(self.m.model.staEk[ielement])
-                staP.append(self.m.model.staP[ielement])
+                try :
+                    staEk.append(self.m.model.staEk[ielement])
+                    staP.append(self.m.model.staP[ielement])
+                except IndexError:
+                    staEk.append(0)
+                    staP.append(0)
 
                 tilt.append(self.m.model.tilt[ielement])
                 hkick.append(self.m.model.hkick[ielement])
@@ -795,5 +810,14 @@ class BDSIMOutput:
         df = _pd.DataFrame(dd)
         return df
 
+    def get_csampler(self, sampler_name):
+        if sampler_name not in self.csampler_names:
+            print("Sampler name not recognized")
+            return
+
+    def get_ssampler(self, sampler_name):
+        if sampler_name not in self.ssampler_names:
+            print("Sampler name not recognized")
+            return
 
 
