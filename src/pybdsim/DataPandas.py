@@ -358,7 +358,7 @@ class BDSIMOutput:
                 midS.append(self.m.model.midS[ielement])
                 try :
                     midT.append(self.m.model.midT[ielement])
-                except IndexError:
+                except :
                     midT.append(0)
 
                 endPos_x.append(self.m.model.endPos[ielement].x())
@@ -397,7 +397,7 @@ class BDSIMOutput:
                 try :
                     staEk.append(self.m.model.staEk[ielement])
                     staP.append(self.m.model.staP[ielement])
-                except IndexError:
+                except :
                     staEk.append(0)
                     staP.append(0)
 
