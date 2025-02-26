@@ -45,11 +45,15 @@ class REBDSIMOptics:
 class BDSIMOutput:
     def __init__(self, filepath):
 
-        if not _path.isfile(filepath) :
-            print("file not found",filepath)
-            return
+        #if not _path.isfile(filepath) :
+        #    print("file not found",filepath)
+        #    return
 
         self.root_file = _ROOT.DataLoader(filepath)
+
+        self.ht = self.root_file.GetHeaderTree()
+        self.h = self.root_file.GetHeader()
+        self.ht.GetEntry(0)
 
         self.et = self.root_file.GetEventTree()
         self.e  = self.root_file.GetEvent()
@@ -73,6 +77,14 @@ class BDSIMOutput:
         self.rt = self.root_file.GetRunTree()
         self.r = self.root_file.GetRun()
         self.rt.GetEntry(0)
+
+        self.root_file_names = []
+
+    def get_filename_index(self, file_name):
+        if file_name not in self.root_file_names:
+            self.root_file_names.append(file_name)
+
+        return self.root_file_names.index(file_name)
 
     def get_sampler_names(self):
         return self.sampler_names
@@ -187,7 +199,59 @@ class BDSIMOutput:
         return _TH3(h)
 
     def get_header(self):
-        pass
+        file_idx = []
+        bdsimVersion = []
+        clhepVersion = []
+        rootVersion  = []
+        dataVersion = []
+        doublePrecisionOutput = []
+        fileType = []
+        nEventsInFile = []
+        nEventsInFileSkipped = []
+        nEventsRequested = []
+        nOriginalEvents = []
+        nTrajectoryFilters = []
+        skimmedFile = []
+        timeStamp = []
+        trajectoryFilters = []
+
+        for iheader in range(0, self.ht.GetEntries()) :
+            self.ht.GetEntry(iheader)
+            file_idx.append(self.get_filename_index(self.ht.GetFile().GetName()))
+            bdsimVersion.append(str(self.h.header.bdsimVersion))
+            clhepVersion.append(str(self.h.header.clhepVersion))
+            rootVersion.append(str(self.h.header.rootVersion))
+            dataVersion.append(str(self.h.header.dataVersion))
+            doublePrecisionOutput.append(self.h.header.doublePrecisionOutput)
+            fileType.append(str(self.h.header.fileType))
+            nEventsInFile.append(self.h.header.nEventsInFile)
+            nEventsInFileSkipped.append(self.h.header.nEventsInFileSkipped)
+            nEventsRequested.append(self.h.header.nEventsRequested)
+            nOriginalEvents.append(self.h.header.nOriginalEvents)
+            nTrajectoryFilters.append(self.h.header.nTrajectoryFilters)
+            skimmedFile.append(self.h.header.skimmedFile)
+            timeStamp.append(str(self.h.header.timeStamp).strip())
+            trajectoryFilters.append([str(tf) for tf in self.h.header.trajectoryFilters] )
+        dd = {}
+        dd['file_idx'] = file_idx
+        dd['bdsimVersion'] = bdsimVersion
+        dd['clhepVersion'] = clhepVersion
+        dd['rootVersion'] = rootVersion
+        dd['dataVersion'] = dataVersion
+        dd['doublePrecisionOutput'] = doublePrecisionOutput
+        dd['fileType'] = fileType
+        dd['nEventsInFile'] = nEventsInFile
+        dd['nEventsInFileSkipped'] = nEventsInFileSkipped
+        dd['nEventsRequested'] = nEventsRequested
+        dd['nOriginalEvents'] = nOriginalEvents
+        dd['nTrajectoryFilters'] = nTrajectoryFilters
+        dd['skimmedFile'] = skimmedFile
+        dd['timeStamp'] = timeStamp
+        dd['trajectoryFilters'] = trajectoryFilters
+
+        df = _pd.DataFrame(dd)
+
+        return df
 
     def get_model(self):
         model_number = []
