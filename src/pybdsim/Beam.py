@@ -73,7 +73,7 @@ class Beam(dict) :
         setattr(self, 'SetDispXP',     self._SetDispXP)
         setattr(self, 'SetDispYP',     self._SetDispYP)
 
-    def SetDistributionType(self,distrType='reference'):
+    def SetDistributionType(self, distrType='reference'):
         if distrType not in BDSIMDistributionTypes:
             raise ValueError("Unknown distribution type: '"+str(distrType)+"'")
         self['distrType'] = '"' + distrType + '"'

@@ -829,7 +829,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, extraParamsDict={}):
                   "SetX0": 'X',
                   "SetY0": 'Y'
                   }
-    for func,parameter in beamparams.items():
+    for func, parameter in beamparams.items():
         if parameter in list(data.keys()):
             getattr(beam, func)(data[parameter])
 
