@@ -49,7 +49,7 @@ bdsimcategories = [
     'rfcavity',
     'rf',
     'rfx',
-    'rfy'
+    'rfy',
     'target',
     'rcol',
     'jcol',
