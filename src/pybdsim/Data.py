@@ -694,7 +694,7 @@ def CreateEmptyRebdsimFile(outputFileName, nOriginalEvents=1):
     f = dc.CreateEmptyRebdsimFile(outputFileName, nOriginalEvents)
     return f
 
-def _CreateEmptyBDSKIMFile(inputFileName, inputData=None, outputFileName=None):
+def _CreateEmptyBDSKIMFile(inputFileName, outputFileName=None):
     """
     Create an empty raw BDSIM file suitable for filling with a custom
     skim - ie a Python version of bdskim based on an existin BDSIM raw file.
@@ -708,19 +708,14 @@ def _CreateEmptyBDSKIMFile(inputFileName, inputData=None, outputFileName=None):
 
     If no outputFileName is given, then it will be inputFileName_skim.root.
     """
-    if not inputData:
-        inputData = Load(inputFileName)
+    LoadROOTLibraries()
+
     if not outputFileName:
         outputFileName = inputFileName.replace(".root", "_skim.root")
-    outfile = _ROOT.TFile(outputFileName, 'recreate')
-    inputData.GetHeaderTree().CloneTree().Write()
-    inputData.GetParticleDataTree().CloneTree().Write()
-    inputData.GetBeamTree().CloneTree().Write()
-    inputData.GetOptionsTree().CloneTree().Write()
-    inputData.GetModelTree().CloneTree().Write()
-    inputData.GetRunTree().CloneTree().Write()
 
-    return outfile
+    dc = _ROOT.DataDummyClass()
+    f = dc.CreateEmptyBdskimFile(inputFileName, outputFileName)
+    return f
 
 def _SkimBDSIMEvents(inputData, filterFunction):
     filterTree = inputData.GetEventTree().CloneTree(0)
@@ -744,18 +739,16 @@ def SkimBDSIMFile(inputFileName, filterFunction, outputFileName=None):
 
     The function must accept a single argument that will be the event. This
     variable will have the layout of the event exactly as you see it in a
-    TBrowser (e.g. event.PrimaryLastHit.x[0] could be used. It should return
+    TBrowser, e.g. event.PrimaryLastHit.x[0] could be used. It should return
     a Boolean True or False whether that event should be included in the output
     skim file.
 
     """
+    outfile = _CreateEmptyBDSKIMFile(inputFileName, outputFileName)
     inputData = Load(inputFileName)
-    outfile = _CreateEmptyBDSKIMFile(inputFileName, inputData, outputFileName)
+    outfile.cd()
     filterTree = _SkimBDSIMEvents(inputData, filterFunction)
     filterTree.Write()
-    header = Header(outfile.Get("Header"))
-    header.skimmedFile = True
-    header.nEventsInFile = filterTree.GetEntries()
     outfile.Close()
 
 def WriteSamplerDataToROOTFile(inputFileName, outputFileName, samplerName):
