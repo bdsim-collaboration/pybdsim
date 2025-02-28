@@ -578,7 +578,108 @@ class BDSIMOutput:
         pass
 
     def get_options(self):
-        pass
+
+        file_idx = []
+        aper1 = []
+        aper2 = []
+        aper3 = []
+        aper4 = []
+        apertureImpactsMinimumKE = []
+        apertureType = []
+        backupStepperMomLimit = []
+        batch = []
+        bdsimPath = []
+        beamlineAngle = []
+        beamlineAxisAngle = []
+        beamlineAxisX = []
+        beamlineAxisY = []
+        beamlineAxisZ = []
+        beamlinePhi = []
+        beamlinePsi = []
+        beamlineS = []
+        beamlineTheta = []
+        beamlineX = []
+        beamlineY = []
+        beamlineZ = []
+        beampipeIsInfiniteAbsorber = []
+        beampipeMaterial = []
+        beampipeThickness = []
+        biasForWorldContents = []
+        biasForWorldVacuum = []
+        biasForWorldVolume = []
+        buildPoleFaceGeometry = []
+        buildTunnel = []
+        buildTunnelFloor = []
+        buildTunnelStraight = []
+
+        for ioptions in range(0, self.ot.GetEntries()) :
+            self.ot.GetEntry(ioptions)
+            file_idx.append(self.get_filename_index(self.ot.GetFile().GetName()))
+            aper1.append(self.o.options.aper1)
+            aper2.append(self.o.options.aper2)
+            aper3.append(self.o.options.aper3)
+            aper4.append(self.o.options.aper4)
+            apertureImpactsMinimumKE.append(self.o.options.apertureImpactsMinimumKE)
+            apertureType.append(self.o.options.apertureType)
+            backupStepperMomLimit.append(self.o.options.backupStepperMomLimit)
+            batch.append(self.o.options.batch)
+            bdsimPath.append(self.o.options.bdsimPath)
+            beamlineAngle.append(self.o.options.beamlineAngle)
+            beamlineAxisAngle.append(self.o.options.beamlineAxisAngle)
+            beamlineAxisX.append(self.o.options.beamlineAxisX)
+            beamlineAxisY.append(self.o.options.beamlineAxisY)
+            beamlineAxisZ.append(self.o.options.beamlineAxisZ)
+            beamlinePhi.append(self.o.options.beamlinePhi)
+            beamlinePsi.append(self.o.options.beamlinePsi)
+            beamlineS.append(self.o.options.beamlineS)
+            beamlineTheta.append(self.o.options.beamlineTheta)
+            beamlineX.append(self.o.options.beamlineX)
+            beamlineY.append(self.o.options.beamlineY)
+            beamlineZ.append(self.o.options.beamlineZ)
+            beampipeIsInfiniteAbsorber.append(self.o.options.beamlinePhi)
+            beampipeMaterial.append(self.o.options.beamlinePsi)
+            beampipeThickness.append(self.o.options.beamlineS)
+            biasForWorldContents.append(self.o.options.biasForWorldContents)
+            biasForWorldVacuum.append(self.o.options.biasForWorldVacuum)
+            biasForWorldVolume.append(self.o.options.biasForWorldVolume)
+            buildPoleFaceGeometry.append(self.o.options.buildPoleFaceGeometry)
+            buildTunnel.append(self.o.options.buildTunnel)
+            buildTunnelFloor.append(self.o.options.buildTunnelFloor)
+            buildTunnelStraight.append(self.o.options.buildTunnelStraight)
+
+        dd = {}
+        dd['file_idx'] = file_idx
+        dd['aper1'] = aper1
+        dd['aper2'] = aper2
+        dd['aper3'] = aper3
+        dd['aper4'] = aper4
+        dd['apertureImpactsMinimumKE'] = apertureImpactsMinimumKE
+        dd['apertureType'] = apertureType
+        dd['beamlineAngle'] = beamlineAngle
+        dd['beamlineAxisAngle'] = beamlineAxisAngle
+        dd['beamlineAxisX'] = beamlineAxisX
+        dd['beamlineAxisY'] = beamlineAxisY
+        dd['beamlineAxisZ'] = beamlineAxisZ
+        dd['beamlinePhi'] = beamlinePhi
+        dd['beamlinePsi'] = beamlinePsi
+        dd['beamlineS'] = beamlineS
+        dd['beamlineTheta'] = beamlineTheta
+        dd['beamlineX'] = beamlineX
+        dd['beamlineY'] = beamlineY
+        dd['beamlineZ'] = beamlineZ
+        dd['beampipeIsInfiniteAbsorber'] = beampipeIsInfiniteAbsorber
+        dd['beampipeMaterial'] = beampipeMaterial
+        dd['beampipeThickness'] = beampipeThickness
+        dd['biasForWorldContents'] = biasForWorldContents
+        dd['biasForWorldVacuum'] = biasForWorldVacuum
+        dd['biasForWorldVolume'] = biasForWorldVolume
+        dd['buildPoleFaceGeometry'] = buildPoleFaceGeometry
+        dd['buildTunnel'] = buildTunnel
+        dd['buildTunnelFloor'] = buildTunnelFloor
+        dd['buildTunnelStraight'] = buildTunnelStraight
+        
+        df = _pd.DataFrame(dd)
+        return df
 
     def get_run(self):
         pass
