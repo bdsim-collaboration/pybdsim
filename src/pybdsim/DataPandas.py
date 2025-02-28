@@ -611,6 +611,15 @@ class BDSIMOutput:
         buildTunnel = []
         buildTunnelFloor = []
         buildTunnelStraight = []
+        cavityFieldType = []
+        checkOverlaps = []
+        chordStepMinimum = []
+        chordStepMinimumYoke = []
+        circular = []
+        coilHeightFraction = []
+        coilWidthFraction = []
+        collimatorHitsMinimumKE = []
+        collimatorsAreInfiniteAbsorbers = []
 
         for ioptions in range(0, self.ot.GetEntries()) :
             self.ot.GetEntry(ioptions)
@@ -646,6 +655,15 @@ class BDSIMOutput:
             buildTunnel.append(self.o.options.buildTunnel)
             buildTunnelFloor.append(self.o.options.buildTunnelFloor)
             buildTunnelStraight.append(self.o.options.buildTunnelStraight)
+            cavityFieldType.append(self.o.options.cavityFieldType)
+            checkOverlaps.append(self.o.options.checkOverlaps)
+            chordStepMinimum.append(self.o.options.chordStepMinimum)
+            chordStepMinimumYoke.append(self.o.options.chordStepMinimumYoke)
+            circular.append(self.o.options.circular)
+            coilHeightFraction.append(self.o.options.coilHeightFraction)
+            coilWidthFraction.append(self.o.options.coilWidthFraction)
+            collimatorHitsMinimumKE.append(self.o.options.collimatorHitsMinimumKE)
+            collimatorsAreInfiniteAbsorbers.append(self.o.options.collimatorsAreInfiniteAbsorbers)
 
         dd = {}
         dd['file_idx'] = file_idx
@@ -677,6 +695,15 @@ class BDSIMOutput:
         dd['buildTunnel'] = buildTunnel
         dd['buildTunnelFloor'] = buildTunnelFloor
         dd['buildTunnelStraight'] = buildTunnelStraight
+        dd['cavityFieldType'] = cavityFieldType
+        dd['checkOverlaps'] = checkOverlaps
+        dd['chordStepMinimum'] = chordStepMinimum
+        dd['chordStepMinimumYoke'] = chordStepMinimumYoke
+        dd['circular'] = circular
+        dd['coilHeightFraction'] = coilHeightFraction
+        dd['coilWidthFraction'] = coilWidthFraction
+        dd['collimatorHitsMinimumKE'] = collimatorHitsMinimumKE
+        dd['collimatorsAreInfiniteAbsorbers'] = collimatorsAreInfiniteAbsorbers
         
         df = _pd.DataFrame(dd)
         return df
