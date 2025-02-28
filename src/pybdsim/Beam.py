@@ -73,7 +73,7 @@ class Beam(dict) :
         setattr(self, 'SetDispXP',     self._SetDispXP)
         setattr(self, 'SetDispYP',     self._SetDispYP)
 
-    def SetDistributionType(self,distrType='reference'):
+    def SetDistributionType(self, distrType='reference'):
         if distrType not in BDSIMDistributionTypes:
             raise ValueError("Unknown distribution type: '"+str(distrType)+"'")
         self['distrType'] = '"' + distrType + '"'
@@ -332,19 +332,3 @@ class Beam(dict) :
 
     def _SetDistrFileFormat(self, format_string):
         self["distrFileFormat"] = '"{}"'.format(format_string)
-
-    def _MakeGaussTwiss(self):
-        setattr(self, 'SetBetaX',      self._SetBetaX)
-        setattr(self, 'SetBetaY',      self._SetBetaY)
-        setattr(self, 'SetAlphaX',     self._SetAlphaX)
-        setattr(self, 'SetAlphaY',     self._SetAlphaY)
-        setattr(self, 'SetEmittanceX', self._SetEmittanceX)
-        setattr(self, 'SetEmittanceY', self._SetEmittanceY)
-        setattr(self, 'SetEmittanceNX', self._SetEmittanceNX)
-        setattr(self, 'SetEmittanceNY', self._SetEmittanceNY)
-        setattr(self, 'SetSigmaE',     self._SetSigmaE)
-        setattr(self, 'SetSigmaT',     self._SetSigmaT)
-        setattr(self, 'SetDispX',      self._SetDispX)
-        setattr(self, 'SetDispY',      self._SetDispY)
-        setattr(self, 'SetDispXP',     self._SetDispXP)
-        setattr(self, 'SetDispYP',     self._SetDispYP)
