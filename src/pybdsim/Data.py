@@ -761,7 +761,7 @@ def SkimBDSIMFile(inputFileName, filterFunction, outputFileName=None):
 def WriteSamplerDataToROOTFile(inputFileName, outputFileName, samplerName):
     """
     Dump the sampler data from a BDSIM file to a ROOT file.
-    Be aware that you will loose the event structure. This will
+    Be aware that you will lose the event structure. This will
     not be suitable for further analysis with BDSIM tools.
 
     :param inputFileName: raw input BDSIM file.
@@ -818,7 +818,7 @@ def WriteSamplerDataToROOTFile(inputFileName, outputFileName, samplerName):
 
 def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     """
-    :param tfile: TFile object to write to.
+    :param tfile: TFile object to write to from CreateEmptyRebdsimFile with directories already setup.
     :type  tfile: ROOT.TFile.
     :param directoryName: Full path of directory you wish to write the histograms to.
     :type  directoryName: str  (e.g. "Event/PerEntryHistograms" )
@@ -826,6 +826,9 @@ def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     :type  histograms: [ROOT.TH1,..]
     
     Write a list of histograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
+    The directories must already exist. Use the function CreateEmptyRebdsimFile first to
+    create a rebdsim-format ROOT file, then use this function to fill it with your own
+    histograms.
     """
     tfile.cd(directoryName)
     directory = tfile.Get(directoryName)
