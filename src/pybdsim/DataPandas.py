@@ -575,7 +575,52 @@ class BDSIMOutput:
         return df
 
     def get_beam(self):
-        pass
+        run_attribs = ["alfx","alfy","beamEnergy","beamKineticEnergy","beamMomentum",
+                       "beamParticleName","betx","bety","bunchFrequency","bunchPeriod",
+                       "dispx","dispxp","dispy","dispyp","distrFile","distrFileFormat",
+                       "distrFileFromExecOptions","distrFileLoop","distrFileLoopNTimes",
+                       "distrFileMatchLength","distrType","emitNX","emitNY","emitx",
+                       "emity","energyDistrType","envelopeE","envelopeR","envelopeRp",
+                       "envelopeT","envelopeX","envelopeXp","envelopeY","envelopeYp",
+                       "envelopeZ","envelopeZp","eventGeneratorMaxEK","eventGeneratorMaxRp",
+                       "eventGeneratorMaxT","eventGeneratorMaxX","eventGeneratorMaxXp",
+                       "eventGeneratorMaxY","eventGeneratorMaxYp","eventGeneratorMaxZ",
+                       "eventGeneratorMaxZp","eventGeneratorMinEK","eventGeneratorMinRp",
+                       "eventGeneratorMinT","eventGeneratorMinX","eventGeneratorMinXp",
+                       "eventGeneratorMinY","eventGeneratorMinYp","eventGeneratorMinZ",
+                       "eventGeneratorMinZp","eventGeneratorNEventsSkip","eventGeneratorParticles",
+                       "eventGeneratorWarnSkippedParticles","eventsPerBunch","haloNSigmaXInner",
+                       "haloNSigmaXOuter","haloNSigmaYInner","haloNSigmaYOuter","haloPSWeightFunction",
+                       "haloPSWeightParameter","haloXCutInner","haloXCutOuter","haloXpCutInner",
+                       "haloXpCutOuter","haloYCutInner","haloYCutOuter","haloYpCutInner",
+                       "haloYpCutOuter","nlinesIgnore","nlinesSkip","offsetSampleMean",
+                       "particle","removeUnstableWithoutDecay","setKeys",
+                       "shellX","shellXp","shellXpWidth","shellXWidth","shellY","shellYp",
+                       "shellYpWidth","shellYWidth",
+                       "sigma11","sigma12","sigma13","sigma14","sigma15","sigma16",
+                        "sigma22","sigma23","sigma24","sigma25","sigma26",
+                        "sigma33","sigma34","sigma35","sigma36",
+                        "sigma44","sigma45","sigma46",
+                        "sigma55","sigma56",
+                        "sigma66",
+                        "sigmaE","sigmaEk","sigmaP","sigmaT","sigmaX","sigmaXp","sigmaY","sigmaYp",
+                        "spaceDistrType","tilt","xDistrType","X0","Xp0","yDistrType","Y0","Yp0","Z0","Zp0"]
+
+        dd = {}
+        for attrib in run_attribs:
+            dd[attrib] = []
+
+        for attrib in run_attribs:
+            if attrib == "setKeys" :
+                dd[attrib].append([str(v) for v in getattr(self.b.beam, attrib)])
+            elif attrib == "spaceDistrType" :
+                dd[attrib].append(str(getattr(self.b.beam, attrib)))
+            else :
+                dd[attrib].append(getattr(self.b.beam, attrib))
+
+        df = _pd.DataFrame(dd)
+
+        return df
 
     def get_options(self):
 
