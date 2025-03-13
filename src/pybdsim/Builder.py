@@ -761,15 +761,22 @@ class Sampler(object):
     A sampler is unique in that it does not have a length unlike every
     :class:`Element` hence it needs its own class to produce its
     representation.
+    :param name: 'all', or a range.
+    :param options: a dictionary of options.
     """
-    def __init__(self,name):
+    def __init__(self,name,options=None):
         self.name = name
+        self.options = options
 
     def __repr__(self):
+        optionString = ''
+        if self.options is not None:
+            for key in self.options:
+                optionString += ', '+key+'='+self.options[key]
         if self.name == 'all':
-            return 'sample, all;\n'
+            return 'sample, all' + optionString + ';\n'
         else:
-            return 'sample, range='+self.name+';\n'
+            return 'sample, range='+self.name + optionString + ';\n'
 
 
 class GmadObject(_MutableMapping):
@@ -1699,22 +1706,26 @@ class Machine(object):
             cellname = basename+'_'+str(i).zfill(maxn)
             self.AddFodoCellSplitDrift(cellname,magnetlength,driftlength,kabs,nsplits=10,**kwargs)
 
-    def AddSampler(self, names):
+    def AddSampler(self, names, options=None):
         if isinstance(names, str):
             if names == "all":
-                self.samplers.append(Sampler("all"))
+                self.samplers.append(Sampler("all", options))
             elif names == "first":
-                self.samplers.append(Sampler(self.sequence[0]))
+                self.samplers.append(Sampler(self.sequence[0], options))
             elif names == "last":
-                self.samplers.append(Sampler(self.sequence[-1]))
+                self.samplers.append(Sampler(self.sequence[-1], options))
             else:
                 if names not in self.sequence:
                     msg = "{} not found to attach sampler to.".format(names)
                     raise ValueError(msg)
-                self.samplers.append(Sampler(names))
+                self.samplers.append(Sampler(names, options))
         else: # assume some flat iterable of sampler names.
-            for name in names:
-                self.AddSampler(name)
+            if isinstance(names, dict):
+                for name,option in names.items():
+                    self.AddSampler(name, option)
+            elif isinstance(names, list):
+                for name in names:
+                    self.AddSampler(name, options)
 
     def AddCrystal(self, name, **kwargs):
         self.objects.append(Crystal(name, **kwargs))
