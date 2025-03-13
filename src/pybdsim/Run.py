@@ -175,8 +175,9 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
         bdsimExecutable = "bdsim"
     args = [bdsimExecutable,
             "--file={}".format(gmadpath),
-            "--outfile={}".format(outfile),
-            "--ngenerate={}".format(ngenerate)]
+            "--outfile={}".format(outfile)]
+    if ngenerate is not None:
+        args.append("--ngenerate={}".format(ngenerate))
     if batch:
         args.append("--batch")
     if seed is not None:
