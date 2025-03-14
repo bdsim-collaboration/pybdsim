@@ -953,6 +953,7 @@ class BDSIMOutput:
         dd['energy'] = []
         dd['partID'] = []
         dd['trackID'] = []
+        dd'weight'] = []
 
         for ievt in range(0, self.et.GetEntries()):
             self.et.GetEntry(ievt)
@@ -970,6 +971,7 @@ class BDSIMOutput:
                 dd['energy'].append(sampler.energy[ipart])
                 dd['partID'].append(sampler.partID[ipart])
                 dd['trackID'].append(sampler.trackID[ipart])
+                dd['weight'].append(sampler.weight[ipart])
 
         df = _pd.DataFrame(dd)
         return df
