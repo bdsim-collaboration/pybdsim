@@ -953,7 +953,7 @@ class BDSIMOutput:
         dd['energy'] = []
         dd['partID'] = []
         dd['trackID'] = []
-        dd'weight'] = []
+        dd['weight'] = []
 
         for ievt in range(0, self.et.GetEntries()):
             self.et.GetEntry(ievt)
