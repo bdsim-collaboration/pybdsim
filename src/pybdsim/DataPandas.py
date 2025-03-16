@@ -10,7 +10,6 @@ try:
     import ROOT as _ROOT
     _LoadROOTLibraries()
 except ImportError:
-    print("ROOT load fail")
     _useRoot = False
 
 
