@@ -1025,4 +1025,38 @@ class BDSIMOutput:
             print("Sampler name not recognized")
             return
 
+        sampler = self.e.GetSamplerS(sampler_name)
 
+        dd = {}
+        dd['file_idx'] = []
+        dd['event_idx'] = []
+        dd['sampler_idx'] = []
+        dd['phi'] = []
+        dd['phip'] = []
+        dd['theta'] = []
+        dd['thetap'] = []
+        dd['T'] = []
+        dd['totalEnergy'] = []
+        dd['partID'] = []
+        dd['trackID'] = []
+        dd['weight'] = []
+
+        for ievt in range(0, self.et.GetEntries()):
+            self.et.GetEntry(ievt)
+
+            for ipart in range(0, sampler.n) :
+                dd['file_idx'].append(self.get_filename_index(self.ot.GetFile().GetName()))
+                dd['event_idx'].append(ievt)
+                dd['sampler_idx'].append(ipart)
+                dd['phi'].append(sampler.phi[ipart])
+                dd['phip'].append(sampler.phip[ipart])
+                dd['theta'].append(sampler.theta[ipart])
+                dd['thetap'].append(sampler.thetap[ipart])
+                dd['T'].append(sampler.T[ipart])
+                dd['totalEnergy'].append(sampler.totalEnergy[ipart])
+                dd['partID'].append(sampler.partID[ipart])
+                dd['trackID'].append(sampler.trackID[ipart])
+                dd['weight'].append(sampler.weight[ipart])
+
+        df = _pd.DataFrame(dd)
+        return df
