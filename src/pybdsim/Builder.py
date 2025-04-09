@@ -1245,6 +1245,42 @@ class Machine(object):
         names = list(self.elements.keys())
         self.UpdateElements(names, parameter, value)
 
+    def Insert(self, newElement, index = 0, after = False, substitute = False):
+        """
+        Insert an element at a given index in the sequence. If it doesn't yet exist it is added to the
+        elements. In alternative to the index one can use an element in the sequence.
+        newElement: element to insert or name of existing element.
+        index: index of the element to insert before. It can be an element name or an integer.
+        after: if True, insert after the index element.
+        substitute: if True, rewrite the element if in elements list.
+        """
+
+        # Check if index is within sequence
+        if isinstance(index, int):
+            if i >= len(self.sequence):
+                raise ValueError("Index out of range")
+        if isinstance(index, str):
+            if index not in self.sequence:
+                raise ValueError("Element name not found in sequence")
+            else:
+                index = self.sequence.index(index)
+                if after:
+                    index += 1
+
+        # Check if newElement is already in the elements
+        if isinstance(newElement, Element):
+            if newElement.name in self.elements.keys():
+                if not substitute:
+                    raise ValueError(f"New element {newElement.name} already exists in elements. If you want to overwrite it, set substitute=True")
+            else:
+                self.elements[newElement.name] = newElement
+        elif isinstance(newElement, str):
+            if newElement not in self.elements.keys():
+                raise ValueError(f"New element {newElement} not found in elements")
+
+        # Modify sequence
+        self.sequence.insert(index, newElement.name)
+
     def InsertAndReplace(self, newElement, sLocation = 0, element_name = None):
         """
         New element will be placed at the central s location.
