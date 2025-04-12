@@ -1257,7 +1257,7 @@ class Machine(object):
 
         # Check if index is within sequence
         if isinstance(index, int):
-            if i >= len(self.sequence):
+            if index >= len(self.sequence):
                 raise ValueError("Index out of range")
         if isinstance(index, str):
             if index not in self.sequence:
