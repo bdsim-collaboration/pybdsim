@@ -195,7 +195,7 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
 def BdsimParallel(gmadpath, outfile, nJobs=None, ngenerate=10000, startseed=None, batch=True,
-                  silent=True, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
+                  silent=False, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
     """
     Runs multiple bdsim instances with gmadpath as inputfile and outfile as outfile.
     The number of parallel jobs is defined by nJobs. It can be specified how many cores
