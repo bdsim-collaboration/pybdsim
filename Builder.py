@@ -1249,7 +1249,7 @@ class Machine(object):
         """
         Insert an element at a given index in the sequence. If it doesn't yet exist it is added to the
         elements. In alternative to the index one can use an element in the sequence.
-        newElement: element to insert or name of existing element.
+        newElement: element to insert.
         index: index of the element to insert before. It can be an element name or an integer.
         after: if True, insert after the index element.
         substitute: if True, rewrite the element if in elements list.
@@ -1272,11 +1272,9 @@ class Machine(object):
             if newElement.name in self.elements.keys():
                 if not substitute:
                     raise ValueError(f"New element {newElement.name} already exists in elements. If you want to overwrite it, set substitute=True")
-            else:
-                self.elements[newElement.name] = newElement
-        elif isinstance(newElement, str):
-            if newElement not in self.elements.keys():
-                raise ValueError(f"New element {newElement} not found in elements")
+            self.elements[newElement.name] = newElement
+        else:
+            raise ValueError(f"New element {newElement} is not a pybdsim Builder Element instance")
 
         # Modify sequence
         self.sequence.insert(index, newElement.name)
