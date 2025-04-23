@@ -694,7 +694,7 @@ def CreateEmptyRebdsimFile(outputFileName, nOriginalEvents=1):
     f = dc.CreateEmptyRebdsimFile(outputFileName, nOriginalEvents)
     return f
 
-def _CreateEmptyBDSKIMFile(inputFileName, inputData=None, outputFileName=None):
+def _CreateEmptyBDSKIMFile(inputFileName, outputFileName=None):
     """
     Create an empty raw BDSIM file suitable for filling with a custom
     skim - ie a Python version of bdskim based on an existin BDSIM raw file.
@@ -708,19 +708,14 @@ def _CreateEmptyBDSKIMFile(inputFileName, inputData=None, outputFileName=None):
 
     If no outputFileName is given, then it will be inputFileName_skim.root.
     """
-    if not inputData:
-        inputData = Load(inputFileName)
+    LoadROOTLibraries()
+
     if not outputFileName:
         outputFileName = inputFileName.replace(".root", "_skim.root")
-    outfile = _ROOT.TFile(outputFileName, 'recreate')
-    inputData.GetHeaderTree().CloneTree().Write()
-    inputData.GetParticleDataTree().CloneTree().Write()
-    inputData.GetBeamTree().CloneTree().Write()
-    inputData.GetOptionsTree().CloneTree().Write()
-    inputData.GetModelTree().CloneTree().Write()
-    inputData.GetRunTree().CloneTree().Write()
 
-    return outfile
+    dc = _ROOT.DataDummyClass()
+    f = dc.CreateEmptyBdskimFile(inputFileName, outputFileName)
+    return f
 
 def _SkimBDSIMEvents(inputData, filterFunction):
     filterTree = inputData.GetEventTree().CloneTree(0)
@@ -744,24 +739,22 @@ def SkimBDSIMFile(inputFileName, filterFunction, outputFileName=None):
 
     The function must accept a single argument that will be the event. This
     variable will have the layout of the event exactly as you see it in a
-    TBrowser (e.g. event.PrimaryLastHit.x[0] could be used. It should return
+    TBrowser, e.g. event.PrimaryLastHit.x[0] could be used. It should return
     a Boolean True or False whether that event should be included in the output
     skim file.
 
     """
+    outfile = _CreateEmptyBDSKIMFile(inputFileName, outputFileName)
     inputData = Load(inputFileName)
-    outfile = _CreateEmptyBDSKIMFile(inputFileName, inputData, outputFileName)
+    outfile.cd()
     filterTree = _SkimBDSIMEvents(inputData, filterFunction)
     filterTree.Write()
-    header = Header(outfile.Get("Header"))
-    header.skimmedFile = True
-    header.nEventsInFile = filterTree.GetEntries()
     outfile.Close()
 
 def WriteSamplerDataToROOTFile(inputFileName, outputFileName, samplerName):
     """
     Dump the sampler data from a BDSIM file to a ROOT file.
-    Be aware that you will loose the event structure. This will
+    Be aware that you will lose the event structure. This will
     not be suitable for further analysis with BDSIM tools.
 
     :param inputFileName: raw input BDSIM file.
@@ -801,6 +794,8 @@ def WriteSamplerDataToROOTFile(inputFileName, outputFileName, samplerName):
     samplerPartID = sampler.data['partID']
     samplerWeight = sampler.data['weight']
 
+    outputFile.cd()
+
     for i in range(len(samplerX)):
         x[0] = samplerX[i]
         y[0] = samplerY[i]
@@ -816,7 +811,7 @@ def WriteSamplerDataToROOTFile(inputFileName, outputFileName, samplerName):
 
 def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     """
-    :param tfile: TFile object to write to.
+    :param tfile: TFile object to write to from CreateEmptyRebdsimFile with directories already setup.
     :type  tfile: ROOT.TFile.
     :param directoryName: Full path of directory you wish to write the histograms to.
     :type  directoryName: str  (e.g. "Event/PerEntryHistograms" )
@@ -824,6 +819,9 @@ def WriteROOTHistogramsToDirectory(tfile, directoryName, histograms):
     :type  histograms: [ROOT.TH1,..]
     
     Write a list of histograms (ROOT.TH*) to a directory (str) in a ROOT.TFile instance.
+    The directories must already exist. Use the function CreateEmptyRebdsimFile first to
+    create a rebdsim-format ROOT file, then use this function to fill it with your own
+    histograms.
     """
     tfile.cd(directoryName)
     directory = tfile.Get(directoryName)
@@ -1222,6 +1220,9 @@ class TH1(ROOTHist):
         htemp = self.hist.Rebin(nBins, self.name+"_rebin_"+str(nBins))
         return TH1(htemp)
 
+    def GetContentsAt(self, x):
+        ibin = _np.searchsorted(self.xedges, x) - 1
+        return self.contents[ibin]
 
 class TH2(TH1):
     """

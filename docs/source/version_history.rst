@@ -2,19 +2,20 @@
 Version History
 ===============
 
-v3.7.0 - 2024 / 11 / XX
+v3.7.0 - 2025 / 02 / XX
 =======================
 
 * New parallelisation functions in :code:`pybdsim.Run` module for each tool.
 * New Analysis module that is a work in progress.
 * Run data now loaded when loading a BDSIM output file.
-* Utility function to write a simple ROOT ntuple from BDSIM sampler data. This desroys
+* Utility function to write a simple ROOT ntuple from BDSIM sampler data. This destroys
   the per-event structure, but in some cases this is acceptable for handover to an experiment.
 * Function :code:`pybdsim.Data.TH2.Integrate` to integrate by spatial coordinates and not bin index.
 * Conversion of :code:`MATRIX` element from MADX.
 * Internal changes to field map loading for plotting.
 * Gabor lens from BDSIM will be plotted in machine diagram.
 * Dependency on `jinja2` introduced.
+* Add emittance plot to standard plots for :code:`pybdsim.Plot.BDSIMOptics`.
 
 
 * Fix :code:`pybdsim.Plot.Spectra` when exactly 9 particles types were used.
@@ -26,6 +27,7 @@ v3.7.0 - 2024 / 11 / XX
   Similarly, for getting the histogram along y, one needs to call :code:`TH2::ProjectionX()`.
 * Fix for no total energy specified for BDSIM primaries to PTC inrays.
 * GMAD strength from TFS file fix for hkickers and vkickers which used `angle`.
+* Fix MADX conversion for `VMONITOR` and `HMONITOR` and warn about `TRANSFORM` conversion (cannot be converted).
 
 
 v3.6.1 - 2024 / 01 / 30

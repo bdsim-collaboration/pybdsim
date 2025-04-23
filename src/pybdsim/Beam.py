@@ -1,3 +1,5 @@
+import gzip as _gzip
+
 """
 Module containing a similarly named Beam class for creating
 a BDSIM beam distribution programmatically.
@@ -42,6 +44,42 @@ BDSIMParticleTypes = [
     'kaon0L'
 ]
 
+def WriteUserFile(filename, coordinates):
+    """
+    Function to write a BDSIM beamfile of type userfile.
+
+    :param filename: Name of file to write the coordinates to
+    :type filename: str
+    :param coordinates: Coordinates of the different beam particles
+    :type coordinates: list of list of float
+    """
+    compressed = filename.endswith(".gz")
+    if compressed:
+        f = _gzip.open(filename, 'wb')
+    else:
+        f = open(filename, 'w')
+
+    def write(fn, s):
+        if compressed:
+            fn.write(s.encode('ascii'))
+        else:
+            fn.write(s)
+
+    for n_coord, coord in enumerate(coordinates):
+        s = ''
+        for n_c, c in enumerate(coord):
+            if n_c < len(coord) - 1  and n_coord <= len(coordinates) - 1:
+                add = '\t'
+            elif n_c == len(coord) - 1 and n_coord < len(coordinates) - 1:
+                add = '\n'
+            elif n_c == len(coord) - 1 and n_coord == len(coordinates) - 1:
+                add = ''
+            s += str(c) + add
+        write(f, s)
+
+    f.close()
+
+
 class Beam(dict) :
     def __init__(self, particleType='e-', energy=1.0, distrType='reference', *args, **kwargs):
         dict.__init__(self,*args,**kwargs)
@@ -73,7 +111,7 @@ class Beam(dict) :
         setattr(self, 'SetDispXP',     self._SetDispXP)
         setattr(self, 'SetDispYP',     self._SetDispYP)
 
-    def SetDistributionType(self,distrType='reference'):
+    def SetDistributionType(self, distrType='reference'):
         if distrType not in BDSIMDistributionTypes:
             raise ValueError("Unknown distribution type: '"+str(distrType)+"'")
         self['distrType'] = '"' + distrType + '"'
@@ -332,19 +370,3 @@ class Beam(dict) :
 
     def _SetDistrFileFormat(self, format_string):
         self["distrFileFormat"] = '"{}"'.format(format_string)
-
-    def _MakeGaussTwiss(self):
-        setattr(self, 'SetBetaX',      self._SetBetaX)
-        setattr(self, 'SetBetaY',      self._SetBetaY)
-        setattr(self, 'SetAlphaX',     self._SetAlphaX)
-        setattr(self, 'SetAlphaY',     self._SetAlphaY)
-        setattr(self, 'SetEmittanceX', self._SetEmittanceX)
-        setattr(self, 'SetEmittanceY', self._SetEmittanceY)
-        setattr(self, 'SetEmittanceNX', self._SetEmittanceNX)
-        setattr(self, 'SetEmittanceNY', self._SetEmittanceNY)
-        setattr(self, 'SetSigmaE',     self._SetSigmaE)
-        setattr(self, 'SetSigmaT',     self._SetSigmaT)
-        setattr(self, 'SetDispX',      self._SetDispX)
-        setattr(self, 'SetDispY',      self._SetDispY)
-        setattr(self, 'SetDispXP',     self._SetDispXP)
-        setattr(self, 'SetDispYP',     self._SetDispYP)

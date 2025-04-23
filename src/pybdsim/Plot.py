@@ -20,7 +20,9 @@ import matplotlib.patches as _patches
 import numpy as _np
 import os.path as _ospath
 from scipy import constants as _con
+from packaging import version as _version
 
+_modernMatplotlib = _version.parse(_matplotlib.__version__) >= _version.parse('3.3')
 
 class _My_Axes(_matplotlib.axes.Axes):
     """
@@ -488,7 +490,8 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
     PlotSigma(optics,  survey=survey, outputfilename=outputfilename, **kwargs),
     PlotSigmaP(optics, survey=survey, outputfilename=outputfilename, **kwargs),
     PlotMean(optics,   survey=survey, outputfilename=outputfilename, **kwargs),
-    PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs)
+    PlotNPart(optics,  survey=survey, outputfilename=outputfilename, **kwargs),
+        PlotEmittance(optics, survey=survey, outputfilename=outputfilename, **kwargs)
     ]
 
     if saveall:
@@ -570,7 +573,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         # just round down to next power of 10 on the contents.
         ymin = sf * 10 ** (_np.floor(_np.log10(_np.min(h.contents[h.contents > 0]))))
         ax.set_ylim(abs(ymin)*0.9,abs(ymax)*1.3)
-        if _matplotlib.__version__ >= '3.3':
+        if _modernMatplotlib:
             ax.set_yscale('log', nonpositive='clip')
         else:
             ax.set_yscale('log', nonposy='clip')
@@ -780,7 +783,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         aymin = 10**_np.floor(_np.log10(abs(yminpos)*0.9))
         aymax = 10**_np.ceil(_np.log10(abs(ymax)*1.1))
         ax.set_ylim(aymin, aymax)
-        if _matplotlib.__version__ >= '3.3':
+        if _modernMatplotlib:
             ax.set_yscale('log', nonpositive='clip')
         else:
             ax.set_yscale('log', nonposy='clip')
@@ -1129,7 +1132,7 @@ def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=Fal
     if label1 is not None and label2 is not None:
         axHist.legend()
     if yLogScale:
-        if _matplotlib.__version__ >= '3.3':
+        if _modernMatplotlib:
             axHist.set_yscale('log', nonpositive='clip')
         else:
             axHist.set_yscale('log', nonposy='clip')
@@ -1362,7 +1365,7 @@ def PhaseSpaceSeparateAxes(filename, samplerIndexOrName=0, outputfilename=None, 
         norm2D = None
     if log1daxes:
         axes = [axX, axY, axXp, axYp, axE, axT]
-        if _matplotlib.__version__ >= '3.3':
+        if _modernMatplotlib:
             [a.set_yscale('log', nonpositive='clip') for a in axes]
         else:
             [a.set_yscale('log', nonposy='clip') for a in axes]
@@ -1788,7 +1791,7 @@ def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsu
         ax.plot(ledges, scale*cold_bins, ls="steps", color=cold_col, label="Cold", zorder=5)
         ax.errorbar(ledges-xwidth/2, scale*cold_bins, scale*cold_errs, linestyle="", fmt="none", color=cold_col, zorder=5)
 
-    if _matplotlib.__version__ >= '3.3':
+    if _modernMatplotlib:
         ax.set_yscale("log", nonpositive='clip')
     else:
         ax.set_yscale("log", nonposy='clip')
@@ -1875,7 +1878,7 @@ def LossAndEnergyDeposition(filename, outputfilename=None, tfssurvey=None, bdsim
     ax2 = ax1.twinx()
     ax2.errorbar(eloss.xcentres, eloss.contents, xerr=eloss.xwidths*0.5,yerr=eloss.errors,c='k',
                  elinewidth=0.8, label='Energy Deposition', drawstyle='steps-mid', alpha=0.5)
-    if _matplotlib.__version__ >= '3.3':
+    if _modernMatplotlib:
         ax2.set_yscale('log',nonpositive='clip')
     else:
         ax2.set_yscale('log',nonposy='clip')
