@@ -1070,6 +1070,13 @@ class Machine(object):
         print('Number of elements in sequence: ',len(self.sequence),' <- returning this')
         return len(self.sequence)
 
+    def __add__(self,other):
+        if isinstance(other, Machine):
+            result = _copy.deepcopy(self)
+            for e in other:
+                result.Append(e)
+            return result
+
     def GetIntegratedAngle(self):
         """
         Get the cumulative angle of all the bends in the machine. This is therefore the difference
