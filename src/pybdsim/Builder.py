@@ -1512,7 +1512,8 @@ class Machine(object):
         """
         if self.verbose:
             print('AddDrift>  ',name,' ',length,' ',kwargs)
-        if length < 1e-12:
+        length_value = EvaluateLength(length)
+        if length_value < 1e-12:
             self.AddMarker(name)
         else:
             self.Append(Element(name, 'drift', l=length ,**kwargs))
