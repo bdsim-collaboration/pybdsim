@@ -163,6 +163,16 @@ class Study(object):
             self.outputsizes.append(0)
 
 
+def _NumberOfCPUs(nCPUs=None):
+    maxNumberOfCores = _cpu_count() - 1
+    if nCPUs is None:
+        nCPUs = maxNumberOfCores
+    if nCPUs > maxNumberOfCores:
+        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
+        nCPUs = maxNumberOfCores
+    return nCPUs
+
+
 def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
           silent=False, errorSilent=False, options=None, bdsimExecutable=None):
     """
@@ -292,12 +302,7 @@ def BdskimParallel(skim_config_file, bdsim_raw_output_file_list, outfilelist=Non
     :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
     :type bdsim_raw_output_file_list: list(str)
     """
-    maxNumberOfCores = _cpu_count() - 1
-    if nCPUs is None:
-        nCPUs = maxNumberOfCores
-    if nCPUs > maxNumberOfCores:
-        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
-        nCPUs = maxNumberOfCores
+    nCPUs = _NumberOfCPUs(nCPUs)
 
     if outfilelist is not None and len(bdsim_raw_output_file_list) != len(outfilelist):
         raise ValueError("Number of input files and output files do not match")
@@ -324,12 +329,7 @@ def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelis
     :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
     :type bdsim_raw_output_file_list: list(str)
     """
-    maxNumberOfCores = _cpu_count() - 1
-    if nCPUs is None:
-        nCPUs = maxNumberOfCores
-    if nCPUs > maxNumberOfCores:
-        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
-        nCPUs = maxNumberOfCores
+    nCPUs = _NumberOfCPUs(nCPUs)
 
     if outfilelist is not None and len(bdsim_raw_output_file_list) != len(outfilelist):
         raise ValueError("Number of input files and output files do not match")
@@ -379,12 +379,7 @@ def RebdsimHistoMergeParallel(bdsim_raw_output_file_list, outfilelist=None, sile
     :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
     :type bdsim_raw_output_file_list: list(str)
     """
-    maxNumberOfCores = _cpu_count() - 1
-    if nCPUs is None:
-        nCPUs = maxNumberOfCores
-    if nCPUs > maxNumberOfCores:
-        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
-        nCPUs = maxNumberOfCores
+    nCPUs = _NumberOfCPUs(nCPUs)
 
     if outfilelist is not None and len(bdsim_raw_output_file_list) != len(outfilelist):
         raise ValueError("Number of input files and output files do not match")
