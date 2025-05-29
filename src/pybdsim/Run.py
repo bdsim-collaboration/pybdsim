@@ -195,7 +195,7 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
     else:
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
-def BdsimParallel(gmadpath, outfile, nJobs=None, ngenerate=10000, startseed=None, batch=True,
+def BdsimParallel(gmadpath, outfile, nJobs=1, ngenerate=10000, startseed=None, batch=True,
                   silent=False, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
     """
     Runs multiple bdsim instances with gmadpath as inputfile and outfile as outfile.
@@ -216,7 +216,8 @@ def BdsimParallel(gmadpath, outfile, nJobs=None, ngenerate=10000, startseed=None
     if nCPUs > maxNumberOfCores:
         print("Limiting the number of cores to the maximum of {}".format(maxNumberOfCores))
         nCPUs = maxNumberOfCores
-
+    if nJobs < nCPUs:
+        nCPUs = nJobs
     p = _Pool(processes=nCPUs)
     for i in range(nJobs):
         args = (gmadpath, outfile + '_' + str(i), ngenerate, seed, batch,
