@@ -1026,7 +1026,7 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
 
 
 def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
-                      xlabel=None, ylabel=None, scalingFactor=1.0, swapXAxis=False,
+                      xlabel=None, ylabel=None, zlabel="", scalingFactor=1.0, swapXAxis=False,
                       figsize=(6.4, 4.8), logNorm=False, vmax=None, vmin=None, savingPrefix=None):
     """
     Plot multiple 1D histograms along a given dimension integrateAlong. The integrated 2D histogram originates
