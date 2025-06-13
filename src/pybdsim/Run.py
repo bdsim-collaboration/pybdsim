@@ -163,6 +163,16 @@ class Study(object):
             self.outputsizes.append(0)
 
 
+def _NumberOfCPUs(nCPUs=None):
+    maxNumberOfCores = _cpu_count() - 1
+    if nCPUs is None:
+        nCPUs = maxNumberOfCores
+    if nCPUs > maxNumberOfCores:
+        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
+        nCPUs = maxNumberOfCores
+    return nCPUs
+
+
 def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
           silent=False, errorSilent=False, options=None, bdsimExecutable=None):
     """
@@ -196,7 +206,7 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
 
 def BdsimParallel(gmadpath, outfile, nJobs=None, ngenerate=10000, startseed=None, batch=True,
-                  silent=True, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
+                  silent=False, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
     """
     Runs multiple bdsim instances with gmadpath as inputfile and outfile as outfile.
     The number of parallel jobs is defined by nJobs. It can be specified how many cores
@@ -253,7 +263,61 @@ def Rebdsim(analysis_config_file, bdsim_raw_output_file, output_file_name=None, 
     else:
         return _subprocess.call(args)
 
-def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=True,
+def Bdskim(skim_config_file, bdsim_raw_output_file, output_file_name=None, silent=False, bdskimExecutable=None):
+    """
+    Run bdskim with skim_config_file as skim configuration text file on a bdsim
+    raw output root file.
+
+    :param skim_config_file: skim configuration text file
+    :type skim_config_file: str
+    :param bdsim_raw_output_file: bdsim raw output root file to analyse
+    :type bdsim_raw_output_file: str
+    :param output_file_name: optional output file name, default is (raw_name)_skim.root
+    :type output_file_name: None, str
+    :param silent: whether to suppress the print-out
+    :type silent: bool
+    :param rebdsimExecutable: specific executable to use for developers
+    :type rebdsimExecutable: None, str
+    """
+    bdskimExecutable = "bdskim" if not bdskimExecutable else bdskimExecutable
+    if not _General.IsROOTFile(bdsim_raw_output_file):
+        raise IOError("Not a ROOT file")
+    args = [bdskimExecutable, skim_config_file, bdsim_raw_output_file]
+    if output_file_name is not None:
+        args.append(output_file_name)
+    if silent:
+        return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
+    else:
+        return _subprocess.call(args)
+
+def BdskimParallel(skim_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=False,
+                   bdskimExecutable=None, nCPUs=None):
+    """
+    Run multiple bdskim instances with a single skim config file. The number
+    of parallel jobs is defined by nCPUs, but limited to the total number
+    of cores available minus 1.
+
+    :param skim_config_file: skim configuration text file
+    :type skim_config_file: str
+    :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
+    :type bdsim_raw_output_file_list: list(str)
+    """
+    nCPUs = _NumberOfCPUs(nCPUs)
+
+    if outfilelist is not None and len(bdsim_raw_output_file_list) != len(outfilelist):
+        raise ValueError("Number of input files and output files do not match")
+    elif outfilelist is None:
+        outfilelist = [f[:-5] if f.endswith('.root') else f for f in bdsim_raw_output_file_list]
+        outfilelist = [f + '_skim.root' for f in outfilelist]
+    p = _Pool(processes=nCPUs)
+
+    for infile, outfile in zip(bdsim_raw_output_file_list, outfilelist):
+        args = (skim_config_file, infile, outfile, silent, bdskimExecutable)
+        p.apply_async(Bdskim, args=args)
+    p.close()
+    p.join()
+
+def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=False,
                     rebdsimExecutable=None, nCPUs=None):
     """
     Run multiple rebdsim instances with a single analysis config file. The number
@@ -265,12 +329,7 @@ def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelis
     :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
     :type bdsim_raw_output_file_list: list(str)
     """
-    maxNumberOfCores = _cpu_count() - 1
-    if nCPUs is None:
-        nCPUs = maxNumberOfCores
-    if nCPUs > maxNumberOfCores:
-        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
-        nCPUs = maxNumberOfCores
+    nCPUs = _NumberOfCPUs(nCPUs)
 
     if outfilelist is not None and len(bdsim_raw_output_file_list) != len(outfilelist):
         raise ValueError("Number of input files and output files do not match")
@@ -320,12 +379,7 @@ def RebdsimHistoMergeParallel(bdsim_raw_output_file_list, outfilelist=None, sile
     :param bdsim_raw_output_file_list: list of bdsim raw output root files to analyse
     :type bdsim_raw_output_file_list: list(str)
     """
-    maxNumberOfCores = _cpu_count() - 1
-    if nCPUs is None:
-        nCPUs = maxNumberOfCores
-    if nCPUs > maxNumberOfCores:
-        print("Limiting the number of jobs to {}".format(maxNumberOfCores))
-        nCPUs = maxNumberOfCores
+    nCPUs = _NumberOfCPUs(nCPUs)
 
     if outfilelist is not None and len(bdsim_raw_output_file_list) != len(outfilelist):
         raise ValueError("Number of input files and output files do not match")

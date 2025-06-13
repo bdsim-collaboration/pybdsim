@@ -88,10 +88,10 @@ class BDSIMOutput:
     def get_sampler_names(self):
         return self.sampler_names
 
-    def get_csampler_names(self):
+    def get_samplerc_names(self):
         return self.csampler_names
 
-    def get_ssampler_names(self):
+    def get_samplers_names(self):
         return self.ssampler_names
 
     def get_histo1d_names(self):
@@ -938,10 +938,10 @@ class BDSIMOutput:
 
         sampler = self.e.GetSampler(sampler_name)
 
-
         dd = {}
         dd['file_idx'] = []
         dd['event_idx'] = []
+        dd['sampler_idx'] = []
         dd['x'] = []
         dd['xp'] = []
         dd['y'] = []
@@ -960,6 +960,7 @@ class BDSIMOutput:
             for ipart in range(0, sampler.n) :
                 dd['file_idx'].append(self.get_filename_index(self.ot.GetFile().GetName()))
                 dd['event_idx'].append(ievt)
+                dd['sampler_idx'].append(ipart)
                 dd['x'].append(sampler.x[ipart])
                 dd['xp'].append(sampler.xp[ipart])
                 dd['y'].append(sampler.y[ipart])
@@ -975,14 +976,87 @@ class BDSIMOutput:
         df = _pd.DataFrame(dd)
         return df
 
-    def get_csampler(self, sampler_name):
+    def get_samplerc(self, sampler_name):
         if sampler_name not in self.csampler_names:
             print("Sampler name not recognized")
             return
 
-    def get_ssampler(self, sampler_name):
+        sampler = self.e.GetSamplerC(sampler_name)
+
+        dd = {}
+        dd['file_idx'] = []
+        dd['event_idx'] = []
+        dd['sampler_idx'] = []
+        dd['rp'] = []
+        dd['phi'] = []
+        dd['phip'] = []
+        dd['z'] = []
+        dd['zp'] = []
+        dd['T'] = []
+        dd['totalEnergy'] = []
+        dd['partID'] = []
+        dd['trackID'] = []
+        dd['weight'] = []
+
+
+        for ievt in range(0, self.et.GetEntries()):
+            self.et.GetEntry(ievt)
+
+            for ipart in range(0, sampler.n) :
+                dd['file_idx'].append(self.get_filename_index(self.ot.GetFile().GetName()))
+                dd['event_idx'].append(ievt)
+                dd['sampler_idx'].append(ipart)
+                dd['rp'].append(sampler.rp[ipart])
+                dd['phi'].append(sampler.phi[ipart])
+                dd['phip'].append(sampler.phip[ipart])
+                dd['z'].append(sampler.z[ipart])
+                dd['zp'].append(sampler.zp[ipart])
+                dd['T'].append(sampler.T[ipart])
+                dd['totalEnergy'].append(sampler.totalEnergy[ipart])
+                dd['partID'].append(sampler.partID[ipart])
+                dd['trackID'].append(sampler.trackID[ipart])
+                dd['weight'].append(sampler.weight[ipart])
+
+        df = _pd.DataFrame(dd)
+        return df
+
+    def get_samplers(self, sampler_name):
         if sampler_name not in self.ssampler_names:
             print("Sampler name not recognized")
             return
 
+        sampler = self.e.GetSamplerS(sampler_name)
 
+        dd = {}
+        dd['file_idx'] = []
+        dd['event_idx'] = []
+        dd['sampler_idx'] = []
+        dd['phi'] = []
+        dd['phip'] = []
+        dd['theta'] = []
+        dd['thetap'] = []
+        dd['T'] = []
+        dd['totalEnergy'] = []
+        dd['partID'] = []
+        dd['trackID'] = []
+        dd['weight'] = []
+
+        for ievt in range(0, self.et.GetEntries()):
+            self.et.GetEntry(ievt)
+
+            for ipart in range(0, sampler.n) :
+                dd['file_idx'].append(self.get_filename_index(self.ot.GetFile().GetName()))
+                dd['event_idx'].append(ievt)
+                dd['sampler_idx'].append(ipart)
+                dd['phi'].append(sampler.phi[ipart])
+                dd['phip'].append(sampler.phip[ipart])
+                dd['theta'].append(sampler.theta[ipart])
+                dd['thetap'].append(sampler.thetap[ipart])
+                dd['T'].append(sampler.T[ipart])
+                dd['totalEnergy'].append(sampler.totalEnergy[ipart])
+                dd['partID'].append(sampler.partID[ipart])
+                dd['trackID'].append(sampler.trackID[ipart])
+                dd['weight'].append(sampler.weight[ipart])
+
+        df = _pd.DataFrame(dd)
+        return df
