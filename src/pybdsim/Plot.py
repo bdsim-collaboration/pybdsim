@@ -510,7 +510,7 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
 
 
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0,
-                figsize=(6.4, 4.8), swapXAxis=False, log=False, ax=None, **errorbarKwargs):
+                figsize=(6.4, 4.8), swapXAxis=False, log=False, xlog=False, ax=None, **errorbarKwargs):
     """
     Plot a pybdsim.Data.TH1 instance.
 
@@ -582,6 +582,14 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
 
     if swapXAxis:
         ax.set_xlim(ax.get_xlim()[::-1])
+    if xlog:
+        ax.set_xscale('log')
+        xmin = _np.min(xsf*ht.xlowedge)
+        xmax = _np.max(xsf*ht.xhighedge)
+        suggestedXMin = 0.95*xmin
+        if suggestedXMin <= 0:
+            suggestedXMin = 1
+        ax.set_xlim(suggestedXMin, 1.05*xmax)
 
     if not incomingAxis:
         _plt.tight_layout()
@@ -832,6 +840,8 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     if not ax:
         f = _plt.figure(figsize=figsize)
         ax = f.add_subplot(111)
+    else:
+        f = ax.get_figure()
     x, y = _np.meshgrid(h.xcentres,h.ycentres)
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
@@ -891,7 +901,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
 
     if not incomingAxis:
         _plt.tight_layout()
-    return _plt.gcf()
+    return f, ax
 
 
 def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="",
@@ -1024,7 +1034,7 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
 
 
 def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
-                      xlabel=None, ylabel=None, scalingFactor=1.0, swapXAxis=False,
+                      xlabel=None, ylabel=None, zlabel="", scalingFactor=1.0, swapXAxis=False,
                       figsize=(6.4, 4.8), logNorm=False, vmax=None, vmin=None, savingPrefix=None):
     """
     Plot multiple 1D histograms along a given dimension integrateAlong. The integrated 2D histogram originates
@@ -1069,10 +1079,10 @@ def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
     for i in range(startSlice, endSlice):
         slice = f(i)
         title = "Slice " + str(i) + " at " + sliceDimension + " = "+"{:.2f}".format(sliceDimCentres[i])
-        Histogram2D(slice, logNorm=logNorm, xlabel=xlabel, ylabel=ylabel, title=title,
-                    figsize=figsize, scalingFactor=scalingFactor, vmin=vmin, vmax=vmax, swapXAxis=swapXAxis)
+        fig, ax = Histogram2D(slice, logNorm=logNorm, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title,
+                              figsize=figsize, scalingFactor=scalingFactor, vmin=vmin, vmax=vmax, swapXAxis=swapXAxis)
         if savingPrefix:
-            _plt.savefig(savingPrefix+"slice_"+f'{i:03}'+".png", dpi=400)
+            fig.savefig(savingPrefix+"slice_"+f'{i:03}'+".png", dpi=400)
 
 
 def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
