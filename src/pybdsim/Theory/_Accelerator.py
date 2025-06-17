@@ -7,7 +7,7 @@ except ModuleNotFoundError :
 
 
 def DriftTransverseMatrix(l) :
-    '''
+    """
     Calculates drift transverse matrix.
 
     Example:
@@ -21,12 +21,12 @@ def DriftTransverseMatrix(l) :
     +-----------------+---------------------------------------------------------+
     | l               | Longitudinal length of drift                            |
     +-----------------+---------------------------------------------------------+
-    '''
+    """
 
     return _np.array([[1,l],[0,1]])
 
 def QuadrupoleThickTransverseMatrix(l,k1 = None, k1l = None) :
-    '''
+    """
     Calculates thick quadrupole transverse matrix.
 
     Example:
@@ -40,7 +40,7 @@ def QuadrupoleThickTransverseMatrix(l,k1 = None, k1l = None) :
     +-----------------+---------------------------------------------------------+
     | k1              | Quadrupole kick strengt                                 |
     +-----------------+---------------------------------------------------------+
-    '''
+    """
 
     if l == 0 :
         return QuadrupoleThinTransverseMatrix(k1l)
@@ -147,7 +147,7 @@ def CavityBodyConstantEMatrix(gammaI, gammaF, L) :
     return _np.array([[1, gammaI/gammaPrime*_np.log(gammaF/gammaI)],[0, gammaI/gammaF]])
 
 def CavityBodyTransverseMatrix(gammaI, gammaF, L, alpha, eta, deltaPhi) :
-    '''
+    """
     Calculates RF cavity body transverse matrix.
 
     Example:
@@ -174,14 +174,14 @@ def CavityBodyTransverseMatrix(gammaI, gammaF, L, alpha, eta, deltaPhi) :
     +-----------------+---------------------------------------------------------+
     | deltaPhi        | Energy gain (or gamma, units do not matter). If None    |
     +-----------------+---------------------------------------------------------+
-    '''
+    """
 
     gammaPrime = (gammaF - gammaI)/L
     return _np.array([[_np.cos(alpha), _np.sqrt(8/eta)*gammaI/gammaPrime*_np.cos(deltaPhi)*_np.sin(alpha)],
                       [-_np.sqrt(eta/8)*gammaPrime/(gammaF*_np.cos(deltaPhi))*_np.sin(alpha), gammaI/gammaF*_np.cos(alpha)]])
 
 def CavityFringeTransverseMatrix(gammaI, gammaF, L = 1, inward = True, gammaPrime = None) :
-    '''
+    """
     Calculates RF cavity fringe transverse matrix.
 
     Example:
@@ -202,7 +202,7 @@ def CavityFringeTransverseMatrix(gammaI, gammaF, L = 1, inward = True, gammaPrim
     | gammaPrime      | Energy gain (or gamma, units do not matter). If None    |
     |                 | it is calculated from gammaF - gammaI                   |
     +-----------------+---------------------------------------------------------+
-    '''
+    """
 
     if not gammaPrime and L != 0:
         gammaPrime = (gammaF - gammaI)/L
@@ -223,7 +223,7 @@ def CavityPiModeComplete(gammaI, gammaF, L, alpha) :
                       [-3*gammaPrime/(_np.sqrt(8)*gammaF)*_np.sin(alpha),gammaI/gammaF*(_np.cos(alpha)+_np.sqrt(2)*_np.sin(alpha))]])
 
 def CavityGammaPrime(E0, deltaPhi, q = 1, m0 = 0.511) :
-    '''
+    """
     Calculates RF cavity energy gain (inits are energy MeV, momentum MeV/c, mass MeV/c**2)
 
     gammaPrime = q*E0*cos(deltaPhi)/m
@@ -239,7 +239,7 @@ def CavityGammaPrime(E0, deltaPhi, q = 1, m0 = 0.511) :
     +-----------------+---------------------------------------------------------+
     | m0              | Rest mass (MeV/c^2)                                     |
     +-----------------+---------------------------------------------------------+
-    '''
+    """
 
     return q*E0*_np.cos(deltaPhi)/m0
 
