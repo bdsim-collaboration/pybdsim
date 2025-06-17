@@ -99,6 +99,7 @@ __all__ = ['Beam',
            'ModelProcessing',
            'Visualisation',
            'XSecBias',
+           'Theory',
            '_General']
 
 try:
