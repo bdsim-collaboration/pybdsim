@@ -1,3 +1,4 @@
+import gzip as _gzip
 """
 Module containing a similarly named Beam class for creating
 a BDSIM beam distribution programmatically.
@@ -41,6 +42,42 @@ BDSIMParticleTypes = [
     'kaon+',
     'kaon0L'
 ]
+
+def WriteUserFile(filename, coordinates):
+    """
+    Function to write a BDSIM beamfile of type userfile.
+
+    :param filename: Name of file to write the coordinates to
+    :type filename: str
+    :param coordinates: Coordinates of the different beam particles
+    :type coordinates: list of list of float
+    """
+    compressed = filename.endswith(".gz")
+    if compressed:
+        f = _gzip.open(filename, 'wb')
+    else:
+        f = open(filename, 'w')
+
+    def write(fn, s):
+        if compressed:
+            fn.write(s.encode('ascii'))
+        else:
+            fn.write(s)
+
+    for n_coord, coord in enumerate(coordinates):
+        s = ''
+        for n_c, c in enumerate(coord):
+            if n_c < len(coord) - 1  and n_coord <= len(coordinates) - 1:
+                add = '\t'
+            elif n_c == len(coord) - 1 and n_coord < len(coordinates) - 1:
+                add = '\n'
+            elif n_c == len(coord) - 1 and n_coord == len(coordinates) - 1:
+                add = ''
+            s += str(c) + add
+        write(f, s)
+
+    f.close()
+
 
 class Beam(dict) :
     def __init__(self, particleType='e-', energy=1.0, distrType='reference', *args, **kwargs):
