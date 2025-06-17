@@ -80,8 +80,8 @@ def _make_plotter(plot_info_tuples, x_label, y_label, title):
              survey=None, **kwargs):
       
         # _ is a problem for latex rendering 
-        first_name = first_name.replace("_","\_")
-        second_name = second_name.replace("_","\_")
+        first_name = first_name.replace("_",r"\_")
+        second_name = second_name.replace("_",r"\_")
 
         # Get the initial N for the two sources
         first_nparticles = first.Npart()[0]
@@ -138,8 +138,8 @@ def PlotNPart(first, second, first_name, second_name, survey=None, **kwargs):
         tightLayout = kwargs['tightLayout']
 
     # _ is a problem for latex rendering
-    first_name = first_name.replace("_","\_")
-    second_name = second_name.replace("_","\_")
+    first_name = first_name.replace("_",r"\_")
+    second_name = second_name.replace("_",r"\_")
 
     plot = _plt.figure("Npart", figsize=(9,5), **kwargs)
     # Loop over the variables in plot_info_tuples and draw the plots.

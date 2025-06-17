@@ -700,7 +700,7 @@ def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None
 def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None,
                         title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),
                         legendKwargs=None, ax=None, **errorbarKwargs):
-    """
+    r"""
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
 
@@ -1541,15 +1541,15 @@ def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
 
     axXp = f.add_subplot(245)
     axXp.hist(d['xp'],nbins)
-    axXp.set_xlabel('X$^{\prime}$')
+    axXp.set_xlabel(r'X$^{\prime}$')
 
     axYp = f.add_subplot(246)
     axYp.hist(d['yp'],nbins)
-    axYp.set_xlabel('Y$^{\prime}$')
+    axYp.set_xlabel(r'Y$^{\prime}$')
 
     axZp = f.add_subplot(247)
     axZp.hist(d['zp'],nbins)
-    axZp.set_xlabel('Z$^{\prime}$')
+    axZp.set_xlabel(r'Z$^{\prime}$')
 
     axT = f.add_subplot(248)
     axT.hist(d['T'],nbins)
@@ -1564,17 +1564,17 @@ def PhaseSpace(data, nbins=None, outputfilename=None, extension='.pdf'):
     axXXP = f2.add_subplot(231)
     axXXP.hist2d(d['x'],d['xp'],bins=nbins,cmin=1)
     axXXP.set_xlabel('X (m)')
-    axXXP.set_ylabel('X$^{\prime}$')
+    axXXP.set_ylabel(r'X$^{\prime}$')
 
     axYYP = f2.add_subplot(232)
     axYYP.hist2d(d['y'],d['yp'],bins=nbins,cmin=1)
     axYYP.set_xlabel('Y (m)')
-    axYYP.set_ylabel('Y$^{\prime}$')
+    axYYP.set_ylabel(r'Y$^{\prime}$')
 
     axYPYP = f2.add_subplot(233)
     axYPYP.hist2d(d['xp'],d['yp'],bins=nbins,cmin=1)
-    axYPYP.set_xlabel('X$^{\prime}$')
-    axYPYP.set_ylabel('Y$^{\prime}$')
+    axYPYP.set_xlabel(r'X$^{\prime}$')
+    axYPYP.set_ylabel(r'Y$^{\prime}$')
 
     axXY = f2.add_subplot(234)
     axXY.hist2d(d['x'],d['y'],bins=nbins,cmin=1)
@@ -1659,7 +1659,7 @@ def EnergyDepositionPE(filename, outputfilename=None):
 
 
 def EnergyDepositionCoded(filename, outputfilename=None, tfssurvey=None, bdsimsurvey=None, warmaperinfo=None, **kwargs):
-    """
+    r"""
     Plot the energy deposition from a REBDSIM output file - uses premade merged histograms.
 
     Optional either Twiss table for MADX or BDSIM Survey to add machine diagram to plot.
@@ -2038,7 +2038,7 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     _plt.axvline(firstHitS,ls="--",c='b')
     _plt.axvline(lastHitS,ls="--",c='r')
     ax2.yaxis.tick_right()
-    _plt.ylabel("$\log \Delta E$")
+    _plt.ylabel(r"$\log \Delta E$")
     ax2.yaxis.set_label_position("right")
     ax2.set_xticklabels([])
 
@@ -2048,7 +2048,7 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     _plt.axvline(firstHitS,ls="--",c='b')
     _plt.axvline(lastHitS,ls="--",c='r')
     ax3.set_xticklabels([])
-    _plt.ylabel("$p_x,p_y$")
+    _plt.ylabel(r"$p_x,p_y$")
 
     ax4 = _plt.subplot(9,1,5)
     _plt.plot(S[0:-2],trajData[0]['prePT'][0:-2],".",label="pre process type")
@@ -2077,7 +2077,7 @@ def PrimaryTrajectoryAndProcess(rootData, eventNumber) :
     _plt.axvline(firstHitS,ls="--",c='b')
     _plt.axvline(lastHitS,ls="--",c='r')
     _plt.ylabel("postPST")
-    _plt.xlabel("$S$/m")
+    _plt.xlabel(r"$S$/m")
 
     if hasattr(rootData, "model"):
         AddMachineLatticeFromSurveyToFigure(fig, rootData.model,tightLayout=True)

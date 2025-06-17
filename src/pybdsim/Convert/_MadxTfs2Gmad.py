@@ -161,20 +161,20 @@ def MadxTfs2Gmad(tfs, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
     | **verbose**                   | Print out lots of information when building the model.            |
     +-------------------------------+-------------------------------------------------------------------+
-    | **beam**                      | True \| False - generate an input gauss Twiss beam based on the   |
+    | **beam**                      | True or False - generate an input gauss Twiss beam based on the   |
     |                               | values of the twiss parameters at the beginning of the lattice    |
     |                               | (startname) NOTE - we thoroughly recommend checking these         |
     |                               | parameters and this functionality is only for partial convenience |
     |                               | to have a model that works straight away.                         |
     +-------------------------------+-------------------------------------------------------------------+
-    | **flipmagnets**               | True \| False - flip the sign of all k values for magnets - MADX  |
+    | **flipmagnets**               | True or False - flip the sign of all k values for magnets - MADX  |
     |                               | currently tracks particles agnostic of the particle charge -      |
     |                               | BDSIM however, follows the definition strictly -                  |
     |                               | positive k -> horizontal focussing for positive particles         |
     |                               | therefore, positive k -> vertical focussing for negative          |
     |                               | particles. Use this flag to flip the sign of all magnets.         |
     +-------------------------------+-------------------------------------------------------------------+
-    | **usemadxaperture**           | True \| False - use the aperture information in the TFS file if   |
+    | **usemadxaperture**           | True or False - use the aperture information in the TFS file if   |
     |                               | APER_1 and APER_2 columns exist.  Will only set if they're        |
     |                               | non-zero.  Supercedes kwargs `aperturedict` and                   |
     |                               | `aperlocalpositions`.                                             |
@@ -182,7 +182,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
     | **defaultAperture**           | The default aperture model to assume if none is specified.        |
     +-------------------------------+-------------------------------------------------------------------+
     | **biases**                    | Optional list of bias objects to be defined in own _bias.gmad     |
-    |                               | file.  These can then be attached either with allelementdict for  |
+    |                               | file. These can then be attached either with allelementdict for   |
     |                               | all components or userdict for individual ones.                   |
     +-------------------------------+-------------------------------------------------------------------+
     | **allelementdict**            | Dictionary of parameter/value pairs to be written to all          |
