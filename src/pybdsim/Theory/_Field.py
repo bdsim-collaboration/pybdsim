@@ -19,15 +19,14 @@ from numpy import trapz as _trapz
 from numpy import exp as _exp
 from numpy import zeros as _zeros
 
-def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1, opt=""):
 
+def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1, opt=""):
     if opt == "cart":
         x = r
         y = t
 
         r = _sqrt(x**2+y**2)
         t = _arctan2(y,x)
-
 
     if type(r) is not _array :
         r = _array(r)
@@ -68,7 +67,7 @@ def TM_cylindrical(r, t, z, radius, length, m, n, p, E0=1, opt=""):
             "Ex":Ex, "Ey":Ey, "Ez":Ez, "Er":Er, "Et":Et,"E":E,
             "Bx":Bx, "By":By, "Bz":Bz, "Br":Er, "Bt":Bt,"B":B}
 
-def TM010_cylindrical(r, t, z, radius, length, omega, E0=1, opt="") :
+def TM010_cylindrical(r, t, z, radius, length, omega, E0=1, opt=""):
     if opt == "cart":
         x = r
         y = t
@@ -119,7 +118,6 @@ def TM010_cylindrical(r, t, z, radius, length, omega, E0=1, opt="") :
             "Bx": Bx, "By": By, "Bz": Bz, "Br": Er, "Bt": Bt, "B":B}
 
 def TE_cylindrical(r, t, z, radius, length, m, n, p, B0=1, opt=""):
-
     if opt == "cart":
         x = r
         y = t
@@ -167,8 +165,7 @@ def TE_cylindrical(r, t, z, radius, length, m, n, p, B0=1, opt=""):
             "Ex": Ex, "Ey": Ey, "Ez": Ez, "Er": Er, "Et": Et, "E":E,
             "Bx": Bx, "By": By, "Bz": Bz, "Br": Er, "Bt": Bt, "B":B}
 
-def Cylindrical_cartesianmesh(radius, length, modeType, m,n,p, nx=20, ny=20, nz=20, safety=0.01, field0=1) :
-
+def Cylindrical_cartesianmesh(radius, length, modeType, m,n,p, nx=20, ny=20, nz=20, safety=0.01, field0=1):
     lowx = -radius - safety
     lowy = -radius - safety
     lowz =  0
@@ -438,7 +435,7 @@ def TransitTime_TM010(gap, beta, frequency) :
     wavelength = _c/frequency
     return _sin(_pi*gap/(beta*wavelength))/(_pi*gap)*beta*wavelength
 
-def TM_cylindical_old(radius, length, m,n,p, nx=20, ny=20, nz=20, safety=0.01, E0=1) :
+def TM_cylindical_old(radius, length, m,n,p, nx=20, ny=20, nz=20, safety=0.01, E0=1):
     kmn = _jn_zeros(m,n)[n-1]/radius
     kz  = p *_pi / length
 
@@ -541,7 +538,7 @@ def TM_cylindical_old(radius, length, m,n,p, nx=20, ny=20, nz=20, safety=0.01, E
             "Bx":BxArray.T, "By":ByArray.T,
             "B":B.T, "E":E.T}
 
-def TE_cylindical_old(radius, length, m,n,p, nx=20, ny=20, nz=20, safety=0.01, B0=1.0) :
+def TE_cylindical_old(radius, length, m,n,p, nx=20, ny=20, nz=20, safety=0.01, B0=1.0):
     kmn = _jnp_zeros(m,n)[n-1]/radius
     kz  = p *_pi / length
 
@@ -585,7 +582,7 @@ def TE_cylindical_old(radius, length, m,n,p, nx=20, ny=20, nz=20, safety=0.01, B
     BxArray = []
     ByArray = []
 
-    for z in zspace  :
+    for z in zspace:
         Ez = cavityshape * 0
         Er = cavityshape * omega * m*radius**2/_jnp_zeros(m,n)[n-1]/rmesh * B0 * _jn(m,kmn*rmesh) * _sin(m*tmesh) * _sin(p*_pi*z/length)
         Et = cavityshape * omega * radius/_jnp_zeros(m,n)[n-1] * B0 * _jvp(m, kmn*rmesh) * _cos(m*tmesh) * _sin(p*_pi*z/length)
@@ -644,8 +641,7 @@ def TE_cylindical_old(radius, length, m,n,p, nx=20, ny=20, nz=20, safety=0.01, B
             "Bx":BxArray.T, "By":ByArray.T,
             "B":B.T, "E":E.T}
 
-def Ez_Floquet(n = [-1,0], b = [1,1], cell_length = 0.2, cavity_length = 1.0, l=1,m=1, E0=1, nz=50) :
-
+def Ez_Floquet(n = [-1,0], b = [1,1], cell_length = 0.2, cavity_length = 1.0, l=1,m=1, E0=1, nz=50):
     n = _array(n)
     b = _array(b)
 

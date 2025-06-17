@@ -57,8 +57,7 @@ def QuadrupoleThinTransverseMatrix(k1l) :
                       [1./k1l,1]])
 
 
-def plot() :
-
+def Plot():
     nR = 10
     nZ = 10
     nPhi = 10
@@ -74,7 +73,6 @@ def plot() :
     vectors = _vtk.vtkDoubleArray()
     vectors.SetNumberOfComponents(3)
     vectors.SetName("vector data")
-
 
     R = 1
     Z = 5

@@ -2,7 +2,7 @@ import pybdsim.Data as _Data
 import numpy as _np
 import matplotlib.pyplot as _plt
 
-def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, average = False) :
+def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, average = False):
     """
     **CalculateRMatrix** calculate rmatrix from a BDSIM output root file and two sampler names
 
@@ -47,7 +47,7 @@ def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, avera
     sampler1_energy = sampler1_data.data['energy']
     sampler2_energy = sampler2_data.data['energy']
 
-    if average :
+    if average:
         sampler1_x  = sampler1_x - sampler1_x.mean()
         sampler1_xp = sampler1_xp - sampler1_xp.mean()
         sampler1_y  = sampler1_y - sampler1_y.mean()
@@ -78,7 +78,7 @@ def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, avera
                                      sampler2_time,
                                      sampler2_energy])
 
-    else :
+    else:
         sampler1_matrix = _np.array([sampler1_x,sampler1_xp,sampler1_y,sampler1_yp])
         sampler2_matrix = _np.array([sampler2_x,sampler2_xp,sampler2_y,sampler2_yp])
 
@@ -86,7 +86,7 @@ def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, avera
 
     return _np.dot(sampler2_matrix, sampler1_matrix_inv)
 
-def CalculateTaylorMapOrder2(root_file_name, sampler1_name, sampler2_name) :
+def CalculateTaylorMapOrder2(root_file_name, sampler1_name, sampler2_name):
     """
     **CalculateTaylorMapOrder2** calculate 2nd order Taylor map from a BDSIM output root file and two sampler names
 
@@ -134,7 +134,7 @@ def CalculateTaylorMapOrder2(root_file_name, sampler1_name, sampler2_name) :
 
     return _np.dot(sampler2_matrix, sampler1_matrix_inv)
 
-def CalculateEnergyGain(root_file_name, sampler1_name, sampler2_name) :
+def CalculateEnergyGain(root_file_name, sampler1_name, sampler2_name):
     """
     **CalculateEnergyGain** calculate energy gain from a BDSIM output root file and two sampler names
 
@@ -166,7 +166,7 @@ def CalculateEnergyGain(root_file_name, sampler1_name, sampler2_name) :
 
     return deltaE.mean()
 
-def CompareRMatrix(rmatrix1, rmatrix2, toll = 1e-4, user_print = True) :
+def CompareRMatrix(rmatrix1, rmatrix2, toll = 1e-4, user_print = True):
     """
     **CompareRMatrix** compare two rmatrices. If all elements differences are less than toll
 
@@ -202,6 +202,6 @@ def CompareRMatrix(rmatrix1, rmatrix2, toll = 1e-4, user_print = True) :
 
     return not bmatrix.any()
 
-def PlotRMatrix(rmatrix) :
+def PlotRMatrix(rmatrix):
     _plt.imshow(rmatrix)
     _plt.colorbar()
