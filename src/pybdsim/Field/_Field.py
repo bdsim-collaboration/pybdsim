@@ -1,7 +1,6 @@
 import gzip as _gzip
 import numpy as _np
 import tarfile as _tarfile
-import importlib_resources as _importlib_resources
 import os as _os    
 import pybdsim
 
@@ -684,6 +683,8 @@ def SortUnorderedFieldMap2D(field, symmetry="none", transpose=False):
     :param symmetry: Symmetry to apply to the field
     :type  symmetry: str
     """
+    # this is not a dependency...
+    import importlib_resources as _importlib_resources
     for sym in symmetry.split():
         if sym in _Symmetries2D.keys():
             if sym in ['reflectx', 'reflectxydipole', 'reflectxyquadrupole']:
