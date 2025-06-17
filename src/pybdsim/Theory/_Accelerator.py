@@ -1,6 +1,5 @@
 import numpy as _np
 import scipy.special as _special
-import scipy.constants as _constants
 try :
     import vtk as _vtk
 except ModuleNotFoundError :
