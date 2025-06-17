@@ -3,6 +3,7 @@ from scipy.special import jnp_zeros as _jnp_zeros
 from scipy.special import jn as _jn
 from scipy.special import jvp as _jvp
 from scipy.constants import speed_of_light as _c
+from matplotlib import pyplot as _plt
 from numpy import pi as _pi
 from numpy import sqrt as _sqrt
 from numpy import linspace as _linspace
@@ -286,41 +287,42 @@ def Cylindrical_line(radius, length, modeType, m,n,p, nx=20, ny=20, nz=20, safet
     return fd
 
 def MatplotlibPlotField(fieldDataDict):
-
-    import matplotlib.pyplot as plt
-
+    plotField = fieldDataDict['plotField']
+    Bz = fieldDataDict['Bz']
+    Br = fieldDataDict['Br']
+    Bt = fieldDataDict['Bt']
     Bmax = max(Bz.max(), Br.max(), Bt.max())
     _plt.subplot(6, 6, iplt)
     if plotField == "Ez":
-        plt.imshow(Ez)
-        plt.clim(-E0, E0)
+        _plt.imshow(Ez)
+        _plt.clim(-E0, E0)
     elif plotField == "Er":
-        plt.imshow(Er)
-        plt.clim(-E0, E0)
+        _plt.imshow(Er)
+        _plt.clim(-E0, E0)
     elif plotField == "Et":
-        plt.imshow(Et)
-        plt.clim(-E0, E0)
+        _plt.imshow(Et)
+        _plt.clim(-E0, E0)
     elif plotField == "Ex":
-        plt.imshow(Ex)
-        plt.clim(-E0, E0)
+        _plt.imshow(Ex)
+        _plt.clim(-E0, E0)
     elif plotField == "Ey":
-        plt.imshow(Ey)
-        plt.clim(-E0, E0)
+        _plt.imshow(Ey)
+        _plt.clim(-E0, E0)
     elif plotField == "Bz":
-        plt.imshow(Bz)
-        plt.clim(-Bmax, Bmax)
+        _plt.imshow(Bz)
+        _plt.clim(-Bmax, Bmax)
     elif plotField == "Br":
-        plt.imshow(Br)
-        plt.clim(-Bmax, Bmax)
+        _plt.imshow(Br)
+        _plt.clim(-Bmax, Bmax)
     elif plotField == "Bt":
-        plt.imshow(Bt)
-        plt.clim(-Bmax, Bmax)
+        _plt.imshow(Bt)
+        _plt.clim(-Bmax, Bmax)
     elif plotField == "Bx":
-        plt.imshow(Bx)
-        plt.clim(-Bmax, Bmax)
+        _plt.imshow(Bx)
+        _plt.clim(-Bmax, Bmax)
     elif plotField == "Bx":
-        plt.imshow(By)
-        plt.clim(-Bmax, Bmax)
+        _plt.imshow(By)
+        _plt.clim(-Bmax, Bmax)
     _plt.colorbar()
 
 def PyVistaPlotField(fieldDataDict) :
