@@ -1,6 +1,6 @@
 [project]
 name = "pybdsim"
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 dynamic = ["version"]
 readme = "README.md"
 description = "Python utilities for the Monte Carlo Particle accelerator code BDSIM."
