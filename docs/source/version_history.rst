@@ -2,7 +2,7 @@
 Version History
 ===============
 
-v3.7.0 - 2025 / 02 / XX
+v3.7.0 - 2025 / 06 / XX
 =======================
 
 * New parallelisation functions in :code:`pybdsim.Run` module for each tool.
@@ -16,6 +16,7 @@ v3.7.0 - 2025 / 02 / XX
 * Gabor lens from BDSIM will be plotted in machine diagram.
 * Dependency on `jinja2` introduced.
 * Add emittance plot to standard plots for :code:`pybdsim.Plot.BDSIMOptics`.
+* Ability to split a Builder.Element instance with the division operator.
 
 
 * Fix :code:`pybdsim.Plot.Spectra` when exactly 9 particles types were used.
