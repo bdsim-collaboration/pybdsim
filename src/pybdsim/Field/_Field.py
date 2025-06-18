@@ -2,8 +2,8 @@ import gzip as _gzip
 import importlib_resources as _importlib_resources
 import numpy as _np
 import tarfile as _tarfile
-import os as _os    
-import pybdsim
+import os as _os
+
 
 class Field(object):
     """
@@ -725,13 +725,12 @@ def SortUnorderedFieldMap2D(field, symmetry="none", transpose=False):
             row = data2D[(data2D[:,0] == xi) & (data2D[:,1] == yi)]
             v.append([row[0,0], row[0,1], row[0,2], row[0,3], row[0,4]])
         fieldmap.append(v)
-    # convert to numpy array
     fieldmap = _np.array(fieldmap)
     # construct a BDSIM format field object and write it out
-    field_new = pybdsim.Field.Field2D(fieldmap)
+    field_new = Field2D(fieldmap)
     with _importlib_resources.as_file(_importlib_resources.files("pybdsim") / "testfield2D.dat") as testfile:
         field_new.Write(testfile)
-        field_new = pybdsim.Field.Load(testfile)
+        field_new = Load(testfile)
         _os.remove(testfile)
     return field_new
     
