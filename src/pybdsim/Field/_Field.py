@@ -663,7 +663,7 @@ _Symmetries = {
         ]
 }
 
-# create _Symmetres2D from _Symmetries where index 2 and 3 are removed
+# create _Symmetries2D from _Symmetries where index 2 and 3 are removed
 _Symmetries2D = {}
 for key in _Symmetries.keys():
     _Symmetries2D[key] = []
