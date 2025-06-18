@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development"
     ]
 authors = [
-  {name = "JAI@RHUL", email = "laurie.nevay@cern.ch"}
+  {name = "BDSIM Collaboration", email = "laurie.nevay@cern.ch"}
 ]
 maintainers = [
   {name = "Laurie Nevay", email = "laurie.nevay@cern.ch"}
