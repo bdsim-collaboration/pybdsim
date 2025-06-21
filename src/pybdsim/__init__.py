@@ -76,7 +76,12 @@ from . import Visualisation
 from . import XSecBias
 from . import _General
 from . import Theory
-from . import Testing
+
+try:
+    # this requires pytest which is only available in the [dev] install
+    from . import Testing
+except:
+    pass
 
 __all__ = ['Beam',
            'Builder',
@@ -94,6 +99,7 @@ __all__ = ['Beam',
            'ModelProcessing',
            'Visualisation',
            'XSecBias',
+           'Theory',
            '_General']
 
 try:

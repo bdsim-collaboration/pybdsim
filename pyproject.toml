@@ -1,6 +1,6 @@
 [project]
 name = "pybdsim"
-requires-python = ">=3.6"
+requires-python = ">=3.7"
 dynamic = ["version"]
 readme = "README.md"
 description = "Python utilities for the Monte Carlo Particle accelerator code BDSIM."
@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development"
     ]
 authors = [
-  {name = "JAI@RHUL", email = "laurie.nevay@cern.ch"}
+  {name = "BDSIM Collaboration", email = "laurie.nevay@cern.ch"}
 ]
 maintainers = [
   {name = "Laurie Nevay", email = "laurie.nevay@cern.ch"}
@@ -28,6 +28,7 @@ maintainers = [
 dependencies = [
   "matplotlib>=3.0",
   "numpy>=1.14",
+  "importlib-resources",
   "importlib-metadata",
   "scipy",
   "fortranformat",

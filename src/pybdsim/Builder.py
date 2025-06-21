@@ -77,6 +77,28 @@ bdsimcategories = [
     'paralleltransporter',
     ]
 
+_unsplittable_categories = [
+    'thinmultipole',
+    'laser',
+    'crystalcol',
+    'undulator',
+    'transform3d',
+    'rmatrix',
+    'thinrmatrix',
+    'element',
+    'marker',
+    'wirescanner',
+    'ct',
+    'line',
+    'paralleltransporter',
+]
+
+_splittable_strength_parameters = {
+    'angle',
+    'vkick',
+    'hkick',
+}
+
 
 class ElementBase(_MutableMapping):
     """
@@ -231,10 +253,13 @@ class Element(ElementBase):
         else:
             ElementBase.__init__(self,name,**kwargs)
         self['category'] = category
-        self.category    = category
+        self.category = category
         self._isMultipole = isMultipole
-        self.length      = 0.0 #for book keeping only
+        self.length = 0.0
         self._UpdateLength()
+
+    def Length(self):
+        return self.length
 
     def _UpdateLength(self):
         if 'l' in self:
@@ -265,13 +290,15 @@ class Element(ElementBase):
 
     def _split_length(self, points):
         """
-        :param points: Distance from start of element to split the element
+        :param points: Distance from start of element to the split point(s).
         :type points: list(float)
 
         Note that for n points of division there will therefore be n+1 new elements returned.
         """
         try:
             total_length = self['l']
+            if type(total_length) == tuple:
+                total_length = total_length[0]
         except:
             raise TypeError("Element has no length, cannot be split.")
         accumulated_length = 0.0
@@ -281,22 +308,41 @@ class Element(ElementBase):
         # updating other parameters (based on length or otherwise) to
         # other methods or functions.
         other_kwargs = _copy.deepcopy(dict(self))
+        category = other_kwargs['category']
+        if category in _unsplittable_categories:
+            raise ValueError(category+" cannot be split.")
         del other_kwargs['l']
         del other_kwargs['name']
         del other_kwargs['category'] # boilerplate argument we have to remove
+
+        kws = set(other_kwargs.keys())
+        splittable_strengths = kws.intersection(_splittable_strength_parameters)
+
+        def split_strength(kwo, sub_section_length):
+            kwargs = kwo.copy()
+            for k in splittable_strengths:
+                v = other_kwargs[k]
+                if type(v) == tuple:
+                    nv = v[0] * (length / total_length)
+                    kwargs[k] = (nv, v[1])
+                else:
+                    kwargs[k] = v * (length / total_length)
+            return kwargs
 
         i = 0
         for point in sorted(points):
             name = "{}_split_{}".format(self['name'], i)
             length = round(point - accumulated_length, 15)
             accumulated_length += length
-            split_elements.append(This(name, l=length, **other_kwargs))
+            kws = split_strength(other_kwargs, length)
+            split_elements.append(This(name, category, l=length, **kws))
             i += 1
+
         # Add the final element (for n points we have n+1 elements, so
         # we add the last one here "by hand").
-        split_elements.append(This("{}_split_{}".format(self['name'], i + 1),
-                                   l=round(total_length - accumulated_length, 15),
-                                   **other_kwargs))
+        left_over_length = round(total_length - accumulated_length, 15)
+        kws = split_strength(other_kwargs, left_over_length)
+        split_elements.append(This("{}_split_{}".format(self['name'], i + 1), category, l=left_over_length, **kws))
 
         return split_elements
 
@@ -325,7 +371,7 @@ class Element(ElementBase):
             except:
                 raise TypeError("Element has no length, cannot be split.")
             split_points = _np.linspace(0, total_length, other + 1)
-            return self.split(split_points)
+            return self.split(split_points[1:][:-1])
         else:
             raise TypeError("Division only support for integers")
 

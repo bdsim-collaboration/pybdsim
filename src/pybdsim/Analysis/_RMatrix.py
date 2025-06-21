@@ -2,7 +2,7 @@ import pybdsim.Data as _Data
 import numpy as _np
 import matplotlib.pyplot as _plt
 
-def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, average = False) :
+def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, average = False):
     """
     **CalculateRMatrix** calculate rmatrix from a BDSIM output root file and two sampler names
 
@@ -78,7 +78,7 @@ def CalculateRMatrix(root_file_name, sampler1_name, sampler2_name, size=4, avera
                                      sampler2_time,
                                      sampler2_energy])
 
-    else :
+    else:
         sampler1_matrix = _np.array([sampler1_x,sampler1_xp,sampler1_y,sampler1_yp])
         sampler2_matrix = _np.array([sampler2_x,sampler2_xp,sampler2_y,sampler2_yp])
 
@@ -197,7 +197,7 @@ def CalculateEnergyGain(root_file_name, sampler1_name, sampler2_name) :
 
     return deltaE.mean()
 
-def CompareRMatrix(rmatrix1, rmatrix2, toll = 1e-4, user_print = True) :
+def CompareRMatrix(rmatrix1, rmatrix2, toll = 1e-4, user_print = True):
     """
     **CompareRMatrix** compare two rmatrices. If all elements differences are less than toll
 
@@ -233,6 +233,6 @@ def CompareRMatrix(rmatrix1, rmatrix2, toll = 1e-4, user_print = True) :
 
     return not bmatrix.any()
 
-def PlotRMatrix(rmatrix) :
+def PlotRMatrix(rmatrix):
     _plt.imshow(rmatrix)
     _plt.colorbar()
