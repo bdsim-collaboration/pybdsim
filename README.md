@@ -1,6 +1,6 @@
 # pybdsim #
 
-A python package containing both utilities for preparing and analysing BDSIM input and output as well as controlling BDSIM.
+A python package containing both utilities for preparing and analysing [BDSIM](https://bdsim-collaboration.github.io/web/) input and output as well as controlling [BDSIM](https://bdsim-collaboration.github.io/web/).
 
 ## Authors ##
 
@@ -21,16 +21,16 @@ S. Walker
 
 ## Setup ##
 
-pip install pybdsim
+`pip install pybdsim`
 
 Or from source, from the main directory:
 
-$ make install
+`$ make install`
 
 or for development where the local copy of the repository is used and can
 be reloaded with local changes:
 
-$ make develop
+`$ make develop`
 
 Look in the Makefile for the various pip commands (e.g. for with a venv)
 
