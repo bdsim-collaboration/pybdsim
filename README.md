@@ -1,6 +1,6 @@
 # pybdsim #
 
-A python package containing both utilities for preparing and analysing BDSIM input and output as well as controlling BDSIM.
+A python package containing both utilities for preparing and analysing [BDSIM](https://bdsim-collaboration.github.io/web/) input and output as well as controlling [BDSIM](https://bdsim-collaboration.github.io/web/).
 
 ## Authors ##
 
