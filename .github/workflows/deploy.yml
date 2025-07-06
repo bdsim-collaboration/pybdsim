@@ -1,4 +1,4 @@
-name: Publish pybdsim to PyPi
+name: pypi deploy
 
 on:
   push:
