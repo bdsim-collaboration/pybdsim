@@ -1,0 +1,47 @@
+name: manual deploy
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+    - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  manual-deploy:
+    name: manual deploy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout pybdsim
+        uses: actions/checkout@v4
+        id: checkout
+
+      - name: Build manual
+        shell: bash
+        run: |
+          # docs dir 
+          cd docs
+
+          # make html
+	  make html
+
+      - name: Upload manuals
+        uses: actions/upload-artifact@v4
+        with:
+          name: manuals
+          path: ${{ github.workspace }}/docs/html
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}     
+          publish_branch: gh-pages
+          publish_dir: ${{ github.workspace }}/docs/html
+          allow_empty_commit: true
+
