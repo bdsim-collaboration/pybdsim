@@ -29,7 +29,7 @@ jobs:
           cd docs
 
           # make html
-	  make html
+          make html
 
       - name: Upload manuals
         uses: actions/upload-artifact@v4
