@@ -1,0 +1,448 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Field Maps &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Utility Classes" href="classes.html" />
+    <link rel="prev" title="Plotting" href="plotting.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Field Maps</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading">Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing">Writing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creation">Creation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#alternative-dimensions">Alternative Dimensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#alternative-loop-order">Alternative Loop Order</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#visualisation-and-plotting">Visualisation and Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conversion">Conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sorting-points">Sorting Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#importance-of-order">Importance of Order</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Field Maps</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/fieldmaps.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="field-maps">
+<h1>Field Maps<a class="headerlink" href="#field-maps" title="Link to this heading"></a></h1>
+<p>The <cite>pybdsim.Field</cite> module has several functions and classes to help create, convert,
+and visualise BDSIM-format field maps easier. Various useful workflows are described
+below, but every function and class is documented in: <a class="reference internal" href="moduledocs.html#pybdsim-field-module"><span class="std std-ref">pybdsim.Field module</span></a>.</p>
+<section id="loading">
+<span id="field-map-loading"></span><h2>Loading<a class="headerlink" href="#loading" title="Link to this heading"></a></h2>
+<p>Existing BDSIM-format field maps can be loaded with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fm</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;nameOfFieldMap.dat&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will automatically detect the number of dimensions in the field map and load
+it into a numpy array inside a pybdsim class. The class is one of:</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Field1D</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Field2D</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Field3D</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Field4D</span></code></p></li>
+</ul>
+<p>These all have member variables such as:</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">data</span></code> - the numpy array of the field map data</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">columns</span></code> -  a list of column names</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">header</span></code> - a dictionary of all information in the header</p></li>
+</ul>
+</section>
+<section id="writing">
+<h2>Writing<a class="headerlink" href="#writing" title="Link to this heading"></a></h2>
+<p>All of the pybdsim classes described in <a class="reference internal" href="#field-map-loading"><span class="std std-ref">Loading</span></a> (e.g. <cite>Field3D</cite>) have
+a method called <code class="code docutils literal notranslate"><span class="pre">Write</span></code>. This will write out the instance of that class (i.e. that
+particular field map data) to a BDSIM-format field map file.</p>
+<p>Therefore, these classes represent a a very good route for creation and conversion
+of field maps. The recommended strategy is to get the information <em>into</em> one of those
+classes then it can be written out to file, loaded, plotted with ease.</p>
+</section>
+<section id="creation">
+<span id="field-map-creation"></span><h2>Creation<a class="headerlink" href="#creation" title="Link to this heading"></a></h2>
+<p>A field map can be created from scratch in Python from knowledge of a field, such as
+an equation. A numpy array of the right shape should be created, then an instance
+of <code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Field[N]D</span></code> created (where N is one of (1,2,3,4).</p>
+<p>Creating the array is entirely up to the user as this depends on how they get the
+information. However, a small example script is shown below here (in Python language):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pybdsim</span>
+
+<span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">,</span> <span class="n">fz</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span>
+<span class="n">xmax</span> <span class="o">=</span> <span class="mi">30</span>  <span class="c1"># cm is the default units for bdsim field maps</span>
+<span class="n">ymax</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># loop over and build up 3d lists of lists of lists</span>
+<span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="n">xmax</span><span class="p">,</span> <span class="n">xmax</span><span class="p">]:</span>
+   <span class="n">v</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="k">for</span> <span class="n">yi</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="n">ymax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">]:</span>
+       <span class="c1"># here, fx,fy,fz could be from a function</span>
+       <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">,</span> <span class="n">fz</span><span class="p">])</span>
+       <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+<span class="c1"># convert to numpy array</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="c1"># construct a BDSIM format field object and write it out</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">Field2D</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="c1"># optionally add some strings that will appear as comments at the</span>
+<span class="c1"># start of the file</span>
+<span class="n">f</span><span class="o">.</span><span class="n">AddComment</span><span class="p">(</span><span class="s2">&quot;I = 200A&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">AddComment</span><span class="p">(</span><span class="s2">&quot;Generated by fictional software v1.2.3&quot;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s2">&quot;box-field-map.dat&#39;)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>BDSIM’s default convention for a field map is to loop over the lowest
+dimension first, i.e. x. Therefore, the loop above is with x on the outside.
+See below for purposely handling the other order of looping.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See <a class="reference internal" href="#field-order"><span class="std std-ref">Importance of Order</span></a>.</p>
+</div>
+<p>This minimal example creates a 2D ‘box’ of 4 points in space each with the same field
+value of [0,1,0] (unit Y direction with magnitude 1). The box is <span class="math notranslate nohighlight">\(\pm 30 cm\)</span> in
+size. Units aren’t used explicitly - just numbers - but the units of BDSIM field map
+files are cm and s.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The file written out by the class at the end can be loaded again with
+<code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Load</span></code> to get a (new) object with the same contents
+as the original Field2D instance.</p>
+</div>
+<p>The array should be structured to contain the coordinates and field components at each
+point. So for a 2D field map, this would be: <span class="math notranslate nohighlight">\((x, y, F_x, F_y, F_z)\)</span>. The array would
+then have 2 dimensions representing its structure. So if the field map had 10 points in <cite>x</cite>
+and 20 in <cite>y</cite>, it would ultimately be a numpy array with the shape <code class="code docutils literal notranslate"><span class="pre">(10,20,5)</span></code>.</p>
+<p>Generally, the <code class="code docutils literal notranslate"><span class="pre">numpy.shape(array)</span></code> would look like:</p>
+<ul class="simple">
+<li><p>1D: <code class="code docutils literal notranslate"><span class="pre">(N_x,</span> <span class="pre">4)</span></code></p></li>
+<li><p>2D: <code class="code docutils literal notranslate"><span class="pre">(N_x,</span> <span class="pre">N_y,</span> <span class="pre">5)</span></code></p></li>
+<li><p>3D: <code class="code docutils literal notranslate"><span class="pre">(N_x,</span> <span class="pre">N_y,</span> <span class="pre">N_z,</span> <span class="pre">6)</span></code></p></li>
+<li><p>4D: <code class="code docutils literal notranslate"><span class="pre">(N_x,</span> <span class="pre">N_y,</span> <span class="pre">N_z,</span> <span class="pre">N_t,</span> <span class="pre">7)</span></code></p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>A key check is looking at the field map, the higher dimension coordinates
+(e.g. Y, not X) should change first. So for a given X value we should see
+the Y values cycle through a range, then the X should increment then the Y
+values cycle again. If this is not the case, then the loop order of dimensions
+is backwards. You can use “loopOrder” in the header or rewrite the field map
+correctly.</p>
+</div>
+<section id="alternative-dimensions">
+<h3>Alternative Dimensions<a class="headerlink" href="#alternative-dimensions" title="Link to this heading"></a></h3>
+<p>In the case of alternative dimension (e.g. a 2D field map with <cite>x</cite> and <cite>z</cite> dimensions but
+no <cite>y</cite>), the construction is the same but we can label the dimensions differently. The dimensions
+must be in order (e.g. <cite>x</cite>, <cite>y</cite>, <cite>z</cite>, then <cite>t</cite> for whichever ones are used).</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fm</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">Field2D</span><span class="p">(</span><span class="n">arrayData</span><span class="p">,</span> <span class="n">firstColumn</span><span class="o">=</span><span class="s1">&#39;X&#39;</span><span class="p">,</span> <span class="n">secondColumn</span><span class="o">=</span><span class="s1">&#39;Z&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="alternative-loop-order">
+<h3>Alternative Loop Order<a class="headerlink" href="#alternative-loop-order" title="Link to this heading"></a></h3>
+<p>It is possible for BDSIM to read a file where the right-most coordinate column varies first.
+However, for each value, the coordinate columns must still be in x,y,z,t order left to right.
+Below is an example similar to above but writing out the file the other way (note the write function).
+This will also write the line <code class="code docutils literal notranslate"><span class="pre">loopOrder&gt;</span> <span class="pre">tzyx</span></code> in the header so BDSIM can load
+the field map equivalently.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pybdsim</span>
+
+<span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">,</span> <span class="n">fz</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span>
+<span class="n">xmax</span> <span class="o">=</span> <span class="mi">30</span>  <span class="c1"># cm is the default units for bdsim field maps</span>
+<span class="n">ymax</span> <span class="o">=</span> <span class="mi">30</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># loop over and build up 3d lists of lists of lists</span>
+<span class="k">for</span> <span class="n">yi</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="n">ymax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">]:</span>
+   <span class="n">v</span> <span class="o">=</span> <span class="p">[]</span>
+   <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="n">xmax</span><span class="p">,</span> <span class="n">xmax</span><span class="p">]:</span>
+       <span class="c1"># here, fx,fy,fz could be from a function</span>
+       <span class="c1"># note, xi and yi coordinates must still be in that order for the value in the array</span>
+       <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">xi</span><span class="p">,</span> <span class="n">yi</span><span class="p">,</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">,</span> <span class="n">fz</span><span class="p">])</span>
+       <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+<span class="c1"># convert to numpy array</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="c1"># construct a BDSIM format field object and write it out</span>
+<span class="c1"># this will be written out in the BDSIM conventional looping order</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">Field2D</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s2">&quot;box-field-map.dat&#39;)</span>
+</pre></div>
+</div>
+<p>Below is a script included with BDSIM (<code class="code docutils literal notranslate"><span class="pre">bdsim/examples/features/maps_bdsim/Generate2DLoopOrder.py</span></code>)
+that shows 4 ways to write a field map with the same information. Ultimately, they convey the exact
+same field map to BDSIM although the file contents differ (2 sets of possible contents).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">_np</span>
+<span class="kn">import</span> <span class="nn">pybdsim</span>
+
+<span class="n">B</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+<span class="c1"># LOOP METHOD 1</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># loop over and build up 3d lists of lists of lists</span>
+<span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]:</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">B</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">B</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">z</span><span class="p">,</span> <span class="n">B</span><span class="o">*</span><span class="n">z</span><span class="p">])</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+<span class="c1"># convert to numpy array</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="c1"># we looped in x first as per bdsim, so we need only tell it that</span>
+<span class="c1"># the 2nd column is Z and not Y</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">Field2D</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">secondColumn</span><span class="o">=</span><span class="s1">&#39;Z&#39;</span><span class="p">)</span>
+<span class="n">f</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s1">&#39;2dexample_loopOrder_for_xz.dat&#39;</span><span class="p">)</span>
+<span class="c1"># but we can purposively write it out the other loop way for testing purposes</span>
+<span class="c1"># note the header keys are still the same apart from loopOrder&gt; tzyx</span>
+<span class="n">f</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s1">&#39;2dexample_loopOrder_for_xz_tzyx.dat&#39;</span><span class="p">,</span> <span class="n">writeLoopOrderReversed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="c1"># LOOP METHOD 2</span>
+<span class="n">data2</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="c1"># loop over other way - outer dimension first</span>
+<span class="c1"># this isn&#39;t the bdsim way, but we may get a field map from some other source that&#39;s</span>
+<span class="c1"># structured like this - so even if you&#39;re not creating it in a loop, it may have this</span>
+<span class="c1"># structure already.</span>
+<span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]:</span>
+        <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">B</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">B</span><span class="o">*</span><span class="n">x</span><span class="o">*</span><span class="n">z</span><span class="p">,</span> <span class="n">B</span><span class="o">*</span><span class="n">z</span><span class="p">])</span> <span class="c1"># values must still be in xyzt order</span>
+    <span class="n">data2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+<span class="c1"># convert to numpy array</span>
+<span class="n">data2</span> <span class="o">=</span> <span class="n">_np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data2</span><span class="p">)</span>
+
+<span class="c1"># array structure is z is outer dimension, then x - we need it the other way</span>
+<span class="c1"># around, so we use flip=True when constructing the field instance</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Field</span><span class="o">.</span><span class="n">Field2D</span><span class="p">(</span><span class="n">data2</span><span class="p">,</span> <span class="n">flip</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">secondColumn</span><span class="o">=</span><span class="s1">&#39;Z&#39;</span><span class="p">)</span>
+<span class="c1"># this will write out a file identical to the very first one</span>
+<span class="n">g</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s1">&#39;2dexample_loopOrder_for_zx.dat&#39;</span><span class="p">)</span>
+<span class="c1"># this will write out a file identical to the second one</span>
+<span class="n">g</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s1">&#39;2dexample_loopOrder_for_zx_tzyx.dat&#39;</span><span class="p">,</span> <span class="n">writeLoopOrderReversed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="visualisation-and-plotting">
+<h2>Visualisation and Plotting<a class="headerlink" href="#visualisation-and-plotting" title="Link to this heading"></a></h2>
+<p>To visualise a field map, it is possible to do so in BDSIM / Geant4. See the BDSIM manual
+for this information. This draws a selection of arrows in the 3D model and gives a rough
+indication that the field map is as intended.</p>
+<p>An alternative way is to load the data in pybdsim in Python and plot it, either fully
+or in slices (for 3D or 4D maps).</p>
+<p>Any library desired can be used in Python and the classes described above in <a class="reference internal" href="#field-map-loading"><span class="std std-ref">Loading</span></a>
+provide an excellent way to get a numpy array, that is ubiquitous in Python programming
+and libraries.</p>
+<p>pybdsim provides a variety of small plotting functions mostly for 1D and 2D field maps
+using matplotlib. These functions are inside the <code class="code docutils literal notranslate"><span class="pre">pybdsim.Field</span></code> module and all
+start with <code class="code docutils literal notranslate"><span class="pre">Plot</span></code>. A list is:</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot1DFxFyFz</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2D</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXY</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXYMagnitude</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXYConnectionOrder</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXYStream</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXYComponent</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXYFxFyFz</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXYBx</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXYBy</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot2DXYBz</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot3DXY</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.Plot3DXZ</span></code></p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Plots that use arrows or stream plots do <strong>not</strong> depend on the order
+of the points so they cannot be relied upon to tell if the field map
+being prepared is in the correct order. Use <cite>Plot2DXYMagnitude</cite> or
+<cite>Plot2DXYConnectionOrder</cite> to verify the order of the points.</p>
+</div>
+<p>A (guaranteed) complete list can be found in <a class="reference internal" href="moduledocs.html#pybdsim-field-module"><span class="std std-ref">pybdsim.Field module</span></a>.</p>
+<p>Each can be inspected (in IPython, which is recommended) with a question mark to see its description:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; import pybdsim
+&gt;&gt;&gt; pybdsim.Field.Plot2DXY?
+Signature: pybdsim.Field.Plot2DXY(filename, scale=None)
+Docstring:
+Plot a bdsim field map file using the X,Y plane.
+
+:param filename: name of field map file or object
+:type filename: str, pybdsim.Field._Field.Field2D instance
+:param scale: numerical scaling for quiver plot arrow lengths.
+:type scale: float
+&gt;&gt;&gt;
+</pre></div>
+</div>
+</section>
+<section id="conversion">
+<h2>Conversion<a class="headerlink" href="#conversion" title="Link to this heading"></a></h2>
+<p><strong>your data</strong> -&gt; <strong>numpy array</strong> -&gt; <strong>pybdsim.Field.FieldND(data) class</strong></p>
+<p>To convert a field map, you should first write a loader from your own format
+to the field map into a numpy array with a structure described in <a class="reference internal" href="#field-map-creation"><span class="std std-ref">Creation</span></a>.
+Then, this array can be <em>wrapped</em> in an instance of one of the pybdsim Field classes. This
+class can then be used to write out the field map in BDSIM’s format. This would look something
+like:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">LoadMyFormatFieldMap</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="c1"># ... some implementation...</span>
+    <span class="c1"># assume variable &#39;data&#39; of type numpy.array</span>
+    <span class="k">return</span> <span class="n">data</span>
+
+<span class="k">def</span> <span class="nf">Convert</span><span class="p">(</span><span class="n">inputfilename</span><span class="p">,</span> <span class="n">outputfilename</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">LoadMyFormatFieldMap</span><span class="p">(</span><span class="n">inputfilename</span><span class="p">)</span>
+    <span class="c1"># assume here it&#39;s a 2D field map... need to know which class to use</span>
+    <span class="n">bd</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Field2D</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="n">bd</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="n">outputfilename</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The source of a field map data should represent an equally spaced grid of points
+and provided in order, such that it can be converted easily to BDSIM’s format with
+the various classes.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See <a class="reference internal" href="#field-order"><span class="std std-ref">Importance of Order</span></a>. Make sure to validate the order with plots before
+using in a simulation in BDSIM. You can also visualise the fields in BDSIM
+to check. It is recommended to do this with a single component before using
+in a bigger model.</p>
+</div>
+</section>
+<section id="sorting-points">
+<h2>Sorting Points<a class="headerlink" href="#sorting-points" title="Link to this heading"></a></h2>
+<p>If the data points for the field map correspond to a rectilinear grid but are not
+provided in order (sometimes can happen from finite-element programs), you should
+ideally try to get a field map in order. Failing that, you can try to sort the data
+into an ordered array. An example implementation is given in
+<code class="code docutils literal notranslate"><span class="pre">pybdsim.Field.SortUnorderedFieldMap2D</span></code>. Although, this is provided there is
+no guarantee the implementation will work depending on the numerical precision of
+the coordinates. It is still recommended to go back to the origin field program
+and get a correct grid of points.</p>
+</section>
+<section id="importance-of-order">
+<span id="field-order"></span><h2>Importance of Order<a class="headerlink" href="#importance-of-order" title="Link to this heading"></a></h2>
+<p>In a BDSIM field map file, the coordinates at each point are written but BDSIM itself
+does not use these. BDSIM reads the header information and loops over the data
+assuming the number of points specified in the header. Therefore if the data is
+provided in the wrong order the field map will appear scrambled in BDSIM. This can
+happen with hand-preparation and editing of files.</p>
+<p>It is <strong>recommended</strong> to use the pybdsim.Field classes as these are guaranteed to
+write the data out correctly.</p>
+<p>Plots that use arrows or stream plots do <strong>not</strong> depend on the order
+of the points so they cannot be relied upon to tell if the field map
+being prepared is in the correct order. Use <cite>Plot2DXYMagnitude</cite> or
+<cite>Plot2DXYConnectionOrder</cite> to verify the order of the points.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="plotting.html" class="btn btn-neutral float-left" title="Plotting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="classes.html" class="btn btn-neutral float-right" title="Utility Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

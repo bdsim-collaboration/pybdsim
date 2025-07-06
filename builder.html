@@ -1,0 +1,273 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Building Models &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Converting Models" href="convert.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Building Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-model">Creating A Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-options">Adding Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-beam">Adding a Beam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-a-machine">Writing a Machine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#units">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kwargs-flexibility">kwargs - Flexibility</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Building Models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/builder.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="building-models">
+<h1>Building Models<a class="headerlink" href="#building-models" title="Link to this heading"></a></h1>
+<p>pybdsim provides a series of classes that allows a BDSIM model to be built
+programmatically in Python and finally written out to BDSIM input syntax
+(‘gmad’).</p>
+<section id="creating-a-model">
+<h2>Creating A Model<a class="headerlink" href="#creating-a-model" title="Link to this heading"></a></h2>
+<p>The <code class="code docutils literal notranslate"><span class="pre">Machine</span></code> class provides the functionality to create a BDSIM model.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Builder</span><span class="o">.</span><span class="n">Machine</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>First, we construct an instance of the Machine class, then call various
+functions to add components to the beam line. As each one is added, it
+is appended to the sequence. There is one function for each beam line
+element in BDSIM. Each of these functions begins with “Add”.  e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">AddDrift</span><span class="p">(</span><span class="s2">&quot;d1&quot;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Each function has a different set of arguments depending on what is required
+for that element. (e.g. “k1” is required for a quadrupole). Every function
+takes a set of keyword arguments (‘kwargs’ - see <a class="reference internal" href="#kwargs"><span class="std std-ref">kwargs - Flexibility</span></a>) that will be
+added to the definition:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">AddDrift</span><span class="p">(</span><span class="s2">&quot;d2&quot;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">aper1</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">aper2</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">apertureType</span><span class="o">=</span><span class="s2">&quot;rectangular&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>No checking is done on these parameters and they are simply written out.</p>
+<p>Extra definition objects (e.g. a field map definition) can be constructed
+and added to the machine so that they are written out with it.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fm1</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Builder</span><span class="o">.</span><span class="n">Field</span><span class="p">(</span><span class="s2">&quot;f1&quot;</span><span class="p">,</span> <span class="n">magneticFile</span><span class="o">=</span><span class="s2">&quot;../maps/QNL.dat&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">AddObject</span><span class="p">(</span><span class="n">fm1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The arguments can generally be found by using a question mark on a function.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; a.AddDrift?
+Signature: a.AddDrift(name=&#39;dr&#39;, length=0.1, **kwargs)
+Docstring: Add a drift to the beam line
+File:      ~/physics/reps/pybdsim/Builder.py
+Type:      instancemethod
+</pre></div>
+</div>
+</section>
+<section id="adding-options">
+<h2>Adding Options<a class="headerlink" href="#adding-options" title="Link to this heading"></a></h2>
+<p>No options are required to run the most basic BDSIM model. However, it is often
+advantageous to specify at least a few options such as the physics list and default
+aperture. To add options programmatically, there is an options class. This is
+instantiated and then ‘setter’ methods are used to set values of parameters.
+This options instance can then be associated with a machine instance. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">o</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Options</span><span class="o">.</span><span class="n">Options</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">o</span><span class="o">.</span><span class="n">SetPhysicsList</span><span class="p">(</span><span class="s1">&#39;em hadronic decay muon hadronic_elastic&#39;</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Builder</span><span class="o">.</span><span class="n">Machine</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">AddOptions</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The possible options can be seen by using tab complete in ipython:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">Set</span><span class="o">&lt;</span><span class="n">tab</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only the most common options are currently implement. Please
+see <a class="reference internal" href="support.html#feature-request"><span class="std std-ref">Feature Request</span></a> to request others.</p>
+</div>
+</section>
+<section id="adding-a-beam">
+<h2>Adding a Beam<a class="headerlink" href="#adding-a-beam" title="Link to this heading"></a></h2>
+<p>A beam definition that specifies at least the particle type and total energy
+is required to run a BDSIM model. The machine class will provide a default
+such that the model will run ‘out of the box’, but is of course of interest
+to specify these options. To add a beam definition, there is a beam class.
+This is instantiated and then ‘setter’ methods are used to set values of
+parameters. this beam instance can then be associated with a machine instance.
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Beam</span><span class="o">.</span><span class="n">Beam</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">SetDistributionType</span><span class="p">(</span><span class="s1">&#39;reference&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">SetEnergy</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="s1">&#39;GeV&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span><span class="o">.</span><span class="n">SetParticleType</span><span class="p">(</span><span class="s1">&#39;proton&#39;</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Builder</span><span class="o">.</span><span class="n">Machine</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">AddBeam</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>More setter functions will dynamically appear based on the distribution
+type set.</p>
+</div>
+</section>
+<section id="writing-a-machine">
+<h2>Writing a Machine<a class="headerlink" href="#writing-a-machine" title="Link to this heading"></a></h2>
+<p>Once completed, a machine can be written out to gmad files to be used as input
+for BDSIM. This is done as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Builder</span><span class="o">.</span><span class="n">Machine</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">Write</span><span class="p">(</span><span class="s1">&#39;outputfilename&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="units">
+<h2>Units<a class="headerlink" href="#units" title="Link to this heading"></a></h2>
+<p>The user may supply units as strings that will be written to the gmad syntax
+as a Python tuple. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Builder</span><span class="o">.</span><span class="n">Machine</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">AddDrift</span><span class="p">(</span><span class="s1">&#39;d1&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mf">3.2</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>This will result in the following gmad syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">d1: drift, l=3.2*m;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is no checking on the string supplied, so it is the users
+responsibility to supply a valid unit string that BDSIM will accept.</p>
+</div>
+</section>
+<section id="kwargs-flexibility">
+<span id="kwargs"></span><h2>kwargs - Flexibility<a class="headerlink" href="#kwargs-flexibility" title="Link to this heading"></a></h2>
+<p>‘kwargs’ are optional keyword arguments in Python. This allows the user to
+supply arbitrary options to a function that can be inspected inside the
+function as a dictionary. BDSIM gmad syntax to define an element generally
+follows the pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">name</span> <span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">parameter1</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="n">parameter2</span><span class="o">=</span><span class="n">value</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Many parameters can be added and this syntax is regularly extended. It would
+therefore be impractical to have every function with all the possible arguments.
+To solve this problem, the <code class="code docutils literal notranslate"><span class="pre">**kwargs</span></code> argument allows the user to
+specify any option that will be passed along and written to file in the element
+definition as ‘key=value’. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Builder</span><span class="o">.</span><span class="n">Machine</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">AddDrift</span><span class="p">(</span><span class="s1">&#39;drift321&#39;</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="n">aper1</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">aper2</span><span class="o">=</span><span class="mf">4.5</span><span class="p">,</span> <span class="n">apertureType</span><span class="o">=</span><span class="s2">&quot;rectangular&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will result in the following gmad syntax being written:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">drift321: drift, apertureType=&quot;rectangular&quot;, aper2=4.5, aper1=5, l=3.2;</span>
+</pre></div>
+</div>
+<p>Anywhere you see a function with the last argument as <code class="code docutils literal notranslate"><span class="pre">**kwargs</span></code>, this
+feature can be used.</p>
+<p>The arguments included in the function signatures are the minimum arguments
+required for functionality.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="convert.html" class="btn btn-neutral float-right" title="Converting Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

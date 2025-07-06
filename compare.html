@@ -1,0 +1,251 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model Comparison &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data Loading" href="data.html" />
+    <link rel="prev" title="Converting Models" href="convert.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Model Comparison</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#preparing-optics-with-bdsim">Preparing Optics with BDSIM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-bdsim">Running BDSIM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#analysing-optical-data">Analysing Optical Data</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#comparing-to-madx">Comparing to MADX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comparing-to-mad8">Comparing to MAD8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comparing-to-bdsim">Comparing to BDSIM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comparing-to-ptc">Comparing to PTC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comparing-to-transport">Comparing to Transport</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Model Comparison</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/compare.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="model-comparison">
+<h1>Model Comparison<a class="headerlink" href="#model-comparison" title="Link to this heading"></a></h1>
+<p>Once a BDSIM model has been prepared from another model, it is of interest
+to validate it to ensure the model has been prepared correctly.</p>
+<section id="preparing-optics-with-bdsim">
+<h2>Preparing Optics with BDSIM<a class="headerlink" href="#preparing-optics-with-bdsim" title="Link to this heading"></a></h2>
+<p>The BDSIM model should be run with a ‘core’ beam distribution - ie typically
+a Gaussian or Twiss Gaussian that will match the optics of the lattice. For
+a physics study one might use a halo, but this is unsuitable for optics validation.</p>
+<p>To compare, a BDSIM model is run with samplers attached to each element. This
+records all of the particle coordinates at the end of each element. Once finished
+a separate program (‘rebdsim’) is used to calculate moments and optical functions
+from the distribution at each plane. This information can then be compared to
+an analytical description of the lattice such as that from MADX.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It is important to open any apertures that are by design close to the beam
+such as collimators. A non-Gaussian distribution will affect the calculation of
+the optical parameters from the particle distribution.</p>
+</div>
+<section id="running-bdsim">
+<h3>Running BDSIM<a class="headerlink" href="#running-bdsim" title="Link to this heading"></a></h3>
+<p>We recommend the following settings:</p>
+<ul class="simple">
+<li><p>Collimators are opened to at least 6 sigma of the beam distribution at their location.</p></li>
+<li><p>The <cite>stopSecondaries</cite> and <cite>stopTracks</cite> options are turned on to prevents secondaries being
+simulated and recorded.</p></li>
+<li><p>The physics list is set to “” - an empty string. This leaves only magnetic field tracking so
+that if a particle does hit the accelerator it will pass through without scattering.</p></li>
+<li><p>Simulate between 1000 and 50000 particles (events).</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This procedure is only suited to comparing linear optical functions. If sextupoles
+or higher order magnets are present, these should be set to zero strength but must
+remain in the lattice. The pybdsim.Convert.MadxTfs2Gmad converter for example provides
+a boolean flag to convert the lattice with only linear optical components. The user
+may of course proceed with non-linear magnetic fields included but it is only useful
+to compare the sigma in each dimension to a similarly similuated distribution and not
+the Twiss parameters.</p>
+</div>
+</section>
+<section id="analysing-optical-data">
+<h3>Analysing Optical Data<a class="headerlink" href="#analysing-optical-data" title="Link to this heading"></a></h3>
+<p>The <cite>rebdsim</cite> tool can be used with an input <cite>analysisConfig.txt</cite> that specifies
+<cite>CalculateOpticalFunctions</cite> to 1 or true in the header (see BDSIM manual). Or
+the specially prepared optics tool <cite>rebdsimOptics</cite> can be used to achieve the
+same outcome - we recommend this. In the terminal:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rebdsimOptics</span> <span class="n">bdsimRawOutputFile</span><span class="o">.</span><span class="n">root</span> <span class="n">optics</span><span class="o">.</span><span class="n">root</span>
+</pre></div>
+</div>
+<p>This may take a few minutes to process. This analyses the file from the BDSIM run
+called ‘bdsimRawOutputFile.root’ and produces another ROOT file called <cite>optics.root</cite> with
+a different structure. This output file contains only optical data.</p>
+</section>
+</section>
+<section id="comparing-to-madx">
+<h2>Comparing to MADX<a class="headerlink" href="#comparing-to-madx" title="Link to this heading"></a></h2>
+<p>After preparing the optics from BDSIM, they may be compared to a MADX Tfs instance
+with the following command in Python (for example):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Compare</span><span class="o">.</span><span class="n">MadxVsBDSIM</span><span class="p">(</span><span class="s1">&#39;twiss_v5.2fs&#39;</span><span class="p">,</span> <span class="s1">&#39;optics.root&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will produce a series of plots comparing the orbit, beam size, and linear
+optical functions.</p>
+<p>The MADX twiss file (in tfs format) should contain all the possible columns in
+the Twiss Module table. This can be prepared in a similar way as we would do
+for converting to BDSIM GMAD syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">select</span><span class="p">,</span><span class="n">flag</span><span class="o">=</span><span class="n">twiss</span><span class="p">,</span> <span class="n">clear</span><span class="p">;</span>
+<span class="n">twiss</span><span class="p">,</span><span class="n">sequence</span><span class="o">=</span><span class="n">SEQUENCENAME</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">twiss</span><span class="o">.</span><span class="n">tfs</span><span class="p">;</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The user should take care to ensure the emittance and energy spread (EX, EY, SIGE)
+are correctly specified in MADX for accurate comparison. The energy spread will
+contribute to the beam size in dispersive regions. The emittance will scale the
+beam size.</p>
+</div>
+</section>
+<section id="comparing-to-mad8">
+<h2>Comparing to MAD8<a class="headerlink" href="#comparing-to-mad8" title="Link to this heading"></a></h2>
+<p>The comparison for MAD8 is exactly the same as MADX - please see above for further details.
+One difference is that both a TWISS and ENVELOPE file are required.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Compare</span><span class="o">.</span><span class="n">Mad8VsBDSIM</span><span class="p">(</span><span class="s1">&#39;../mad8/TWISS_T4D&#39;</span><span class="p">,</span> <span class="s1">&#39;../mad8/ENVEL_T4D&#39;</span><span class="p">,</span> <span class="s1">&#39;xfel_optics.root&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="comparing-to-bdsim">
+<h2>Comparing to BDSIM<a class="headerlink" href="#comparing-to-bdsim" title="Link to this heading"></a></h2>
+<p>Two BDSIM optics files can also be compared with the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Compare</span><span class="o">.</span><span class="n">BDSIMVsBDSIM</span><span class="p">(</span><span class="s1">&#39;optics1.root&#39;</span><span class="p">,</span> <span class="s1">&#39;optics2.root&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="comparing-to-ptc">
+<h2>Comparing to PTC<a class="headerlink" href="#comparing-to-ptc" title="Link to this heading"></a></h2>
+<p>BDSIM output can be compared to the PTC output from the PTC_TRACK routine available in MADX.
+The PTC output is written to a file typically named <cite>trackone</cite>, however it is necessary to convert
+this into a BDSIM-like ROOT output file. This can be easily accomplished with the <cite>ptc2bdsim</cite> tool,
+however the particle species and nominal momentum is required to correctly convert to the BDSIM
+coordinate convention. An example terminal command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ptc2bdsim</span> <span class="n">trackone</span> <span class="n">ptc</span><span class="o">.</span><span class="n">root</span> <span class="n">proton</span> <span class="mf">0.9999</span>
+</pre></div>
+</div>
+<p>Once the ROOT file has been generated, the <cite>rebdsimOptics</cite> tool (see Analysing Optical Data) must
+be used to generate the ROOT file with the appropriate optical data. Finally, the two files can be
+compared with the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Compare</span><span class="o">.</span><span class="n">PTCVsBDSIM</span><span class="p">(</span><span class="s1">&#39;ptc_optics.root&#39;</span><span class="p">,</span> <span class="s1">&#39;bdsim_optics.root&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="comparing-to-transport">
+<h2>Comparing to Transport<a class="headerlink" href="#comparing-to-transport" title="Link to this heading"></a></h2>
+<p>With the help of pytransport a TRANSPORT “FOR002” output file that has sigma matrices can be read and compared with BDSIM output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Compare</span><span class="o">.</span><span class="n">TransportVsBDSIM</span><span class="p">(</span><span class="s1">&#39;FOR002.DAT&#39;</span><span class="p">,</span> <span class="s1">&#39;bdsim_optics.root&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="convert.html" class="btn btn-neutral float-left" title="Converting Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data.html" class="btn btn-neutral float-right" title="Data Loading" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

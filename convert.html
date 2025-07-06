@@ -1,0 +1,538 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Converting Models &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Model Comparison" href="compare.html" />
+    <link rel="prev" title="Building Models" href="builder.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Converting Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#madxtfs2gmad">MadxTfs2Gmad</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#preparing-a-tfs-file">Preparing a Tfs File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#converting-the-tfs-file">Converting the Tfs File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#preparation-of-a-small-section">Preparation of a Small Section</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#madxtfs2gmadstrength">MadxTfs2GmadStrength</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mad8twiss2gmad-using-saved-twiss-output">Mad8Twiss2Gmad (using saved TWISS output)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-mad8">Running mad8</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#converting-the-mad8-files">Converting the Mad8 files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pytransport">pytransport</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bdsim-primaries-to-others">BDSIM Primaries To Others</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bdsimprimaries2ptc">BdsimPrimaries2Ptc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bdsimsampler2ptc">BdsimSampler2Ptc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bdsimprimaries2bdsimuserfile">BdsimPrimaries2BdsimUserFile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bdsimsampler2bdsimuserfile">BdsimSampler2BdsimUserFile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bdsimprimaries2madx">BdsimPrimaries2Madx</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bdsimprimaries2mad8">BdsimPrimaries2Mad8</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Converting Models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/convert.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="converting-models">
+<h1>Converting Models<a class="headerlink" href="#converting-models" title="Link to this heading"></a></h1>
+<p>pybdsim provdies converters to allow BDSIM models to prepared from optical
+descriptions of accelerators in other formats such as MADX and MAD8.</p>
+<p>The following converters are provided and described here:</p>
+<ul class="simple">
+<li><p>MADX to BDSIM</p>
+<ul>
+<li><p><a class="reference internal" href="#madxtfs2gmad">MadxTfs2Gmad</a></p></li>
+<li><p><a class="reference internal" href="#madxtfs2gmadstrength">MadxTfs2GmadStrength</a></p></li>
+</ul>
+</li>
+<li><p>MAD8 to BDSIM</p>
+<ul>
+<li><p><a class="reference internal" href="#mad8-twiss-2-gmad"><span class="std std-ref">Mad8Twiss2Gmad (using saved TWISS output)</span></a></p></li>
+</ul>
+</li>
+<li><p>Transport to BDSIM</p>
+<ul>
+<li><p><a class="reference internal" href="#pytransport">pytransport</a></p></li>
+</ul>
+</li>
+<li><p>BDSIM Primary Particle Conversion</p>
+<ul>
+<li><p><a class="reference internal" href="#bdsim-primaries-to-others">BDSIM Primaries To Others</a></p></li>
+</ul>
+</li>
+</ul>
+<section id="madxtfs2gmad">
+<h2>MadxTfs2Gmad<a class="headerlink" href="#madxtfs2gmad" title="Link to this heading"></a></h2>
+<p>A MADX lattice can be easily converted to a BDSIM gmad input file using the supplied
+python utilities. This is achieved by</p>
+<ol class="arabic simple">
+<li><p>preparing a tfs file with madx containing all twiss table information</p></li>
+<li><p>converting the tfs file to gmad using pybdsim</p></li>
+</ol>
+<section id="preparing-a-tfs-file">
+<h3>Preparing a Tfs File<a class="headerlink" href="#preparing-a-tfs-file" title="Link to this heading"></a></h3>
+<p>The twiss file can be prepared by appending the following MADX syntax to the
+end of your MADX script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">select</span><span class="p">,</span><span class="n">flag</span><span class="o">=</span><span class="n">twiss</span><span class="p">,</span> <span class="n">clear</span><span class="p">;</span>
+<span class="n">twiss</span><span class="p">,</span><span class="n">sequence</span><span class="o">=</span><span class="n">SEQUENCENAME</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">twiss</span><span class="o">.</span><span class="n">tfs</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>where <cite>SEQUENCENAME</cite> is the name of the sequence in madx. By not specifying the output
+columns, a very large file is produced containing all possible columns.  This is required
+to successfully convert the lattice.  If the tfs file contains insufficient information,
+pybdsim will not be able to convert the model.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The python utilities require “<cite>.tfs</cite>” suffix as the file type to work properly.</p>
+</div>
+</section>
+<section id="converting-the-tfs-file">
+<h3>Converting the Tfs File<a class="headerlink" href="#converting-the-tfs-file" title="Link to this heading"></a></h3>
+<p>Once prepared, the Tfs file can be converted. The converter is used as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">MadxTfs2Gmad</span><span class="p">(</span><span class="s1">&#39;inputfile.tfs&#39;</span><span class="p">,</span> <span class="s1">&#39;latticev1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The conversion returns three objects, which are the <code class="code docutils literal notranslate"><span class="pre">pybdsim.Builder.Machine</span></code>
+instance as converted, a second <cite>Machine</cite> that isn’t split by aperture and a list
+of any ommitted items by name.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">c</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">MadxTfs2Gmad</span><span class="p">(</span><span class="s1">&#39;inputfile.tfs&#39;</span><span class="p">,</span> <span class="s1">&#39;latticev1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <cite>latticev1</cite> is the output name of the converted model. The converter has the
+ability to split items in the original TFS file if an aperture is specified somewhere
+inside that element - use for disjoint aperture definitions. If a directory is used
+in the output name, this will be created automatically, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">,</span><span class="n">o</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">MadxTfs2Gmad</span><span class="p">(</span><span class="s1">&#39;inputfile.tfs&#39;</span><span class="p">,</span> <span class="s1">&#39;test/latticev1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>will create a directory <cite>test</cite> if it doesn’t exist already.</p>
+<p>There are a few options that provide useful functionality for conversion:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>tfs</strong></p></td>
+<td><p>path to the input tfs file or pymadx.Data.Tfs instance</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>outputfilename</strong></p></td>
+<td><p>requested output file</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>startname</strong></p></td>
+<td><p>the name (exact string match) of the lattice element to start the
+machine at this can also be an integer index of the element
+sequence number in madx tfs.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>stopname</strong></p></td>
+<td><p>the name (exact string match) of the lattice element to stop the
+machine at this can also be an integer index of the element
+sequence number in madx tfs.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>stepsize</strong></p></td>
+<td><p>the slice step size. Default is 1, but -1 also useful for
+reversed line.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>ignorezerolengthitems</strong></p></td>
+<td><p>nothing can be zero length in bdsim as real objects of course
+have some finite size.  Markers, etc are acceptable but for large
+lattices this can slow things down. True allows to ignore these
+altogether, which doesn’t affect the length of the machine.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>samplers</strong></p></td>
+<td><p>can specify where to set samplers - options are None, ‘all’, or a
+list of names of elements (normal python list of strings). Note
+default ‘all’ will generate separate outputfilename_samplers.gmad
+with all the samplers which will be included in the main .gmad
+file - you can comment out the include to therefore exclude all
+samplers and retain the samplers file.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>aperturedict</strong></p></td>
+<td><p>Aperture information. Can either be a dictionary of dictionaries
+with the the first key the exact name of the element and the
+daughter dictionary containing the relevant bdsim parameters as
+keys (must be valid bdsim syntax). Alternatively, this can be a
+pymadx.Aperture instance that will be queried.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>aperlocalpositions</strong></p></td>
+<td><p>Dictionary of element indices to a list of pairs of the form
+(local_point, aperdict), for example
+(0.1, {“APER1”: “CIRCULAR”, “APER1”: 0.4}).
+This kwarg is mutually exclusive with “aperturedict”.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>collimatordict</strong></p></td>
+<td><p>A dictionary of dictionaries with collimator information keys
+should be exact string match of element name in tfs file value
+should be dictionary with the following keys:
+“bdsim_material”   - the material
+“angle”            - rotation angle of collimator in radians
+“xsize”            - x full width in metres
+“ysize”            - y full width in metres</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>userdict</strong></p></td>
+<td><p>A python dictionary the user can supply with any additional
+information for that particular element. The dictionary should
+have keys matching the exact element name in the Tfs file and
+contain a dictionary itself with key, value pairs of parameters
+and values to be added to that particular element.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>verbose</strong></p></td>
+<td><p>Print out lots of information when building the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>beam</strong></p></td>
+<td><p>True | False - generate an input gauss Twiss beam based on the
+values of the twiss parameters at the beginning of the lattice
+(startname) NOTE - we thoroughly recommend checking these
+parameters and this functionality is only for partial convenience
+to have a model that works straight away.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>flipmagnets</strong></p></td>
+<td><p>True | False - flip the sign of all k values for magnets - MADX
+currently tracks particles agnostic of the particle charge -
+BDSIM however, follows the definition strictly -
+positive k -&gt; horizontal focussing for positive particles
+therefore, positive k -&gt; vertical focussing for negative
+particles. Use this flag to flip the sign of all magnets.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>usemadxaperture</strong></p></td>
+<td><p>True | False - use the aperture information in the TFS file if
+APER_1 and APER_2 columns exist.  Will only set if they’re
+non-zero.  Supercedes kwargs <cite>aperturedict</cite> and
+<cite>aperlocalpositions</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>defaultAperture</strong></p></td>
+<td><p>The default aperture model to assume if none is specified.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>biases</strong></p></td>
+<td><p>Optional list of bias objects to be defined in own _bias.gmad
+file.  These can then be attached either with allelementdict for
+all components or userdict for individual ones.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>allelementdict</strong></p></td>
+<td><p>Dictionary of parameter/value pairs to be written to all
+components.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>optionsDict</strong></p></td>
+<td><p>Optional dictionary of general options to be written to the
+bdsim model options.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>linear</strong></p></td>
+<td><p>Only linear optical components</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>overwrite</strong></p></td>
+<td><p>Do not append an integer to the base file name if it already
+exists.  Instead overwrite the files.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>allNamesUnique</strong></p></td>
+<td><p>Treat every row in the TFS file/instance as a unique element.
+This makes it easier to edit individual components as they are
+guaranteed to appear only once in the entire resulting GMAD
+lattice.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The user may convert only part of the input model by specifying <cite>startname</cite>
+and <cite>stopname</cite>.</p>
+<p>Generally speaking, extra information can be folded into the conversion via a user
+supplied dictionary with extra parameters for a particular element by name. For a
+given element, for example ‘drift123’, extra parameters can be speficied in a dictionary.
+This leads to a dictionary of dictionaries being supplied. This is a relatively simple
+structure the user may prepare from their own input format and converters in Python.
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">drift123dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;aper1&#39;</span><span class="p">:</span><span class="mf">0.03</span><span class="p">,</span> <span class="s1">&#39;aper2&#39;</span><span class="p">:</span><span class="mf">0.05</span><span class="p">,</span> <span class="s1">&#39;apertureType&#39;</span><span class="p">:</span><span class="s1">&#39;rectangular&#39;</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">quaddict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;magnetGeometryType&#39;</span><span class="p">:</span><span class="s1">&#39;polesfacetcrop}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;drift123&#39;</span><span class="p">:</span><span class="n">drift123dict</span><span class="p">,</span> <span class="s1">&#39;qf1x&#39;</span><span class="p">:</span><span class="n">quaddict</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="p">,</span><span class="n">o</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">MadxTfs2Gmad</span><span class="p">(</span><span class="s1">&#39;inputfile.tfs&#39;</span><span class="p">,</span> <span class="s1">&#39;latticev1&#39;</span><span class="p">,</span> <span class="n">userdict</span><span class="o">=</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="notes">
+<h3>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>The name must match the name given in the MADX file exactly.</p></li>
+<li><p>Specific arguments may be given for aperture (<cite>aperturedict</cite>), or for collimation
+(<cite>collimatordict</cite>), which are used specifically for those purposes.</p></li>
+<li><p>There are quite a few options and these are described in <a class="reference internal" href="moduledocs.html#pybdsim-convert"><span class="std std-ref">pybdsim.Convert</span></a>.</p></li>
+<li><p>The BDSIM-provided pymadx package is required for this conversion to work.</p></li>
+<li><p>The converter will alter the names to remove forbidden characters in names
+in BDSIM such as ‘$’ or ‘!’.</p></li>
+</ol>
+</section>
+<section id="preparation-of-a-small-section">
+<h3>Preparation of a Small Section<a class="headerlink" href="#preparation-of-a-small-section" title="Link to this heading"></a></h3>
+<p>For large accelerators, it is often required to model only a small part of the machine.
+We recommend generating a Tfs file for the full lattice by default and trimming as
+required. The pymadx.Data.Tfs class provides an easy interface for trimming lattices.
+The first argument to the pybdsim.Convert.MadxTfs2Gmad function can be either a string
+describing the file location or a pymadx.Data.Tfs instance. The following example
+trims a lattice to only the first 100 elements:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">pymadx</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Tfs</span><span class="p">(</span><span class="s2">&quot;twiss_v5.2.tfs&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">a</span><span class="p">[:</span><span class="mi">100</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">m</span><span class="p">,</span><span class="n">o</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">MadxTfs2Gmad</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="s1">&#39;v5.2a&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="madxtfs2gmadstrength">
+<h2>MadxTfs2GmadStrength<a class="headerlink" href="#madxtfs2gmadstrength" title="Link to this heading"></a></h2>
+<p>This is a utility to prepare a strength file file from a Tfs file. The output gmad
+file may then be included in an existing BDSIM gmad model after the lattice definition
+which will update the strengths of all the magnets.</p>
+</section>
+<section id="mad8twiss2gmad-using-saved-twiss-output">
+<span id="mad8-twiss-2-gmad"></span><h2>Mad8Twiss2Gmad (using saved TWISS output)<a class="headerlink" href="#mad8twiss2gmad-using-saved-twiss-output" title="Link to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This requires the <a class="reference external" href="https://bitbucket.org/jairhul/pymad8">https://bitbucket.org/jairhul/pymad8</a> package.</p>
+</div>
+<p>A MAD8 lattice can be easily converted to a BDSIM gmad input file using the supplied
+python utilities. This is achieved by</p>
+<ol class="arabic simple">
+<li><p>preparing twiss, envel, survey and structure tape files with mad8</p></li>
+<li><p>echo variables in the mad8 job log (SIGPT, SIGT)</p></li>
+<li><p>converting the tape files to gmad using pybdsim</p></li>
+</ol>
+<section id="running-mad8">
+<h3>Running mad8<a class="headerlink" href="#running-mad8" title="Link to this heading"></a></h3>
+<p>The following variables need to be defined in the Mad8 job from a <code class="code docutils literal notranslate"><span class="pre">BETA0</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">EMITX</span>     <span class="o">:=</span> <span class="mf">0.01e-6</span>
+<span class="n">EMITY</span>     <span class="o">:=</span> <span class="mf">0.01e-6</span>
+<span class="n">BLENG</span>     <span class="o">:=</span> <span class="mf">0.3e-3</span>
+<span class="n">ESPRD</span>     <span class="o">:=</span> <span class="mf">0.1e-3</span>
+<span class="n">TALFX</span>     <span class="o">:=</span> <span class="n">BETA0</span><span class="p">[</span><span class="n">alfx</span><span class="p">]</span>
+<span class="n">TALFY</span>     <span class="o">:=</span> <span class="n">BETA0</span><span class="p">[</span><span class="n">alfy</span><span class="p">]</span>
+<span class="n">TBETX</span>     <span class="o">:=</span> <span class="n">BETA0</span><span class="p">[</span><span class="n">betx</span><span class="p">]</span>
+<span class="n">TBETY</span>     <span class="o">:=</span> <span class="n">BETA0</span><span class="p">[</span><span class="n">bety</span><span class="p">]</span>
+<span class="n">TGAMX</span>     <span class="o">:=</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">TALFX</span><span class="o">*</span><span class="n">TALFX</span><span class="p">)</span><span class="o">/</span><span class="n">TBETX</span>
+<span class="n">TGAMY</span>     <span class="o">:=</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">TALFY</span><span class="o">*</span><span class="n">TALFY</span><span class="p">)</span><span class="o">/</span><span class="n">TBETY</span>
+<span class="n">SIG11</span>     <span class="o">:=</span> <span class="n">EMITX</span><span class="o">*</span><span class="n">TBETX</span>
+<span class="n">SIG21</span>     <span class="o">:=</span> <span class="o">-</span><span class="n">EMITX</span><span class="o">*</span><span class="n">TALFX</span>
+<span class="n">SIG22</span>     <span class="o">:=</span> <span class="n">EMITX</span><span class="o">*</span><span class="n">TGAMX</span>
+<span class="n">SIG33</span>     <span class="o">:=</span> <span class="n">EMITY</span><span class="o">*</span><span class="n">TBETY</span>
+<span class="n">SIG43</span>     <span class="o">:=</span> <span class="o">-</span><span class="n">EMITY</span><span class="o">*</span><span class="n">TALFY</span>
+<span class="n">SIG44</span>     <span class="o">:=</span> <span class="n">EMITY</span><span class="o">*</span><span class="n">TGAMY</span>
+<span class="n">C21</span>       <span class="o">:=</span> <span class="n">SIG21</span><span class="o">/</span><span class="n">SQRT</span><span class="p">(</span><span class="n">SIG11</span><span class="o">*</span><span class="n">SIG22</span><span class="p">)</span>
+<span class="n">C43</span>       <span class="o">:=</span> <span class="n">SIG43</span><span class="o">/</span><span class="n">SQRT</span><span class="p">(</span><span class="n">SIG33</span><span class="o">*</span><span class="n">SIG44</span><span class="p">)</span>
+<span class="n">S0_I1</span><span class="o">.</span><span class="n">G1</span>  <span class="p">:</span> <span class="n">SIGMA0</span><span class="p">,</span> <span class="n">SIGX</span><span class="o">=</span><span class="n">SQRT</span><span class="p">(</span><span class="n">SIG11</span><span class="p">),</span> <span class="n">SIGPX</span><span class="o">=</span><span class="n">SQRT</span><span class="p">(</span><span class="n">SIG22</span><span class="p">),</span> <span class="n">R21</span><span class="o">=</span><span class="n">C21</span><span class="p">,</span> <span class="o">&amp;</span>
+                    <span class="n">SIGY</span><span class="o">=</span><span class="n">SQRT</span><span class="p">(</span><span class="n">SIG33</span><span class="p">),</span> <span class="n">SIGPY</span><span class="o">=</span><span class="n">SQRT</span><span class="p">(</span><span class="n">SIG44</span><span class="p">),</span> <span class="n">R43</span><span class="o">=</span><span class="n">C43</span><span class="p">,</span> <span class="o">&amp;</span>
+                    <span class="n">SIGT</span><span class="o">=</span><span class="n">BLENG</span><span class="p">,</span> <span class="n">SIGPT</span><span class="o">=</span><span class="n">ESPRD</span>
+
+<span class="n">VALUE</span><span class="p">,</span> <span class="n">EMITX</span>
+<span class="n">VALUE</span><span class="p">,</span> <span class="n">EMITY</span>
+<span class="n">VALUE</span><span class="p">,</span> <span class="n">ESPRD</span>
+<span class="n">VALUE</span><span class="p">,</span> <span class="n">BLENG</span>
+</pre></div>
+</div>
+<p>Creating the output files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">use</span><span class="p">,</span> <span class="o">&lt;</span><span class="n">latticename</span><span class="o">&gt;</span>
+<span class="n">twiss</span><span class="p">,</span> <span class="n">beta0</span><span class="o">=</span><span class="n">BETA0</span><span class="p">,</span> <span class="n">save</span><span class="p">,</span> <span class="n">tape</span><span class="o">=</span><span class="n">twiss_</span><span class="o">&lt;</span><span class="n">latticename</span><span class="o">&gt;</span> <span class="p">,</span> <span class="n">rtape</span><span class="o">=</span><span class="n">rmat_</span><span class="o">&lt;</span><span class="n">latticename</span><span class="o">&gt;</span>
+<span class="n">structure</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">struct_</span><span class="o">&lt;</span><span class="n">latticename</span><span class="o">&gt;</span>
+<span class="n">envelope</span><span class="p">,</span> <span class="n">sigma0</span><span class="o">=</span><span class="n">SIGMA0</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="n">envelope</span><span class="p">,</span> <span class="n">tape</span><span class="o">=</span><span class="n">envel_</span><span class="o">&lt;</span><span class="n">latticename</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Optionally the following files are required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">survey</span><span class="p">,</span> <span class="n">tape</span><span class="o">=</span><span class="n">survey_</span><span class="o">&lt;</span><span class="n">latticename</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>Running mad8:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mad8s</span> <span class="o">&lt;</span> <span class="o">&lt;</span><span class="n">jobfilename</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">jobfilename</span><span class="o">&gt;.</span><span class="n">log</span>
+</pre></div>
+</div>
+</section>
+<section id="converting-the-mad8-files">
+<h3>Converting the Mad8 files<a class="headerlink" href="#converting-the-mad8-files" title="Link to this heading"></a></h3>
+<p>Two steps are required to create the model from the Mad8 files, first to create
+template files for the collimators and apertures from the Mad8, this is done by
+running the following commands</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">Mad8MakeCollimatorTemplate</span><span class="p">(</span><span class="o">&lt;</span><span class="n">inputtwissfilename</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="n">collimatordbfilename</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">Mad8MakeApertureTemplate</span><span class="p">(</span><span class="o">&lt;</span><span class="n">inputtwissfilename</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="n">aperturedbfilename</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Copy the &lt;collimatordbfilename&gt; to <code class="code docutils literal notranslate"><span class="pre">collimator.dat</span></code> and &lt;aperturedbfilename&gt; to <code class="code docutils literal notranslate"><span class="pre">apertures.dat</span></code>
+Once prepared, the Tape files can be converted. The converter is used as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">Mad8Twiss2Gmad</span><span class="p">(</span><span class="o">&lt;</span><span class="n">inputtwissfilename</span><span class="o">&gt;</span><span class="p">,</span><span class="o">&lt;</span><span class="n">outputgamdfilename</span><span class="o">&gt;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="pytransport">
+<h2>pytransport<a class="headerlink" href="#pytransport" title="Link to this heading"></a></h2>
+<p><a class="reference external" href="https://bitbucket.org/jairhul/pytransport">https://bitbucket.org/jairhul/pytransport</a> is a separate utility to convert transport
+models into BDSIM ones.</p>
+</section>
+<section id="bdsim-primaries-to-others">
+<h2>BDSIM Primaries To Others<a class="headerlink" href="#bdsim-primaries-to-others" title="Link to this heading"></a></h2>
+<p>The particle coordinates recorded by BDSIM may be read from an output ROOT file and written
+to another format. This can be used for example to ensure the exact same coordinates are used
+in multiple BDSIM simulations, or to when comparing BDSIM to other tracking codes such as PTC.
+It can also be used for example to pass coordinates from one BDSIM simulation to another where a
+detailed simulation of a region of the machine may be desired without the need to simulate the
+preceding section of the machine.</p>
+<p>For the conversion to PTC coordinate convension, it is assumed that PTC calculations are performed
+in 6D, and that the <cite>TIME</cite> flag in the <cite>PTC_CREATE_LAYOUT</cite> routine is false, meaning the
+fifth and sixth coordinates are <span class="math notranslate nohighlight">\(-pathlength\)</span> and <span class="math notranslate nohighlight">\(\delta p = \frac{(p - p_0)}{p_0}\)</span>
+respectively.</p>
+<p>For all converters, a <cite>start</cite> number, <cite>n</cite> can be specified which converts from the nth particle
+onwards. The number of particles converted can be specified with the <cite>ninrays</cite> argument. For example,
+to convert particles 2 to 10 only, the arguments supplied would be <code class="code docutils literal notranslate"><span class="pre">start=2,</span> <span class="pre">ninrays=9</span></code>.</p>
+<section id="bdsimprimaries2ptc">
+<h3>BdsimPrimaries2Ptc<a class="headerlink" href="#bdsimprimaries2ptc" title="Link to this heading"></a></h3>
+<p>The primary BDSIM coordinates are converted to PTC format. The converter is used as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimPrimaries2Ptc</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span> <span class="s1">&#39;inrays.dat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="bdsimsampler2ptc">
+<h3>BdsimSampler2Ptc<a class="headerlink" href="#bdsimsampler2ptc" title="Link to this heading"></a></h3>
+<p>The BDSIM coordinates from a provided sampler name are converted to PTC format. The converter
+is used as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimSampler2Ptc</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span> <span class="s1">&#39;inrays.dat&#39;</span><span class="p">,</span><span class="s1">&#39;DR1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will convert the coordinates recorded in sampler <cite>DR1</cite>. Only the primary particles are
+converted.</p>
+</section>
+<section id="bdsimprimaries2bdsimuserfile">
+<h3>BdsimPrimaries2BdsimUserFile<a class="headerlink" href="#bdsimprimaries2bdsimuserfile" title="Link to this heading"></a></h3>
+<p>The primary BDSIM coordinates are converted to a BDSIM <cite>userFile</cite> format. The converter is used
+as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimPrimaries2BdsimUserFile</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span> <span class="s1">&#39;inrays.dat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="bdsimsampler2bdsimuserfile">
+<h3>BdsimSampler2BdsimUserFile<a class="headerlink" href="#bdsimsampler2bdsimuserfile" title="Link to this heading"></a></h3>
+<p>The BDSIM coordinates from a provided sampler name are converted to a BDSIM <cite>userFile</cite> format.
+The converter is used as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimSampler2BdsimUserFile</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span> <span class="s1">&#39;inrays.dat&#39;</span><span class="p">,</span><span class="s1">&#39;DR1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The time coordinate recorded in the input file will be finite if the sampler being converted is
+not at the start of the machine. This function is intended to convert particles into a primary
+distribution, therefore the time coordinate must be centred around <cite>t=0</cite>. As the nominal time
+is not recorded, the mean time is subtracted from all particles. Note that at low particle numbers,
+statistical fluctuations may result in the mean time being significantly different from the nominal
+time.</p>
+</section>
+<section id="bdsimprimaries2madx">
+<h3>BdsimPrimaries2Madx<a class="headerlink" href="#bdsimprimaries2madx" title="Link to this heading"></a></h3>
+<p>The primary BDSIM coordinates are converted to madx format. The converter is used as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimPrimaries2Madx</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span> <span class="s1">&#39;inrays.dat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="bdsimprimaries2mad8">
+<h3>BdsimPrimaries2Mad8<a class="headerlink" href="#bdsimprimaries2mad8" title="Link to this heading"></a></h3>
+<p>The primary BDSIM coordinates are converted to mad8 format. The converter is used as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimPrimaries2Mad8</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span> <span class="s1">&#39;inrays.dat&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="builder.html" class="btn btn-neutral float-left" title="Building Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="compare.html" class="btn btn-neutral float-right" title="Model Comparison" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

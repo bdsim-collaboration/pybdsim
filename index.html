@@ -1,0 +1,263 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pybdsim documentation &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Licence &amp; Disclaimer" href="licence.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">pybdsim documentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pybdsim-documentation">
+<h1>pybdsim documentation<a class="headerlink" href="#pybdsim-documentation" title="Link to this heading"></a></h1>
+<p>pybdsim is a Python package to aid in the preparation, running and validation
+of BDSIM models.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#local-installation">Local Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="builder.html#creating-a-model">Creating A Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html#adding-options">Adding Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html#adding-a-beam">Adding a Beam</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html#writing-a-machine">Writing a Machine</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html#units">Units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="builder.html#kwargs-flexibility">kwargs - Flexibility</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="convert.html#madxtfs2gmad">MadxTfs2Gmad</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html#madxtfs2gmadstrength">MadxTfs2GmadStrength</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html#mad8twiss2gmad-using-saved-twiss-output">Mad8Twiss2Gmad (using saved TWISS output)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html#pytransport">pytransport</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert.html#bdsim-primaries-to-others">BDSIM Primaries To Others</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="compare.html#preparing-optics-with-bdsim">Preparing Optics with BDSIM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compare.html#comparing-to-madx">Comparing to MADX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compare.html#comparing-to-mad8">Comparing to MAD8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compare.html#comparing-to-bdsim">Comparing to BDSIM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compare.html#comparing-to-ptc">Comparing to PTC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compare.html#comparing-to-transport">Comparing to Transport</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.html#loading-root-data">Loading ROOT Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#looping-over-raw-root-data">Looping Over Raw ROOT Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#rebdsimfile">RebdsimFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#skimming-data-with-custom-filter">Skimming Data With Custom Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#histogram-plotting">Histogram Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#root-histogram-operations">ROOT Histogram Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#python-histogram-operations">Python Histogram Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#d-scoring-histograms">3D Scoring Histograms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#manually-loading-raw-data">Manually Loading Raw Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#sampler-data">Sampler Data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data_uproot.html#loading-root-data">Loading ROOT Data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html#bdsim-optics">BDSIM Optics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html#histogram-plotting">Histogram Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html#energy-deposition">Energy Deposition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plotting.html#machine-diagrams-for-plots">Machine Diagrams For Plots</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fieldmaps.html#loading">Loading</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldmaps.html#writing">Writing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldmaps.html#creation">Creation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldmaps.html#visualisation-and-plotting">Visualisation and Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldmaps.html#conversion">Conversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldmaps.html#sorting-points">Sorting Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fieldmaps.html#importance-of-order">Importance of Order</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="classes.html#general-classes">General Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html#specialised-classes">Specialised Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="support.html#feature-request">Feature Request</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-7-0-2025-06-xx">v3.7.0 - 2025 / 06 / XX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-6-1-2024-01-30">v3.6.1 - 2024 / 01 / 30</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-6-0-2024-01-12">v3.6.0 - 2024 / 01 / 12</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-5-1-2023-10-03">v3.5.1 - 2023 / 10 / 03</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-5-0-2023-08-25">v3.5.0 - 2023 / 08 / 25</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-4-0-2023-08-12">v3.4.0 - 2023 / 08 / 12</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-3-3-2023-07-17">v3.3.3 - 2023 / 07 / 17</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-3-2-2023-06-29">v3.3.2 - 2023 / 06 / 29</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-3-1-2023-05-15">v3.3.1 - 2023 / 05 / 15</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-3-0-2023-05-08">v3.3.0 - 2023 / 05 / 08</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-2-0-2023-04-26">v3.2.0 - 2023 / 04 / 26</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-1-1-2023-04-23">v3.1.1 - 2023 / 04 / 23</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-1-0-2023-04-02">v3.1.0 - 2023 / 04 / 02</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-0-1-2023-03-22">v3.0.1 - 2023 / 03 / 22</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v3-0-0-2023-03-19">v3.0.0 - 2023 / 03 / 19</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v2-4-0-2021-06-16">v2.4.0 - 2021 / 06 / 16</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v2-3-0-2020-12-15">v2.3.0 - 2020 / 12 / 15</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v2-2-0-2020-06-08">v2.2.0 - 2020 / 06 / 08</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v2-1-2019-04-20">v2.1 - 2019 / 04 / 20</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v2-0-2019-02-27">v2.0 - 2019 / 02 / 27</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v1-9-2018-08-24">v1.9 - 2018 / 08 / 24</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v1-8-2018-06-23">v1.8 - 2018 / 06 / 23</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v1-7-2018-06-30">v1.7 - 2018 / 06 / 30</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v1-6-2018-05-23">v1.6 - 2018 / 05 / 23</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v1-5-2018-05-17">v1.5 - 2018 / 05 / 17</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v1-4-2018-10-04">v1.4 - 2018 / 10 / 04</a></li>
+<li class="toctree-l2"><a class="reference internal" href="version_history.html#v1-3-2017-12-05">v1.3 - 2017 / 12 / 05</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Beam">pybdsim.Beam module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Builder">pybdsim.Builder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Compare">pybdsim.Compare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Constants">pybdsim.Constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Convert">pybdsim.Convert</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Data">pybdsim.Data module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Field">pybdsim.Field module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Gmad">pybdsim.Gmad module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.ModelProcessing">pybdsim.ModelProcessing module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Options">pybdsim.Options module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Plot">pybdsim.Plot module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Run">pybdsim.Run module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Visualisation">pybdsim.Visualisation module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.Writer">pybdsim.Writer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="moduledocs.html#module-pybdsim.XSecBias">pybdsim.XSecBias module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="developer.html#release-checklist">Release Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="developer.html#annual-update">Annual Update</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="licence.html" class="btn btn-neutral float-right" title="Licence &amp; Disclaimer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

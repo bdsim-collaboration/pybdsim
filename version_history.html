@@ -1,0 +1,683 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Version History &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Module Contents" href="moduledocs.html" />
+    <link rel="prev" title="Support" href="support.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Version History</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#v3-7-0-2025-06-xx">v3.7.0 - 2025 / 06 / XX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-6-1-2024-01-30">v3.6.1 - 2024 / 01 / 30</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-6-0-2024-01-12">v3.6.0 - 2024 / 01 / 12</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-5-1-2023-10-03">v3.5.1 - 2023 / 10 / 03</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-5-0-2023-08-25">v3.5.0 - 2023 / 08 / 25</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-4-0-2023-08-12">v3.4.0 - 2023 / 08 / 12</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-3-3-2023-07-17">v3.3.3 - 2023 / 07 / 17</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-3-2-2023-06-29">v3.3.2 - 2023 / 06 / 29</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-3-1-2023-05-15">v3.3.1 - 2023 / 05 / 15</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-3-0-2023-05-08">v3.3.0 - 2023 / 05 / 08</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-2-0-2023-04-26">v3.2.0 - 2023 / 04 / 26</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-1-1-2023-04-23">v3.1.1 - 2023 / 04 / 23</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-1-0-2023-04-02">v3.1.0 - 2023 / 04 / 02</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-0-1-2023-03-22">v3.0.1 - 2023 / 03 / 22</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#v3-0-0-2023-03-19">v3.0.0 - 2023 / 03 / 19</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#new-features">New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bug-fixes">Bug Fixes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#general">General</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-4-0-2021-06-16">v2.4.0 - 2021 / 06 / 16</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-3-0-2020-12-15">v2.3.0 - 2020 / 12 / 15</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id5">New Features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-2-0-2020-06-08">v2.2.0 - 2020 / 06 / 08</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">New Features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-1-2019-04-20">v2.1 - 2019 / 04 / 20</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#new-featuers">New Featuers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v2-0-2019-02-27">v2.0 - 2019 / 02 / 27</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id9">New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-9-2018-08-24">v1.9 - 2018 / 08 / 24</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id12">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-8-2018-06-23">v1.8 - 2018 / 06 / 23</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id14">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id15">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-7-2018-06-30">v1.7 - 2018 / 06 / 30</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id16">General</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-6-2018-05-23">v1.6 - 2018 / 05 / 23</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id18">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-5-2018-05-17">v1.5 - 2018 / 05 / 17</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id19">New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id20">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-4-2018-10-04">v1.4 - 2018 / 10 / 04</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id21">New Features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id22">Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#v1-3-2017-12-05">v1.3 - 2017 / 12 / 05</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id23">New Features</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Version History</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/version_history.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="version-history">
+<h1>Version History<a class="headerlink" href="#version-history" title="Link to this heading"></a></h1>
+<section id="v3-7-0-2025-06-xx">
+<h2>v3.7.0 - 2025 / 06 / XX<a class="headerlink" href="#v3-7-0-2025-06-xx" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>New parallelisation functions in <code class="code docutils literal notranslate"><span class="pre">pybdsim.Run</span></code> module for each tool.</p></li>
+<li><p>New Analysis module that is a work in progress.</p></li>
+<li><p>Run data now loaded when loading a BDSIM output file.</p></li>
+<li><p>Utility function to write a simple ROOT ntuple from BDSIM sampler data. This destroys
+the per-event structure, but in some cases this is acceptable for handover to an experiment.</p></li>
+<li><p>Function <code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.TH2.Integrate</span></code> to integrate by spatial coordinates and not bin index.</p></li>
+<li><p>Conversion of <code class="code docutils literal notranslate"><span class="pre">MATRIX</span></code> element from MADX.</p></li>
+<li><p>Internal changes to field map loading for plotting.</p></li>
+<li><p>Gabor lens from BDSIM will be plotted in machine diagram.</p></li>
+<li><p>Dependency on <cite>jinja2</cite> introduced.</p></li>
+<li><p>Add emittance plot to standard plots for <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.BDSIMOptics</span></code>.</p></li>
+<li><p>Ability to split a Builder.Element instance with the division operator.</p></li>
+<li><p>Fix <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.Spectra</span></code> when exactly 9 particles types were used.</p></li>
+<li><p>Fix spelling of integrate functions in TH1 and TH2.</p></li>
+<li><p>New <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.MeshSteps</span></code> to plot projected layers through a scoring mesh (i.e. TH3).</p></li>
+<li><p>Typo fixed for <code class="code docutils literal notranslate"><span class="pre">IntegateAlong1Dimension</span></code> and <code class="code docutils literal notranslate"><span class="pre">IntegateAlong2Dimensions</span></code>.</p></li>
+<li><p>Bug fixed for Integration of 2D Histograms, i.e. <code class="code docutils literal notranslate"><span class="pre">IntegrateAlongX</span></code> and <code class="code docutils literal notranslate"><span class="pre">IntegrateAlongY</span></code>.
+For obtaining a 1D Histogram in x, one must call ROOT’s <code class="code docutils literal notranslate"><span class="pre">TH2::ProjectionY()</span></code>.
+Similarly, for getting the histogram along y, one needs to call <code class="code docutils literal notranslate"><span class="pre">TH2::ProjectionX()</span></code>.</p></li>
+<li><p>Fix for no total energy specified for BDSIM primaries to PTC inrays.</p></li>
+<li><p>GMAD strength from TFS file fix for hkickers and vkickers which used <cite>angle</cite>.</p></li>
+<li><p>Fix MADX conversion for <cite>VMONITOR</cite> and <cite>HMONITOR</cite> and warn about <cite>TRANSFORM</cite> conversion (cannot be converted).</p></li>
+</ul>
+</section>
+<section id="v3-6-1-2024-01-30">
+<h2>v3.6.1 - 2024 / 01 / 30<a class="headerlink" href="#v3-6-1-2024-01-30" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Bug fix for type comparison when plotting optics.</p></li>
+<li><p>Improve documentation for plotting multiple machines / optics.</p></li>
+</ul>
+</section>
+<section id="v3-6-0-2024-01-12">
+<h2>v3.6.0 - 2024 / 01 / 12<a class="headerlink" href="#v3-6-0-2024-01-12" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.Spectra</span></code> arguments have changed from <cite>scalingFactors</cite> to
+<cite>scalingFactor</cite>, i.e. a single number. Previously it had to be a list to go
+into the <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.Histogram1DMultiple</span></code> function. This is now done
+automatically as rebdsim-produced spectra must be consistent in binning by
+construction. Similarly, for <cite>xScalingFactor</cite>.</p></li>
+<li><p>Change the loaded spectra from <code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.Load</span></code> (which returns a
+<code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.RebdsimFile</span></code> instance) from a <cite>defaultdict</cite> in Python
+to a regular dictionary. This way, if a spectra is accessed by an invalid
+key, a <cite>KeyError</cite> exception is thrown rather than nothing happening. The
+<cite>defaultdict</cite> is an internal code optimisation and not required for the user
+to see.</p></li>
+<li><p>Fix sorting of spectra by bin contents.</p></li>
+<li><p>The plotting functions inside <a href="#id1"><span class="problematic" id="id2">:cdoe:`pybdsim.Plot`</span></a>: <cite>Histogram1D</cite>, <cite>Histogram1DMultiple</cite>,
+<cite>Histogram2D</cite>, <cite>Histogram2DErrors</cite> all now support supplying your own Matplotlib
+axis instance to draw ‘into’, rather than create a new figure. This allows
+better reuse of the plotting functions but with your own layout of figures.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.Histogram1DMultiple</span></code> now accepts a single float for <cite>scalingFactors</cite>
+or the <cite>xScalingFactors</cite> arguments, which will be then equally applied to all
+histograms. It automatically makes a list of factors to match the length of
+the incoming histogram list.</p></li>
+<li><p>Fix the automatic y scale limits in the <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.Histogram1DMultiple</span></code> plotting
+function that would not always correctly identify the minimum if the histogram was
+empty and on a log scale.</p></li>
+<li><p>New <code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.SkimBDSIMFile</span></code> function that allows skimming a raw BDSIM
+file with a custom filter function. The function should take an event as an argument
+and return True or False for whether to keep that event in the skimmed file. Allows
+more complex filtering than the <code class="code docutils literal notranslate"><span class="pre">bdskim</span></code> tool.</p></li>
+<li><p>Update copyright year.</p></li>
+</ul>
+</section>
+<section id="v3-5-1-2023-10-03">
+<h2>v3.5.1 - 2023 / 10 / 03<a class="headerlink" href="#v3-5-1-2023-10-03" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix 1D histogram y range in plots if a bin has a 100% error on it.</p></li>
+<li><p>Tight layout for 2D histogram plots.</p></li>
+<li><p>Automatically upgrade the default matplotlib png resolution to 500 dpi if
+saving a figure as a png for 2D histogram plots.</p></li>
+</ul>
+</section>
+<section id="v3-5-0-2023-08-25">
+<h2>v3.5.0 - 2023 / 08 / 25<a class="headerlink" href="#v3-5-0-2023-08-25" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix x axis range in optics plot when the initial S of a beamline is not 0.</p></li>
+<li><p>Include chunker.py and chunkermp.py utilities here. They allow you to apply
+bdsimCombine using one or multiple CPUs to reduce a big set of files by a
+given factor. For example, combine skimmed files, 10 to 1. See
+<code class="code docutils literal notranslate"><span class="pre">pybdsim.Run.Reduce</span></code> and <cite>ReduceParallel</cite>.</p></li>
+</ul>
+</section>
+<section id="v3-4-0-2023-08-12">
+<h2>v3.4.0 - 2023 / 08 / 12<a class="headerlink" href="#v3-4-0-2023-08-12" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix for spectra name parsing when loading a rebdsim output file.</p></li>
+<li><p>New function <code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.CombinePickledHistogram1DSets</span></code> to combine
+pickled Histogram1DSet instances from a custom analysis.</p></li>
+<li><p>Fix Histogram1DSet print out when no name was specified.</p></li>
+<li><p>Remove need for <cite>outerDiameter</cite> for the ExternalGeometry class and also
+the AddElement function when building models.</p></li>
+</ul>
+</section>
+<section id="v3-3-3-2023-07-17">
+<h2>v3.3.3 - 2023 / 07 / 17<a class="headerlink" href="#v3-3-3-2023-07-17" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix for missing functions due to recent refactor in <cite>Data.General</cite>.</p></li>
+</ul>
+</section>
+<section id="v3-3-2-2023-06-29">
+<h2>v3.3.2 - 2023 / 06 / 29<a class="headerlink" href="#v3-3-2-2023-06-29" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix loading of new header variables with backwards compatibility.</p></li>
+<li><p>Fix extra new lines and white space being written out in comments at the top
+of field maps.</p></li>
+<li><p>New function to write a 3D scoring mesh out as ASCII for transfer to
+other programs.</p></li>
+<li><p>Explicit exception when the ROOT libraries can’t be loaded for reading
+BDSIM data.</p></li>
+<li><p>Fix circular import from Data.py and _General.py.</p></li>
+</ul>
+</section>
+<section id="v3-3-1-2023-05-15">
+<h2>v3.3.1 - 2023 / 05 / 15<a class="headerlink" href="#v3-3-1-2023-05-15" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Reduce Python version requirement to &gt;3.6 instead of 3.7.</p></li>
+</ul>
+</section>
+<section id="v3-3-0-2023-05-08">
+<h2>v3.3.0 - 2023 / 05 / 08<a class="headerlink" href="#v3-3-0-2023-05-08" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix installation where there was a missing dependency of pandas with pymad8. pymad8 is
+now no longer a formal dependency but all the conversion and comparison code still exists.</p></li>
+<li><p>Fix setup.cfg having pymadx in the name although it makes no difference.</p></li>
+<li><p>Add new <code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.GetHistoryPDGTuple()</span></code> function to aid trajectory analysis.</p></li>
+</ul>
+</section>
+<section id="v3-2-0-2023-04-26">
+<h2>v3.2.0 - 2023 / 04 / 26<a class="headerlink" href="#v3-2-0-2023-04-26" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Remove the function <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.AddMachineLatticeToFigure()</span></code>. This was just a forward to
+<code class="code docutils literal notranslate"><span class="pre">pymadx.Plot.AddMachineLatticeToFigure()</span></code> and this should be used explicitly for
+machine diagram plotting for TFS files. Otherwise, <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.AddMachineLatticeFromSurveyToFigure</span></code>
+should be used.</p></li>
+<li><p>Better documentation about plotting.</p></li>
+<li><p>Increase the visibility of light grey elements in the machine diagram from alpha 0.1 to 0.4.</p></li>
+</ul>
+</section>
+<section id="v3-1-1-2023-04-23">
+<h2>v3.1.1 - 2023 / 04 / 23<a class="headerlink" href="#v3-1-1-2023-04-23" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fixed spectra loading and plotting for when the ‘p’ and ‘s’ prefixes are used
+in the rebdsim Spectra command to denote primary and secondary particles.</p></li>
+<li><p>Fixed error with default log scale in <cite>Plot.Histogram2D</cite> when no <cite>vmin</cite> was specified.</p></li>
+<li><p>Fix <code class="code docutils literal notranslate"><span class="pre">pybdsim._version_tuple</span></code> which should be <code class="code docutils literal notranslate"><span class="pre">pybdsim.__version_tuple__</span></code>.</p></li>
+<li><p>Fix import without awkward array which is only required for the [uproot] feature of pybdsim.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.Spectra()</span></code> now makes more than one plot if more than 8 particles are specified.</p></li>
+<li><p>Recognised PDG ID 0 as “total” from BDSIM.</p></li>
+</ul>
+</section>
+<section id="v3-1-0-2023-04-02">
+<h2>v3.1.0 - 2023 / 04 / 02<a class="headerlink" href="#v3-1-0-2023-04-02" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Add the writing and reading of comment lines in field maps.</p></li>
+<li><p>Reduce print out when loading a field map.</p></li>
+<li><p>Clean imports in cpymad interface as well as in Convert functions.</p></li>
+</ul>
+</section>
+<section id="v3-0-1-2023-03-22">
+<h2>v3.0.1 - 2023 / 03 / 22<a class="headerlink" href="#v3-0-1-2023-03-22" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Fix import for pybdsim when ROOT is present but librebdsim etc. are not available
+through environmental variables, or findable. Would cause induce a classic ROOT
+segfault when importing pybdsim.</p></li>
+<li><p>Fix wrong exception being raised.</p></li>
+<li><p>Always write a comment string at the start of a BDSIM field map file to specify
+the units of the file.</p></li>
+</ul>
+</section>
+<section id="v3-0-0-2023-03-19">
+<h2>v3.0.0 - 2023 / 03 / 19<a class="headerlink" href="#v3-0-0-2023-03-19" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Restructure package into a declarative Python package where all source files are now in
+<cite>src/pybdsim/</cite>.</p></li>
+<li><p>The package now has a feature called <cite>uproot</cite> for the optional dependencies of uproot, pandas,
+and pint packages.</p></li>
+<li><p>Field classes no longer have <code class="code docutils literal notranslate"><span class="pre">flip=True</span></code> as the default - it is now <code class="code docutils literal notranslate"><span class="pre">False</span></code>.
+Please check any field maps created by scripts using these classes.</p></li>
+</ul>
+<section id="new-features">
+<h3>New Features<a class="headerlink" href="#new-features" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add a module to load BDSIM output file, included rebdsim files with uproot.</p></li>
+<li><p>Create a nice Python copy of the header information from any (re)bdsim file when
+loading with pybdsim using only Python types.</p></li>
+<li><p>New integration for 2D histograms along each axis to 1D histograms.</p></li>
+<li><p>New slices for 3D histograms as well as integrating along a dimension (‘projection’).
+See <a class="reference internal" href="data.html#data-3d-histograms"><span class="std std-ref">3D Scoring Histograms</span></a>.</p></li>
+<li><p>New ratio plot for 2x 1D histograms. See <cite>pybdsim.Plot.Histogram1DRatio</cite>.</p></li>
+<li><p>New loading and handling of 4D histograms (from BDSIM with Boost). They can now be
+loaded and handled similarly to 1,2,3D histograms. They are loaded automatically when
+loading a rebdsim file.</p></li>
+<li><p>pybdsim.Data.TH1,2,3 now have <code class="code docutils literal notranslate"><span class="pre">xrange</span></code>, <code class="code docutils literal notranslate"><span class="pre">yrange</span></code>, and <code class="code docutils literal notranslate"><span class="pre">zrange</span></code> members
+where appropriate with a convenient tuple of the range in each dimension. They also
+have the member <code class="code docutils literal notranslate"><span class="pre">integral</span></code> and <code class="code docutils literal notranslate"><span class="pre">integralError</span></code> taken from their ROOT objects.</p></li>
+<li><p>Field plotting functions now tolerate Field class objects as well as filenames to make
+it easier to check field objects as you’re making them.</p></li>
+<li><p>New field plotting for 2D field maps showing each component.</p></li>
+<li><p>New field reflection utility function <cite>pybdsim.Field.MirrorDipoleQuadrant1</cite> for 2D fields.</p></li>
+<li><p>New field plotting function <cite>pybdsim.Field.Plot2DXYConnectionOrder</cite> to see the order
+an array is written in. This can be used to validate any field manipulations.</p></li>
+<li><p>New field plotting function <cite>pybdsim.Field.Plot1DFxFyFz</cite> to see field components in 1D.</p></li>
+<li><p>Field loading automatically works for dimensions such as X, Z for 2D instead of X, Y now.</p></li>
+<li><p>Ability to load a rebdsim output file and only load the ROOT histograms without loading
+the BDSIM and rebdsim shared libraries, so it can be used on a separate computer with just
+ROOT.</p></li>
+<li><p>Added classes to Builder for all GMAD objects. New ones include <cite>aperture</cite>, <cite>atom</cite>, <cite>blm</cite>,
+<cite>cavitymodel</cite>, <cite>crystal</cite>, <cite>field</cite>, <cite>material</cite>, <cite>newcolour</cite>, <cite>query</cite>, <cite>region</cite>, <cite>samplerplacement</cite>,
+<cite>scorer</cite>, <cite>tunnel</cite>, <cite>xsecbias</cite>.</p></li>
+</ul>
+</section>
+<section id="bug-fixes">
+<h3>Bug Fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>pybdsim would throw an exception that librebdsim and libbdsimRootEvent could not be
+loaded and stop if the libraries had been already loaded separately outside pybdsim.
+This has been fixed by fixing the interpretation of the error codes from ROOT.</p></li>
+<li><p>Fix warning about “nonposy” in matplotlib version for log scales.</p></li>
+<li><p>Fix check in Run of if it’s a ROOT file or not. Simplify it to use file extension.</p></li>
+<li><p>Tolerate no pytransport installation.</p></li>
+<li><p>Fix loading of aperture data from a BDSIM output file.</p></li>
+<li><p>Fix loading of model data.</p></li>
+<li><p>Fix aperture plots from a BDSIM output file.</p></li>
+</ul>
+</section>
+<section id="general">
+<h3>General<a class="headerlink" href="#general" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>The Beam class now takes <cite>distrType</cite> and not <cite>distrtype</cite> so as to match BDSIM syntax
+and be less confusing.</p></li>
+<li><p>Updated out of date documentation.</p></li>
+<li><p>Better automatic ranges for Histogram1DMultiple plots by default.</p></li>
+<li><p>Better field loading in <cite>pybdsim.Field.Load</cite>. Returns the same Field object
+from pybdsim as you would write.</p></li>
+</ul>
+</section>
+</section>
+<section id="v2-4-0-2021-06-16">
+<h2>v2.4.0 - 2021 / 06 / 16<a class="headerlink" href="#v2-4-0-2021-06-16" title="Link to this heading"></a></h2>
+<section id="id3">
+<h3>New Features<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Transform3D function in a Machine.</p></li>
+<li><p>Crystal, ScorerMesh and Placement also can be added to a Machine.</p></li>
+<li><p>Ability to insert and replace an element in a machine.</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Bug Fixes<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Python 3.8+ warnings fixed.</p></li>
+<li><p>Add ROOT_INCLUDE_PATH to ROOT as newer versions don’t do this automatically.</p></li>
+<li><p>Fixed vmin for 2D histogram plot.</p></li>
+</ul>
+</section>
+</section>
+<section id="v2-3-0-2020-12-15">
+<h2>v2.3.0 - 2020 / 12 / 15<a class="headerlink" href="#v2-3-0-2020-12-15" title="Link to this heading"></a></h2>
+<section id="id5">
+<h3>New Features<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Convenience functions for pickling and un-pickling data in the Data module with optional compression.</p></li>
+<li><p>Generic loss map plot.</p></li>
+</ul>
+</section>
+</section>
+<section id="v2-2-0-2020-06-08">
+<h2>v2.2.0 - 2020 / 06 / 08<a class="headerlink" href="#v2-2-0-2020-06-08" title="Link to this heading"></a></h2>
+<section id="id6">
+<h3>New Features<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Support for Python3.</p></li>
+</ul>
+</section>
+</section>
+<section id="v2-1-2019-04-20">
+<h2>v2.1 - 2019 / 04 / 20<a class="headerlink" href="#v2-1-2019-04-20" title="Link to this heading"></a></h2>
+<section id="new-featuers">
+<h3>New Featuers<a class="headerlink" href="#new-featuers" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Optional flag of whether to write out the converted model with <cite>pybdsim.Convert.MadxTfs2Gmad</cite>.</p></li>
+<li><p>Machine builder now supports new bdsim jcol element.</p></li>
+<li><p>Machine diagram drawing can now start from any arbitrary S location.</p></li>
+<li><p>For loaded histograms (using <cite>pybdsim.Data.TH1</cite>, <cite>TH2</cite>, <cite>TH3</cite> classes, there are now
+functions <cite>ErrorsToSTD()</cite> and <cite>ErrorsToErrorOnMean()</cite> to easily convert between the
+different types of error - the default is error on the mean.</p></li>
+<li><p>New plotting function <cite>pybdsim.Plot.Histogram2DErrors</cite> to visualise 2D histogram errors.</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>General<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Return arguments of <cite>pybdsim.Convert.MadxTfs2Gmad</cite> is now just 2 items - machine and omitted items. Previously 3.</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>Bug Fixes<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix loading of Model tree from ROOT output given some recent collimation variables may have
+a different structure or type from the existing ones.</p></li>
+<li><p>In <cite>pybdsim.Plot.Histogram2D</cite>, the y log scale argument was “ylocscale” and is fixed to “yLogScale”.</p></li>
+</ul>
+</section>
+</section>
+<section id="v2-0-2019-02-27">
+<h2>v2.0 - 2019 / 02 / 27<a class="headerlink" href="#v2-0-2019-02-27" title="Link to this heading"></a></h2>
+<section id="id9">
+<h3>New Features<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Machine diagram plotting automatically from BDSIM output. Compatible with newer
+BDSIM output format.</p></li>
+<li><p>Support for thin R matrix, parallel transporter and thick R matrix in builder.</p></li>
+<li><p>Generate transfer matrix from tracking data from BDSIM for a single element.</p></li>
+<li><p>Control over legend location in standard energy deposition and loss plots.</p></li>
+<li><p>Utility function to write sampler data from BDSIM output to a user input file.</p></li>
+<li><p>Support for energy variation in the beam line in MAD8 conversion.</p></li>
+</ul>
+</section>
+<section id="id10">
+<h3>General<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Remove dependency of root_numpy. pybdsim now uses only standard ROOT interfaces.</p></li>
+<li><p>Update physics lists.</p></li>
+</ul>
+</section>
+<section id="id11">
+<h3>Bug Fixes<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix bug where calling pybdsim.Plot.PrimaryPhaseSpace with an output file name
+would result in an error as this argument was wrongly supplied to the number
+of bins argument.</p></li>
+<li><p>Fix for hidden scientific notation when using machine diagram.</p></li>
+<li><p>Fix TH1 TH2 TH3 histogram x,y,z highedge variables in histogram loading. These
+were the lowedge duplicated, which was wrong.</p></li>
+<li><p>Add missing variables from sampler data given changes in BDSIM.</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-9-2018-08-24">
+<h2>v1.9 - 2018 / 08 / 24<a class="headerlink" href="#v1-9-2018-08-24" title="Link to this heading"></a></h2>
+<section id="id12">
+<h3>General<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Significant new tests.</p></li>
+<li><p>Trajectory loading from BDSIM ROOT output.</p></li>
+<li><p>Plot trajectories.</p></li>
+<li><p>New padding function for 1D histogram to ensure lines in plots.</p></li>
+<li><p>New value replacement function for histograms to ensure continuous line in log plots.</p></li>
+<li><p>Control over aspect ration in default 2D histogram plots.</p></li>
+<li><p>New classes for each element in the Builder.</p></li>
+<li><p>Refactor of MadxTfs2Gmad to use new classes in Builder.</p></li>
+</ul>
+</section>
+<section id="id13">
+<h3>Bug Fixes<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix orientation of 2D histograms in plotting.</p></li>
+<li><p>Fix header information labels when writing field maps with reversed order.</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-8-2018-06-23">
+<h2>v1.8 - 2018 / 06 / 23<a class="headerlink" href="#v1-8-2018-06-23" title="Link to this heading"></a></h2>
+<section id="id14">
+<h3>General<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Setup requires pytest-runner.</p></li>
+<li><p>Introduction of testing.</p></li>
+<li><p>Removed line wrapping written to GMAD files in Builder.</p></li>
+<li><p>“PlotBdsimOptics” is now “BDSIMOptics” in the Plot module.</p></li>
+<li><p>New comparison plots for arbitrary inputs from different tracking codes.</p></li>
+<li><p>Prepare PTC coordinates from any BDSIM sampler.</p></li>
+</ul>
+</section>
+<section id="id15">
+<h3>Bug Fixes<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fixes for “Optics” vs “optics” naming change in ROOT files.</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-7-2018-06-30">
+<h2>v1.7 - 2018 / 06 / 30<a class="headerlink" href="#v1-7-2018-06-30" title="Link to this heading"></a></h2>
+<section id="id16">
+<h3>General<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Can specify which dimension in Field class construction (i.e. ‘x’:’z’ instead of default ‘x’:’y’).</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>Bug Fixes<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>‘nx’ and ‘ny’ were written the wrong way around from a 2D field map in pybdsim.</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-6-2018-05-23">
+<h2>v1.6 - 2018 / 05 / 23<a class="headerlink" href="#v1-6-2018-05-23" title="Link to this heading"></a></h2>
+<section id="id18">
+<h3>Bug Fixes<a class="headerlink" href="#id18" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix machine diagram plotting from BDSIM survey.</p></li>
+<li><p>Fix machine diagram searching with right-click in plots.</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-5-2018-05-17">
+<h2>v1.5 - 2018 / 05 / 17<a class="headerlink" href="#v1-5-2018-05-17" title="Link to this heading"></a></h2>
+<section id="id19">
+<h3>New Features<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Function now public to create beam from Madx TFS file.</p></li>
+<li><p>Improved searching for BDSAsciiData class.</p></li>
+<li><p>Ability to easily write out beam class.</p></li>
+<li><p>Plot phase space from any sampler in a BDSIM output file.</p></li>
+<li><p>__version__ information in package.</p></li>
+<li><p>Get a column from data irrespective of case.</p></li>
+<li><p>Coded energy deposition plot. Use for example for labelling cyrogenic, warm and collimator losses.</p></li>
+<li><p>Improved Transport BDSIM comparison.</p></li>
+<li><p>Function to convert a line from a TFS file into a beam definition file.</p></li>
+</ul>
+</section>
+<section id="id20">
+<h3>Bug Fixes<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fix library loading given changes to capitalisation in BDSIM.</p></li>
+<li><p>Beam class now supports all BDSIM beam definitions.</p></li>
+<li><p>Support all aperture shapes in Builder.</p></li>
+<li><p>Fixes for loading optics given changes to capitalisation and BDSAsciiData class usage.</p></li>
+<li><p>Fixes for collimator conversion from MADX.</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-4-2018-10-04">
+<h2>v1.4 - 2018 / 10 / 04<a class="headerlink" href="#v1-4-2018-10-04" title="Link to this heading"></a></h2>
+<section id="id21">
+<h3>New Features<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Full support for loading BDSIM output formats through ROOT.</p></li>
+<li><p>Extraction of data from ROOT histograms to numpy arrays.</p></li>
+<li><p>Simple histogram plotting from ROOT files.</p></li>
+<li><p>Loading of sampler data and simple extraction of phase space data.</p></li>
+<li><p>Line wrapping for elements with very long definitions.</p></li>
+<li><p>Comparison plots standardised.</p></li>
+<li><p>New BDSIM BDSIM comparison.</p></li>
+<li><p>New BDSIM Mad8 comparison.</p></li>
+<li><p>Support for changes to BDSIM data format variable renaming in V1.0</p></li>
+</ul>
+</section>
+<section id="id22">
+<h3>Bug Fixes<a class="headerlink" href="#id22" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Correct conversion of all dispersion component for Beam.</p></li>
+<li><p>Don’t write all multipole components if not needed.</p></li>
+<li><p>Fixed histogram plotting.</p></li>
+<li><p>Fixed conversion of coordinates in BDSIM2PtcInrays for subrelativistic particles.</p></li>
+<li><p>Fixed behaviour of fringe field <cite>fint</cite> and <cite>fintx</cite> behaviour from MADX.</p></li>
+<li><p>Fixed pole face angles given MADX writes out wrong angles.</p></li>
+<li><p>Fixed conversion of multipoles and other components for ‘linear’ flag in MadxTfs2Gmad.</p></li>
+<li><p>Fixed axis labels in field map plotting utilities.</p></li>
+<li><p>MADX BDSIM testing suite now works with subrelativistic particles.</p></li>
+<li><p>Many small fixes to conversion.</p></li>
+</ul>
+</section>
+</section>
+<section id="v1-3-2017-12-05">
+<h2>v1.3 - 2017 / 12 / 05<a class="headerlink" href="#v1-3-2017-12-05" title="Link to this heading"></a></h2>
+<section id="id23">
+<h3>New Features<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>GPL3 licence introduced.</p></li>
+<li><p>Compatibility with PIP install system.</p></li>
+<li><p>Manual.</p></li>
+<li><p>Testing suite.</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="support.html" class="btn btn-neutral float-left" title="Support" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="moduledocs.html" class="btn btn-neutral float-right" title="Module Contents" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

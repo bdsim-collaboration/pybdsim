@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Loading &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Data Loading Using Uproot" href="data_uproot.html" />
+    <link rel="prev" title="Model Comparison" href="compare.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Loading</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading-root-data">Loading ROOT Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#load-just-histograms">Load Just Histograms</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#looping-over-raw-root-data">Looping Over Raw ROOT Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rebdsimfile">RebdsimFile</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#skimming-data-with-custom-filter">Skimming Data With Custom Filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#histogram-plotting">Histogram Plotting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#root-histogram-operations">ROOT Histogram Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-histogram-operations">Python Histogram Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#d-scoring-histograms">3D Scoring Histograms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manually-loading-raw-data">Manually Loading Raw Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sampler-data">Sampler Data</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Data Loading</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="data-loading">
+<h1>Data Loading<a class="headerlink" href="#data-loading" title="Link to this heading"></a></h1>
+<p>Utilities to load BDSIM output data. This is intended for optical function plotting
+and small scale data extraction - not general analysis of BDSIM output.</p>
+<section id="loading-root-data">
+<h2>Loading ROOT Data<a class="headerlink" href="#loading-root-data" title="Link to this heading"></a></h2>
+<p>pybdsim can load several different ROOT files produce by BDSIM, rebdsim, rebdsimCombine,
+bdskim, rebdsimOptics, rebdsimHistoMerge. In all cases, the same function is used
+but it may return a different pybdsim class representing the loaded data.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;mylovelyfile.root&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the case of a <cite>rebdsim</cite> file, an instance of the pybdsim.Data.RebdsimFile class
+is returned (See <a class="reference internal" href="#rebdsimfile">RebdsimFile</a>). In the case of a raw BDSIM output file, an instance
+of the BDSIM DataLoader analysis class is returned (even in Python).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To load BDSIM raw data, the <code class="code docutils literal notranslate"><span class="pre">&lt;bdsim-install-dir&gt;/bin/bdsim.sh</span></code> script
+must be sourced. This sets up environmental variables that ROOT requires to
+load our shared libraries in C++ with definitions of the layout of the files
+(i.e. the C++ classes). See also, <a class="reference internal" href="#data-load-manual"><span class="std std-ref">Manually Loading Raw Data</span></a> for a method to
+load the libraries yourself (normally automatic with <code class="code docutils literal notranslate"><span class="pre">Load()</span></code>).</p>
+</div>
+<section id="load-just-histograms">
+<h3>Load Just Histograms<a class="headerlink" href="#load-just-histograms" title="Link to this heading"></a></h3>
+<p>It may be useful to load just the histograms on a computer with ROOT and pybdsim but
+without BDSIM and all the libraries. In this case, we can use the RebdsimFile class
+directly and flag that we should not try to load the BDSIM libraries. In this case,
+it can only interpret native ROOT objects such as histograms and not the other data
+in the file such as the beam line model (for plotting machine diagrams).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pybdsim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">RebdsimFile</span><span class="p">(</span><span class="s2">&quot;sample1.root&quot;</span><span class="p">,</span> <span class="n">histogramsOnly</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">histogramspy</span>
+<span class="go">{&#39;Event/PerEntryHistograms/PrimaryX&#39;: &lt;pybdsim.Data.TH1 at 0x1549cef40&gt;,</span>
+<span class="go">&#39;Event/PerEntryHistograms/EventDuration&#39;: &lt;pybdsim.Data.TH1 at 0x1549d1040&gt;,</span>
+<span class="go">&#39;Event/PerEntryHistograms/EnergySpectrum&#39;: &lt;pybdsim.Data.TH1 at 0x1549e0df0&gt;,</span>
+<span class="go">&#39;Event/PerEntryHistograms/EnergyLossManual&#39;: &lt;pybdsim.Data.TH1 at 0x15503adc0&gt;,</span>
+<span class="go">&#39;Event/PerEntryHistograms/TunnelLossManual&#39;: &lt;pybdsim.Data.TH1 at 0x15503adf0&gt;,</span>
+<span class="go">&#39;Event/PerEntryHistograms/AperImpactXInRange&#39;: &lt;pybdsim.Data.TH1 at 0x15503ae20&gt;,</span>
+<span class="go">&#39;Event/SimpleHistograms/PrimaryYSimple&#39;: &lt;pybdsim.Data.TH1 at 0x15503ae50&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/PhitsHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503ae80&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/PlossHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503aeb0&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/ElossHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503aee0&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/PhitsPEHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503af10&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/PlossPEHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503af40&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/ElossPEHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503af70&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/PFirstAIHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503afa0&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/ElossTunnelHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503afd0&gt;,</span>
+<span class="go">&#39;Event/MergedHistograms/ElossTunnelPEHisto&#39;: &lt;pybdsim.Data.TH1 at 0x15503ad90&gt;,</span>
+<span class="go">&#39;Event/PerEntryHistograms/PrimaryXY&#39;: &lt;pybdsim.Data.TH2 at 0x155043040&gt;,</span>
+<span class="go">&#39;Event/SimpleHistograms/PrimaryXYSimple&#39;: &lt;pybdsim.Data.TH2 at 0x1550430a0&gt;,</span>
+<span class="go">&#39;Event/PerEntryHistograms/D2XYEnergy&#39;: &lt;pybdsim.Data.TH3 at 0x1550430d0&gt;}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="looping-over-raw-root-data">
+<h2>Looping Over Raw ROOT Data<a class="headerlink" href="#looping-over-raw-root-data" title="Link to this heading"></a></h2>
+<p>We can loop over the raw BDSIM data easily with pybdsim.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;run1.root&quot;</span><span class="p">)</span>
+<span class="n">eventTree</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">GetEventTree</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">eventTree</span><span class="p">:</span>
+    <span class="c1"># now we have event.&lt;branchname&gt;.&lt;variable&gt;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">Eloss</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can also get an index with enumeration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">event</span> <span class="ow">in</span> <span class="n">eventTree</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">Eloss</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="rebdsimfile">
+<h2>RebdsimFile<a class="headerlink" href="#rebdsimfile" title="Link to this heading"></a></h2>
+<p>When a <cite>rebdsim</cite> output file is loaded, all histograms will be loaded into a dictionary
+with their path inside the root file (i.e. in various folders) as a key. All histograms
+are held in a member dictionary called <cite>histograms</cite>. Copies are also provided in
+<cite>histograms1d</cite>, <cite>histograms2d</cite> and <cite>histograms3d</cite>.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/rebdsimFileMembers.png"><img alt="_images/rebdsimFileMembers.png" src="_images/rebdsimFileMembers.png" style="width: 100%;" />
+</a>
+</figure>
+<p>For convenience we provide wrappers for the raw ROOT histogram classes that provide
+easy access to the data in numpy format with simple matplotlib plotting called
+<cite>pybdsim.Data.TH1</cite>, <cite>TH2</cite> and <cite>TH3</cite>. Shown below is loading of the example output
+file <cite>combined-ana.root</cite> in <cite>bdsim/examples/features/data</cite>.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/rebdsimFileHistograms.png"><img alt="_images/rebdsimFileHistograms.png" src="_images/rebdsimFileHistograms.png" style="width: 100%;" />
+</a>
+</figure>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/rebdsimFileHistogramsWrapped.png"><img alt="_images/rebdsimFileHistogramsWrapped.png" src="_images/rebdsimFileHistogramsWrapped.png" style="width: 100%;" />
+</a>
+</figure>
+</section>
+<section id="skimming-data-with-custom-filter">
+<h2>Skimming Data With Custom Filter<a class="headerlink" href="#skimming-data-with-custom-filter" title="Link to this heading"></a></h2>
+<p>The compiled tool <code class="code docutils literal notranslate"><span class="pre">bdskim</span></code> exists to select a subset of events from a BDSIM
+raw output file. It produces another BDSIM raw output file but with fewer events
+that pass a selection (like a selection used for a histogram). However, if a more
+complex selection is desired that simply is not possible in a single histogram
+selection line, there is a function in pybdsim to help. A custom function is written
+by the user that takes one argument <code class="code docutils literal notranslate"><span class="pre">event</span></code></p>
+<p>Below is an example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybdsim</span>
+<span class="k">def</span> <span class="nf">MyCustomFilter</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mf">20.0</span> <span class="o">&lt;</span> <span class="n">event</span><span class="o">.</span><span class="n">Primary</span><span class="o">.</span><span class="n">energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">100.0</span>
+<span class="n">SkimBDSIMFile</span><span class="p">(</span><span class="s2">&quot;originalData.root&quot;</span><span class="p">,</span> <span class="n">MyCustomFilter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will apply MyCustomFilter, which returns True only when the first primary in
+the event has a total energy greater than 20.0 GeV and less than 100.0 GeV. Events
+matching this criteria will be saved to a new BDSIM raw file called <code class="code docutils literal notranslate"><span class="pre">&quot;originaData_skim.root&quot;</span></code>.</p>
+<p>The variable <code class="code docutils literal notranslate"><span class="pre">event</span></code> will be like iterating over an event in a custom Python analysis
+script and will have the exact spelling and layout as you would see in a TBrowser when
+viewing the data.</p>
+</section>
+<section id="histogram-plotting">
+<h2>Histogram Plotting<a class="headerlink" href="#histogram-plotting" title="Link to this heading"></a></h2>
+<p>Loaded histograms that are wrapped in our pybdsim.Data.THX classes can be plotted:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram1D</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">histogramspy</span><span class="p">[</span><span class="s1">&#39;Event/PerEntryHistograms/EnergyLossManual&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Note, the use of <cite>d.histogramspy</cite> for the wrapped set of histograms and not the raw ROOT
+histograms.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/simpleHistogramPlot.png"><img alt="_images/simpleHistogramPlot.png" src="_images/simpleHistogramPlot.png" style="width: 100%;" />
+</a>
+</figure>
+</section>
+<section id="root-histogram-operations">
+<h2>ROOT Histogram Operations<a class="headerlink" href="#root-histogram-operations" title="Link to this heading"></a></h2>
+<p>Loaded histograms from a rebdsim file are both wrapped in our pybdsim.Data.THX classes
+for nice numpy arrays for easy plotting, but also we retain the original ROOT objects.</p>
+<p>We can use the original ROOT objects to do many very useful things with the histogram,
+then wrap it again for plotting.</p>
+<ol class="arabic simple">
+<li><p>Get the ROOT histogram from the loaded file in pybdsim</p></li>
+<li><p>Manipulate that ROOT object</p></li>
+<li><p>Wrap it yourself in a pybdsim.Data.THX class</p></li>
+<li><p>Plot using pybdsim.Plot.Histogram…</p></li>
+</ol>
+<p>e.g.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;run1-ana.root&quot;</span><span class="p">)</span> <span class="c1"># a rebdsim output file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h1</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">histograms</span><span class="p">[</span><span class="s1">&#39;Event&#39;</span><span class="o">/</span><span class="n">PerEntryHistograms</span><span class="o">/</span><span class="n">EnergyLossBeamline</span><span class="s1">&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h1rebin</span> <span class="o">=</span> <span class="n">h1</span><span class="o">.</span><span class="n">Rebin</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">h1</span><span class="o">-&gt;</span><span class="n">GetName</span><span class="p">()</span><span class="o">+</span><span class="s2">&quot;_rebin2&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h1rebinpy</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">TH1</span><span class="p">(</span><span class="n">h1rebin</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram1D</span><span class="p">(</span><span class="n">h1rebinpy</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>ROOT’s histograms provide many (many…) functions. You can see them all at the ROOT
+website (Look for “CERN ROOT TH1” in google) or TH2 or TH3:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://root.cern.ch/doc/master/classTH1.html">https://root.cern.ch/doc/master/classTH1.html</a></p></li>
+<li><p><a class="reference external" href="https://root.cern.ch/doc/master/classTH2D.html">https://root.cern.ch/doc/master/classTH2D.html</a></p></li>
+<li><p><a class="reference external" href="https://root.cern.ch/doc/master/classTH3D.html">https://root.cern.ch/doc/master/classTH3D.html</a></p></li>
+</ul>
+<p>TH1 is, perhaps nonintuitively, the base class for 2D and 3D histograms, so many functions
+are documented there. The 2D and 3D ones have some specialised methods.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The integral and its error are nicely provided as members in pybdsim.Data.THXD.
+Also, you can use the pybdsim.Plot.Histogram… functions with a scaling parameter
+for the data.</p>
+</div>
+<p>Some useful functions assuming a histogram <code class="code docutils literal notranslate"><span class="pre">h</span></code> of type TH1D or TH2D or TH3D in Python:</p>
+<p><strong>TH1</strong></p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">hnew</span> <span class="pre">=</span> <span class="pre">h.Rebin(N,h.GetName()+&quot;_rebin&quot;+str(N))</span></code> Join N bins into 1. e.g. Rebin(2) is merge 2 bins into 1.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.Add(h2)</span></code> Changes <code class="code docutils literal notranslate"><span class="pre">h</span></code> by adding h2 to it.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.Add(h2,</span> <span class="pre">-1)</span></code> Changes <code class="code docutils literal notranslate"><span class="pre">h</span></code> by subtracting h2 from it.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.Divide(h2)</span></code> Change <code class="code docutils literal notranslate"><span class="pre">h</span></code> to h divided by h2.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.Multiply(h2)</span></code> Change <code class="code docutils literal notranslate"><span class="pre">h</span></code> to h times h2.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.Scale(number)</span></code> Change <code class="code docutils literal notranslate"><span class="pre">h</span></code> to multiply every bin by ‘number’.</p></li>
+</ul>
+<p><strong>TH2</strong></p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">hnew</span> <span class="pre">=</span> <span class="pre">h.Rebin2D(Nx,</span> <span class="pre">Ny,</span> <span class="pre">h.GetName()+&quot;_rebin&quot;+str(Nx)+str(Ny))</span></code> Join Nx bins in x and Ny bins in y into 1.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.Scale(number)</span></code> Change <code class="code docutils literal notranslate"><span class="pre">h</span></code> to multiply every bin by ‘number’.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.ProjectionX(h.GetName()+&quot;_int_x&quot;,</span> <span class="pre">0,</span> <span class="pre">-1,</span> <span class="pre">&quot;e&quot;)</span></code> Integrate along the x dimension giving a 1D histogram in y.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.ProjectionY(h.GetName()+&quot;_int_y&quot;,</span> <span class="pre">0,</span> <span class="pre">-1,</span> <span class="pre">&quot;e&quot;)</span></code> Integrate along the y dimension giving a 1D histogram in y.</p></li>
+</ul>
+<p><strong>TH3</strong></p>
+<ul>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h.Scale(number)</span></code> Change <code class="code docutils literal notranslate"><span class="pre">h</span></code> to multiply every bin by ‘number’.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h2d</span> <span class="pre">=</span> <span class="pre">h.Project3D(&quot;yxe&quot;)</span></code> Integrate along z to give a TH2D x,y histogram and calculate errors (‘e’).
+<a class="reference external" href="https://root.cern.ch/doc/v608/classTH3.html#a94dd0a21d42fd95756e906e7f50fa293">https://root.cern.ch/doc/v608/classTH3.html#a94dd0a21d42fd95756e906e7f50fa293</a></p>
+<p>e.g. a 3D scoring mesh in x,y,z has N bins z = 1. We ‘project’ (i.e. integrate) in z given the same
+answer (only function available in ROOT) to get a 2D xy histogram. We want the errors to be calculated
+too rather than be 0.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h3d_raw</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">histograms</span><span class="p">[</span><span class="s1">&#39;Event/MergedHistograms/MyScoringMeshName&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h2d</span> <span class="o">=</span> <span class="n">h3d_raw</span><span class="o">.</span><span class="n">Project3D</span><span class="p">(</span><span class="s2">&quot;yxe&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h2dpy</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">TH2</span><span class="p">(</span><span class="n">h2d</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram2D</span><span class="p">(</span><span class="n">h2dphy</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">h1d</span> <span class="pre">=</span> <span class="pre">h.ProjectionZ()</span></code> Integrate x and y to give a 1D histogram in z.</p>
+<p>e.g. a 3D scoring mesh in x,y,z has only 1 bin in x and y, but N in Z. We use this function to
+reduce it to the 1D histogram it effectively is.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">h3d_raw</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">histograms</span><span class="p">[</span><span class="s1">&#39;Event/MergedHistograms/PhantomDose&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h1d</span> <span class="o">=</span> <span class="n">h3d_raw</span><span class="o">.</span><span class="n">ProjectionZ</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">h1py</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">TH1</span><span class="p">(</span><span class="n">h1d</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram1D</span><span class="p">(</span><span class="n">h1py</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<p><strong>ROOT Jargon</strong></p>
+<ul class="simple">
+<li><p>“Profile” histogram is an average in 1 dimension, not a ‘profile’ as per the real meaning of the word.</p></li>
+<li><p>“Projection” means integral.</p></li>
+</ul>
+</section>
+<section id="python-histogram-operations">
+<h2>Python Histogram Operations<a class="headerlink" href="#python-histogram-operations" title="Link to this heading"></a></h2>
+<p>Some of the above operations are provided in functions of <cite>pybdsim.Data.TH2</cite> and <cite>pybdsim.Data.TH3</cite> -
+the ‘Python’ versions in pybdsim.</p>
+<p>See <a class="reference internal" href="moduledocs.html#pybdsim-data-module"><span class="std std-ref">pybdsim.Data module</span></a> and look for each of the classes there, where their functions are listed.</p>
+<p>Some specifically for 3D histograms (i.e. often scoring meshes) are described below.</p>
+</section>
+<section id="d-scoring-histograms">
+<span id="data-3d-histograms"></span><h2>3D Scoring Histograms<a class="headerlink" href="#d-scoring-histograms" title="Link to this heading"></a></h2>
+<p>When using scoring in BDSIM, 3D histograms are produced for 3D scoring meshes. In pybdsim,
+we have a few extra functions to help handle and inspect these. Plotting 3D is inherently
+difficult because it has to be viewed from multiple angles to be understood. A few small
+utility functions are provided to get individual slices and integrals along each dimension
+to save the user from the difficultly of using underlying ROOT histograms.</p>
+<p>The functions are members of an instance of <code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.TH3</span></code>, the Python
+version of the histogram.</p>
+<ul class="simple">
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.TH3.IntegrateAlong1Dimension</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.TH3.IntegrateAlong2Dimensions</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.TH3.Slice2DXY</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.TH3.Slice2DXZ</span></code></p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">pybdsim.Data.TH3.Slice2DXY</span></code></p></li>
+</ul>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">h3d</span> <span class="c1"># assume an pybdsim.Data.TH3 instance</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">h2dx</span> <span class="o">=</span> <span class="n">h3d</span><span class="o">.</span><span class="n">IntegrateAlong1Dimension</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>  <span class="c1"># return type pybdsim.Data.TH2</span>
+<span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram2D</span><span class="p">(</span><span class="n">h2dx</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">h3d</span><span class="o">.</span><span class="n">nbinsz</span><span class="p">):</span>
+    <span class="n">h2i</span> <span class="o">=</span> <span class="n">h3d</span><span class="o">.</span><span class="n">Slice2DXY</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram2D</span><span class="p">(</span><span class="n">h2i</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">h1dz</span> <span class="o">=</span> <span class="n">h3d</span><span class="o">.</span><span class="n">IntegrateAlong2Dimension</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">)</span>
+<span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram1D</span><span class="p">(</span><span class="n">h1dz</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Full documentation can be seen in the TH3 class documentation in the <a class="reference internal" href="moduledocs.html#pybdsim-data-module"><span class="std std-ref">pybdsim.Data module</span></a>
+documentation.</p>
+</section>
+<section id="manually-loading-raw-data">
+<span id="data-load-manual"></span><h2>Manually Loading Raw Data<a class="headerlink" href="#manually-loading-raw-data" title="Link to this heading"></a></h2>
+<p>We can use ROOT direct if you prefer.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ROOT</span>
+<span class="kn">import</span> <span class="nn">pybdsim</span>
+
+<span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">LoadROOTLibraries</span><span class="p">()</span>
+<span class="c1"># this imports all of BDSIM&#39;s analysis classes and puts them inside ROOT</span>
+
+<span class="c1"># we need to know the BDSIM C++ classes we want by name</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">ROOT</span><span class="o">.</span><span class="n">DataLoader</span><span class="p">(</span><span class="s2">&quot;run1.root&quot;</span><span class="p">)</span>
+<span class="c1"># now the same as pybdsim.Data.Load(&quot;run1.root&quot;)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">GetModelForPlotting</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="sampler-data">
+<h2>Sampler Data<a class="headerlink" href="#sampler-data" title="Link to this heading"></a></h2>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This is a simplified way of loading sampler data that “flattens” the
+structure losing all concept of which coordinate belongs to which event.
+This is not recommend, and this may perhaps not be efficient, but it is
+occasionally useful. If you want to make a histogram, use rebdsim. Only
+with this will the error bars be correct.</p>
+</div>
+<p>Sampler data can be trivially extracted from a raw BDSIM output file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pybdsim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;output.root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">primaries</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">SamplerData</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The optional second argument to <cite>SamplerData</cite> can be either the index of the sampler
+as counting from 0 including the primaries, or the name of the sampler.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fq15x</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">SamplerData</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">fq15x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thirdAfterPrimares</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">SamplerData</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A near-duplicate class exists called <cite>PhaseSpaceData</cite> that can extract only the
+variables most interesting for tracking (‘x’,’xp’,’y’,’yp’,’z’,’zp’,’energy’,’t’).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">psd1</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">PhaseSpaceData</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">psd2</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">PhaseSpaceData</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">fq15x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">psd3</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">PhaseSpaceData</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="compare.html" class="btn btn-neutral float-left" title="Model Comparison" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data_uproot.html" class="btn btn-neutral float-right" title="Data Loading Using Uproot" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

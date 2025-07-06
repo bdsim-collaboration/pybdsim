@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Loading Using Uproot &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Plotting" href="plotting.html" />
+    <link rel="prev" title="Data Loading" href="data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Data Loading Using Uproot</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading-root-data">Loading ROOT Data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#model">Model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#samplers-data">Samplers Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#optics-files">Optics Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#histograms">Histograms</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="plotting.html">Plotting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Data Loading Using Uproot</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/data_uproot.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="data-loading-using-uproot">
+<h1>Data Loading Using Uproot<a class="headerlink" href="#data-loading-using-uproot" title="Link to this heading"></a></h1>
+<p>Utilities to load BDSIM output data using <cite>uproot</cite>. It is intended for small-scale
+data extraction - not a general analysis of BDSIM output.</p>
+<section id="loading-root-data">
+<h2>Loading ROOT Data<a class="headerlink" href="#loading-root-data" title="Link to this heading"></a></h2>
+<p>pybdsim can load several different ROOT files produced by BDSIM, rebdsim,
+rebdsimCombine, bdskim, rebdsimOptics, rebdsimHistoMerge.
+Depending on the type of the file, you can load the file using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bdsim_data</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">DataUproot</span><span class="o">.</span><span class="n">BDSIMOutput</span><span class="p">(</span><span class="s2">&quot;output.root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rebdsim_data</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">DataUproot</span><span class="o">.</span><span class="n">ReBDSIMOutput</span><span class="p">(</span><span class="s2">&quot;rebdsim_output.root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rebdsim_optics_data</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">DataUproot</span><span class="o">.</span><span class="n">ReBDSIMOpticsOutput</span><span class="p">(</span><span class="s2">&quot;rebdsim_optics_output.root&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To use methods in this module, the user must run <code class="code docutils literal notranslate"><span class="pre">BDSIM</span></code> with the option <code class="code docutils literal notranslate"><span class="pre">uprootCompatible=1</span></code>.</p>
+</div>
+<section id="model">
+<h3>Model<a class="headerlink" href="#model" title="Link to this heading"></a></h3>
+<p>The model can be accessed from any file using one of these commands:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">bdsim_data</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">rebdsim_data</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">rebdsim_optics_data</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">df</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">rebdsim_combine_data</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">df</span>
+</pre></div>
+</div>
+<p>It returns a <cite>pandas.DataFrame</cite> with the information of the model.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The option <code class="code docutils literal notranslate"><span class="pre">dontSplitSBends=1</span></code> should be used in <code class="code docutils literal notranslate"><span class="pre">BDSIM</span></code> to have
+one entry for the sbend.</p>
+</div>
+</section>
+<section id="samplers-data">
+<h3>Samplers Data<a class="headerlink" href="#samplers-data" title="Link to this heading"></a></h3>
+<p>Samplers data can be trivially extracted from a raw BDSIM output file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pybdsim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">DataUproot</span><span class="o">.</span><span class="n">BDSIMOutput</span><span class="p">(</span><span class="s2">&quot;output.root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">samplers</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">samplers</span>
+</pre></div>
+</div>
+<p><code class="code docutils literal notranslate"><span class="pre">samplers</span></code> is a dictionary where keys are the name of the samplers and values are an instance of
+<cite>pybdsim.DataUproot.BDSIMOutput.Event.Sampler</cite>. Data can be easily converted in a <cite>pandas.DataFrame</cite> using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">samplers</span><span class="p">[</span><span class="s1">&#39;sampler_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">df</span>
+</pre></div>
+</div>
+<p>The primary beam can be extracted using the same procedure:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">primary_beam</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">primary</span>
+</pre></div>
+</div>
+</section>
+<section id="optics-files">
+<h3>Optics Files<a class="headerlink" href="#optics-files" title="Link to this heading"></a></h3>
+<p>After loading the file using <code class="code docutils literal notranslate"><span class="pre">pybdsim.DataUproot.ReBDSIMOpticsOutput</span></code>, the optics of the line can be
+accessed using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">optics</span> <span class="o">=</span> <span class="n">rebdsim_optics_data</span><span class="o">.</span><span class="n">optics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results</span> <span class="o">=</span> <span class="n">optics</span><span class="o">.</span><span class="n">df</span>
+</pre></div>
+</div>
+</section>
+<section id="histograms">
+<h3>Histograms<a class="headerlink" href="#histograms" title="Link to this heading"></a></h3>
+<p>After loading the file using <code class="code docutils literal notranslate"><span class="pre">pybdsim.DataUproot.ReBDSIMOutput</span></code>, histograms can be
+accessed using:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">histo</span> <span class="o">=</span> <span class="n">rebdsim_data</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">MergedHistograms</span><span class="o">.</span><span class="n">ElossHisto</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">values</span> <span class="o">=</span> <span class="n">histo</span><span class="o">.</span><span class="n">values</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">centers</span> <span class="o">=</span> <span class="n">histo</span><span class="o">.</span><span class="n">centers</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">errors</span> <span class="o">=</span> <span class="n">histos</span><span class="o">.</span><span class="n">errors</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>4D histograms are stored in a <cite>boost histogram</cite> and can be accessed using <code class="code docutils literal notranslate"><span class="pre">histo.bh</span></code>.
+The methods to use to access
+the data (values, errors, centers) are the same as above.
+You can compute the Ambient dose H10 with a method that takes as input the conversion
+factor file for the particle:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span> <span class="n">h10</span> <span class="o">=</span> <span class="n">histo</span><span class="o">.</span><span class="n">compute_h10</span><span class="p">(</span><span class="s2">&quot;conversion_factor.dat&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <cite>conversion_factor</cite> file is a table that contains the energy and the conversion factor
+for a given particle. This
+method returns a 3D histograms over the form <cite>X, Y, Z, H10</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There is no filter in this method therefore, the user must specify a filter for a given particle (see BDSIM
+documentation).</p>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data.html" class="btn btn-neutral float-left" title="Data Loading" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="plotting.html" class="btn btn-neutral float-right" title="Plotting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

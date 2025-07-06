@@ -1,0 +1,263 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plotting &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d537194"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Field Maps" href="fieldmaps.html" />
+    <link rel="prev" title="Data Loading Using Uproot" href="data_uproot.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            pybdsim
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="licence.html">Licence &amp; Disclaimer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authorship.html">Authorship</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builder.html">Building Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="convert.html">Converting Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">Data Loading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_uproot.html">Data Loading Using Uproot</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Plotting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bdsim-optics">BDSIM Optics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bdsim-optics-for-multiple-machines">BDSIM Optics For Multiple Machines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#histogram-plotting">Histogram Plotting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#d-histogram">1D Histogram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">2D Histogram</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spectra">Spectra</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#energy-deposition">Energy Deposition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#machine-diagrams-for-plots">Machine Diagrams For Plots</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#rebdsim-output">REBDSIM Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bdsim-survey">BDSIM Survey</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fieldmaps.html">Field Maps</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">Utility Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="support.html">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_history.html">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moduledocs.html">Module Contents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="developer.html">Developer Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pybdsim</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Plotting</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/plotting.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="plotting">
+<h1>Plotting<a class="headerlink" href="#plotting" title="Link to this heading"></a></h1>
+<p>pybdsim includes functions for common plots useful for BDSIM.</p>
+<section id="bdsim-optics">
+<h2>BDSIM Optics<a class="headerlink" href="#bdsim-optics" title="Link to this heading"></a></h2>
+<p>With a BDSIM model, use <code class="code docutils literal notranslate"><span class="pre">sample,</span> <span class="pre">all;</span></code> in the input GMAD file to put a sampler
+behind every element. Then calculate the optics and plot just those on their own.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bdsim</span> <span class="o">--</span><span class="n">file</span><span class="o">=</span><span class="n">mymodel</span><span class="o">.</span><span class="n">gmad</span> <span class="o">--</span><span class="n">outfile</span><span class="o">=</span><span class="n">o1</span> <span class="o">--</span><span class="n">batch</span> <span class="o">--</span><span class="n">ngenerate</span><span class="o">=</span><span class="mi">5000</span>
+<span class="n">rebdsimOptics</span> <span class="n">o1</span><span class="o">.</span><span class="n">root</span>
+<span class="n">ls</span>
+  <span class="n">o1</span><span class="o">.</span><span class="n">root</span>   <span class="n">o1_optics</span><span class="o">.</span><span class="n">root</span>
+
+<span class="n">ipython</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">pybdsim</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">BDSIMOptics</span><span class="p">(</span><span class="s2">&quot;o1_optics.root&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="bdsim-optics-for-multiple-machines">
+<h3>BDSIM Optics For Multiple Machines<a class="headerlink" href="#bdsim-optics-for-multiple-machines" title="Link to this heading"></a></h3>
+<p>In some cases, a model may be split into different sections, such as before
+and after a degrader or target where we select a different beam afterwards
+and have different optics for a different momenta particle. In this case,
+even if you run two models to check the optics, you can plot them together.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybdsim</span>
+<span class="n">partA</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;partA_optics.root&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">optics</span>
+<span class="n">partB</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;partB_optics.root&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">optics</span>
+<span class="n">partA</span><span class="o">.</span><span class="n">ConcatenateMachine</span><span class="p">(</span><span class="n">partB</span><span class="p">)</span>
+<span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">BDSIMOptics</span><span class="p">(</span><span class="n">partA</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="histogram-plotting">
+<h2>Histogram Plotting<a class="headerlink" href="#histogram-plotting" title="Link to this heading"></a></h2>
+<section id="d-histogram">
+<h3>1D Histogram<a class="headerlink" href="#d-histogram" title="Link to this heading"></a></h3>
+<p>Loaded histograms that are wrapped in our pybdsim.Data.THX classes can be plotted:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram1D</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">histogramspy</span><span class="p">[</span><span class="s1">&#39;Event/PerEntryHistograms/EnergyLossManual&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Note, the use of <cite>d.histogramspy</cite> for the wrapped set of histograms and not the raw ROOT
+histograms.</p>
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/simpleHistogramPlot.png"><img alt="_images/simpleHistogramPlot.png" src="_images/simpleHistogramPlot.png" style="width: 100%;" />
+</a>
+</figure>
+</section>
+<section id="id1">
+<h3>2D Histogram<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p>See <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.Histogram2D</span></code></p>
+</section>
+<section id="spectra">
+<h3>Spectra<a class="headerlink" href="#spectra" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;ana1.root&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span><span class="o">.</span><span class="n">spectra</span>
+<span class="go">    defaultdict(pybdsim.Data.Spectra,</span>
+<span class="go">            {&#39;t10_0&#39;: &lt;pybdsim.Data.Spectra at 0x28eaf3cd0&gt;,</span>
+<span class="go">             &#39;tax_0&#39;: &lt;pybdsim.Data.Spectra at 0x290ed6f90&gt;,</span>
+<span class="go">             &#39;col1_0&#39;: &lt;pybdsim.Data.Spectra at 0x290ed78d0&gt;,</span>
+<span class="go">             &#39;col2_0&#39;: &lt;pybdsim.Data.Spectra at 0x290edc150&gt;,</span>
+<span class="go">             &#39;col3_0&#39;: &lt;pybdsim.Data.Spectra at 0x290edca10&gt;,</span>
+<span class="go">             &#39;interface_0&#39;: &lt;pybdsim.Data.Spectra at 0x290edd090&gt;,</span>
+<span class="go">             &#39;interface_1&#39;: &lt;pybdsim.Data.Spectra at 0x290eddad0&gt;})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Spectra</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">spectra</span><span class="p">[</span><span class="s2">&quot;t10_0&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="energy-deposition">
+<h2>Energy Deposition<a class="headerlink" href="#energy-deposition" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bdsim</span> <span class="o">--</span><span class="n">file</span><span class="o">=</span><span class="n">mymodel</span><span class="o">.</span><span class="n">gmad</span> <span class="o">--</span><span class="n">outfile</span><span class="o">=</span><span class="n">run1</span> <span class="o">--</span><span class="n">batch</span> <span class="o">--</span><span class="n">ngenerate</span><span class="o">=</span><span class="mi">1000</span>
+<span class="n">rebdsimHistoMerge</span> <span class="n">run1</span><span class="o">.</span><span class="n">root</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">EnergyDeposition</span><span class="p">(</span><span class="s2">&quot;run1_histos.root&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="machine-diagrams-for-plots">
+<h2>Machine Diagrams For Plots<a class="headerlink" href="#machine-diagrams-for-plots" title="Link to this heading"></a></h2>
+<p>For a plot or histogram that follows the accelerator along its axis (e.g. S coordinate), it
+is common to draw a small schematic of the various elements in the accelerator above the plot.
+pybdsim provides functionality to make such diagrams using information from a BDSIM output file
+or from a MADX Twiss output in a TFS file.</p>
+<p>Information is accepted from the following sources:</p>
+<ul class="simple">
+<li><p>BDSIM raw output file (from bdsim, bdskim, bdsimCombine)</p></li>
+<li><p>REBDSIM output file (from rebdsim or rebdsimCombine)</p></li>
+<li><p>MADX Twiss output in a TFS file</p></li>
+<li><p>BDSIM survey text output</p></li>
+</ul>
+<p>Each can be supplied as either a string giving the file name or as an already loaded object
+in python.</p>
+<p>The main function of interest is <code class="code docutils literal notranslate"><span class="pre">pybdsim.Plot.AddMachineLatticeFromSurveyToFigure</span></code>.</p>
+<section id="rebdsim-output">
+<h3>REBDSIM Output<a class="headerlink" href="#rebdsim-output" title="Link to this heading"></a></h3>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pybdsim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;ana1.root&quot;</span><span class="p">)</span> <span class="c1"># a rebdsim output file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram1D</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">histogramspy</span><span class="p">[</span><span class="s2">&quot;Event/MergedHistograms/ElossHisto&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">AddMachineLatticeFromSurveyToFigure</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">AddMachineLatticeFromSurveyToFigure</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">AddMachineLatticeFromSurveyToFigure</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s2">&quot;ana1.root&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="bdsim-survey">
+<h3>BDSIM Survey<a class="headerlink" href="#bdsim-survey" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bdsim</span> <span class="o">--</span><span class="n">file</span><span class="o">=</span><span class="n">mymodel</span><span class="o">.</span><span class="n">gmad</span> <span class="o">--</span><span class="n">output</span><span class="o">=</span><span class="n">none</span> <span class="o">--</span><span class="n">batch</span> <span class="o">--</span><span class="n">ngenerate</span><span class="o">=</span><span class="mi">1</span> <span class="o">--</span><span class="n">survey</span><span class="o">=</span><span class="n">survey1</span>
+</pre></div>
+</div>
+<p>This produces the file <code class="code docutils literal notranslate"><span class="pre">survey1.dat</span></code> for example, for some input model <code class="code docutils literal notranslate"><span class="pre">mymodel.gmad</span></code>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pybdsim</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="s2">&quot;ana1.root&quot;</span><span class="p">)</span> <span class="c1"># a rebdsim output file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">Histogram1D</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">histogramspy</span><span class="p">[</span><span class="s2">&quot;Event/MergedHistograms/ElossHisto&quot;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Plot</span><span class="o">.</span><span class="n">AddMachineLatticeFromSurveyToFigure</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s2">&quot;survey.dat&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data_uproot.html" class="btn btn-neutral float-left" title="Data Loading Using Uproot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fieldmaps.html" class="btn btn-neutral float-right" title="Field Maps" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright Royal Holloway, University of London 2024.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
