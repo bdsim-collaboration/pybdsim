@@ -25,6 +25,9 @@ jobs:
       - name: Build manual
         shell: bash
         run: |
+          #
+          pip install sphinx
+
           # docs dir 
           cd docs
 
