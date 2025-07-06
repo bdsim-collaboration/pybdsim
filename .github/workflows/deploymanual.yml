@@ -43,13 +43,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: manuals
-          path: ${{ github.workspace }}/docs/html
+          path: ${{ github.workspace }}/docs/build/html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}     
           publish_branch: gh-pages
-          publish_dir: ${{ github.workspace }}/docs/html
+          publish_dir: ${{ github.workspace }}/docs/build/html
           allow_empty_commit: true
 
