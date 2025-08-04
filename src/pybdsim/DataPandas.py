@@ -58,8 +58,11 @@ class BDSIMOutput:
         self.e  = self.root_file.GetEvent()
         self.et.GetEntry(0)
         self.sampler_names  = list(self.root_file.GetSamplerNames())
-        self.csampler_names = list(self.root_file.GetSamplerCNames())
-        self.ssampler_names = list(self.root_file.GetSamplerSNames())
+        try : # TODO needs to be removed when or guarded against with BDSIM version mismatch
+            self.csampler_names = list(self.root_file.GetSamplerCNames())
+            self.ssampler_names = list(self.root_file.GetSamplerSNames())
+        except :
+            pass
 
         self.mt = self.root_file.GetModelTree()
         self.m  = self.root_file.GetModel()
