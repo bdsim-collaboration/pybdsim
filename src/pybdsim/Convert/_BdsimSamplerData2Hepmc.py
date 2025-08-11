@@ -5,7 +5,7 @@ except ImportError:
     print("pyhepmc module not found.")
 
 import os.path as _path
-import pybdsim.Data
+import pybdsim.Data as _Data
 
 def BdsimSamplerData2Hepmc2(bdsimFile,outputFileName,samplerName,ZForHits,pidList=[]):
     """
@@ -23,7 +23,7 @@ def BdsimSamplerData2Hepmc2(bdsimFile,outputFileName,samplerName,ZForHits,pidLis
         raise IOError("File {} not found!".format(bdsimFile))
     else:
         print("Loading input file: {}.".format(bdsimFile))
-        fBDS = pybdsim.Data.Load(bdsimFile)
+        fBDS = _Data.Load(bdsimFile)
 
     fHEP = _hep.io.WriterAsciiHepMC2(outputFileName)
 
@@ -53,10 +53,10 @@ def BdsimSamplerData2Hepmc2(bdsimFile,outputFileName,samplerName,ZForHits,pidLis
             # xp, yp, zp are components of the unit momentum vector
             # p is the momentum magnitude, 'energy' the total energy
             # next we define the PID and 'status' (1 for undecayed particle, 4 for beam particle)
-            prt1 = hep.GenParticle((s.xp[ti]*s.p[ti], s.yp[ti]*s.p[ti], s.zp[ti]*s.p[ti], s.energy[ti]), s.partID[ti], 1)
-            prt2 = hep.GenParticle((s.xp[ti]*s.p[ti], s.yp[ti]*s.p[ti], s.zp[ti]*s.p[ti], s.energy[ti]), s.partID[ti], 1)
+            prt1 = _hep.GenParticle((s.xp[ti]*s.p[ti], s.yp[ti]*s.p[ti], s.zp[ti]*s.p[ti], s.energy[ti]), s.partID[ti], 1)
+            prt2 = _hep.GenParticle((s.xp[ti]*s.p[ti], s.yp[ti]*s.p[ti], s.zp[ti]*s.p[ti], s.energy[ti]), s.partID[ti], 1)
             # generate vertex with x,y,z,ct
-            vtx = hep.GenVertex((s.x[ti]*mToMM, s.y[ti]*mToMM, ZForHits*mToMM, ZForHits*mToMM))
+            vtx = _hep.GenVertex((s.x[ti]*mToMM, s.y[ti]*mToMM, ZForHits*mToMM, ZForHits*mToMM))
             vtx.add_particle_in(prt1)
             vtx.add_particle_out(prt2)
             evt.add_vertex(vtx)
@@ -80,7 +80,7 @@ def BdsimSamplerData2Hepmc3(bdsimFile,outputFileName,samplerName,ZForHits,pidLis
         raise IOError("File {} not found!".format(bdsimFile))
     else:
         print("Loading input file: {}.".format(bdsimFile))
-        fBDS = pybdsim.Data.Load(bdsimFile)
+        fBDS = _Data.Load(bdsimFile)
 
     fHEP = _hep.io.WriterAscii(outputFileName)
 
@@ -131,10 +131,10 @@ def BdsimSamplerData2Hepmc3(bdsimFile,outputFileName,samplerName,ZForHits,pidLis
             # xp, yp, zp are components of the unit momentum vector
             # p is the momentum magnitude, 'energy' the total energy
             # next we define the PID and 'status' (1 for undecayed particle, 4 for beam particle)
-            prt1 = hep.GenParticle((s.xp[ti]*s.p[ti], s.yp[ti]*s.p[ti], s.zp[ti]*s.p[ti], s.energy[ti]), s.partID[ti], 1)
-            prt2 = hep.GenParticle((s.xp[ti]*s.p[ti], s.yp[ti]*s.p[ti], s.zp[ti]*s.p[ti], s.energy[ti]), s.partID[ti], 1)
+            prt1 = _hep.GenParticle((s.xp[ti]*s.p[ti], s.yp[ti]*s.p[ti], s.zp[ti]*s.p[ti], s.energy[ti]), s.partID[ti], 1)
+            prt2 = _hep.GenParticle((s.xp[ti]*s.p[ti], s.yp[ti]*s.p[ti], s.zp[ti]*s.p[ti], s.energy[ti]), s.partID[ti], 1)
             # generate vertex with x,y,z,ct
-            vtx = hep.GenVertex((s.x[ti]*mToMM, s.y[ti]*mToMM, ZForHits*mToMM, ZForHits*mToMM))
+            vtx = _hep.GenVertex((s.x[ti]*mToMM, s.y[ti]*mToMM, ZForHits*mToMM, ZForHits*mToMM))
             vtx.add_particle_in(prt1)
             vtx.add_particle_out(prt2)
             evt.add_vertex(vtx)

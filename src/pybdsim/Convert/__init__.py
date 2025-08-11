@@ -21,6 +21,9 @@ from ._ElegantParamToStrength import ElegantParam2GmadStrength
 
 from ._Transport2Gmad import Transport2Gmad
 
+from ._BdsimSamplerData2Hepmc import BdsimSamplerData2Hepmc2
+from ._BdsimSamplerData2Hepmc import BdsimSamplerData2Hepmc3
+
 # optional pymad8
 try:
     from ._Mad8Twiss2Gmad import Mad8Twiss2Gmad
