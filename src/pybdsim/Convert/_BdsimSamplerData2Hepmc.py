@@ -1,13 +1,17 @@
+import sys
+
 # requires the pyhepmc package
 try:
     import pyhepmc as _hep
 except ImportError:
+    # pip install .[pyhepmc] --user
     print("pyhepmc module not found.")
+    sys.exit(1)
 
 import os.path as _path
 import pybdsim.Data as _Data
 
-def BdsimSamplerData2Hepmc2(bdsimFile,outputFileName,samplerName,ZForHits,pidList=[]):
+def BdsimSamplerData2Hepmc2(bdsimFile,outputFileName,samplerName,ZForHits=0,pidList=[]):
     """
     !!! hepmc2 format does not allow per event weight assignment,
     !!! for this please use BdsimSamplerData2Hepmc3()
@@ -67,7 +71,7 @@ def BdsimSamplerData2Hepmc2(bdsimFile,outputFileName,samplerName,ZForHits,pidLis
     fHEP.close()
     print("{} events written to HEPMC2 file {}.".format(eventID,outputFileName))
 
-def BdsimSamplerData2Hepmc3(bdsimFile,outputFileName,samplerName,ZForHits,pidList=[],weightsName=""):
+def BdsimSamplerData2Hepmc3(bdsimFile,outputFileName,samplerName,ZForHits=0,pidList=[],weightsName=""):
     """
     bdsimFile - (str) - path to bdsim raw file (can be combined or skimmed)
     outputFileName - (str) - for HEPMC3 output file
@@ -125,7 +129,10 @@ def BdsimSamplerData2Hepmc3(bdsimFile,outputFileName,samplerName,ZForHits,pidLis
 
             # compound weight
             if len(weightsName) > 0:
-                compoundWeight = skimWeight*s.weight[ti]
+                try:
+                    compoundWeight = skimWeight*s.weight[ti]
+                except:
+                    compoundWeight = skimWeight
             evt.set_weight(weightNameStr,compoundWeight)
 
             # xp, yp, zp are components of the unit momentum vector
