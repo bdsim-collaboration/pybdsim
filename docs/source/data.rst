@@ -75,7 +75,7 @@ We can loop over the raw BDSIM data easily with pybdsim. ::
 
 We can also get an index with enumeration: ::
 
-  for i,event in eventTree:
+  for i,event in enumerate(eventTree):
       print(i, event.Eloss.n)
 
 
