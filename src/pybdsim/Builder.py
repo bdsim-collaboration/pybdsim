@@ -1325,14 +1325,15 @@ class Machine(object):
             if newElement.name in self.elements.keys():
                 if not substitute:
                     raise ValueError(f"New element {newElement.name} already exists in elements. If you want to overwrite it, set substitute=True")
-            else:
-                self.elements[newElement.name] = newElement
+            self.elements[newElement.name] = newElement
+            
+            # Modify sequence
+            self.sequence.insert(index, newElement.name)
         elif isinstance(newElement, str):
             if newElement not in self.elements.keys():
                 raise ValueError(f"New element {newElement} not found in elements")
-
-        # Modify sequence
-        self.sequence.insert(index, newElement.name)
+            # Modify sequence
+            self.sequence.insert(index, newElement)
 
     def InsertAndReplace(self, newElement, sLocation = 0, element_name = None):
         """
