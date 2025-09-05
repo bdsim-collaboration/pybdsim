@@ -97,6 +97,8 @@ _splittable_strength_parameters = {
     'angle',
     'vkick',
     'hkick',
+    'knl',
+    'ksl',
 }
 
 
@@ -304,6 +306,8 @@ class Element(ElementBase):
         accumulated_length = 0.0
         split_elements = []
         This = type(self) # This class, we use to construct the output.
+        if This == Element:
+            raise TypeError("Only a specific element can be split.")
         # Not length or name.  We change these here.  We leave
         # updating other parameters (based on length or otherwise) to
         # other methods or functions.
@@ -320,13 +324,16 @@ class Element(ElementBase):
 
         def split_strength(kwo, sub_section_length):
             kwargs = kwo.copy()
+            f = sub_section_length / total_length
             for k in splittable_strengths:
                 v = other_kwargs[k]
                 if type(v) == tuple:
-                    nv = v[0] * (length / total_length)
-                    kwargs[k] = (nv, v[1])
+                    if k in ('knl', 'ksl'):
+                        kwargs[k] = tuple(vi*f for vi in v)
+                    else:
+                        kwargs[k] = (v[0] * f, v[1])
                 else:
-                    kwargs[k] = v * (length / total_length)
+                    kwargs[k] = v * f
             return kwargs
 
         i = 0
@@ -335,14 +342,14 @@ class Element(ElementBase):
             length = round(point - accumulated_length, 15)
             accumulated_length += length
             kws = split_strength(other_kwargs, length)
-            split_elements.append(This(name, category, l=length, **kws))
+            split_elements.append(This(name, l=length, **kws))
             i += 1
 
         # Add the final element (for n points we have n+1 elements, so
         # we add the last one here "by hand").
         left_over_length = round(total_length - accumulated_length, 15)
         kws = split_strength(other_kwargs, left_over_length)
-        split_elements.append(This("{}_split_{}".format(self['name'], i + 1), category, l=left_over_length, **kws))
+        split_elements.append(This("{}_split_{}".format(self['name'], i), l=left_over_length, **kws))
 
         return split_elements
 
@@ -583,17 +590,6 @@ class Marker(Element):
 class Multipole(Element):
     def __init__(self, name, l, knl, ksl, **kwargs):
         Element.__init__(self, name, 'multipole', l=l, knl=knl, ksl=ksl, **kwargs)
-
-    def split(self, points):
-        split_mps = self._split_length(points)
-        for mp in split_mps:
-            new_knl = tuple([integrated_strength * mp['l'] / self['l']
-                             for integrated_strength in mp['knl']])
-            new_ksl = tuple([integrated_strength * mp['l'] / self['l']
-                             for integrated_strength in mp['ksl']])
-            mp['knl'] = new_knl
-            mp['ksl'] = new_ksl
-        return split_mps
 
 
 class ThinMultipole(Element):
