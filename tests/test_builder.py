@@ -257,6 +257,31 @@ def test_Laser_repr():
     expected = 'myl: laser, l=0.1, waveLength=5370, x=0.2, y=0.3, z=0.4;\n'
     assert repr(laser) == expected
 
+def test_Insert():
+    machine = pybdsim.Builder.Machine()
+    machine.AddDrift(name="dr", length=0.1)
+    machine.Insert(pybdsim.Builder.RBend("myr", 0.1, angle=0), index = "dr")
+    machine.Insert(pybdsim.Builder.RBend("myr1", 0.1, angle=0), index = "dr", after=True)
+    machine.Insert("dr", index = "myr1", after=True, substitute=True)
+    expected = ['myr', 'dr', 'myr1', 'dr']
+    assert machine.sequence == expected
+
+def test_bdsimsampler_repr():
+    beam = pybdsim.Beam.Beam()
+    beam.SetDistributionType("bdsimsampler:SAMPLER")
+    beam.SetEnergy(100)
+    beam.SetParticleType("proton")
+    expected = 'beam,\tdistrType="bdsimsampler:SAMPLER",\n\tenergy=100*GeV, \n\tparticle="proton";'
+    assert repr(beam) == expected
+
+def test_eventgeneratorfile_repr():
+    beam = pybdsim.Beam.Beam()
+    beam.SetDistributionType("eventgeneratorfile:FORMAT")
+    beam.SetEnergy(100)
+    beam.SetParticleType("proton")
+    expected = 'beam,\tdistrType="eventgeneratorfile:FORMAT",\n\tenergy=100*GeV, \n\tparticle="proton";'
+    assert repr(beam) == expected
+
 #def test_element_split_drift():
 #    c = pybdsim.Builder.Element('d1', 'drift', l=(0.4, 'm'), aper1=(2, 'cm'))
 #    b = c/2
