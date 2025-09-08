@@ -643,7 +643,7 @@ class RebdsimFile:
         return self._f.Get('ModelTree')
 
     def GetModel(self):
-        pass
+        return self._f.Get('ModelTree')
 
     def ConvertToPybdsimHistograms(self):
         """
@@ -2514,7 +2514,10 @@ class ModelData:
     def __init__(self, data):
         model = data.GetModel()
         modelTree = data.GetModelTree()
-        model = model.model
+        if getattr(model, "model", None):
+            model = model.model
+        else:
+            model = model.Model
         modelTree.GetEntry(0)
         interface = _filterROOTObject(model)
         self._getData(interface, model)
@@ -2700,7 +2703,8 @@ def _filterROOTObject(rootobj):
     interface = rootobj_interface.difference(tobject_interface)
 
     # remove other stuff
-    interface.remove("__lifeline") # don't know what this is :)
+    if "__lifeline" in interface:
+        interface.remove("__lifeline") # don't know what this is :)
     interface = [attr for attr in interface # remove functions
                  if not callable(getattr(rootobj, attr))]
 
