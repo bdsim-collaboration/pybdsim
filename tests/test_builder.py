@@ -274,6 +274,14 @@ def test_bdsimsampler_repr():
     expected = 'beam,\tdistrType="bdsimsampler:SAMPLER",\n\tenergy=100*GeV, \n\tparticle="proton";'
     assert repr(beam) == expected
 
+def test_eventgeneratorfile_repr():
+    beam = pybdsim.Beam.Beam()
+    beam.SetDistributionType("eventgeneratorfile:FORMAT")
+    beam.SetEnergy(100)
+    beam.SetParticleType("proton")
+    expected = 'beam,\tdistrType="eventgeneratorfile:FORMAT",\n\tenergy=100*GeV, \n\tparticle="proton";'
+    assert repr(beam) == expected
+
 #def test_element_split_drift():
 #    c = pybdsim.Builder.Element('d1', 'drift', l=(0.4, 'm'), aper1=(2, 'cm'))
 #    b = c/2
