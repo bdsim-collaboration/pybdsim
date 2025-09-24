@@ -3,7 +3,9 @@ import xtrack as xt
 
 
 def Mad8Twiss2Xsuite(mad8twiss,
-                     linename='line_from_mad8',
+                     mad8survey=None,
+                     mad8rmat=None,
+                     line_name='line_from_mad8',
                      particle='e-',
                      startindex=None,
                      endindex=None,
@@ -36,7 +38,6 @@ def Mad8Twiss2Xsuite(mad8twiss,
     if endname is not None:
         endindex = mad8twiss.getIndexByNames(endname)
 
-
     env = xt.Environment()
     env.particle_ref = xt.Particles(p0c=_getEndEnergy(mad8twiss)*1e9, q0=q0, mass0=mass0)
 
@@ -60,18 +61,14 @@ def Mad8Twiss2Xsuite(mad8twiss,
                 case 'DRIF':
                     env[row.NAME + '_L'] = row.L
                     env.new(row.NAME, xt.Drift, length=row.NAME + '_L')
-                case 'KICK':
-                    env[row.NAME + '_L'] = row.L
-                    env.new(row.NAME, xt.Drift, length=row.NAME + '_L')
-                case 'HKIC':
-                    env[row.NAME + '_L'] = row.L
-                    env.new(row.NAME, xt.RBend, length=row.NAME + '_L', k0=0)
-                case 'VKIC':
-                    env[row.NAME + '_L'] = row.L
-                    env.new(row.NAME, xt.RBend, length=row.NAME + '_L', k0=0)
                 case 'RBEN':
                     env[row.NAME + '_L'] = row.L
                     env[row.NAME + '_ANGLE'] = row.ANGLE
+                    env.new(row.NAME, xt.RBend, length=row.NAME + '_L', angle=row.NAME + '_ANGLE',
+                            k0_from_h=True)
+                case 'KICK' | 'HKIC' | 'VKIC':
+                    env[row.NAME + '_L'] = row.L
+                    env[row.NAME + '_ANGLE'] = 0
                     env.new(row.NAME, xt.RBend, length=row.NAME + '_L', angle=row.NAME + '_ANGLE',
                             k0_from_h=True)
                 case 'SBEN':
@@ -141,20 +138,45 @@ def Mad8Twiss2Xsuite(mad8twiss,
                 #          [0, 0, 0, 0, 0, 0]]
                 #     env.elements[row.NAME] = xt.LineSegmentMap(length=row.L, damping_matrix=M)
                 case _:
-                    env[row.NAME + '_L'] = row.L
-                    env.new(row.NAME, xt.Drift, length=row.NAME + '_L')
                     print('Unknown type {} for element {}'.format(row.TYPE, row.NAME))
+                    if not _np.isnan(row.L) and row.L > 0:
+                        env[row.NAME + '_L'] = row.L
+                        env.new(row.NAME, xt.Drift, length=row.NAME + '_L')
+                    else:
+                        env.new(row.NAME, xt.Marker)
             if not _np.isnan(row.TILT) and row.TILT != 0:
                 env[row.NAME].rot_s_rad = row.TILT
-    env.new_line(name=linename, components=linelist, refer='end')
-    env.lines[linename]._extra_config['twiss_default'] = _getTwissAtIndex(mad8twiss, 0)
+    env.new_line(name=line_name, components=linelist, refer='end')
+
+    _setInputPosAnglAtIndex(env, line_name, mad8survey, startindex)
+    inputTwiss = _getInputTwissAtIndex(mad8twiss, startindex)
+    env.lines[line_name]._extra_config['twiss_default'] = inputTwiss
+
     return env
 
 
-def _getTwissAtIndex(mad8twiss, index):
-    row = mad8twiss.getRowsByIndex(index)
-    return {'betx': row.BETX, 'bety': row.BETY, 'alfx': row.ALPHX, 'alfy': row.ALPHY,
-            'dx': row.DX, 'dy': row.DY, 'dpx': row.DPX, 'dpy': row.DPY}
+def _setInputPosAnglAtIndex(env, line_name, mad8survey=None, index=0):
+    try:
+        row = mad8survey.getRowsByIndex(index)
+        env[f"X0_{line_name}"] = row.X
+        env[f"Y0_{line_name}"] = row.Y
+        env[f"Z0_{line_name}"] = row.Z
+        env[f"theta0_{line_name}"] = row.THETA
+        env[f"phi0_{line_name}"] = row.PHI
+        env[f"psi0_{line_name}"] = row.PSI
+    except:
+        pass
+
+
+def _getInputTwissAtIndex(mad8twiss=None, index=0):
+    try:
+        row = mad8twiss.getRowsByIndex(index)
+        return {
+                'betx': row.BETX, 'bety': row.BETY, 'alfx': row.ALPHX, 'alfy': row.ALPHY,
+                'dx': row.DX, 'dy': row.DY, 'dpx': row.DPX, 'dpy': row.DPY
+               }
+    except:
+        return {}
 
 
 def _getStartEnery(mad8twiss):
