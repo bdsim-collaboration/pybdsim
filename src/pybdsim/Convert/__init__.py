@@ -27,6 +27,7 @@ from ._BdsimSamplerData2Hepmc import BdsimSamplerData2Hepmc3
 # optional pymad8
 try:
     from ._Mad8Twiss2Gmad import Mad8Twiss2Gmad
+    from ._Mad8Twiss2Xsuite import Mad8Twiss2Xsuite
 except ImportError:
     pass
 
