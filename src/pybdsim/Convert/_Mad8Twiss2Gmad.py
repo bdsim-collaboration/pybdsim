@@ -44,11 +44,11 @@ def Mad8Twiss2Gmad(inputfilename, outputfilename,
 				   namePrepend           = ""):
 
 	"""
-	**Mad82Gmad** convert a mad8 output file into a gmad tfs file for bdsim
+	**Mad8Twiss2Gmad** convert a mad8 output file into a gmad tfs file for bdsim
 
 	Example:
 
-	>>> a,b = pybdsim.Convert.MadxTfs2Gmad('twissfile', 'mymachine')
+	>>> a,b = pybdsim.Convert.Mad8Twiss2Gmad('twissfile', 'mymachine')
 
 	returns Machine, [omittedItems]
 
