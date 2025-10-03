@@ -1,7 +1,4 @@
-import pickle as _pkl
-import pylab as _pl
 import pymad8 as _m8
-import pybdsim as _pybdsim
 import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile as _isfile
@@ -206,7 +203,7 @@ def Mad8VsXsuite(twiss, xstline, survey=None, functions=None, postfunctions=None
     """ Compares Mad8 and Xsuite optics variables.
 
     +-----------------+---------------------------------------------------------+
-    | **Parameters**  | **Description**
+    | **Parameters**  | **Description**                                         |
     +-----------------+---------------------------------------------------------+
     | twiss           | Mad8 twiss file                                         |
     +-----------------+---------------------------------------------------------+
@@ -255,7 +252,8 @@ def Mad8VsXsuite(twiss, xstline, survey=None, functions=None, postfunctions=None
                # PlotSigmaP(mad8opt, xstopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
                # PlotEnergy(mad8opt, xstopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
                PlotMean(mad8opt, xstopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
-               # PlotEmitt(mad8opt, xstopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey)
+               # PlotEmitt(mad8opt, xstopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey),
+               # PlotNParticles(mad8opt, xstopt, beamParams, functions=functions, postfunctions=postfunctions, figsize=figsize, xlim=xlim, survey=survey)
               ]
 
     if saveAll:
