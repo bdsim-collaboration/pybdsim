@@ -15,7 +15,13 @@ from ._ElegantBdsimComparison import ElegantVsBDSIM
 # optional pymad8
 try:
     from ._Mad8BdsimComparison import Mad8VsBDSIM
+except ImportError:
+    pass
+
+# optional xsuite
+try:
     from ._Mad8XsuiteComparison import Mad8VsXsuite
+    from ._XsuiteBdsimComparion import XsuiteVsBDSIM
 except ImportError:
     pass
 
