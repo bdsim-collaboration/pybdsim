@@ -12,7 +12,7 @@ import datetime as _datetime
 
 _BETA = {"bdsimdata": ("Beta_x", "Beta_y"),
          "bdsimerror": ("Sigma_Beta_x", "Sigma_Beta_y"),
-         "xsuite": ("betx", "bety"),
+         "xsuitedata": ("betx", "bety"),
          "legend": (r'$\beta_{x}$', r'$\beta_{y}$'),
          "xlabel": "S / m",
          "ylabel": r"$\beta_{x,y}$ / m",
@@ -20,7 +20,7 @@ _BETA = {"bdsimdata": ("Beta_x", "Beta_y"),
 
 _ALPHA = {"bdsimdata": ("Alpha_x", "Alpha_y"),
           "bdsimerror": ("Sigma_Alpha_x", "Sigma_Alpha_y"),
-          "xsuite": ("alfx", "alfy"),
+          "xsuitedata": ("alfx", "alfy"),
           "legend": (r'$\alpha_{x}$', r'$\alpha_{y}$'),
           "xlabel": "S / m",
           "ylabel": r"$\alpha_{x,y}$ / m",
@@ -28,7 +28,7 @@ _ALPHA = {"bdsimdata": ("Alpha_x", "Alpha_y"),
 
 _DISP = {"bdsimdata": ("Disp_x", "Disp_y"),
          "bdsimerror": ("Sigma_Disp_x", "Sigma_Disp_y"),
-         "xsuite": ("dx", "dy"),
+         "xsuitedata": ("dx", "dy"),
          "legend": (r"$\eta_{x}$", r"$\eta_{y}$"),
          "xlabel": "S / m",
          "ylabel": r"$\eta_{x,y} / m$",
@@ -36,7 +36,7 @@ _DISP = {"bdsimdata": ("Disp_x", "Disp_y"),
 
 _DISP_P = {"bdsimdata": ("Disp_xp", "Disp_yp"),
            "bdsimerror": ("Sigma_Disp_xp", "Sigma_Disp_yp"),
-           "xsuite": ("dpx", "dpy"),
+           "xsuitedata": ("dpx", "dpy"),
            "legend": (r"$\eta_{p_x}$", r"$\eta_{p_x}$"),
            "xlabel": "S / m",
            "ylabel": r"$\eta_{p_{x},p_{y}}$ / m",
@@ -44,7 +44,7 @@ _DISP_P = {"bdsimdata": ("Disp_xp", "Disp_yp"),
 
 _SIGMA = {"bdsimdata": ("Sigma_x", "Sigma_y"),
           "bdsimerror": ("Sigma_Sigma_x", "Sigma_Sigma_y"),
-          "xsuite": ("sigma_x", "sigma_y"),
+          "xsuitedata": ("sigma_x", "sigma_y"),
           "legend": (r"$\sigma_{x}$", r"$\sigma_{y}$"),
           "xlabel": "S / m",
           "ylabel": r"$\sigma_{x,y}$ / m",
@@ -52,7 +52,7 @@ _SIGMA = {"bdsimdata": ("Sigma_x", "Sigma_y"),
 
 _SIGMA_P = {"bdsimdata": ("Sigma_xp", "Sigma_yp"),
             "bdsimerror": ("Sigma_Sigma_xp", "Sigma_Sigma_yp"),
-            "xsuite": ("sigma_xp", "sigma_yp"),
+            "xsuitedata": ("sigma_xp", "sigma_yp"),
             "legend": (r"$\sigma_{xp}$", r"$\sigma_{yp}$"),
             "xlabel": "S / m",
             "ylabel": r"$\sigma_{xp,yp}$ / rad",
@@ -60,7 +60,7 @@ _SIGMA_P = {"bdsimdata": ("Sigma_xp", "Sigma_yp"),
 
 _MEAN = {"bdsimdata": ("Mean_x", "Mean_y"),
          "bdsimerror": ("Sigma_Mean_x", "Sigma_Mean_y"),
-         "xsuite": ("x", "y"),
+         "xsuitedata": ("x", "y"),
          "legend": (r"$\overline{x}$", r"$\overline{y}$"),
          "xlabel": "S / m",
          "ylabel": r"$\bar{x,y}$ / m",
@@ -68,7 +68,7 @@ _MEAN = {"bdsimdata": ("Mean_x", "Mean_y"),
 
 _EMITT = {"bdsimdata": ("Emitt_x", "Emitt_y"),
           "bdsimerror": ("Sigma_Emitt_x", "Sigma_Emitt_y"),
-          "xsuite": ("", ""),
+          "xsuitedata": ("", ""),
           "legend": (r"$\epsilon_x$", r"$\epsilon_y$"),
           "xlabel": "S / m",
           "ylabel": r"$\epsilon_{x,y}$ / m",
@@ -270,7 +270,7 @@ def XsuiteVsBDSIM(line, bdsim, survey=None, functions=None, postfunctions=None, 
             d['Title'] = "{} (Xsuite) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
             d['CreationDate'] = _datetime.datetime.today()
         print("Written ", output_filename)
-    return xstopt
+    # return xstopt
 
 
 def _GetBDSIMOptics(optics):
