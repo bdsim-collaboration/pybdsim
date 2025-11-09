@@ -551,16 +551,22 @@ class Versions :
         self.clhep_version = self._find_clhep_version()
 
     def _find_root_version(self) :
-        result = _subprocess.run(["root-config","--version"], capture_output=True, text=True)
-        return result.stdout.strip()
+        try :
+            result = _subprocess.run(["root-config","--version"], capture_output=True, text=True)
+            return result.stdout.strip()
+        except Exception:
+            return "Not found"
 
     def _find_geant4_version(self) :
-        result = _subprocess.run(["geant4-config","--version"], capture_output=True, text=True)
-        return result.stdout.strip()
+        try :
+            result = _subprocess.run(["geant4-config","--version"], capture_output=True, text=True)
+            return result.stdout.strip()
+        except Exception:
+            return "Not found"
 
     def _find_clhep_version(self) :
         try :
             result = _subprocess.run(["clhep-config","--version"], capture_output=True, text=True)
             return result.stdout.split()[1].strip()
-        except :
+        except Exception:
             return "Not found"
