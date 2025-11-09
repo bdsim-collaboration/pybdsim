@@ -542,3 +542,28 @@ def RenderGmadJinjaTemplate(template_file, output_file, data, path=".") :
     f = open(output_file,"w")
     f.write(output)
     f.close()
+
+
+import subprocess as _subprocess
+
+class Versions :
+
+    def __init__(self):
+        self.root_version = self._find_root_version()
+        self.geant4_version = self._find_geant4_version()
+        self.clhep_version = self._find_clhep_version()
+
+    def _find_root_version(self) :
+        result = _subprocess.run(["root-config","--version"], capture_output=True, text=True)
+        return result.stdout.strip()
+
+    def _find_geant4_version(self) :
+        result = _subprocess.run(["geant4-config","--version"], capture_output=True, text=True)
+        return result.stdout.strip()
+
+    def _find_clhep_version(self) :
+        try :
+            result = _subprocess.run(["clhep-config","--version"], capture_output=True, text=True)
+            return result.stdout.split()[1].strip()
+        except :
+            return "Not found"
