@@ -543,9 +543,6 @@ def RenderGmadJinjaTemplate(template_file, output_file, data, path=".") :
     f.write(output)
     f.close()
 
-
-import subprocess as _subprocess
-
 class Versions :
 
     def __init__(self):
