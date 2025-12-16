@@ -1063,3 +1063,141 @@ class BDSIMOutput:
 
         df = _pd.DataFrame(dd)
         return df
+
+class LinkBunch :
+    def __init__(self, link_Bunch):
+        self._link_Bunch = link_Bunch
+
+    def get_dataframe(self):
+
+        dd = {}
+
+        dd['Beta'] = []
+        dd['BRho'] = []
+        dd['Charge'] = []
+        dd['FFact'] = []
+        dd['Forwards'] = []
+        dd['Gamma'] = []
+
+        # ion definition
+
+        dd['IsAnIon'] = []
+        dd['KineticEnergy'] = []
+        dd['Mass'] = []
+        dd['Momentum'] = []
+        dd['Name'] = []
+        dd['NElectrons'] = []
+        dd['PDGID'] = []
+        dd['TotalEnergy'] = []
+        dd['Velocity'] = []
+
+        dd['s'] = []
+        dd['T'] = []
+        dd['coords.totalEnergy'] = []
+        dd['x'] = []
+        dd['y'] = []
+        dd['z'] = []
+        dd['xp'] = []
+        dd['yp'] = []
+        dd['zp'] = []
+
+        for i in range(0,self._link_Bunch.Size()) :
+            lc = self._link_Bunch.GetNextParticleLocal()
+            pd = self._link_Bunch.ParticleDefinition()
+            dd['Beta'].append(pd.Beta())
+            dd['BRho'].append(pd.BRho())
+            dd['Charge'].append(pd.Charge())
+            dd['FFact'].append(pd.FFact())
+            dd['Forwards'].append(pd.Forwards())
+            dd['Gamma'].append(pd.Gamma())
+
+            dd['IsAnIon'].append(pd.IsAnIon())
+            dd['KineticEnergy'].append(pd.KineticEnergy())
+            dd['Mass'].append(pd.Mass())
+            dd['Momentum'].append(pd.Momentum())
+            dd['Name'].append(pd.Name())
+            dd['NElectrons'].append(pd.NElectrons())
+            dd['PDGID'].append(pd.PDGID())
+            dd['TotalEnergy'].append(pd.TotalEnergy())
+            dd['Velocity'].append(pd.Velocity())
+
+            dd['s'].append(lc.s)
+            dd['T'].append(lc.T)
+            dd['coords.totalEnergy'].append(lc.totalEnergy)
+            dd['x'].append(lc.x)
+            dd['y'].append(lc.y)
+            dd['z'].append(lc.z)
+            dd['xp'].append(lc.xp)
+            dd['yp'].append(lc.yp)
+            dd['zp'].append(lc.zp)
+
+        return _pd.DataFrame(dd)
+
+class LinkSamplerHits :
+    def __init__(self, link_SamplerHits):
+        self._samplerHits = link_SamplerHits
+
+    def get_dataframe(self):
+
+        dd = {}
+
+        dd['A'] = []
+        dd['beamlineIndex'] = []
+        dd['charge'] = []
+
+        dd['s'] = []
+        dd['T'] = []
+        dd['totalEnergy'] = []
+        dd['weight'] = []
+        dd['x'] = []
+        dd['y'] = []
+        dd['z'] = []
+        dd['xp'] = []
+        dd['yp'] = []
+        dd['zp'] = []
+
+        dd['eventID'] = []
+        dd['externalEventID'] = []
+        dd['externalParticleID'] = []
+        dd['mass'] = []
+        dd['momentum'] = []
+        dd['nElectrons'] = []
+        dd['parentID'] = []
+        dd['pdgID'] = []
+        dd['rigidity'] = []
+        dd['samplerID'] = []
+        dd['trackID'] = []
+        dd['turnsTaken'] = []
+        dd['Z'] = []
+
+        for i in range(0,self._samplerHits.entries()) :
+            sh = self._samplerHits[i]
+            dd['A'].append(sh.A)
+            dd['beamlineIndex'].append(sh.beamlineIndex)
+            dd['charge'].append(sh.charge)
+            dd['s'].append(sh.coords.s)
+            dd['T'].append(sh.coords.T)
+            dd['totalEnergy'].append(sh.coords.totalEnergy)
+            dd['weight'].append(sh.coords.weight)
+            dd['x'].append(sh.coords.x)
+            dd['y'].append(sh.coords.y)
+            dd['z'].append(sh.coords.z)
+            dd['xp'].append(sh.coords.xp)
+            dd['yp'].append(sh.coords.yp)
+            dd['zp'].append(sh.coords.zp)
+            dd['eventID'].append(sh.eventID)
+            dd['externalEventID'].append(sh.externalParentID)
+            dd['externalParticleID'].append(sh.externalParticleID)
+            dd['mass'].append(sh.mass)
+            dd['momentum'].append(sh.momentum)
+            dd['nElectrons'].append(sh.nElectrons)
+            dd['parentID'].append(sh.parentID)
+            dd['pdgID'].append(sh.pdgID)
+            dd['rigidity'].append(sh.rigidity)
+            dd['samplerID'].append(sh.samplerID)
+            dd['trackID'].append(sh.trackID)
+            dd['turnsTaken'].append(sh.turnsTaken)
+            dd['Z'].append(sh.Z)
+
+        df = _pd.DataFrame(dd)
+        return df
