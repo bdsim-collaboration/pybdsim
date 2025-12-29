@@ -307,6 +307,7 @@ class BDSIMOutput:
         self.e  = self.root_file.GetEvent()
         self.et.GetEntry(0)
         self.sampler_names  = list(self.root_file.GetSamplerNames())
+        self.collimator_names = list(self.root_file.GetCollimatorNames())
         try : # TODO needs to be removed when or guarded against with BDSIM version mismatch
             self.csampler_names = list(self.root_file.GetSamplerCNames())
             self.ssampler_names = list(self.root_file.GetSamplerSNames())
