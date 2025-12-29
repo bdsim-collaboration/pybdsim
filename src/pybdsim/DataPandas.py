@@ -867,6 +867,9 @@ class BDSIMOutput:
     def get_aperture_impacts(self):
         return _fill_event_aperture(self.e.ApertureImpacts, self.et, self)
 
+    def get_collimator_names(self):
+        return self.collimator_names
+
     def get_collimator(self, collimator_name):
         collimator = self.e.collimators[collimator_name]
         return _fill_event_collimator(collimator, self.et, self)
