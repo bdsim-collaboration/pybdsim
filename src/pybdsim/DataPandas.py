@@ -128,9 +128,9 @@ def _fill_event_coords(root_obj, root_tree, pandas_obj) :
     return df
 
 def _fill_event_aperture(root_obj, root_tree, pandas_obj) :
-    aperture_attribs = ['S', 'T', 'energy', 'firstPrimaryImpact', 'ionA', 'ionZ', 'isIon', 'isPrimary', 'kineticEnergy',
-                        'modelID', 'n', 'nElectrons', 'parentID', 'partID', 'trackID', 'turn', 'weight', 'x', 'xp', 'y',
-                        'yp']
+    aperture_attribs = ['S', 'T', 'energy', 'firstPrimaryImpact', 'ionA', 'ionZ', 'isIon',
+                        'isPrimary',  'kineticEnergy', 'modelID', 'n', 'nElectrons', 'parentID',
+                        'partID', 'trackID', 'turn', 'weight', 'x', 'xp', 'y', 'yp']
 
     dd = {}
 
