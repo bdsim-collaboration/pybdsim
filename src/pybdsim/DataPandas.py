@@ -156,7 +156,38 @@ def _fill_event_aperture(root_obj, root_tree, pandas_obj) :
     return df
 
 def _fill_event_collimator(root_obj, root_tree, pandas_obj) :
-    pass
+    collimator_attribs = ['T', 'charge', 'energy', 'energyDeposited', 'firstPrimaryHitThisTurn', 'impactParameterX',
+                          'impactParameterY', 'ionA', 'ionZ', 'isIon', 'kineticEnergy', 'mass', 'n', 'parentID',
+                          'partID', 'primaryInteracted', 'primaryStopped', 'rigidity', 'totalEnergyDeposited', 'turn',
+                          'weight', 'xIn', 'xpIn', 'yIn', 'ypIn', 'zIn', 'zpIn']
+
+    dd = {}
+    dd['collimator_idx'] = []
+
+    for attrib in collimator_attribs:
+        dd[attrib] = []
+
+    for ievt in range(0, root_tree.GetEntries()):
+        root_tree.GetEntry(ievt)
+
+        for icollimator in range(0, root_obj.n):
+            dd['collimator_idx'].append(icollimator)
+            for attrib in collimator_attribs:
+                if attrib == "n" or \
+                   attrib == "primaryInteracted" or \
+                   attrib == "primaryStopped" or \
+                   attrib == "totalEnergyDeposited" :
+                    dd[attrib].append(getattr(root_obj, attrib))
+                else:
+                    try :
+                        dd[attrib].append(getattr(root_obj, attrib)[icollimator])
+                    except IndexError :
+                        pass
+                    except TypeError :
+                        print(attrib)
+
+    df = _pd.DataFrame(_enforce_same_length_dict(dd))
+    return df
 
 def _fill_event_samplerC(root_obj, root_tree, pandas_obj) :
     pass
