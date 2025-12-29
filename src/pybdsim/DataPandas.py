@@ -871,7 +871,7 @@ class BDSIMOutput:
         return self.collimator_names
 
     def get_collimator(self, collimator_name):
-        collimator = self.e.collimators[collimator_name]
+        collimator = self.e.collimatorMap[collimator_name]
         return _fill_event_collimator(collimator, self.et, self)
 
     def get_trajectories(self, i_evnt):
