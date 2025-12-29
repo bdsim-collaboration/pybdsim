@@ -133,6 +133,7 @@ def _fill_event_aperture(root_obj, root_tree, pandas_obj) :
                         'partID', 'trackID', 'turn', 'weight', 'x', 'xp', 'y', 'yp']
 
     dd = {}
+    dd['aperture_idx'] = []
 
     for attrib in aperture_attribs:
         dd[attrib] = []
