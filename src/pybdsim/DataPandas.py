@@ -8,6 +8,15 @@ from .Data import TH1 as _TH1
 from .Data import TH2 as _TH2
 from .Data import TH3 as _TH3
 
+# BDSOutputROOTEventSampler<float> (sampler, Primary)
+# BDSOutputROOTEventLoss (Eloss, ElossTunnel, ElossVacuum, ElossWorld, ElossWorldContents,
+#                         ElossWorldExit, PrimaryFirstHit, PrimaryLastHit, TunnelHit)
+# BDSOutputROOTEventCoords (PrimaryGlobal)
+# BDSOutputROOTEventSamplerC (SamplersC)
+# BDSOutputROOTEventSamplerS (SamplersS)
+# BDSOutputROOTEventAperture (ApertureImpacts)
+# BDSOutputROOTEventCollimator (collimators)
+
 try:
     import ROOT as _ROOT
     _LoadROOTLibraries()
@@ -15,6 +24,143 @@ try:
 
 except ImportError:
     _useRoot = False
+
+def _enforce_same_length_dict(d) :
+    # find first non-zero length
+    max_l = 0
+    for k in d :
+        max_l = max(len(d[k]),max_l)
+
+    key_to_del = []
+    for k in d :
+        if len(d[k]) != max_l :
+            key_to_del.append(k)
+
+    for k in key_to_del :
+        del d[k]
+
+    return d
+
+def _fill_event_sampler(root_obj, root_tree, pandas_obj) :
+    sampler_attribs = ['S', 'T', 'charge', 'energy', 'ionA', 'ionZ', 'isIon', 'kineticEnergy', 'mass', 'modelID',
+                       'n', 'nElectrons', 'p', 'parentID', 'partID', 'phi', 'phip', 'r', 'rigidity', 'rp',
+                       'samplerName', 'theta', 'trackID', 'turnNumber', 'weight', 'x', 'xp', 'y', 'yp', 'z', 'zp']
+
+    # sampler
+    sampler = root_obj
+
+    dd = {}
+    dd['file_idx'] = []
+    dd['file_name'] = []
+    dd['event_idx'] = []
+    dd['sampler_idx'] = []
+
+    for attrib in sampler_attribs:
+        dd[attrib] = []
+
+    for ievt in range(0, root_tree.GetEntries()):
+        root_tree.GetEntry(ievt)
+
+        for iprim in range(0, sampler.n):
+            dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
+            dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.et.GetFile().GetName()))
+            dd['event_idx'].append(ievt)
+            dd['sampler_idx'].append(iprim)
+            for attrib in sampler_attribs:
+                if attrib == "z" or \
+                   attrib == "S" or \
+                   attrib == "modelID" or \
+                   attrib == "n":
+                    dd[attrib].append(getattr(sampler, attrib))
+                else:
+                    try :
+                        dd[attrib].append(getattr(sampler, attrib)[iprim])
+                    except IndexError :
+                        pass
+
+    df = _pd.DataFrame(_enforce_same_length_dict(dd))
+    return df
+
+def _fill_event_eloss(root_obj, root_tree, pandas_obj) :
+
+    energy = []
+    S = []
+    partID = []
+
+    for ievt in range(0, root_tree.GetEntries()):
+        root_tree.GetEntry(ievt)
+        for ieloss in range(0, root_obj.n):
+            energy.append(root_obj.energy[ieloss])
+            S.append(root_obj.S[ieloss])
+            # partID.append(root_obj.partID[ieloss])
+
+    dd = {}
+    dd['energy'] = energy
+    dd['S'] = S
+    dd['partID'] = partID
+
+    df = _pd.DataFrame(_enforce_same_length_dict(dd))
+    return df
+
+def _fill_event_coords(root_obj, root_tree, pandas_obj) :
+    coord_attribs = ['T', 'X', 'Xp', 'Y', 'Yp', 'Z', 'Zp', 'n']
+
+    dd = {}
+
+    for attrib in coord_attribs:
+        dd[attrib] = []
+
+    for ievt in range(0, root_tree.GetEntries()):
+        root_tree.GetEntry(ievt)
+
+        for icoord in range(0, root_obj.n):
+            for attrib in coord_attribs:
+                if attrib == "n":
+                    dd[attrib].append(getattr(root_obj, attrib))
+                else:
+                    try :
+                        dd[attrib].append(getattr(root_obj, attrib)[icoord])
+                    except IndexError :
+                        pass
+
+    df = _pd.DataFrame(_enforce_same_length_dict(dd))
+    return df
+
+def _fill_event_aperture(root_obj, root_tree, pandas_obj) :
+    aperture_attribs = ['S', 'T', 'energy', 'firstPrimaryImpact', 'ionA', 'ionZ', 'isIon', 'isPrimary', 'kineticEnergy',
+                        'modelID', 'n', 'nElectrons', 'parentID', 'partID', 'trackID', 'turn', 'weight', 'x', 'xp', 'y',
+                        'yp']
+
+    dd = {}
+
+    for attrib in aperture_attribs:
+        dd[attrib] = []
+
+    for ievt in range(0, root_tree.GetEntries()):
+        root_tree.GetEntry(ievt)
+
+        for iprim in range(0, root_obj.n):
+            dd['aperture_idx'].append(iprim)
+            for attrib in aperture_attribs:
+                if attrib == "n":
+                    dd[attrib].append(getattr(root_obj, attrib))
+                else:
+                    try :
+                        dd[attrib].append(getattr(root_obj, attrib)[iprim])
+                    except IndexError :
+                        pass
+
+    df = _pd.DataFrame(_enforce_same_length_dict(dd))
+    return df
+
+def _fill_event_collimator(root_obj, root_tree, pandas_obj) :
+    pass
+
+def _fill_event_samplerC(root_obj, root_tree, pandas_obj) :
+    pass
+
+def __fill_event_samplerS(root_obj, root_tree, pandas_obj) :
+    pass
 
 class PandasConverter :
 
@@ -110,7 +256,6 @@ class REBDSIMOptics:
 
         df = _pd.DataFrame(dd)
         return df
-
 
 class BDSIMOutput:
     def __init__(self, filepath):
@@ -288,6 +433,8 @@ class BDSIMOutput:
             self.ht.GetEntry(iheader)
             dd['file_name'].append(self.ht.GetFile().GetName())
             dd['file_idx'].append(self.get_filename_index(self.ht.GetFile().GetName()))
+            dd['header_idx'].append(iheader)
+
             for attrib in header_attribs:
                 if attrib == "trajectoryFilters" :
                     dd[attrib].append([str(tf) for tf in getattr(self.h.header, attrib)])
@@ -300,328 +447,57 @@ class BDSIMOutput:
                 else :
                     dd[attrib].append(getattr(self.h.header, attrib))
 
-        df = _pd.DataFrame(dd)
+        df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
         return df
 
-    def get_model(self):
-        model_number = []
-        component_name = []
-        component_type = []
-        placement_name = []
+    def get_model(self, debug = False):
 
-        length = []
-        angle = []
-        k1 = []
-        k2 = []
-        k3 = []
-        k4 = []
-        k5 = []
-        k6 = []
-        k7 = []
-        k8 = []
-        k9 = []
-        k10 = []
-        k11 = []
-        k12 = []
-        k1s = []
-        k2s = []
-        k3s = []
-        k4s = []
-        k5s = []
-        k6s = []
-        k7s = []
-        k8s = []
-        k9s = []
-        k10s = []
-        k11s = []
-        k12s = []
-        ks   = []
-        material = []
+        model_attribs = ['angle', 'bField', 'beamPipeAper1', 'beamPipeAper2', 'beamPipeAper3', 'beamPipeAper4',
+                         'beamPipeType', 'cavityBranchNamesUnique', 'cavityIndices', 'cavityInfo', 'collimatorBranchNamesUnique',
+                         'collimatorIndices', 'collimatorInfo', 'componentName', 'componentType', 'e1',
+                         'e2', 'eField', 'endPos', 'endRefPos', 'endRefRot', 'endRot', 'endS', 'fint', 'fintk2', 'fintx',
+                         'fintxk2', 'hgap', 'hkick', 'k1', 'k10', 'k10s', 'k11', 'k11s', 'k12', 'k12s', 'k1s', 'k2', 'k2s', 'k3', 'k3s', 'k4', 'k4s',
+                         'k5', 'k5s', 'k6', 'k6s', 'k7', 'k7s', 'k8', 'k8s', 'k9', 'k9s', 'ks', 'length', 'material', 'midPos', 'midRefPos',
+                         'midRefRot', 'midRot', 'midS', 'midT', 'n', 'nCavities', 'nCollimators', 'offsetX', 'offsetY', 'placementName', 'pvName',
+                         'pvNameWPointer', 'samplerCNamesUnique', 'samplerNamesUnique', 'samplerSNamesUnique', 'samplerSPosition', 'scoringMeshName',
+                         'staEk', 'staP', 'staPos', 'staRefPos', 'staRefRot', 'staRot', 'staS', 'storeCavityInfo', 'storeCollimatorInfo', 'tilt', 'vkick']
 
-        staPos_x = []
-        staPos_y = []
-        staPos_z = []
-        staRot_thetaX = []
-        staRot_thetaY = []
-        staRot_thetaZ = []
-        staRefPos_x = []
-        staRefPos_y = []
-        staRefPos_z = []
-        staRefRot_thetaX = []
-        staRefRot_thetaY = []
-        staRefRot_thetaZ = []
-        staS = []
-
-        midPos_x = []
-        midPos_y = []
-        midPos_z = []
-        midRot_thetaX = []
-        midRot_thetaY = []
-        midRot_thetaZ = []
-        midRefPos_x = []
-        midRefPos_y = []
-        midRefPos_z = []
-        midRefRot_thetaX = []
-        midRefRot_thetaY = []
-        midRefRot_thetaZ = []
-        midS = []
-        midT = []
-
-        endPos_x = []
-        endPos_y = []
-        endPos_z = []
-        endRot_thetaX = []
-        endRot_thetaY = []
-        endRot_thetaZ = []
-        endRefPos_x = []
-        endRefPos_y = []
-        endRefPos_z = []
-        endRefRot_thetaX = []
-        endRefRot_thetaY = []
-        endRefRot_thetaZ = []
-        endS = []
-
-        e1 = []
-        e2 = []
-        beamPipeAper1 = []
-        beamPipeAper2 = []
-        beamPipeAper3 = []
-        beamPipeAper4 = []
-        beamPipeType = []
-        bField = []
-        eField = []
-        fint = []
-        fintx = []
-        fintk2 = []
-        fintxk2 = []
-        hgap = []
-
-        offsetX = []
-        offsetY = []
-
-        pvName = []
-        staEk = []
-        staP = []
-
-        tilt = []
-        hkick = []
-        vkick = []
+        dd = {}
+        dd['file_name'] = []
+        dd['file_idx'] = []
+        dd['model_idx'] = []
+        for attrib in model_attribs:
+            dd[attrib] = []
 
         for imodel in range(0, self.mt.GetEntries()) :
             self.mt.GetEntry(imodel)
-            for ielement in range(0, self.m.model.n) :
-                model_number.append(imodel)
-                component_name.append(self.m.model.componentName[ielement])
-                placement_name.append(self.m.model.placementName[ielement])
-                component_type.append(self.m.model.componentType[ielement])
-                length.append(self.m.model.length[ielement])
-                angle.append(self.m.model.angle[ielement])
-                k1.append(self.m.model.k1[ielement])
-                k2.append(self.m.model.k2[ielement])
-                k3.append(self.m.model.k3[ielement])
-                k4.append(self.m.model.k4[ielement])
-                k5.append(self.m.model.k5[ielement])
-                k6.append(self.m.model.k6[ielement])
-                k7.append(self.m.model.k7[ielement])
-                k8.append(self.m.model.k8[ielement])
-                k9.append(self.m.model.k9[ielement])
-                k10.append(self.m.model.k10[ielement])
-                k11.append(self.m.model.k11[ielement])
-                k12.append(self.m.model.k12[ielement])
-                k1s.append(self.m.model.k1s[ielement])
-                k2s.append(self.m.model.k2s[ielement])
-                k3s.append(self.m.model.k3s[ielement])
-                k4s.append(self.m.model.k4s[ielement])
-                k5s.append(self.m.model.k5s[ielement])
-                k6s.append(self.m.model.k6s[ielement])
-                k7s.append(self.m.model.k7s[ielement])
-                k8s.append(self.m.model.k8s[ielement])
-                k9s.append(self.m.model.k9s[ielement])
-                k10s.append(self.m.model.k10s[ielement])
-                k11s.append(self.m.model.k11s[ielement])
-                k12s.append(self.m.model.k12s[ielement])
-                ks.append(self.m.model.ks[ielement])
-                material.append(self.m.model.material[ielement])
 
-                staPos_x.append(self.m.model.staPos[ielement].x())
-                staPos_y.append(self.m.model.staPos[ielement].y())
-                staPos_z.append(self.m.model.staPos[ielement].z())
-                staRot_thetaX.append(self.m.model.staRot[ielement].ThetaX())
-                staRot_thetaY.append(self.m.model.staRot[ielement].ThetaY())
-                staRot_thetaZ.append(self.m.model.staRot[ielement].ThetaZ())
-                staRefPos_x.append(self.m.model.staRefPos[ielement].x())
-                staRefPos_y.append(self.m.model.staRefPos[ielement].y())
-                staRefPos_z.append(self.m.model.staRefPos[ielement].z())
-                staRefRot_thetaX.append(self.m.model.staRefRot[ielement].ThetaX())
-                staRefRot_thetaY.append(self.m.model.staRefRot[ielement].ThetaY())
-                staRefRot_thetaZ.append(self.m.model.staRefRot[ielement].ThetaZ())
-                staS.append(self.m.model.staS[ielement])
+            for imodel in range(0, self.m.model.n) :
+                dd['file_name'].append(self.ht.GetFile().GetName())
+                dd['file_idx'].append(self.get_filename_index(self.ht.GetFile().GetName()))
+                dd['model_idx'].append(imodel)
 
-                midPos_x.append(self.m.model.midPos[ielement].x())
-                midPos_y.append(self.m.model.midPos[ielement].y())
-                midPos_z.append(self.m.model.midPos[ielement].z())
-                midRot_thetaX.append(self.m.model.midRot[ielement].ThetaX())
-                midRot_thetaY.append(self.m.model.midRot[ielement].ThetaY())
-                midRot_thetaZ.append(self.m.model.midRot[ielement].ThetaZ())
-                midRefPos_x.append(self.m.model.midRefPos[ielement].x())
-                midRefPos_y.append(self.m.model.midRefPos[ielement].y())
-                midRefPos_z.append(self.m.model.midRefPos[ielement].z())
-                midRefRot_thetaX.append(self.m.model.midRefRot[ielement].ThetaX())
-                midRefRot_thetaY.append(self.m.model.midRefRot[ielement].ThetaY())
-                midRefRot_thetaZ.append(self.m.model.midRefRot[ielement].ThetaZ())
-                midS.append(self.m.model.midS[ielement])
-                try :
-                    midT.append(self.m.model.midT[ielement])
-                except :
-                    midT.append(0)
+                for attrib in model_attribs:
+                    if attrib == "n" or \
+                       attrib == "nCavities" or \
+                       attrib == "nCollimators" or \
+                       attrib == "storeCollimatorInfo" or \
+                       attrib == "storeCavityInfo" :
+                        dd[attrib].append(getattr(self.m.model, attrib))
+                    # TODO add these variables
+                    elif attrib == 'scoringMeshName' or \
+                         attrib == 'scoringMeshRotation' or \
+                         attrib == 'scoringMeshTranslation' :
+                        pass
+                    else :
+                        try :
+                            dd[attrib].append(getattr(self.m.model, attrib)[imodel])
+                        except :
+                            if debug and imodel == 0:
+                                print(attrib)
 
-                endPos_x.append(self.m.model.endPos[ielement].x())
-                endPos_y.append(self.m.model.endPos[ielement].y())
-                endPos_z.append(self.m.model.endPos[ielement].z())
-                endRot_thetaX.append(self.m.model.endRot[ielement].ThetaX())
-                endRot_thetaY.append(self.m.model.endRot[ielement].ThetaY())
-                endRot_thetaZ.append(self.m.model.endRot[ielement].ThetaZ())
-                endRefPos_x.append(self.m.model.endRefPos[ielement].x())
-                endRefPos_y.append(self.m.model.endRefPos[ielement].y())
-                endRefPos_z.append(self.m.model.endRefPos[ielement].z())
-                endRefRot_thetaX.append(self.m.model.endRot[ielement].ThetaX())
-                endRefRot_thetaY.append(self.m.model.endRot[ielement].ThetaY())
-                endRefRot_thetaZ.append(self.m.model.endRot[ielement].ThetaZ())
-                endS.append(self.m.model.endS[ielement])
-
-                e1.append(self.m.model.e1[ielement])
-                e2.append(self.m.model.e2[ielement])
-                beamPipeAper1.append(self.m.model.beamPipeAper1[ielement])
-                beamPipeAper2.append(self.m.model.beamPipeAper2[ielement])
-                beamPipeAper3.append(self.m.model.beamPipeAper3[ielement])
-                beamPipeAper4.append(self.m.model.beamPipeAper4[ielement])
-                beamPipeType.append(self.m.model.beamPipeType[ielement])
-                bField.append(self.m.model.bField[ielement])
-                eField.append(self.m.model.eField[ielement])
-                fint.append(self.m.model.fint[ielement])
-                fintx.append(self.m.model.fintx[ielement])
-                fintk2.append(self.m.model.fintk2[ielement])
-                fintxk2.append(self.m.model.fintxk2[ielement])
-                hgap.append(self.m.model.hgap[ielement])
-
-                offsetX.append(self.m.model.offsetX[ielement])
-                offsetY.append(self.m.model.offsetY[ielement])
-
-                pvName.append(' '.join([str(s) for s in self.m.model.pvName[ielement]]))
-                try :
-                    staEk.append(self.m.model.staEk[ielement])
-                    staP.append(self.m.model.staP[ielement])
-                except :
-                    staEk.append(0)
-                    staP.append(0)
-
-                tilt.append(self.m.model.tilt[ielement])
-                hkick.append(self.m.model.hkick[ielement])
-                vkick.append(self.m.model.vkick[ielement])
-
-
-        dd = {}
-        dd['model_number'] = model_number
-        dd['component_name'] = component_name
-        dd['placement_name'] = placement_name
-        dd['component_type'] = component_type
-        dd['length'] = length
-        dd['angle'] = angle
-        dd['k1'] = k1
-        dd['k2'] = k2
-        dd['k3'] = k3
-        dd['k4'] = k4
-        dd['k5'] = k5
-        dd['k6'] = k6
-        dd['k7'] = k7
-        dd['k8'] = k8
-        dd['k9'] = k9
-        dd['k10'] = k10
-        dd['k11'] = k11
-        dd['k12'] = k12
-        dd['k1s'] = k1s
-        dd['k2s'] = k2s
-        dd['k3s'] = k3s
-        dd['k4s'] = k4s
-        dd['k5s'] = k5s
-        dd['k6s'] = k6s
-        dd['k7s'] = k7s
-        dd['k8s'] = k8s
-        dd['k9s'] = k9s
-        dd['k10s'] = k10s
-        dd['k11s'] = k11s
-        dd['k12s'] = k12s
-        dd['ks'] = ks
-        dd['material'] = material
-        dd['staPos_x'] = staPos_x
-        dd['staPos_y'] = staPos_y
-        dd['staPos_z'] = staPos_z
-        dd['staRot_thetaX'] = staRefRot_thetaX
-        dd['staRot_thetaY'] = staRefRot_thetaY
-        dd['staRot_thetaZ'] = staRefRot_thetaZ
-        dd['staRefPos_x'] = staRefPos_x
-        dd['staRefPos_y'] = staRefPos_y
-        dd['staRefPos_z'] = staRefPos_z
-        dd['staRefRot_thetaX'] = staRefRot_thetaX
-        dd['staRefRot_thetaY'] = staRefRot_thetaY
-        dd['staRefRot_thetaZ'] = staRefRot_thetaZ
-        dd['staS'] = staS
-        dd['midPos_x'] = midPos_x
-        dd['midPos_y'] = midPos_y
-        dd['midPos_z'] = midPos_z
-        dd['midRot_thetaX'] = midRot_thetaX
-        dd['midRot_thetaY'] = midRot_thetaY
-        dd['midRot_thetaZ'] = midRot_thetaZ
-        dd['midRefPos_x'] = midRefPos_x
-        dd['midRefPos_y'] = midRefPos_y
-        dd['midRefPos_z'] = midRefPos_z
-        dd['midRefRot_thetaX'] = midRefRot_thetaX
-        dd['midRefRot_thetaY'] = midRefRot_thetaY
-        dd['midRefRot_thetaZ'] = midRefRot_thetaZ
-        dd['midS'] = midS
-        dd['midT'] = midT
-        dd['endPos_x'] = endPos_x
-        dd['endPos_y'] = endPos_y
-        dd['endPos_z'] = endPos_z
-        dd['endRot_thetaX'] = endRot_thetaX
-        dd['endRot_thetaY'] = endRot_thetaY
-        dd['endRot_thetaZ'] = endRot_thetaZ
-        dd['endRefPos_x'] = endRefPos_x
-        dd['endRefPos_y'] = endRefPos_y
-        dd['endRefPos_z'] = endRefPos_z
-        dd['endRefRot_thetaX'] = endRefRot_thetaX
-        dd['endRefRot_thetaY'] = endRefRot_thetaY
-        dd['endRefRot_thetaZ'] = endRefRot_thetaZ
-        dd['endS'] = endS
-
-        dd['e1'] = e1
-        dd['e2'] = e2
-        dd['beamPipeAper1'] = beamPipeAper1
-        dd['beamPipeAper2'] = beamPipeAper2
-        dd['beamPipeAper3'] = beamPipeAper3
-        dd['beamPipeAper4'] = beamPipeAper4
-        dd['beamPipeType'] = beamPipeType
-        dd['bField'] = bField
-        dd['eField'] = eField
-        dd['fint'] = fint
-        dd['fintx'] = fintx
-        dd['fintk2'] = fintk2
-        dd['fintxk2'] = fintxk2
-        dd['hgap'] = hgap
-
-        dd['offsetX'] = offsetX
-        dd['offsetY'] = offsetY
-
-        dd['pvName'] = pvName
-        dd['staEk'] = staEk
-        dd['staP'] = staP
-
-        dd['tilt'] = tilt
-        dd['hkick'] = hkick
-        dd['vkick'] = vkick
-
-        df = _pd.DataFrame(dd)
+        df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
         return df
 
@@ -658,8 +534,9 @@ class BDSIMOutput:
                         "spaceDistrType","tilt","xDistrType","X0","Xp0","yDistrType","Y0","Yp0","Z0","Zp0"]
 
         dd = {}
-        dd['file_idx'] = []
         dd['file_name'] = []
+        dd['file_idx'] = []
+        dd['beam_idx'] = []
 
         for attrib in run_attribs:
             dd[attrib] = []
@@ -668,15 +545,23 @@ class BDSIMOutput:
             self.bt.GetEntry(ibeam)
             dd['file_name'].append(self.bt.GetFile().GetName())
             dd['file_idx'].append(self.get_filename_index(self.bt.GetFile().GetName()))
+            dd['beam_idx'].append(ibeam)
             for attrib in run_attribs:
                 if attrib == "setKeys" :
                     dd[attrib].append([str(v) for v in getattr(self.b.beam, attrib)])
-                elif attrib == "spaceDistrType" :
+                elif attrib == "spaceDistrType" or \
+                     attrib == "distrType" or \
+                     attrib == "xDistrType" or\
+                     attrib == "yDistrType" or\
+                     attrib == "energyDistrType" or \
+                     attrib == "distrFile" or \
+                     attrib == "distrFileFormat" :
+
                     dd[attrib].append(str(getattr(self.b.beam, attrib)))
                 else :
                     dd[attrib].append(getattr(self.b.beam, attrib))
 
-        df = _pd.DataFrame(dd)
+        df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
         return df
 
@@ -750,6 +635,8 @@ class BDSIMOutput:
         dd = {}
         dd['file_name'] = []
         dd['file_idx'] = []
+        dd['option_idx'] = []
+
         for attrib in option_attribs:
             dd[attrib] = []
 
@@ -757,6 +644,7 @@ class BDSIMOutput:
             self.ot.GetEntry(iopt)
             dd['file_name'].append(self.ot.GetFile().GetName())
             dd['file_idx'].append(self.get_filename_index(self.ot.GetFile().GetName()))
+            dd['option_idx'].append(iopt)
 
             for attrib in option_attribs:
                 if attrib == "apertureType" or \
@@ -783,12 +671,36 @@ class BDSIMOutput:
                 else :
                     dd[attrib].append(getattr(self.o.options, attrib))
 
-        df = _pd.DataFrame(dd)
+        df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
         return df
 
     def get_run(self):
-        pass
+        run_attribs = ['durationCPU', 'durationWall', 'seedStateAtStart', 'startTime', 'stopTime']
+
+        dd = {}
+        dd['file_name'] = []
+        dd['file_idx'] = []
+        dd['run_idx'] = []
+
+        for attrib in run_attribs:
+            dd[attrib] = []
+
+        for irun in range(0, self.rt.GetEntries()) :
+            self.ht.GetEntry(irun)
+            dd['file_name'].append(self.ht.GetFile().GetName())
+            dd['file_idx'].append(self.get_filename_index(self.ht.GetFile().GetName()))
+            dd['run_idx'].append(irun)
+
+            for attrib in run_attribs:
+                if attrib == 'seedStateAtStart' :
+                    dd[attrib].append(str(getattr(self.r.Summary, attrib)))
+                else :
+                    dd[attrib].append(getattr(self.r.Summary, attrib))
+
+        df = _pd.DataFrame(_enforce_same_length_dict(dd))
+
+        return df
 
     def get_events(self):
 
@@ -872,82 +784,58 @@ class BDSIMOutput:
         dd['neloss_world_exit'] = neloss_world_exit
         dd['ntraj'] = ntraj
 
-        df = _pd.DataFrame(dd)
+        df = _pd.DataFrame(_enforce_same_length_dict(dd))
         return df
 
     def get_primary(self):
-
-        primary_attribs = ["x","xp","y","yp","z","zp","T","theta",
-                           "energy","partID","trackID","weight",
-                           "turnNumber"]
-
-        # primary
-        nprimary = 0
-        primary = self.e.Primary
-
-        dd = {}
-        dd['file_idx'] = []
-        dd['primary_idx'] = []
-        for attrib in primary_attribs:
-            dd[attrib] = []
-
-        for ievt in range(0, self.et.GetEntries()):
-            self.et.GetEntry(ievt)
-
-            for iprim in range(0, primary.n) :
-                dd['file_idx'].append(self.get_filename_index(self.et.GetFile().GetName()))
-                dd['primary_idx'].append(iprim)
-                for attrib in primary_attribs:
-                    # print(attrib,getattr(primary, attrib))
-                    if attrib == "z" :
-                        dd[attrib].append(getattr(primary, attrib))
-                    else:
-                        dd[attrib].append(getattr(primary, attrib)[iprim])
-
-        df = _pd.DataFrame(dd)
-        return df
+        return _fill_event_sampler(self.e.Primary,self.et, self)
 
     def get_primary_global(self):
-        pass
+        return _fill_event_coords(self.e.PrimaryGlobal, self.et, self)
 
     def get_eloss(self):
-
         eloss = self.e.Eloss
+        return _fill_event_eloss(eloss, self.et, self)
 
-        energy = []
-        S      = []
-        partID = []
+    def get_eloss_tunnel(self):
+        eloss = self.e.ElossTunnel
+        return _fill_event_eloss(eloss, self.et, self)
 
-        for ievt in range(0, self.et.GetEntries()):
-            self.et.GetEntry(ievt)
-            for ieloss in range(0, eloss.n) :
-                energy.append(eloss.energy[ieloss])
-                S.append(eloss.S[ieloss])
-                if self.o.options.storeElossLinks :
-                    partID.append(eloss.partID[ieloss])
+    def get_eloss_vacuum(self):
+        eloss = self.e.ElossVacuum
+        return _fill_event_eloss(eloss, self.et, self)
 
-        dd = {}
-        dd['energy'] = energy
-        dd['S'] = S
-        if self.o.options.storeElossLinks :
-            dd['partID'] = partID
+    def get_eloss_world(self):
+        eloss = self.e.ElossWorld
+        return _fill_event_eloss(eloss, self.et, self)
 
+    def get_eloss_world_contents(self):
+        eloss = self.e.ElossWorldContents
+        return _fill_event_eloss(eloss, self.et, self)
 
-        df = _pd.DataFrame(dd)
-        return df
-
+    def get_eloss_world_exit(self):
+        eloss = self.e.ElossWorldExit
+        return _fill_event_eloss(eloss, self.et, self)
 
     def get_primary_first_hit(self):
-        pass
+        eloss = self.e.PrimaryFirstHit
+        return _fill_event_eloss(eloss, self.et, self)
 
     def get_primary_last_hit(self):
         pass
+        eloss = self.e.PrimaryLastHit
+        return _fill_event_eloss(eloss, self.et, self)
+
+    def get_tunnel_hit(self):
+        eloss = self.e.TunnelHit
+        return _fill_event_eloss(eloss, self.et, self)
 
     def get_aperture_impacts(self):
-        pass
+        return _fill_event_aperture(self.e.ApertureImpacts, self.et, self)
 
-    def get_sampler(self, sampler_name):
-        pass
+    def get_collimator(self, collimator_name):
+        collimator = self.e.collimators[collimator_name]
+        return _fill_event_collimator(collimator, self.et, self)
 
     def get_trajectories(self, i_evnt):
         self.et.GetEntry(i_evnt)
@@ -967,7 +855,7 @@ class BDSIMOutput:
         dd['partID'] = partID
         dd['trackID'] = trackID
 
-        df = _pd.DataFrame(dd)
+        df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
         return df
 
@@ -998,7 +886,7 @@ class BDSIMOutput:
         dd['Z'] = Z
         dd['kineticEnergy'] = KE
 
-        df = _pd.DataFrame(dd)
+        df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
         return df
 
@@ -1012,43 +900,7 @@ class BDSIMOutput:
 
         sampler = self.e.GetSampler(sampler_name)
 
-        dd = {}
-        dd['file_idx'] = []
-        dd['event_idx'] = []
-        dd['sampler_idx'] = []
-        dd['x'] = []
-        dd['xp'] = []
-        dd['y'] = []
-        dd['yp'] = []
-        dd['z'] = []
-        dd['zp'] = []
-        dd['T'] = []
-        dd['energy'] = []
-        dd['partID'] = []
-        dd['trackID'] = []
-        dd['weight'] = []
-
-        for ievt in range(0, self.et.GetEntries()):
-            self.et.GetEntry(ievt)
-
-            for ipart in range(0, sampler.n) :
-                dd['file_idx'].append(self.get_filename_index(self.ot.GetFile().GetName()))
-                dd['event_idx'].append(ievt)
-                dd['sampler_idx'].append(ipart)
-                dd['x'].append(sampler.x[ipart])
-                dd['xp'].append(sampler.xp[ipart])
-                dd['y'].append(sampler.y[ipart])
-                dd['yp'].append(sampler.yp[ipart])
-                dd['z'].append(sampler.z)
-                dd['zp'].append(sampler.zp[ipart])
-                dd['T'].append(sampler.T[ipart])
-                dd['energy'].append(sampler.energy[ipart])
-                dd['partID'].append(sampler.partID[ipart])
-                dd['trackID'].append(sampler.trackID[ipart])
-                dd['weight'].append(sampler.weight[ipart])
-
-        df = _pd.DataFrame(dd)
-        return df
+        return _fill_event_sampler(sampler, self.et, self)
 
     def get_samplerc(self, sampler_name):
         if sampler_name not in self.csampler_names:
