@@ -42,9 +42,10 @@ def _enforce_same_length_dict(d) :
     return d
 
 def _fill_event_sampler(root_obj, root_tree, pandas_obj) :
-    sampler_attribs = ['S', 'T', 'charge', 'energy', 'ionA', 'ionZ', 'isIon', 'kineticEnergy', 'mass', 'modelID',
-                       'n', 'nElectrons', 'p', 'parentID', 'partID', 'phi', 'phip', 'r', 'rigidity', 'rp',
-                       'samplerName', 'theta', 'trackID', 'turnNumber', 'weight', 'x', 'xp', 'y', 'yp', 'z', 'zp']
+    sampler_attribs = ['S', 'T', 'charge', 'energy', 'ionA', 'ionZ', 'isIon', 'kineticEnergy',
+                       'mass', 'modelID', 'n', 'nElectrons', 'p', 'parentID', 'partID', 'phi',
+                       'phip', 'r', 'rigidity', 'rp', 'samplerName', 'theta', 'trackID',
+                       'turnNumber', 'weight', 'x', 'xp', 'y', 'yp', 'z', 'zp']
 
     # sampler
     sampler = root_obj
