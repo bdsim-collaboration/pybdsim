@@ -1,5 +1,7 @@
 import pandas as _pd
 import os.path as _path
+import types as _types
+
 from .Data import LoadROOTLibraries as _LoadROOTLibraries
 from .Data import RebdsimFile as _RebdsimFile
 from .Data import TH1 as _TH1
@@ -9,9 +11,78 @@ from .Data import TH3 as _TH3
 try:
     import ROOT as _ROOT
     _LoadROOTLibraries()
+    import cppyy as _cppyy
+
 except ImportError:
     _useRoot = False
 
+class PandasConverter :
+
+    attr_to_skip = ['__python_owns__', 'kBitMask', 'kInconsistent', 'kIsOnHeap',
+                    'kNotDeleted', 'kOverwrite','kSingleKey', 'kWriteDelete',
+                    'kZombie','']
+
+    def __init__(self,root_structure, root_tree):
+        self.root_structure = root_structure
+        self.root_tree = root_tree
+
+        self.attr_dict = self.variables()
+
+    def variables(self):
+        root_obj_attributes = dir(self.root_structure)
+
+        root_obj_attributes_set = set()
+        root_obj_attributes_tocheck = []
+        root_attribute_map = {}
+
+        for att_key in root_obj_attributes:
+            if att_key in PandasConverter.attr_to_skip :
+                continue
+
+            att = getattr(self.root_structure, att_key)
+
+            att_type = type(att)
+
+            root_obj_attributes_set.add(str(att_type))
+
+            if att_type == _types.MethodWrapperType:
+                pass
+            elif att_type == _types.MethodType:
+                pass
+            elif att_type == _types.BuiltinFunctionType:
+                pass
+            elif att_type == dict:
+                pass
+            elif att_type == _types.NoneType:
+                pass
+            elif att_type == bool:
+                root_obj_attributes_tocheck.append(att_key)
+                root_attribute_map[att_key] = att
+            elif att_type == int:
+                root_obj_attributes_tocheck.append(att_key)
+                root_attribute_map[att_key] = att
+            elif att_type == float:
+                root_obj_attributes_tocheck.append(att_key)
+                root_attribute_map[att_key] = att
+            elif att_type == _cppyy.gbl.std.string:
+                root_obj_attributes_tocheck.append(att_key)
+                root_attribute_map[att_key] = att
+            else:
+                try:
+                    if type(att_type.__cpp_name__) == str:
+                        if att_type.__cpp_name__.startswith("std::vector"):
+                            root_obj_attributes_tocheck.append(att_key)
+                            root_attribute_map[att_key] = att
+                except AttributeError:
+                    pass
+
+        return root_attribute_map
+
+    def convert_entry_as_row(self):
+        pass
+
+    def convert_vector_as_row(self):
+        pass
 
 class REBDSIM:
     def __init__(self, filepath):
@@ -888,8 +959,8 @@ class BDSIMOutput:
         trackID = []
         for i in range(0,len(traj.partID)) :
             nstep.append(len(traj.XYZ[i]))
-            partID.append(traj.partID[i])
             trackID.append(traj.trackID[i])
+            partID.append(traj.partID[i])
 
         dd = {}
         dd['nstep'] = nstep
@@ -1102,8 +1173,8 @@ class LinkBunch :
         dd['zp'] = []
 
         for i in range(0,self._link_Bunch.Size()) :
-            lc = self._link_Bunch.GetNextParticleLocal()
             pd = self._link_Bunch.ParticleDefinition()
+            lc = self._link_Bunch.GetNextParticleLocal()
             dd['Beta'].append(pd.Beta())
             dd['BRho'].append(pd.BRho())
             dd['Charge'].append(pd.Charge())
