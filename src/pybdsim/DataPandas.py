@@ -460,6 +460,7 @@ class BDSIMOutput:
         dd = {}
         dd['file_name'] = []
         dd['file_idx'] = []
+        dd['header_idx'] = []
         for attrib in header_attribs:
             dd[attrib] = []
 
