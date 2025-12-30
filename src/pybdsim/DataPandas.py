@@ -189,11 +189,83 @@ def _fill_event_collimator(root_obj, root_tree, pandas_obj) :
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
     return df
 
-def _fill_event_samplerC(root_obj, root_tree, pandas_obj) :
-    pass
+def _fill_event_csampler(root_obj, root_tree, pandas_obj) :
+    sampler_attribs = ['S', 'T', 'charge', 'ionA', 'ionZ', 'isIon', 'kineticEnergy', 'mass', 'modelID',
+                       'n', 'nElectrons', 'p', 'parentID', 'partID', 'phi', 'phip', 'rigidity', 'rp',
+                       'samplerName', 'totalEnergy', 'trackID', 'turnNumber', 'weight', 'z', 'zp']
 
-def __fill_event_samplerS(root_obj, root_tree, pandas_obj) :
-    pass
+    # sampler
+    sampler = root_obj
+
+    dd = {}
+    dd['file_idx'] = []
+    dd['file_name'] = []
+    dd['event_idx'] = []
+    dd['sampler_idx'] = []
+
+    for attrib in sampler_attribs:
+        dd[attrib] = []
+
+    for ievt in range(0, root_tree.GetEntries()):
+        root_tree.GetEntry(ievt)
+
+        for iprim in range(0, sampler.n):
+            dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
+            dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.et.GetFile().GetName()))
+            dd['event_idx'].append(ievt)
+            dd['sampler_idx'].append(iprim)
+            for attrib in sampler_attribs:
+                if attrib == "S" or \
+                   attrib == "modelID" or \
+                   attrib == "n":
+                    dd[attrib].append(getattr(sampler, attrib))
+                else:
+                    try :
+                        dd[attrib].append(getattr(sampler, attrib)[iprim])
+                    except IndexError :
+                        pass
+
+    df = _pd.DataFrame(_enforce_same_length_dict(dd))
+    return df
+
+def _fill_event_ssampler(root_obj, root_tree, pandas_obj) :
+    sampler_attribs = ['S', 'T', 'charge', 'ionA', 'ionZ', 'isIon', 'kineticEnergy', 'mass', 'modelID',
+                       'n', 'nElectrons', 'p', 'parentID', 'partID', 'phi', 'phip', 'rigidity', 'rp',
+                       'samplerName', 'theta', 'thetap', 'totalEnergy', 'trackID', 'turnNumber', 'weight']
+
+    # sampler
+    sampler = root_obj
+
+    dd = {}
+    dd['file_idx'] = []
+    dd['file_name'] = []
+    dd['event_idx'] = []
+    dd['sampler_idx'] = []
+
+    for attrib in sampler_attribs:
+        dd[attrib] = []
+
+    for ievt in range(0, root_tree.GetEntries()):
+        root_tree.GetEntry(ievt)
+
+        for iprim in range(0, sampler.n):
+            dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
+            dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.et.GetFile().GetName()))
+            dd['event_idx'].append(ievt)
+            dd['sampler_idx'].append(iprim)
+            for attrib in sampler_attribs:
+                if attrib == "S" or \
+                   attrib == "modelID" or \
+                   attrib == "n":
+                    dd[attrib].append(getattr(sampler, attrib))
+                else:
+                    try :
+                        dd[attrib].append(getattr(sampler, attrib)[iprim])
+                    except IndexError :
+                        pass
+
+    df = _pd.DataFrame(_enforce_same_length_dict(dd))
+    return df
 
 class PandasConverter :
 
@@ -291,6 +363,7 @@ class REBDSIMOptics:
         return df
 
 class BDSIMOutput:
+
     def __init__(self, filepath):
 
         if not _path.isfile(filepath) :
@@ -339,10 +412,10 @@ class BDSIMOutput:
     def get_sampler_names(self):
         return self.sampler_names
 
-    def get_samplerc_names(self):
+    def get_csampler_names(self):
         return self.csampler_names
 
-    def get_samplers_names(self):
+    def get_ssampler_names(self):
         return self.ssampler_names
 
     def get_histo1d_names(self):
@@ -938,90 +1011,23 @@ class BDSIMOutput:
 
         return _fill_event_sampler(sampler, self.et, self)
 
-    def get_samplerc(self, sampler_name):
+    def get_csampler(self, sampler_name):
         if sampler_name not in self.csampler_names:
             print("Sampler name not recognized")
             return
 
         sampler = self.e.GetSamplerC(sampler_name)
 
-        dd = {}
-        dd['file_idx'] = []
-        dd['event_idx'] = []
-        dd['sampler_idx'] = []
-        dd['rp'] = []
-        dd['phi'] = []
-        dd['phip'] = []
-        dd['z'] = []
-        dd['zp'] = []
-        dd['T'] = []
-        dd['totalEnergy'] = []
-        dd['partID'] = []
-        dd['trackID'] = []
-        dd['weight'] = []
+        return _fill_event_csampler(sampler, self.et, self)
 
-
-        for ievt in range(0, self.et.GetEntries()):
-            self.et.GetEntry(ievt)
-
-            for ipart in range(0, sampler.n) :
-                dd['file_idx'].append(self.get_filename_index(self.ot.GetFile().GetName()))
-                dd['event_idx'].append(ievt)
-                dd['sampler_idx'].append(ipart)
-                dd['rp'].append(sampler.rp[ipart])
-                dd['phi'].append(sampler.phi[ipart])
-                dd['phip'].append(sampler.phip[ipart])
-                dd['z'].append(sampler.z[ipart])
-                dd['zp'].append(sampler.zp[ipart])
-                dd['T'].append(sampler.T[ipart])
-                dd['totalEnergy'].append(sampler.totalEnergy[ipart])
-                dd['partID'].append(sampler.partID[ipart])
-                dd['trackID'].append(sampler.trackID[ipart])
-                dd['weight'].append(sampler.weight[ipart])
-
-        df = _pd.DataFrame(dd)
-        return df
-
-    def get_samplers(self, sampler_name):
+    def get_ssampler(self, sampler_name):
         if sampler_name not in self.ssampler_names:
             print("Sampler name not recognized")
             return
 
         sampler = self.e.GetSamplerS(sampler_name)
 
-        dd = {}
-        dd['file_idx'] = []
-        dd['event_idx'] = []
-        dd['sampler_idx'] = []
-        dd['phi'] = []
-        dd['phip'] = []
-        dd['theta'] = []
-        dd['thetap'] = []
-        dd['T'] = []
-        dd['totalEnergy'] = []
-        dd['partID'] = []
-        dd['trackID'] = []
-        dd['weight'] = []
-
-        for ievt in range(0, self.et.GetEntries()):
-            self.et.GetEntry(ievt)
-
-            for ipart in range(0, sampler.n) :
-                dd['file_idx'].append(self.get_filename_index(self.ot.GetFile().GetName()))
-                dd['event_idx'].append(ievt)
-                dd['sampler_idx'].append(ipart)
-                dd['phi'].append(sampler.phi[ipart])
-                dd['phip'].append(sampler.phip[ipart])
-                dd['theta'].append(sampler.theta[ipart])
-                dd['thetap'].append(sampler.thetap[ipart])
-                dd['T'].append(sampler.T[ipart])
-                dd['totalEnergy'].append(sampler.totalEnergy[ipart])
-                dd['partID'].append(sampler.partID[ipart])
-                dd['trackID'].append(sampler.trackID[ipart])
-                dd['weight'].append(sampler.weight[ipart])
-
-        df = _pd.DataFrame(dd)
-        return df
+        return _fill_event_ssampler(sampler, self.et, self)
 
 class LinkBunch :
     def __init__(self, link_Bunch):
