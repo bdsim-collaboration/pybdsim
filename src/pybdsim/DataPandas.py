@@ -2,6 +2,7 @@ import pandas as _pd
 import os.path as _path
 import types as _types
 
+from .Data import _ROOTFileType
 from .Data import LoadROOTLibraries as _LoadROOTLibraries
 from .Data import RebdsimFile as _RebdsimFile
 from .Data import TH1 as _TH1
@@ -40,6 +41,40 @@ def _enforce_same_length_dict(d) :
         del d[k]
 
     return d
+
+def _fill_event_summary(root_obj, root_tree, pandas_obj) :
+    summary_attribs = ['aborted', 'bunchIndex', 'durationCPU', 'durationWall', 'energyDeposited', 'energyDepositedTunnel',
+                       'energyDepositedVacuum', 'energyDepositedWorld', 'energyDepositedWorldContents', 'energyImpactingAperture',
+                       'energyImpactingApertureKinetic', 'energyKilled', 'energyTotal', 'energyWorldExit', 'energyWorldExitKinetic',
+                       'index', 'memoryUsageMb', 'nCollimatorsInteracted', 'nTracks', 'primaryAbsorbedInCollimator',
+                       'primaryHitMachine', 'seedStateAtStart', 'startTime', 'stopTime']
+
+    # sampler
+    summary = root_obj
+
+    dd = {}
+    dd['file_idx'] = []
+    dd['file_name'] = []
+    dd['event_idx'] = []
+
+    for attrib in summary_attribs:
+        dd[attrib] = []
+
+    for ievt in range(0, root_tree.GetEntries()):
+        root_tree.GetEntry(ievt)
+
+        dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
+        dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.ht.GetFile().GetName()))
+        dd['event_idx'].append(ievt)
+
+        for attrib in summary_attribs:
+            if attrib == 'seedStateAtStart':
+                dd[attrib].append(str(getattr(root_obj, attrib)))
+            else :
+                dd[attrib].append(getattr(root_obj, attrib))
+
+    df = _pd.DataFrame(_enforce_same_length_dict(dd))
+    return df
 
 def _fill_event_sampler(root_obj, root_tree, pandas_obj) :
     sampler_attribs = ['S', 'T', 'charge', 'energy', 'ionA', 'ionZ', 'isIon', 'kineticEnergy',
@@ -334,6 +369,12 @@ class PandasConverter :
 
     def convert_vector_as_row(self):
         pass
+
+def Load(filepath) :
+    type = _ROOTFileType(filepath)
+
+    if type == "BDSIM" :
+        return BDSIMOutput(filepath)
 
 class REBDSIM:
     def __init__(self, filepath):
@@ -807,6 +848,9 @@ class BDSIMOutput:
         df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
         return df
+
+    def get_event_summary(self):
+        return _fill_event_summary(self.e.Summary, self.et, self)
 
     def get_events(self):
 
