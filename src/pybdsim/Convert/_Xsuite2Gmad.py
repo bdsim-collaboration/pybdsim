@@ -175,7 +175,7 @@ def Xsuite2Gmad(inputline, outputfilename,
         raise TypeError('Expect an Xsuite line as input')
 
     # machine instance that will be ads
-    machine = _Builder.Machine()
+    machine = _Builder.Machine(verbose=verbose)
 
     # check if dictionaries are dictionaries
     varnames = ['collimatordict', 'userdict', 'partnamedict', 'allelementdict', 'optionsdict', 'beamparamsdict']
@@ -194,7 +194,8 @@ def Xsuite2Gmad(inputline, outputfilename,
         particletype = beamparamsdict['particletype']
         if particletype == "e-" or particletype == "electron":
             flipmagnets = True
-            print('Detected electron in TFS file - changing flipmagnets to True')
+            if verbose:
+                print('Detected electron in TFS file - changing flipmagnets to True')
 
     # If we have collimators but no collimator dict then inform that they will be converted to drifts
     types = line.survey().element_type
@@ -266,7 +267,7 @@ def Xsuite2Gmad(inputline, outputfilename,
         print('number of omitted items: ', len(itemsomitted))
 
     if write:
-        machine.Write(outputfilename, overwrite=overwrite)
+        machine.Write(outputfilename, overwrite=overwrite, verbose=verbose)
     # We return machine twice to not break old interface of returning two machines.
     return machine, itemsomitted
 
