@@ -36,8 +36,14 @@ def Mad8Twiss2Xsuite(mad8twiss,
         endindex = mad8twiss.nrec
     if startname is not None:
         startindex = mad8twiss.getIndexByNames(startname)
+        if type(startname) is list:
+            print('Element {} not unique. Taking the first one.'.format(startname))
+            startname = startname[0]
     if endname is not None:
         endindex = mad8twiss.getIndexByNames(endname)
+        if type(endindex) is list:
+            print('Element {} not unique. Taking the last one.'.format(endname))
+            endindex = endindex[0]
 
     # Create Xsuite environment and reference particle.
     env = xt.Environment()
