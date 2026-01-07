@@ -104,39 +104,31 @@ def Mad8Twiss2Xsuite(mad8twiss,
                     env[row_twiss.NAME + '_ANGLE'] = row_twiss.ANGLE * 180 / _np.pi
                     env.new(row_twiss.NAME, xt.YRotation, angle=row_twiss.NAME + '_ANGLE')
                 case 'LCAV':
-                    name = row_twiss.NAME + '_lcav_' + str(nblcav)
-                    linelist[-1] = name
-
-                    # env.new(row_twiss.NAME, xt.Cavity, voltage=row_twiss.VOLT, frequency=row_twiss.FREQ, lag=row_twiss.LAG)
-                    # No length in Xsuite cavity
-
-                    prev_row_twiss = mad8twiss.getRowsByIndex(i - 1)
-                    env.elements[name] = xt.LineSegmentMap(length=row_twiss.L,
-                                                           qx=row_twiss.MUX, qy=row_twiss.MUY,
-                                                           betx=(prev_row_twiss.BETX, row_twiss.BETX), bety=(prev_row_twiss.BETY, row_twiss.BETY),
-                                                           alfx=(prev_row_twiss.ALPHX, row_twiss.ALPHX), alfy=(prev_row_twiss.ALPHY, row_twiss.ALPHY),
-                                                           dx=(prev_row_twiss.DX, row_twiss.DX), dy=(prev_row_twiss.DY, row_twiss.DY),
-                                                           dpx=(prev_row_twiss.DPX, row_twiss.DPX), dpy=(prev_row_twiss.DPY, row_twiss.DPY))
-                    nblcav += 1
+                    # TODO : Not working properly, seems to act like drift
+                    env[row_twiss.NAME + '_L'] = row_twiss.L
+                    env[row_twiss.NAME + '_VOLT'] = row_twiss.VOLT * 1e6
+                    env[row_twiss.NAME + '_FREQ'] = row_twiss.FREQ * 1e6
+                    env[row_twiss.NAME + '_LAG'] = row_twiss.LAG * 360
+                    # env[row_twiss.NAME + '_ref_e_increase_DE'] = (row_twiss.E - mad8twiss.getRowsByIndex(i-1).E) * 1e9
+                    env.new(row_twiss.NAME, xt.Cavity, length=row_twiss.NAME + '_L',
+                            voltage=row_twiss.NAME + '_VOLT', frequency=row_twiss.NAME + '_FREQ', lag=row_twiss.NAME + '_LAG')
+                    # env.elements[row_twiss.NAME + '_ref_e_increase'] = xt.ReferenceEnergyIncrease(
+                    #     Delta_p0c=-env[row_twiss.NAME + '_ref_e_increase_DE'])
                 case 'MATR':
-                    name = row_twiss.NAME + '_matr_' + str(nbmatr)
-                    linelist[-1] = name
-
-                    prev_row_twiss = mad8twiss.getRowsByIndex(i - 1)
-                    env.elements[name] = xt.LineSegmentMap(length=row_twiss.L,
-                                                           qx=row_twiss.MUX, qy=row_twiss.MUY,
-                                                           betx=(prev_row_twiss.BETX, row_twiss.BETX), bety=(prev_row_twiss.BETY, row_twiss.BETY),
-                                                           alfx=(prev_row_twiss.ALPHX, row_twiss.ALPHX), alfy=(prev_row_twiss.ALPHY, row_twiss.ALPHY),
-                                                           dx=(prev_row_twiss.DX, row_twiss.DX), dy=(prev_row_twiss.DY, row_twiss.DY),
-                                                           dpx=(prev_row_twiss.DPX, row_twiss.DPX), dpy=(prev_row_twiss.DPY, row_twiss.DPY))
-                    nbmatr += 1
-                #     M = [[row_rmat.R11-1, row_rmat.R12, row_rmat.R13, row_rmat.R14, 0, 0],
-                #          [row_rmat.R21, row_rmat.R22-1, row_rmat.R23, row_rmat.R24, 0, 0],
-                #          [row_rmat.R31, row_rmat.R32, row_rmat.R33-1, row_rmat.R34, 0, 0],
-                #          [row_rmat.R41, row_rmat.R42, row_rmat.R43, row_rmat.R44-1, 0, 0],
-                #          [0, 0, 0, 0, 0, 0],
-                #          [0, 0, 0, 0, 0, 0]]
-                #     env.elements[row.NAME] = xt.LineSegmentMap(length=row.L, damping_matrix=M)
+                    # TODO : Was not working with EUXFEL mad8. Have to check with another model
+                    if mad8rmat is not None:
+                        row_rmat = mad8rmat.getRowsByIndex(i)
+                        M = _np.array([[row_rmat.R11, row_rmat.R12, row_rmat.R13, row_rmat.R14, row_rmat.R15, row_rmat.R16],
+                                       [row_rmat.R21, row_rmat.R22, row_rmat.R23, row_rmat.R24, row_rmat.R25, row_rmat.R26],
+                                       [row_rmat.R31, row_rmat.R32, row_rmat.R33, row_rmat.R34, row_rmat.R35, row_rmat.R36],
+                                       [row_rmat.R41, row_rmat.R42, row_rmat.R43, row_rmat.R44, row_rmat.R45, row_rmat.R46],
+                                       [row_rmat.R51, row_rmat.R52, row_rmat.R53, row_rmat.R54, row_rmat.R55, row_rmat.R56],
+                                       [row_rmat.R61, row_rmat.R62, row_rmat.R63, row_rmat.R64, row_rmat.R65, row_rmat.R66]])
+                        env.elements[row_rmat.NAME] = xt.LineSegmentMap(length=row_rmat.L, damping_matrix=M)
+                    else:
+                        print('Rmat file not provided. Defaulting to drift')
+                        env[row_twiss.NAME + '_L'] = row_twiss.L
+                        env.new(row_twiss.NAME, xt.Drift, length=row_twiss.NAME + '_L')
                 case _:
                     print('Unknown type {} for element {}'.format(row_twiss.TYPE, row_twiss.NAME))
                     if not _np.isnan(row_twiss.L) and row_twiss.L > 0:
