@@ -140,35 +140,31 @@ def Mad8Twiss2Xsuite(mad8twiss,
                 env[row_survey.NAME].rot_s_rad = row_survey.TILT
     env.new_line(name=line_name, components=linelist, refer='end')
 
-    _setInputPosAnglAtIndex(env, line_name, mad8survey, startindex)
-    inputTwiss = _getInputTwissAtIndex(mad8twiss, startindex)
-    env.lines[line_name]._extra_config['twiss_default'] = inputTwiss
+    # Register input position and twiss
+    surv0 = _getInputPosAnglAtIndex(mad8survey, startindex-1)
+    tws0 = _getInputTwissAtIndex(mad8twiss, startindex-1)
 
-    return env
-
-
-def _setInputPosAnglAtIndex(env, line_name, mad8survey=None, index=0):
-    try:
-        row = mad8survey.getRowsByIndex(index)
-        env[f"X0_{line_name}"] = row.X
-        env[f"Y0_{line_name}"] = row.Y
-        env[f"Z0_{line_name}"] = row.Z
-        env[f"theta0_{line_name}"] = row.THETA + _np.nan_to_num(row.ANGLE)
-        env[f"phi0_{line_name}"] = row.PHI
-        env[f"psi0_{line_name}"] = row.PSI
-    except:
-        pass
+    return env, tws0, surv0
 
 
-def _getInputTwissAtIndex(mad8twiss=None, index=0):
-    try:
-        row = mad8twiss.getRowsByIndex(index)
-        return {
-                'betx': row.BETX, 'bety': row.BETY, 'alfx': row.ALPHX, 'alfy': row.ALPHY,
-                'dx': row.DX, 'dy': row.DY, 'dpx': row.DPX, 'dpy': row.DPY
-               }
-    except:
-        return {}
+def _getInputPosAnglAtIndex(mad8survey, index=0):
+    if index == -1:
+        index = 0
+    row = mad8survey.getRowsByIndex(index)
+    return {'X0': row.X, 'Y0': row.Y, 'Z0': row.Z,
+            'theta0': row.THETA + _np.nan_to_num(row.ANGLE), 'phi0': row.PHI, 'psi0': row.PSI}
+
+
+def _getInputTwissAtIndex(mad8twiss, index=0):
+    if index == -1:
+        index = 0
+    row = mad8twiss.getRowsByIndex(index)
+    # return xt.TwissInit(betx=row.BETX, bety=row.BETY, alfx=row.ALPHX, alfy=row.ALPHY,
+    #                     dx=row.DX,     dy=row.DY,     dpx=row.DPX,    dpy=row.DPY,
+    #                     mux=row.MUX,   muy=row.MUY)
+    return {'betx': row.BETX, 'bety': row.BETY, 'alfx': row.ALPHX, 'alfy': row.ALPHY,
+            'dx': row.DX, 'dy': row.DY, 'dpx': row.DPX, 'dpy': row.DPY,
+            'mux': row.MUX, 'muy': row.MUY}
 
 
 def _getStartEnery(mad8twiss):
