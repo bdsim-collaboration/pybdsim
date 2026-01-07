@@ -1,6 +1,5 @@
 import numpy as _np
 import xtrack as xt
-from docutils.nodes import row
 
 
 def Mad8Twiss2Xsuite(mad8twiss,
@@ -14,6 +13,7 @@ def Mad8Twiss2Xsuite(mad8twiss,
                      endname=None,
                      ):
 
+    # Setup mass and charge for the input particle. Default is electron.
     match particle:
         case 'e-' | 'electron':
             q0 = -1
@@ -29,6 +29,7 @@ def Mad8Twiss2Xsuite(mad8twiss,
             q0 = -1
             mass0 = xt.ELECTRON_MASS_EV
 
+    # Setup start and end index. Can be derived from element names.
     if startindex is None:
         startindex = 0
     if endindex is None:
@@ -38,14 +39,14 @@ def Mad8Twiss2Xsuite(mad8twiss,
     if endname is not None:
         endindex = mad8twiss.getIndexByNames(endname)
 
+    # Create Xsuite environment and reference particle.
     env = xt.Environment()
-    env.particle_ref = xt.Particles(p0c=_getEndEnergy(mad8twiss)*1e9, q0=q0, mass0=mass0)
+    env.particle_ref = xt.Particles(p0c=_getStartEnergy(mad8twiss)*1e9, q0=q0, mass0=mass0)
 
+    # List for all elements in the line.
     linelist = []
 
-    nblcav = 0
-    nbmatr = 0
-
+    # Loop on the elements of the selected range.
     for i in range(startindex, endindex):
         row_twiss = mad8twiss.getRowsByIndex(i)
         row_survey = mad8survey.getRowsByIndex(i)
@@ -167,7 +168,7 @@ def _getInputTwissAtIndex(mad8twiss, index=0):
             'mux': row.MUX, 'muy': row.MUY}
 
 
-def _getStartEnery(mad8twiss):
+def _getStartEnergy(mad8twiss):
     row = mad8twiss.getRowsByIndex(0)
     return row.E
 
