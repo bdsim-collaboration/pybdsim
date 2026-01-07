@@ -584,7 +584,7 @@ def Xsuite2GmadBeam(line, startindex=0, verbose=False, extraParamsDict={}):
                   "SetDispX": 'dx', "SetDispY": 'dy', "SetDispXP": 'dpx', "SetDispYP": 'dpy',
                   "SetXP0": 'px', "SetYP0": 'py', "SetX0": 'x', "SetY0": 'y'}
 
-    tw = line.twiss4d()
+    tw = line.twiss()
     for func, parameter in beamparams.items():
         if parameter in list(tw.keys()):
             getattr(beam, func)(tw[parameter][startindex])
