@@ -468,6 +468,10 @@ def _Xsuite2GmadElementFactory(name, item, allelementdict, verbose, userdict, co
         # if user didn't provide a collimatordict at all.
         else:
             return _Builder.Drift(rname, l, **kws)
+    # TODO : Add possible missing elements.
+    #######################################################################
+    # elif Type == _xt.SRotation:
+    #     pass
     #######################################################################
     # elif Type == _xt.LineSegmentMap:
     #     if not isinstance('R11', item):
