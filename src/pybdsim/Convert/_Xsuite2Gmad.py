@@ -212,7 +212,7 @@ def Xsuite2Gmad(inputline, outputfilename,
     itemsomitted = []
 
     # ==MAIN LOOP== #
-    for name in line.builder.components[startindex:endindex][::stepsize]:
+    for name in line.element_names[startindex:endindex][::stepsize]:
         item = line.env.get(name)
         t = type(item)
 
@@ -322,7 +322,7 @@ def _Xsuite2GmadElementFactory(name, item, allelementdict, verbose, userdict, co
         kws['tilt'] = tilt
 
     #######################################################################
-    elif Type == _xt.Drift:
+    if Type == _xt.Drift:
         return _Builder.Drift(rname, l, **kws)
     #######################################################################
     elif Type == _xt.Marker:
