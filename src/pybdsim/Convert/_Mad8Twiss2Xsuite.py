@@ -13,7 +13,6 @@ def Mad8Twiss2Xsuite(mad8twiss,
                      startname=None,
                      endname=None,
                      ):
-    # rmat = _m8.Output(rmatfile, 'rmat')
 
     match particle:
         case 'e-' | 'electron':
@@ -50,8 +49,6 @@ def Mad8Twiss2Xsuite(mad8twiss,
     for i in range(startindex, endindex):
         row_twiss = mad8twiss.getRowsByIndex(i)
         row_survey = mad8survey.getRowsByIndex(i)
-        # row_rmat = mad8rmat.getRowsByIndex(i)
-
         linelist.append(row_twiss.NAME)
 
         if row_twiss.NAME not in env.elements:
