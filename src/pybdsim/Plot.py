@@ -555,7 +555,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         ax = f.add_subplot(111)
     else:
         f = ax.get_figure()
-    
+
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
     histEmpty = len(h.contents[h.contents!=0]) == 0
@@ -756,7 +756,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         ax = f.add_subplot(111)
     else:
         f = ax.get_figure()
-    
+
     if scalingFactors is None:
         scalingFactors = _np.ones_like(histograms)
     if xScalingFactors is None:
