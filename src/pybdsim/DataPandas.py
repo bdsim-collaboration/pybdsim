@@ -647,6 +647,8 @@ class BDSIMOutput:
                        attrib == "storeCavityInfo" :
                         dd[attrib].append(getattr(self.m.model, attrib))
                     # TODO add these variables
+                    elif attrib == "pvName" :
+                        dd[attrib].append(str(getattr(self.m.model, attrib)[imodel][0]))
                     elif attrib == 'scoringMeshName' or \
                          attrib == 'scoringMeshRotation' or \
                          attrib == 'scoringMeshTranslation' :
