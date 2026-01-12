@@ -119,21 +119,35 @@ def _fill_event_sampler(root_obj, root_tree, pandas_obj) :
 
 def _fill_event_eloss(root_obj, root_tree, pandas_obj) :
 
-    energy = []
-    S = []
-    partID = []
+    eloss_attribs = ['S', 'T', 'X', 'Y', 'Z', 'energy', 'modelID', 'parentID',
+                     'partID', 'postStepProcessSubType', 'postStepProcessType',
+                     'preStepKineticEnergy', 'stepLength', 'trackID', 'turn',
+                     'weight', 'x', 'y', 'z']
+
+    # sampler
+    eloss = root_obj
+
+    dd = {}
+    dd['file_idx'] = []
+    dd['file_name'] = []
+    dd['event_idx'] = []
+
+    for attrib in eloss_attribs:
+        dd[attrib] = []
 
     for ievt in range(0, root_tree.GetEntries()):
         root_tree.GetEntry(ievt)
-        for ieloss in range(0, root_obj.n):
-            energy.append(root_obj.energy[ieloss])
-            S.append(root_obj.S[ieloss])
-            # partID.append(root_obj.partID[ieloss])
 
-    dd = {}
-    dd['energy'] = energy
-    dd['S'] = S
-    dd['partID'] = partID
+        # TODO Change loop order
+        for ieloss in range(0, eloss.n):
+            dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.et.GetFile().GetName()))
+            dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
+            dd['event_idx'].append(ievt)
+            for attrib in eloss_attribs:
+                try :
+                    dd[attrib].append(getattr(eloss, attrib)[ieloss])
+                except IndexError:
+                    pass
 
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
     return df
