@@ -124,7 +124,7 @@ def _make_plotter(plot_info_dict):
         axes.legend(loc='best')
         axes.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
 
-        if survey is None:
+        if survey is not None:
             _CallUserFigureFunctions(functions)
             _AddSurvey(plot, survey)
             _CallUserFigureFunctions(postfunctions)
@@ -189,7 +189,7 @@ def _AddSurvey(figure, survey):
         _m8.Plot.AddMachineLatticeToFigure(figure, survey)
 
 
-def XsuiteVsBDSIM(line, bdsim, survey=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
+def XsuiteVsBDSIM(line, bdsim, surveyfile=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
                   saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
     """ Compares Mad8 and BDSIM optics variables.
 
@@ -233,6 +233,9 @@ def XsuiteVsBDSIM(line, bdsim, survey=None, functions=None, postfunctions=None, 
     xstopt = line.twiss4d()
     bdsinst = _pybdsim.Data.CheckItsBDSAsciiData(bdsim)
     bdsopt = _GetBDSIMOptics(bdsinst)
+
+    # load mad8 survey
+    survey = _m8.Output(surveyfile, 'survey')
 
     # parameters required for calculating beam sizes, not written in mad8 output so have to supply manually.
     beamParams = {'esprd': energySpread, 'particle': particle, 'ex': ex, 'ey': ey}
