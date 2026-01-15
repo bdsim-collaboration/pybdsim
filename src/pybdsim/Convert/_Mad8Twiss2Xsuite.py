@@ -70,10 +70,11 @@ def Mad8Twiss2Xsuite(mad8twiss,
                 case 'RBEN':
                     env[row_twiss.NAME + '_L'] = row_twiss.L
                     # TODO : Different ANGLE values between twiss and survey with EUXFEL mad8. Have to check with another model
-                    env[row_survey.NAME + '_ANGLE'] = _np.nan_to_num(row_survey.ANGLE)
-                    # env[row_twiss.NAME + '_ANGLE'] = _np.nan_to_num(row_twiss.ANGLE)
+                    # env[row_survey.NAME + '_ANGLE'] = _np.nan_to_num(row_survey.ANGLE)
+                    env[row_twiss.NAME + '_ANGLE'] = _np.nan_to_num(row_twiss.ANGLE)
+                    env[row_twiss.NAME + '_K1'] = row_twiss.K1
                     env.new(row_twiss.NAME, xt.RBend, length=row_twiss.NAME + '_L', angle=row_twiss.NAME + '_ANGLE',
-                            k0_from_h=True)
+                            k1=row_twiss.NAME + '_K1', k0_from_h=True)
                 case 'KICK' | 'HKIC' | 'VKIC':
                     env[row_twiss.NAME + '_L'] = row_twiss.L
                     env[row_twiss.NAME + '_ANGLE'] = _np.nan_to_num(row_twiss.ANGLE)
@@ -84,9 +85,10 @@ def Mad8Twiss2Xsuite(mad8twiss,
                     env[row_twiss.NAME + '_ANGLE'] = row_twiss.ANGLE
                     env[row_twiss.NAME + '_E1'] = row_twiss.E1
                     env[row_twiss.NAME + '_E2'] = row_twiss.E2
+                    env[row_twiss.NAME + '_K1'] = row_twiss.K1
                     env.new(row_twiss.NAME, xt.Bend, length=row_twiss.NAME + '_L', angle=row_twiss.NAME + '_ANGLE',
                             edge_entry_angle=row_twiss.NAME + '_E1', edge_exit_angle=row_twiss.NAME + '_E2',
-                            k0_from_h=True)
+                            k1=row_twiss.NAME + '_K1', k0_from_h=True)
                 case 'QUAD':
                     env[row_twiss.NAME + '_L'] = row_twiss.L
                     env[row_twiss.NAME + '_K1'] = row_twiss.K1
