@@ -138,7 +138,7 @@ def Mad8Twiss2Xsuite(mad8twiss,
                                        [row_rmat.R61, row_rmat.R62, row_rmat.R63, row_rmat.R64, row_rmat.R65, row_rmat.R66]])
                         env.elements[row_rmat.NAME] = xt.LineSegmentMap(length=row_rmat.L, damping_matrix=M)
                     else:
-                        print('Rmat file not provided. Defaulting to drift')
+                        print('Rmat file not provided. {} is defaulting to drift'.format(row_twiss.NAME))
                         env[row_twiss.NAME + '_L'] = row_twiss.L
                         env.new(row_twiss.NAME, xt.Drift, length=row_twiss.NAME + '_L')
                 case _:
@@ -163,20 +163,23 @@ def _getInputPosAnglAtIndex(mad8survey, index=0):
     if index == -1:
         index = 0
     row = mad8survey.getRowsByIndex(index)
-    return {'X0': row.X, 'Y0': row.Y, 'Z0': row.Z,
-            'theta0': row.THETA + _np.nan_to_num(row.ANGLE), 'phi0': row.PHI, 'psi0': row.PSI}
+    try:
+        return {'X0': row.X, 'Y0': row.Y, 'Z0': row.Z,
+                'theta0': row.THETA + _np.nan_to_num(row.ANGLE), 'phi0': row.PHI, 'psi0': row.PSI}
+    except:
+        return None
 
 
 def _getInputTwissAtIndex(mad8twiss, index=0):
     if index == -1:
         index = 0
     row = mad8twiss.getRowsByIndex(index)
-    # return xt.TwissInit(betx=row.BETX, bety=row.BETY, alfx=row.ALPHX, alfy=row.ALPHY,
-    #                     dx=row.DX,     dy=row.DY,     dpx=row.DPX,    dpy=row.DPY,
-    #                     mux=row.MUX,   muy=row.MUY)
-    return {'betx': row.BETX, 'bety': row.BETY, 'alfx': row.ALPHX, 'alfy': row.ALPHY,
-            'dx': row.DX, 'dy': row.DY, 'dpx': row.DPX, 'dpy': row.DPY,
-            'mux': row.MUX, 'muy': row.MUY}
+    try:
+        return {'betx': row.BETX, 'bety': row.BETY, 'alfx': row.ALPHX, 'alfy': row.ALPHY,
+                'dx': row.DX, 'dy': row.DY, 'dpx': row.DPX, 'dpy': row.DPY,
+                'mux': row.MUX, 'muy': row.MUY}
+    except:
+        return None
 
 
 def _getStartEnergy(mad8twiss):
