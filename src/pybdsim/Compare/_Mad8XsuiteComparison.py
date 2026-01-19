@@ -198,8 +198,8 @@ def _AddSurvey(figure, survey):
         _m8.Plot.AddMachineLatticeToFigure(figure, survey)
 
 
-def Mad8VsXsuite(twiss, xstline, survey=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
-                saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
+def Mad8VsXsuite(twiss, xstline, tws0=None, surv0=None, survey=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
+                 saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
     """ Compares Mad8 and Xsuite optics variables.
 
     +-----------------+---------------------------------------------------------+
@@ -237,7 +237,7 @@ def Mad8VsXsuite(twiss, xstline, survey=None, functions=None, postfunctions=None
     # load mad8 optics and compute xsuite optics
     mad8opt = _m8.Output(twiss)
     xstline.build_tracker()
-    xstopt = xstline.twiss()
+    xstopt = xstline.twiss(**tws0)
 
     # parameters required for calculating beam sizes, not written in mad8 output so have to supply manually.
     beamParams = {'esprd': energySpread, 'particle': particle, 'ex': ex, 'ey': ey}
