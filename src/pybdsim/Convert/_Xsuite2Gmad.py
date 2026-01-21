@@ -17,7 +17,7 @@ _ignoreableThinElements = {_xt.Marker, _xt.LimitRect, _xt.LimitEllipse, _xt.Wire
 _THIN_ELEMENT_THRESHOLD = 1e-6
 
 
-def Xsuite2Gmad(inputline, outputfilename,
+def Xsuite2Gmad(inputline, outputfilename, tws0,
                 startindex            = 0,
                 endindex              = -1,
                 stepsize              = 1,
@@ -251,7 +251,7 @@ def Xsuite2Gmad(inputline, outputfilename,
         machine.AddSampler(samplers)
 
     if beam:  # Add Beam
-        bm = Xsuite2GmadBeam(line, startindex, verbose, extraParamsDict=beamparamsdict)
+        bm = Xsuite2GmadBeam(line, tws0, startindex, verbose, extraParamsDict=beamparamsdict)
         machine.AddBeam(bm)
 
     options = _Options()  # Add Options
@@ -544,7 +544,7 @@ def _GetSingleElementWithAper(name, item, gmadElement, aperturedict, defaultAper
     return gmadElement
 
 
-def Xsuite2GmadBeam(line, startindex=0, verbose=False, extraParamsDict={}):
+def Xsuite2GmadBeam(line, tws0, startindex=0, verbose=False, extraParamsDict={}):
     """
     Takes a pymad8 dataframe and extracts beam information from extraParamsDict
     to create a BDSIM beam definition in a pybdsim.Beam object.
@@ -560,7 +560,7 @@ def Xsuite2GmadBeam(line, startindex=0, verbose=False, extraParamsDict={}):
     if startindex > 0:
         startindex -= 1
 
-    energy = line.env.particle_ref.energy.item()
+    energy = line.env.particle_ref.p0c.item()
     if 'EX' not in extraParamsDict or 'EY' not in extraParamsDict:
         raise ValueError('Missing emittance description in extraParamsDict')
     if 'Esprd' not in extraParamsDict:
@@ -588,7 +588,7 @@ def Xsuite2GmadBeam(line, startindex=0, verbose=False, extraParamsDict={}):
                   "SetDispX": 'dx', "SetDispY": 'dy', "SetDispXP": 'dpx', "SetDispYP": 'dpy',
                   "SetXP0": 'px', "SetYP0": 'py', "SetX0": 'x', "SetY0": 'y'}
 
-    tw = line.twiss()
+    tw = line.twiss(**tws0)
     for func, parameter in beamparams.items():
         if parameter in list(tw.keys()):
             getattr(beam, func)(tw[parameter][startindex])
