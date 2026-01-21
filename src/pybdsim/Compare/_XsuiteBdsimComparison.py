@@ -189,7 +189,7 @@ def _AddSurvey(figure, survey):
         _m8.Plot.AddMachineLatticeToFigure(figure, survey)
 
 
-def XsuiteVsBDSIM(line, bdsim, surveyfile=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
+def XsuiteVsBDSIM(line, bdsim, tws0, surveyfile=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
                   saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
     """ Compares Xsuite and BDSIM optics variables.
 
@@ -232,7 +232,7 @@ def XsuiteVsBDSIM(line, bdsim, surveyfile=None, functions=None, postfunctions=No
         fname = "optics_report"
 
     # load xsuite optics and bdsim optics
-    xstopt = line.twiss4d()
+    xstopt = line.twiss(**tws0)
     bdsinst = _pybdsim.Data.CheckItsBDSAsciiData(bdsim)
     bdsopt = _GetBDSIMOptics(bdsinst)
 
