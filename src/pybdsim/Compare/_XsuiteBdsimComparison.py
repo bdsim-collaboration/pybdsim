@@ -83,12 +83,12 @@ def _make_plotter(plot_info_dict):
         N = str(int(bdsopt['Npart'][0]))  # number of primaries.
 
         # labels for plot legends
-        mad8legendx = r'Xsuite ' + plot_info_dict['legend'][0]
-        mad8legendy = r'Xsuite ' + plot_info_dict['legend'][1]
+        xstlegendx = r'Xsuite ' + plot_info_dict['legend'][0]
+        xstlegendy = r'Xsuite ' + plot_info_dict['legend'][1]
         bdslegendx = r'BDSIM ' + plot_info_dict['legend'][0] + ' ; N = ' + N
         bdslegendy = r'BDSIM ' + plot_info_dict['legend'][1] + ' ; N = ' + N
 
-        # mad8 data from correct source
+        # xsuite data from correct source
         if plot_info_dict["title"] == "Sigma" or plot_info_dict["title"] == "SigmaP":
             gemitt_zeta = beamParams['esprd'] ** 2 * xstopt.bets0
             xsuiteXdata = xstopt.get_beam_covariance(nemitt_x=beamParams['ex'],
@@ -107,9 +107,9 @@ def _make_plotter(plot_info_dict):
         # the figure
         plot = _plt.figure(plot_info_dict["title"], figsize=figsize, **kwargs)
 
-        # mad8 plot
-        _plt.plot(xstopt.s, xsuiteXdata, 'b--', label=mad8legendx)
-        _plt.plot(xstopt.s, xsuiteYdata, 'g--', label=mad8legendy)
+        # xsuite plot
+        _plt.plot(xstopt.s, xsuiteXdata, 'b--', label=xstlegendx)
+        _plt.plot(xstopt.s, xsuiteYdata, 'g--', label=xstlegendy)
 
         # bds plot
         _plt.errorbar(bdsopt['S'], bdsopt[plot_info_dict['bdsimdata'][0]], bdsopt[plot_info_dict['bdsimerror'][0]],
@@ -191,7 +191,7 @@ def _AddSurvey(figure, survey):
 
 def XsuiteVsBDSIM(line, bdsim, surveyfile=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
                   saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
-    """ Compares Mad8 and BDSIM optics variables.
+    """ Compares Xsuite and BDSIM optics variables.
 
     +-----------------+---------------------------------------------------------+
     | **Parameters**  | **Description**                                         |
@@ -199,6 +199,8 @@ def XsuiteVsBDSIM(line, bdsim, surveyfile=None, functions=None, postfunctions=No
     | line            | Xsuite line                                             |
     +-----------------+---------------------------------------------------------+
     | bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
+    +-----------------+---------------------------------------------------------+
+    | tws0            | Initial twiss for the ocelot lattice                    |
     +-----------------+---------------------------------------------------------+
     | functions       | Hook for users to add their functions that are called   |
     |                 | immediately prior to the addition of the plot. Use a    |
@@ -255,7 +257,7 @@ def XsuiteVsBDSIM(line, bdsim, surveyfile=None, functions=None, postfunctions=No
               ]
 
     if saveAll:
-        tfsname = repr(line.name)
+        xstname = repr(line.name)
         bdsname = repr(bdsinst)
         output_filename = "optics-report.pdf"
         if outputFileName is not None:
@@ -270,7 +272,7 @@ def XsuiteVsBDSIM(line, bdsim, surveyfile=None, functions=None, postfunctions=No
             for figure in figures:
                 pdf.savefig(figure)
             d = pdf.infodict()
-            d['Title'] = "{} (Xsuite) VS {} (BDSIM) Optical Comparison".format(tfsname, bdsname)
+            d['Title'] = "{} (Xsuite) VS {} (BDSIM) Optical Comparison".format(xstname, bdsname)
             d['CreationDate'] = _datetime.datetime.today()
         print("Written ", output_filename)
     # return xstopt
