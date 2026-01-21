@@ -12,6 +12,30 @@ def Mad8Twiss2Xsuite(mad8twiss,
                      startname=None,
                      endname=None,
                      ):
+    """ Converts MAD8 outputs to Xsuite environment. Both the MAD8 twiss and survey file are required.
+        The function outputs both the Xsuite environment, the initial twiss and the initial survey position and angle.
+
+        +-----------------+---------------------------------------------------------+
+        | **Parameters**  | **Description**                                         |
+        +-----------------+---------------------------------------------------------+
+        | mad8twiss       | MAD8 twiss file                                         |
+        +-----------------+---------------------------------------------------------+
+        | mad8survey      | MAD8 survey file                                        |
+        +-----------------+---------------------------------------------------------+
+        | mad8rmat        | MAD8 rmat file. Optional. Used for matrix elements      |
+        +-----------------+---------------------------------------------------------+
+        | line_name       | Name that will be used for the created Xsuite line.     |
+        |                 | By default it is 'line_from_mad8'.                      |
+        +-----------------+---------------------------------------------------------+
+        | particle        | Beam particle type. Default is electron.                |
+        +-----------------+---------------------------------------------------------+
+        | startindex /    | Indices of the first and last elements to convert.      |
+        | endindex        | Optional.                                               |
+        +-----------------+---------------------------------------------------------+
+        | startname /     | Names of the first and last elements to convert.        |
+        | endname         | Optional. Overide startindex and endindex               |
+        +-----------------+---------------------------------------------------------+
+        """
 
     # Setup mass and charge for the input particle. Default is electron.
     match particle:

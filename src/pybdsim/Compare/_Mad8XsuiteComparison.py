@@ -209,6 +209,10 @@ def Mad8VsXsuite(twiss, xstline, tws0=None, survey=None, functions=None, postfun
     +-----------------+---------------------------------------------------------+
     | xstline         | Xsuite line instance                                    |
     +-----------------+---------------------------------------------------------+
+    | tws0            | Initial twiss for the xsuite line                       |
+    +-----------------+---------------------------------------------------------+
+    | survey          | BDSIM model survey.                                     |
+    +-----------------+---------------------------------------------------------+
     | functions       | Hook for users to add their functions that are called   |
     |                 | immediately prior to the addition of the plot. Use a    |
     |                 | lambda function to add functions with arguments. Can    |
