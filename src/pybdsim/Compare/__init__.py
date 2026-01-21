@@ -21,7 +21,7 @@ except ImportError:
 # optional xsuite
 try:
     from ._Mad8XsuiteComparison import Mad8VsXsuite
-    from ._XsuiteBdsimComparion import XsuiteVsBDSIM
+    from ._XsuiteBdsimComparison import XsuiteVsBDSIM
 except ImportError:
     pass
 

@@ -1,5 +1,6 @@
 import numpy as _np
 import xtrack as xt
+import warnings as _warnings
 
 
 def Mad8Twiss2Xsuite(mad8twiss,
@@ -49,7 +50,7 @@ def Mad8Twiss2Xsuite(mad8twiss,
             q0 = 1
             mass0 = xt.PROTON_MASS_EV
         case _:
-            Warning('Unrecognized particle type. Defaulting to electron.')
+            _warnings.warn('Unrecognized particle type. Defaulting to electron.')
             q0 = -1
             mass0 = xt.ELECTRON_MASS_EV
 

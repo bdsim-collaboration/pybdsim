@@ -174,7 +174,7 @@ def Xsuite2Gmad(inputline, outputfilename, tws0,
     else:
         raise TypeError('Expect an Xsuite line as input')
 
-    # machine instance that will be ads
+    # machine instance that will be added to
     machine = _Builder.Machine(verbose=verbose)
 
     # check if dictionaries are dictionaries
@@ -230,7 +230,7 @@ def Xsuite2Gmad(inputline, outputfilename, tws0,
             continue
 
         gmadElement = _Xsuite2GmadElementFactory(name, item, allelementdict, verbose, userdict, collimatordict, partnamedict,
-                                                 flipmagnets, linear, zerolength, ignorezerolengthitems, namePrepend="")
+                                                 flipmagnets, linear, zerolength, ignorezerolengthitems, namePrepend=namePrepend)
 
         if gmadElement is None:  # factory returned nothing, go to next item.
             continue
@@ -513,6 +513,7 @@ def _GetElementSplitByAperture(gmadElement, localApertures):
             arp = _Builder.PrepareApertureModel(aper, warningName=gmadElement.name)
             apertures.append(arp)
         except ValueError:
+            # Intentionally ignore invalid aperture definitions for this point.
             pass
 
     if localApertures[0][0] != 0.0:

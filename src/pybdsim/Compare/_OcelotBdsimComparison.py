@@ -89,7 +89,7 @@ def _make_plotter(plot_info_dict):
         bdslegendy = r'BDSIM ' + plot_info_dict['legend'][1] + ' ; N = ' + N
 
         # ocelot data from correct source
-        if  plot_info_dict["title"] == "SigmaP":
+        if plot_info_dict["title"] == "SigmaP":
             ocelotXdata = []
             ocelotYdata = []
         elif plot_info_dict["title"] == "Emittance" or plot_info_dict["title"] == "Sigma":
