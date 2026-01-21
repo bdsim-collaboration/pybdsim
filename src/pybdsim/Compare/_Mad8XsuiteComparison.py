@@ -198,7 +198,7 @@ def _AddSurvey(figure, survey):
         _m8.Plot.AddMachineLatticeToFigure(figure, survey)
 
 
-def Mad8VsXsuite(twiss, xstline, tws0=None, surv0=None, survey=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
+def Mad8VsXsuite(twiss, xstline, tws0=None, survey=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
                  saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
     """ Compares Mad8 and Xsuite optics variables.
 
