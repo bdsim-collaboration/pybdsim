@@ -37,6 +37,13 @@ try:
 except ImportError:
     pass
 
+# optional ocelot
+try:
+    from ._Machine2Ocelot import Machine2Ocelot
+    from ._Ocelot2Xsuite import Ocelot2Xsuite
+except ImportError:
+    pass
+
 # optional pysad
 try:
     import pysad

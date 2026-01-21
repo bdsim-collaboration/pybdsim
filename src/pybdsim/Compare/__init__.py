@@ -25,6 +25,12 @@ try:
 except ImportError:
     pass
 
+# optional ocelot
+try:
+    from ._OcelotBdsimComparison import OcelotVsBDSIM
+except ImportError:
+    pass
+
 # optional pysad
 try:
     import pysad as _pysad
