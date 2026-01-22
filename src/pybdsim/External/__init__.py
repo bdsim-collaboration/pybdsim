@@ -7,4 +7,7 @@ try:
 except:
     pass
 
-from . import Pymad8
+try:
+    from . import Pymad8
+except:
+    pass
