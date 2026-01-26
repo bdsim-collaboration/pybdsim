@@ -44,8 +44,10 @@ def Ocelot2Xsuite(lattice, twiss_init, survey_init=None, line_name='line_from_oc
 
         if elem.id not in env.elements:
             match type(elem):
-                case _ocl.Marker | _ocl.Monitor:
+                case _ocl.Marker:
                     env.new(elem.id, _xt.Marker)
+                case _ocl.Monitor:
+                    env.elements[elem.id] = _xt.BeamPositionMonitor()
                 case _ocl.Drift:
                     env[elem.id + '_L'] = elem.l
                     env.new(elem.id, _xt.Drift, length=elem.id + '_L')
