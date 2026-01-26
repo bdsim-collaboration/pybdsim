@@ -3,7 +3,7 @@ import xtrack as _xt
 import ocelot as _ocl
 
 
-def getOutuptSurveyPoint(ocelotlist):
+def _getOutuptSurveyPoint(ocelotlist):
     """ Compute the position and angle at the end of a line. """
     if isinstance(ocelotlist, list):
         tws0 = ocelotlist[0].tws0
@@ -17,10 +17,11 @@ def getOutuptSurveyPoint(ocelotlist):
     tws = _ocl.twiss(lat, tws0)
     survey = lat.survey(z0=tws0.s)
     return {'x0': survey[0][-1], 'y0': survey[1][-1], 'z0': survey[2][-1],
-            'ang_x': survey[3][-1], 'ang_y': survey[4][-1]}
+            'ang_x': survey[3][-1], 'ang_y': survey[4][-1], 's0': tws[-1].s}
 
 
-def Ocelot2Xsuite(lattice, twiss_init, survey_init=None, line_name='line_from_ocelot'):
+def Ocelot2Xsuite(lattice, tws0, surv0=None, line_name='line_from_ocelot',
+                  previousLineList=None):
     """ Convert Ocelot lattice to Xsuite environment.
 
         +-----------------+---------------------------------------------------------+
@@ -36,7 +37,7 @@ def Ocelot2Xsuite(lattice, twiss_init, survey_init=None, line_name='line_from_oc
     """
 
     env = _xt.Environment()
-    env.particle_ref = _xt.Particles(p0c=twiss_init.E, q0=-1, mass0=_xt.ELECTRON_MASS_EV)
+    env.particle_ref = _xt.Particles(p0c=tws0.E, q0=-1, mass0=_xt.ELECTRON_MASS_EV)
 
     linelist = []
     for elem in lattice.sequence:
@@ -112,16 +113,20 @@ def Ocelot2Xsuite(lattice, twiss_init, survey_init=None, line_name='line_from_oc
                 env[elem.id].rot_s_rad = elem.tilt
     env.new_line(name=line_name, components=linelist, refer='end')
 
-    tws0 = {'betx': twiss_init.beta_x, 'bety': twiss_init.beta_y,
-            'alfx': twiss_init.alpha_x, 'alfy': twiss_init.alpha_y,
-            'dx': twiss_init.Dx, 'dy': twiss_init.Dy,
-            'dpx': twiss_init.Dxp, 'dpy': twiss_init.Dyp,
-            'mux': twiss_init.mux, 'muy': twiss_init.muy}
+    tws0_xsuite = {'betx': tws0.beta_x, 'bety': tws0.beta_y,
+                   'alfx': tws0.alpha_x, 'alfy': tws0.alpha_y,
+                   'dx': tws0.Dx, 'dy': tws0.Dy,
+                   'dpx': tws0.Dxp, 'dpy': tws0.Dyp,
+                   'mux': tws0.mux, 'muy': tws0.muy}
 
-    if survey_init is not None:
-        surv0 = {'X0': survey_init['x0'], 'Y0': survey_init['y0'], 'Z0': survey_init['z0'],
-                 'theta0': survey_init['ang_x'], 'phi0': survey_init['ang_y'], 'psi0': 0}
+    if surv0 is None and previousLineList is not None:
+        surv0 = _getOutuptSurveyPoint(previousLineList)
+
+    if surv0 is not None:
+        surv0_xsuite = {'X0': surv0['x0'], 'Y0': surv0['y0'], 'Z0': surv0['z0'],
+                        'theta0': surv0['ang_x'], 'phi0': surv0['ang_y'], 'psi0': 0,
+                        's0': surv0['s0']}
     else:
-        surv0 = None
+        surv0_xsuite = None
 
-    return env, tws0, surv0
+    return env, tws0_xsuite, surv0_xsuite
