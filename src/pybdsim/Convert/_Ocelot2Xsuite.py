@@ -3,41 +3,67 @@ import xtrack as _xt
 import ocelot as _ocl
 
 
-def _getOutuptSurveyPoint(ocelotlist):
+convert_name_dict = {'beta_x': 'betx', 'beta_y': 'bety',
+                     'alpha_x': 'alfx', 'alpha_y': 'alfy',
+                     'Dx': 'dx', 'Dy': 'dy',
+                     'Dxp': 'dpx', 'Dyp': 'dpy',
+                     'mux': 'mux', 'muy': 'muy'}
+
+
+def _getCellAndTws0FromList(ocelotlist):
+    """ Combine the cells from a list of ocelot environements """
+    tws0 = ocelotlist[0].tws0
+    cell = ()
+    for ocelot in ocelotlist:
+        cell += ocelot.cell
+    return cell, tws0
+
+
+def _getOutuptSurveyPoint(ocelotlist, s0=0, x0=0, y0=0, z0=0, ang_x=0, ang_y=0):
     """ Compute the position and angle at the end of a line. """
     if isinstance(ocelotlist, list):
-        tws0 = ocelotlist[0].tws0
-        cell = ()
-        for ocelot in ocelotlist:
-            cell += ocelot.cell
+        cell, tws0 = _getCellAndTws0FromList(ocelotlist)
     else:
         cell = ocelotlist.cell
         tws0 = ocelotlist.tws0
     lat = _ocl.MagneticLattice(cell)
     tws = _ocl.twiss(lat, tws0)
-    survey = lat.survey(z0=tws0.s)
-    return {'x0': survey[0][-1], 'y0': survey[1][-1], 'z0': survey[2][-1],
-            'ang_x': survey[3][-1], 'ang_y': survey[4][-1], 's0': tws[-1].s}
+    surv = lat.survey(x0=x0, y0=y0, z0=z0, ang_x=ang_x, ang_y=ang_y)
+    surv0_xsuite = {'X0': surv[0][-1], 'Y0': surv[1][-1], 'Z0': surv[2][-1],
+                    'theta0': surv[3][-1], 'phi0': surv[4][-1], 'psi0': 0}
+    return surv0_xsuite, tws[-1].s + s0
 
 
-def Ocelot2Xsuite(lattice, tws0, surv0=None, line_name='line_from_ocelot',
-                  previousLineList=None):
+def Ocelot2Xsuite(ocelot, line_name='line_from_ocelot', s0=0, x0=0, y0=0, z0=0, ang_x=0, ang_y=0, previousLineList=None):
     """ Convert Ocelot lattice to Xsuite environment.
 
-        +-----------------+---------------------------------------------------------+
-        | **Parameters**  | **Description**                                         |
-        +-----------------+---------------------------------------------------------+
-        | lattice         | Ocelot lattice                                          |
-        +-----------------+---------------------------------------------------------+
-        | twiss_init      | Initial twiss element from Ocelot                       |
-        +-----------------+---------------------------------------------------------+
-        | line_name       | Name that will be used for the created Xsuite line.     |
-        |                 | By default it is 'line_from_ocelot'.                    |
-        +-----------------+---------------------------------------------------------+
+        +------------------+---------------------------------------------------------+
+        | **Parameters**   | **Description**                                         |
+        +------------------+---------------------------------------------------------+
+        | ocelot           | Ocelot environement imported from a script.             |
+        +------------------+---------------------------------------------------------+
+        | line_name        | Name that will be used for the created Xsuite line.     |
+        |                  | By default it is 'line_from_ocelot'.                    |
+        +------------------+---------------------------------------------------------+
+        | s0               | Initial curvilinear position. Default is 0.             |
+        +------------------+---------------------------------------------------------+
+        | x0, y0, z0       | Initial position for the lattice. Defaults are 0.       |
+        +------------------+---------------------------------------------------------+
+        | ang_x, ang_y     | Initial angle for the lattice. Defaults are 0.          |
+        +------------------+---------------------------------------------------------+
+        | previousLineList | List of ocelot environements forming a lattice          |
+        |                  | upstream of the converted one. It is used to calculate  |
+        |                  | the initial position and angle. If provided, s0, x0,    |
+        |                  | y0, z0, ang_x, ang_y, define the initial position and   |
+        |                  | angle of this previous lattice.                         |
+        +------------------+---------------------------------------------------------+
     """
 
+    lattice = _ocl.MagneticLattice(ocelot.cell)
+    tws0_ocelot = ocelot.tws0
+
     env = _xt.Environment()
-    env.particle_ref = _xt.Particles(p0c=tws0.E, q0=-1, mass0=_xt.ELECTRON_MASS_EV)
+    env.particle_ref = _xt.Particles(p0c=tws0_ocelot.E, q0=-1, mass0=_xt.ELECTRON_MASS_EV)
 
     linelist = []
     for elem in lattice.sequence:
@@ -102,6 +128,12 @@ def Ocelot2Xsuite(lattice, tws0, surv0=None, line_name='line_from_ocelot',
                     env[elem.id + '_LAG'] = elem.phi
                     env.new(elem.id, _xt.Cavity, length=elem.id + '_L',
                             voltage=elem.id + '_VOLT', frequency=elem.id + '_FREQ', lag=elem.id + '_LAG')
+                # case _ocl.Matrix:
+                #     pass
+                # case _ocl.Multipole:
+                #     pass
+                # case _ocl.Undulator:
+                #     pass
                 case _:
                     print('Unknown type {} for element {}'.format(type(elem), elem.id))
                     if elem.l > 0:
@@ -113,20 +145,22 @@ def Ocelot2Xsuite(lattice, tws0, surv0=None, line_name='line_from_ocelot',
                 env[elem.id].rot_s_rad = elem.tilt
     env.new_line(name=line_name, components=linelist, refer='end')
 
-    tws0_xsuite = {'betx': tws0.beta_x, 'bety': tws0.beta_y,
-                   'alfx': tws0.alpha_x, 'alfy': tws0.alpha_y,
-                   'dx': tws0.Dx, 'dy': tws0.Dy,
-                   'dpx': tws0.Dxp, 'dpy': tws0.Dyp,
-                   'mux': tws0.mux, 'muy': tws0.muy}
+    tws0_xsuite = {'betx': tws0_ocelot.beta_x, 'bety': tws0_ocelot.beta_y,
+                   'alfx': tws0_ocelot.alpha_x, 'alfy': tws0_ocelot.alpha_y,
+                   'dx': tws0_ocelot.Dx, 'dy': tws0_ocelot.Dy,
+                   'dpx': tws0_ocelot.Dxp, 'dpy': tws0_ocelot.Dyp,
+                   'mux': tws0_ocelot.mux, 'muy': tws0_ocelot.muy}
 
-    if surv0 is None and previousLineList is not None:
-        surv0 = _getOutuptSurveyPoint(previousLineList)
-
-    if surv0 is not None:
-        surv0_xsuite = {'X0': surv0['x0'], 'Y0': surv0['y0'], 'Z0': surv0['z0'],
-                        'theta0': surv0['ang_x'], 'phi0': surv0['ang_y'], 'psi0': 0,
-                        's0': surv0['s0']}
+    if previousLineList is not None:
+        surv0_xsuite, s0 = _getOutuptSurveyPoint(previousLineList, s0, x0, y0, z0, ang_x, ang_y)
     else:
-        surv0_xsuite = None
+        surv0_xsuite = {'X0': x0, 'Y0': y0, 'Z0': z0, 'theta0': ang_x, 'phi0': ang_y, 'psi0': 0}
 
-    return env, tws0_xsuite, surv0_xsuite
+    class xsuite:
+        def __init__(self, env, tws0, surv0, s0):
+            self.env = env
+            self.tws0 = tws0
+            self.surv0 = surv0
+            self.s0 = s0
+
+    return xsuite(env, tws0_xsuite, surv0_xsuite, s0)
