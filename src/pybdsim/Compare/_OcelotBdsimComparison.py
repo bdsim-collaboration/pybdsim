@@ -192,18 +192,16 @@ def _AddSurvey(figure, survey):
         pass
 
 
-def OcelotVsBDSIM(lattice, bdsim, tws0, survey=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
+def OcelotVsBDSIM(ocelot, bdsim, survey=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
                   saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
     """ Compares Ocelot and BDSIM optics variables.
 
     +-----------------+---------------------------------------------------------+
     | **Parameters**  | **Description**                                         |
     +-----------------+---------------------------------------------------------+
-    | lattice         | Ocelot lattice                                          |
+    | ocelot          | Ocelot environment.                                     |
     +-----------------+---------------------------------------------------------+
     | bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
-    +-----------------+---------------------------------------------------------+
-    | tws0            | Initial twiss for the ocelot lattice                    |
     +-----------------+---------------------------------------------------------+
     | survey          | BDSIM model survey.                                     |
     +-----------------+---------------------------------------------------------+
@@ -227,8 +225,6 @@ def OcelotVsBDSIM(lattice, bdsim, tws0, survey=None, functions=None, postfunctio
     +-----------------+---------------------------------------------------------+
     """
 
-    if not isinstance(lattice, _ocl.MagneticLattice):
-        raise IOError("Input is not a Ocelot lattice")
     if isinstance(bdsim, str) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
 
@@ -237,6 +233,8 @@ def OcelotVsBDSIM(lattice, bdsim, tws0, survey=None, functions=None, postfunctio
         fname = "optics_report"
 
     # load oclelot optics and bdsim optics
+    lattice = _ocl.MagneticLattice(ocelot.cell)
+    tws0 = ocelot.tws0
     oclopt = _ocl.twiss(lattice, tws0)
     bdsinst = _pybdsim.Data.CheckItsBDSAsciiData(bdsim)
     bdsopt = _GetBDSIMOptics(bdsinst)
