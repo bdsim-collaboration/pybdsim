@@ -189,18 +189,18 @@ def _AddSurvey(figure, survey):
         _m8.Plot.AddMachineLatticeToFigure(figure, survey)
 
 
-def XsuiteVsBDSIM(line, bdsim, tws0, surveyfile=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
+def XsuiteVsBDSIM(xsuite, linename, bdsim, surveyfile=None, functions=None, postfunctions=None, figsize=(10, 5), xlim=(0, 0),
                   saveAll=True, outputFileName=None, particle="electron", energySpread=1e-4, ex=1e-8, ey=1e-8):
     """ Compares Xsuite and BDSIM optics variables.
 
     +-----------------+---------------------------------------------------------+
     | **Parameters**  | **Description**                                         |
     +-----------------+---------------------------------------------------------+
-    | line            | Xsuite line                                             |
+    | xsuite          | Input Xsuite class.                                     |
+    +-----------------+---------------------------------------------------------+
+    | linename        | Name of the converted line in the Xsuite environment.   |
     +-----------------+---------------------------------------------------------+
     | bdsim           | Optics root file (from rebdsimOptics or rebdsim).       |
-    +-----------------+---------------------------------------------------------+
-    | tws0            | Initial twiss for the ocelot lattice                    |
     +-----------------+---------------------------------------------------------+
     | functions       | Hook for users to add their functions that are called   |
     |                 | immediately prior to the addition of the plot. Use a    |
@@ -222,8 +222,14 @@ def XsuiteVsBDSIM(line, bdsim, tws0, surveyfile=None, functions=None, postfuncti
     +-----------------+---------------------------------------------------------+
     """
 
-    if not isinstance(line, _xt.Line):
-        raise IOError("Input is not a Xsuite line")
+    # test for input
+    try:
+        env = xsuite.env
+        line = xsuite.env.lines[linename]
+        tws0 = xsuite.tws0
+        s0 = xsuite.s0
+    except AttributeError:
+        raise AttributeError('Incorrect input format or missing environment variable')
     if isinstance(bdsim, str) and not _isfile(bdsim):
         raise IOError("File not found: ", bdsim)
 

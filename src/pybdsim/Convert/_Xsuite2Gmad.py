@@ -17,7 +17,7 @@ _ignoreableThinElements = {_xt.Marker, _xt.LimitRect, _xt.LimitEllipse, _xt.Wire
 _THIN_ELEMENT_THRESHOLD = 1e-6
 
 
-def Xsuite2Gmad(inputline, outputfilename, tws0,
+def Xsuite2Gmad(xsuite, linename, outputfilename,
                 startindex            = 0,
                 endindex              = -1,
                 stepsize              = 1,
@@ -43,11 +43,11 @@ def Xsuite2Gmad(inputline, outputfilename, tws0,
                 write                 = True,
                 namePrepend           = ""):
     """
-    **Xsuite2Gmad** convert an Xsuite line into a gmad tfs file for bdsim
+    **Xsuite2Gmad** convert an Xsuite class into a gmad tfs file for bdsim
 
     Example:
 
-    >>> a,b = pybdsim.Convert.Xsuite2Gmad(xsuite_line, 'mymachine')
+    >>> a,b = pybdsim.Convert.Xsuite2Gmad(xsuite, 'mymachine')
 
     returns Machine, [omittedItems]
 
@@ -56,7 +56,9 @@ def Xsuite2Gmad(inputline, outputfilename, tws0,
     is returned.
 
     +-------------------------------+-------------------------------------------------------------------+
-    | **inputline**                 | Input Xsuite line.                                                |
+    | **xsuite**                    | Input Xsuite class.                                               |
+    +-------------------------------+-------------------------------------------------------------------+
+    | **linename**                  | Name of the line to convert from the Xsuite environment.          |
     +-------------------------------+-------------------------------------------------------------------+
     | **outputfilename**            | Requested output file.                                            |
     +-------------------------------+-------------------------------------------------------------------+
@@ -168,11 +170,14 @@ def Xsuite2Gmad(inputline, outputfilename, tws0,
 
     """
 
-    # test for inputfilename type
-    if type(inputline) == _xt.Line:
-        line = inputline
-    else:
-        raise TypeError('Expect an Xsuite line as input')
+    # test for input
+    try:
+        env = xsuite.env
+        line = xsuite.env.lines[linename]
+        tws0 = xsuite.tws0
+        s0 = xsuite.s0
+    except AttributeError:
+        raise AttributeError('Incorrect input format or missing environment variable')
 
     # machine instance that will be added to
     machine = _Builder.Machine(verbose=verbose)
