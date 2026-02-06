@@ -857,9 +857,9 @@ class BDSIMOutput:
             dd[attrib] = []
 
         for irun in range(0, self.rt.GetEntries()) :
-            self.ht.GetEntry(irun)
-            dd['file_name'].append(self.ht.GetFile().GetName())
-            dd['file_idx'].append(self.get_filename_index(self.ht.GetFile().GetName()))
+            self.rt.GetEntry(irun)
+            dd['file_name'].append(self.rt.GetFile().GetName())
+            dd['file_idx'].append(self.get_filename_index(self.rt.GetFile().GetName()))
             dd['run_idx'].append(irun)
 
             for attrib in run_attribs:
