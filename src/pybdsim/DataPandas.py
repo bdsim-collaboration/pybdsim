@@ -395,6 +395,8 @@ def Load(filepath) :
 
     if type == "BDSIM" :
         return BDSIMOutput(filepath)
+    else :
+        raise Exception("Unsupported file type")
 
 class REBDSIM:
     def __init__(self, filepath):
