@@ -641,10 +641,10 @@ class BDSIMOutput:
         for imodel in range(0, self.mt.GetEntries()) :
             self.mt.GetEntry(imodel)
 
-            for imodel in range(0, self.m.model.n) :
+            for jmodel in range(0, self.m.model.n) :
                 dd['file_name'].append(self.ht.GetFile().GetName())
                 dd['file_idx'].append(self.get_filename_index(self.ht.GetFile().GetName()))
-                dd['model_idx'].append(imodel)
+                dd['model_idx'].append(jmodel)
 
                 for attrib in model_attribs:
                     if attrib == "n" or \
