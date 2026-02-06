@@ -433,8 +433,8 @@ class BDSIMOutput:
 
     def __init__(self, filepath):
 
-        #if not _path.isfile(filepath) :
-        #    raise FileNotFoundError(f"No such file or directory: '{filepath}'")
+        if not _path.isfile(filepath) and filepath.find("*") == -1:
+            raise FileNotFoundError(f"No such file or directory: '{filepath}'")
         self.root_file = _ROOT.DataLoader(filepath)
 
         self.ht = self.root_file.GetHeaderTree()
