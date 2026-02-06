@@ -446,7 +446,9 @@ class BDSIMOutput:
             self.csampler_names = list(self.root_file.GetSamplerCNames())
             self.ssampler_names = list(self.root_file.GetSamplerSNames())
         except :
-            pass
+            print("Warning: file does not contain samplerC or samplerS names, likely produced with an older version of BDSIM, setting names to empty lists")
+            self.csampler_names = []
+            self.ssampler_names = []
 
         self.mt = self.root_file.GetModelTree()
         self.m  = self.root_file.GetModel()
