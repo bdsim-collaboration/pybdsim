@@ -265,8 +265,8 @@ def _fill_event_csampler(root_obj, root_tree, pandas_obj) :
         root_tree.GetEntry(ievt)
 
         for iprim in range(0, sampler.n):
-            dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
-            dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.et.GetFile().GetName()))
+            dd['file_name'].append(root_tree.GetFile().GetName())
+            dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
             dd['event_idx'].append(ievt)
             dd['sampler_idx'].append(iprim)
             for attrib in sampler_attribs:
