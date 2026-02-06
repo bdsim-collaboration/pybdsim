@@ -177,6 +177,7 @@ def _fill_event_coords(root_obj, root_tree, pandas_obj) :
                     try :
                         dd[attrib].append(getattr(root_obj, attrib)[icoord])
                     except IndexError :
+                        # variable not present in tree
                         pass
 
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
@@ -205,6 +206,7 @@ def _fill_event_aperture(root_obj, root_tree, pandas_obj) :
                     try :
                         dd[attrib].append(getattr(root_obj, attrib)[iprim])
                     except IndexError :
+                        # variable not present in tree
                         pass
 
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
@@ -239,7 +241,9 @@ def _fill_event_collimator(root_obj, root_tree, pandas_obj) :
                     except IndexError :
                         pass
                     except TypeError :
-                        print(attrib)
+                        # variable not present in tree
+                        # print(attrib)
+                        pass
 
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
     return df
