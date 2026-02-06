@@ -63,8 +63,8 @@ def _fill_event_summary(root_obj, root_tree, pandas_obj) :
     for ievt in range(0, root_tree.GetEntries()):
         root_tree.GetEntry(ievt)
 
-        dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
-        dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.ht.GetFile().GetName()))
+        dd['file_name'].append(root_tree.GetFile().GetName())
+        dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
         dd['event_idx'].append(ievt)
 
         for attrib in summary_attribs:
@@ -98,8 +98,8 @@ def _fill_event_sampler(root_obj, root_tree, pandas_obj) :
         root_tree.GetEntry(ievt)
 
         for iprim in range(0, sampler.n):
-            dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
-            dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.et.GetFile().GetName()))
+            dd['file_name'].append(root_tree.GetFile().GetName())
+            dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
             dd['event_idx'].append(ievt)
             dd['sampler_idx'].append(iprim)
             for attrib in sampler_attribs:
@@ -140,8 +140,8 @@ def _fill_event_eloss(root_obj, root_tree, pandas_obj) :
 
         # TODO Change loop order
         for ieloss in range(0, eloss.n):
-            dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.et.GetFile().GetName()))
-            dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
+            dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
+            dd['file_name'].append(root_tree.GetFile().GetName())
             dd['event_idx'].append(ievt)
             for attrib in eloss_attribs:
                 try :
@@ -156,6 +156,9 @@ def _fill_event_coords(root_obj, root_tree, pandas_obj) :
     coord_attribs = ['T', 'X', 'Xp', 'Y', 'Yp', 'Z', 'Zp', 'n']
 
     dd = {}
+    dd['file_idx'] = []
+    dd['file_name'] = []
+    dd['event_idx'] = []
 
     for attrib in coord_attribs:
         dd[attrib] = []
@@ -164,6 +167,9 @@ def _fill_event_coords(root_obj, root_tree, pandas_obj) :
         root_tree.GetEntry(ievt)
 
         for icoord in range(0, root_obj.n):
+            dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
+            dd['file_name'].append(root_tree.GetFile().GetName())
+
             for attrib in coord_attribs:
                 if attrib == "n":
                     dd[attrib].append(getattr(root_obj, attrib))
@@ -298,8 +304,8 @@ def _fill_event_ssampler(root_obj, root_tree, pandas_obj) :
         root_tree.GetEntry(ievt)
 
         for iprim in range(0, sampler.n):
-            dd['file_name'].append(pandas_obj.ht.GetFile().GetName())
-            dd['file_idx'].append(pandas_obj.get_filename_index(pandas_obj.et.GetFile().GetName()))
+            dd['file_name'].append(root_tree.GetFile().GetName())
+            dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
             dd['event_idx'].append(ievt)
             dd['sampler_idx'].append(iprim)
             for attrib in sampler_attribs:
@@ -421,8 +427,8 @@ class BDSIMOutput:
 
     def __init__(self, filepath):
 
-        if not _path.isfile(filepath) :
-            raise FileNotFoundError(f"No such file or directory: '{filepath}'")
+        #if not _path.isfile(filepath) :
+        #    raise FileNotFoundError(f"No such file or directory: '{filepath}'")
         self.root_file = _ROOT.DataLoader(filepath)
 
         self.ht = self.root_file.GetHeaderTree()
@@ -456,7 +462,8 @@ class BDSIMOutput:
         self.r = self.root_file.GetRun()
         self.rt.GetEntry(0)
 
-        self.root_file_names = []
+        # store list of file names to get index for each file name
+        self.root_file_names = list(self.root_file.GetFileNames())
 
     def get_filename_index(self, file_name):
         if file_name not in self.root_file_names:
