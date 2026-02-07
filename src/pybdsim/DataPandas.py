@@ -463,7 +463,7 @@ class BDSIMOutput:
         try : # TODO needs to be removed when or guarded against with BDSIM version mismatch
             self.csampler_names = list(self.root_file.GetSamplerCNames())
             self.ssampler_names = list(self.root_file.GetSamplerSNames())
-        except :
+        except AttributeError: 
             print("Warning: file does not contain samplerC or samplerS names, likely produced with an older version of BDSIM, setting names to empty lists")
             self.csampler_names = []
             self.ssampler_names = []
