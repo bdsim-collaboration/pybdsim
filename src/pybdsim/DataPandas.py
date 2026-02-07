@@ -171,6 +171,7 @@ def _fill_event_coords(root_obj, root_tree, pandas_obj) :
         for icoord in range(0, root_obj.n):
             dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
             dd['file_name'].append(root_tree.GetFile().GetName())
+            dd['event_idx'].append(ievt)
 
             for attrib in coord_attribs:
                 if attrib == "n":
@@ -375,7 +376,7 @@ class PandasConverter :
                 pass
             elif att_type == dict:
                 pass
-            elif att_type == _types.NoneType:
+            elif att_type is None:
                 pass
             elif att_type == bool:
                 root_obj_attributes_tocheck.append(att_key)
@@ -685,7 +686,7 @@ class BDSIMOutput:
                     else :
                         try :
                             dd[attrib].append(getattr(self.m.model, attrib)[jmodel])
-                        except :
+                        except  (AttributeError, TypeError, IndexError):
                             # Variable not array or not present in tree
                             if debug and jmodel == 0:
                                 print(attrib)
@@ -1240,7 +1241,7 @@ class LinkSamplerHits :
             dd['yp'].append(sh.coords.yp)
             dd['zp'].append(sh.coords.zp)
             dd['eventID'].append(sh.eventID)
-            dd['externalParentID'].append(sh.externalParentID)
+            dd['externalEventID'].append(sh.externalEventID)
             dd['externalParticleID'].append(sh.externalParticleID)
             dd['mass'].append(sh.mass)
             dd['momentum'].append(sh.momentum)
