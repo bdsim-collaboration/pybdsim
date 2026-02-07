@@ -360,8 +360,6 @@ class PandasConverter :
     def variables(self):
         root_obj_attributes = dir(self.root_structure)
 
-        root_obj_attributes_set = set()
-        root_obj_attributes_tocheck = []
         root_attribute_map = {}
 
         for att_key in root_obj_attributes:
