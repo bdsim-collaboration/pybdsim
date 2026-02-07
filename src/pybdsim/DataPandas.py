@@ -657,6 +657,7 @@ class BDSIMOutput:
         dd['file_name'] = []
         dd['file_idx'] = []
         dd['model_idx'] = []
+        dd['model_jdx'] = []
         for attrib in model_attribs:
             dd[attrib] = []
 
@@ -666,7 +667,8 @@ class BDSIMOutput:
             for jmodel in range(0, self.m.model.n) :
                 dd['file_name'].append(self.mt.GetFile().GetName())
                 dd['file_idx'].append(self.get_filename_index(self.mt.GetFile().GetName()))
-                dd['model_idx'].append(jmodel)
+                dd['model_idx'].append(imodel)
+                dd['model_jdx'].append(jmodel)
 
                 for attrib in model_attribs:
                     if attrib == "n" or \
