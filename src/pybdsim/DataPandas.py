@@ -239,6 +239,7 @@ def _fill_event_collimator(root_obj, root_tree, pandas_obj) :
                     try :
                         dd[attrib].append(getattr(root_obj, attrib)[icollimator])
                     except IndexError :
+                        # variable not array
                         pass
                     except TypeError :
                         # variable not present in tree
@@ -282,6 +283,7 @@ def _fill_event_csampler(root_obj, root_tree, pandas_obj) :
                     try :
                         dd[attrib].append(getattr(sampler, attrib)[iprim])
                     except IndexError :
+                        # variable not array
                         pass
 
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
@@ -321,6 +323,7 @@ def _fill_event_ssampler(root_obj, root_tree, pandas_obj) :
                     try :
                         dd[attrib].append(getattr(sampler, attrib)[iprim])
                     except IndexError :
+                        # variable not array
                         pass
 
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
@@ -384,6 +387,7 @@ class PandasConverter :
                             root_obj_attributes_tocheck.append(att_key)
                             root_attribute_map[att_key] = att
                 except AttributeError:
+                    # variable not present in tree
                     pass
 
         return root_attribute_map
