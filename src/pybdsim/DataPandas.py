@@ -229,6 +229,9 @@ def _fill_event_collimator(root_obj, root_tree, pandas_obj) :
                           'weight', 'xIn', 'xpIn', 'yIn', 'ypIn', 'zIn', 'zpIn']
 
     dd = {}
+    dd['file_idx'] = []
+    dd['file_name'] = []
+    dd['event_idx'] = []
     dd['collimator_idx'] = []
 
     for attrib in collimator_attribs:
@@ -238,6 +241,9 @@ def _fill_event_collimator(root_obj, root_tree, pandas_obj) :
         root_tree.GetEntry(ievt)
 
         for icollimator in range(0, root_obj.n):
+            dd['file_name'].append(root_tree.GetFile().GetName())
+            dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
+            dd['event_idx'].append(ievt)
             dd['collimator_idx'].append(icollimator)
             for attrib in collimator_attribs:
                 if attrib == "n" or \
@@ -463,7 +469,7 @@ class BDSIMOutput:
         try : # TODO needs to be removed when or guarded against with BDSIM version mismatch
             self.csampler_names = list(self.root_file.GetSamplerCNames())
             self.ssampler_names = list(self.root_file.GetSamplerSNames())
-        except AttributeError: 
+        except AttributeError:
             print("Warning: file does not contain samplerC or samplerS names, likely produced with an older version of BDSIM, setting names to empty lists")
             self.csampler_names = []
             self.ssampler_names = []
