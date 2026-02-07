@@ -22,7 +22,7 @@ try:
     import ROOT as _ROOT
     _LoadROOTLibraries()
     import cppyy as _cppyy
-
+    _useRoot = True
 except ImportError:
     _useRoot = False
 
@@ -112,6 +112,7 @@ def _fill_event_sampler(root_obj, root_tree, pandas_obj) :
                     try :
                         dd[attrib].append(getattr(sampler, attrib)[iprim])
                     except IndexError :
+                        # variable not array
                         pass
 
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
@@ -147,6 +148,7 @@ def _fill_event_eloss(root_obj, root_tree, pandas_obj) :
                 try :
                     dd[attrib].append(getattr(eloss, attrib)[ieloss])
                 except IndexError:
+                    # variable not array
                     pass
 
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
@@ -189,6 +191,9 @@ def _fill_event_aperture(root_obj, root_tree, pandas_obj) :
                         'partID', 'trackID', 'turn', 'weight', 'x', 'xp', 'y', 'yp']
 
     dd = {}
+    dd['file_idx'] = []
+    dd['file_name'] = []
+    dd['event_idx'] = []
     dd['aperture_idx'] = []
 
     for attrib in aperture_attribs:
@@ -198,7 +203,11 @@ def _fill_event_aperture(root_obj, root_tree, pandas_obj) :
         root_tree.GetEntry(ievt)
 
         for iprim in range(0, root_obj.n):
+            dd['file_idx'].append(pandas_obj.get_filename_index(root_tree.GetFile().GetName()))
+            dd['file_name'].append(root_tree.GetFile().GetName())
+            dd['event_idx'].append(ievt)
             dd['aperture_idx'].append(iprim)
+
             for attrib in aperture_attribs:
                 if attrib == "n":
                     dd[attrib].append(getattr(root_obj, attrib))
@@ -654,8 +663,8 @@ class BDSIMOutput:
             self.mt.GetEntry(imodel)
 
             for jmodel in range(0, self.m.model.n) :
-                dd['file_name'].append(self.ht.GetFile().GetName())
-                dd['file_idx'].append(self.get_filename_index(self.ht.GetFile().GetName()))
+                dd['file_name'].append(self.mt.GetFile().GetName())
+                dd['file_idx'].append(self.get_filename_index(self.mt.GetFile().GetName()))
                 dd['model_idx'].append(jmodel)
 
                 for attrib in model_attribs:
@@ -667,16 +676,18 @@ class BDSIMOutput:
                         dd[attrib].append(getattr(self.m.model, attrib))
                     # TODO add these variables
                     elif attrib == "pvName" :
-                        dd[attrib].append(str(getattr(self.m.model, attrib)[imodel][0]))
+                        dd[attrib].append(str(getattr(self.m.model, attrib)[jmodel][0]))
                     elif attrib == 'scoringMeshName' or \
                          attrib == 'scoringMeshRotation' or \
                          attrib == 'scoringMeshTranslation' :
+                        # TODO add these variables
                         pass
                     else :
                         try :
-                            dd[attrib].append(getattr(self.m.model, attrib)[imodel])
+                            dd[attrib].append(getattr(self.m.model, attrib)[jmodel])
                         except :
-                            if debug and imodel == 0:
+                            # Variable not array or not present in tree
+                            if debug and jmodel == 0:
                                 print(attrib)
 
         df = _pd.DataFrame(_enforce_same_length_dict(dd))
@@ -1229,7 +1240,7 @@ class LinkSamplerHits :
             dd['yp'].append(sh.coords.yp)
             dd['zp'].append(sh.coords.zp)
             dd['eventID'].append(sh.eventID)
-            dd['externalEventID'].append(sh.externalParentID)
+            dd['externalParentID'].append(sh.externalParentID)
             dd['externalParticleID'].append(sh.externalParticleID)
             dd['mass'].append(sh.mass)
             dd['momentum'].append(sh.momentum)
