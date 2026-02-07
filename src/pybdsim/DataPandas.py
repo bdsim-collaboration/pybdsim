@@ -1003,7 +1003,6 @@ class BDSIMOutput:
         return _fill_event_eloss(eloss, self.et, self)
 
     def get_primary_last_hit(self):
-        pass
         eloss = self.e.PrimaryLastHit
         return _fill_event_eloss(eloss, self.et, self)
 
