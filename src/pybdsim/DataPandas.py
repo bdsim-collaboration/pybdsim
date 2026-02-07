@@ -376,7 +376,7 @@ class PandasConverter :
                 pass
             elif att_type == dict:
                 pass
-            elif att_type is None:
+            elif att is None:
                 pass
             elif att_type == bool:
                 root_obj_attributes_tocheck.append(att_key)
