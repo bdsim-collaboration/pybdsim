@@ -8,7 +8,7 @@ particle_dict = {11: {"Name": "electron", "mass": 0.511e-3},
                  22: {"Name": "photon", "mass": 0}}
 
 
-def getBdsimLastSamplerInDF(bdsimfile, mu_z=0, sigma_z=25e-12):
+def getBdsimLastSamplerInDF(bdsimfile, mu_z=0, sigma_z=30e-6):
     bdsim = _bd.DataPandas.BDSIMOutput(bdsimfile)
     last_sampler = bdsim.get_sampler_names()[-1]
     df = bdsim.get_sampler(last_sampler)
@@ -27,13 +27,13 @@ def getBdsimLastSamplerInDF(bdsimfile, mu_z=0, sigma_z=25e-12):
     return df
 
 
-def writeBdsimDataInH5(bdsimfile, hdf5file, mu_z=0, sigma_z=25e-12):
+def writeBdsimDataInH5(bdsimfile, hdf5file, mu_z=0, sigma_z=30e-3):
     df = getBdsimLastSamplerInDF(bdsimfile, mu_z, sigma_z)
 
     h5 = _h5.File(hdf5file, 'w')
     h5["beam_axis"] = "+z"
     h5['config/unit/momentum'] = "GeV/c"
-    h5['config/unit/position'] = "m"
+    h5['config/unit/position'] = "mm"
 
     for partID in df['partID'].unique():
         npart = len(df[df['partID'] == partID])
@@ -56,6 +56,7 @@ def writeBdsimDataInH5(bdsimfile, hdf5file, mu_z=0, sigma_z=25e-12):
 
     h5.close()
 
+
 def getH5DataInDict(hdf5file):
     h5 = _h5.File(hdf5file)
     data_dict = {}
@@ -66,8 +67,8 @@ def getH5DataInDict(hdf5file):
             data_dict[particle]['momentum'] = h5['final-state/{}/momentum'.format(particle)][()]
             data_dict[particle]['position'] = h5['final-state/{}/position'.format(particle)][()]
             data_dict[particle]['weight'] = h5['final-state/{}/weight'.format(particle)][()]
-    return data_dict
     h5.close()
+    return data_dict
 
 
 def writeDataInBdsim(hdf5file, outputfilename):
