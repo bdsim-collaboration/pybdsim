@@ -82,7 +82,7 @@ def Ocelot2Xsuite(ocelot, line_name='line_from_ocelot', s0=0, x0=0, y0=0, z0=0, 
                     env[elem.id + '_L'] = elem.l
                     env[elem.id + '_ANGLE'] = elem.angle
                     env[elem.id + '_K1'] = elem.k1
-                    env.new(elem.id, _xt.RBend, length=elem.id + '_L', angle=elem.id + '_ANGLE',
+                    env.new(elem.id, _xt.RBend, length_straight=elem.id + '_L', angle=elem.id + '_ANGLE',
                             k1=elem.id + '_K1', k0_from_h=True)
                 case _ocl.Hcor | _ocl.Vcor:
                     env[elem.id + '_L'] = elem.l
