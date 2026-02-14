@@ -2,6 +2,8 @@
 Module for various conversions.
 
 """
+import sys
+
 # pymadx
 from ._MadxTfs2Gmad import MadxTfs2Gmad
 from ._MadxTfs2Gmad import ZeroMissingRequiredColumns as _ZeroMissingRequiredColumns
@@ -29,6 +31,22 @@ try:
     from ._Mad8Twiss2Gmad import Mad8Twiss2Gmad
 except ImportError:
     pass
+
+# optional xsuite
+if sys.version_info >= (3, 10):
+    try:
+        from ._Mad8Twiss2Xsuite import Mad8Twiss2Xsuite
+        from ._Xsuite2Gmad import Xsuite2Gmad
+    except ImportError:
+        pass
+
+# optional ocelot
+if sys.version_info >= (3, 10):
+    try:
+        from ._Machine2Ocelot import Machine2Ocelot
+        from ._Ocelot2Xsuite import Ocelot2Xsuite
+    except ImportError:
+        pass
 
 # optional pysad
 try:
