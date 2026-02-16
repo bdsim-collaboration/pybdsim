@@ -65,6 +65,7 @@ from . import Constants
 from . import Convert
 from . import Compare
 from . import Data
+from . import External
 from . import Field
 from . import Geant4
 from . import Gmad
