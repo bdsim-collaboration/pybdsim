@@ -368,10 +368,16 @@ def _Xsuite2GmadElementFactory(name, item, allelementdict, verbose, userdict, co
         return _Builder.Octupole(rname, l, k3=k3, **kws)
     #######################################################################
     elif Type == _xt.Multipole:
-        k1 = item.k1 * factor
-        k2 = item.k2 * factor if not linear else 0
-        k3 = item.k3 * factor if not linear else 0
-        ks = item.ks * factor
+
+        # return _Builder.Drift(rname, l, **kws)
+        knl = item.knl
+        ksl = item.ksl
+
+        # print(rname,item, item.knl, item.ksl)
+        #if linear :
+        #    knl[1:] = 0
+        #    ksl[1:] = 0
+
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
             return _Builder.ThinMultipole(rname, knl=(k1, k2, k3), ksl=ks, **kws)
         else:
