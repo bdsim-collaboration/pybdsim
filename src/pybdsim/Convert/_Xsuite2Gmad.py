@@ -379,9 +379,12 @@ def _Xsuite2GmadElementFactory(name, item, allelementdict, verbose, userdict, co
         #    ksl[1:] = 0
 
         if zerolength or l < _THIN_ELEMENT_THRESHOLD:
-            return _Builder.ThinMultipole(rname, knl=(k1, k2, k3), ksl=ks, **kws)
+            return _Builder.Marker(rname)
+            # return _Builder.ThinMultipole(rname, knl=knl, ksl=ksl, **kws)
         else:
-            return _Builder.Multipole(rname, l, knl=(k1, k2, k3), ksl=ks, **kws)
+            # TODO check if knl is kn for thick multipole
+            return _Builder.Drift(rname, l)
+            # return _Builder.Multipole(rname, l, knl=knl, ksl=ksl, **kws)
     #######################################################################
     elif Type == _xt.Bend:
         angle = item.angle
