@@ -47,7 +47,7 @@ BDSIMParticleTypes = [
     'kaon0L'
 ]
 
-def WriteUserFile(filename, coordinates):
+def WriteUserFile(filename, coordinates, formats=r".5f"):
     """
     Function to write a BDSIM beamfile of type userfile.
 
@@ -68,18 +68,12 @@ def WriteUserFile(filename, coordinates):
         else:
             fn.write(s)
 
-    for n_coord, coord in enumerate(coordinates):
-        s = ''
-        for n_c, c in enumerate(coord):
-            if n_c < len(coord) - 1  and n_coord <= len(coordinates) - 1:
-                add = '\t'
-            elif n_c == len(coord) - 1 and n_coord < len(coordinates) - 1:
-                add = '\n'
-            elif n_c == len(coord) - 1 and n_coord == len(coordinates) - 1:
-                add = ''
-            s += str(c) + add
-        write(f, s)
+    if isinstance(formats, str):
+        formats = [formats]*len(coordinates[0])
 
+    for coords in coordinates:
+        ls = "\t".join([(r"{:" + form + r"}").format(c) for c, form in zip(coords, formats)]) + "\n"
+        write(f, ls)
     f.close()
 
 
