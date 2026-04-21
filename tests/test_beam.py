@@ -11,11 +11,11 @@ def test_write_user_file_plain_and_gzip(tmp_path):
     gz_path = tmp_path / "beam.txt.gz"
 
     WriteUserFile(str(plain), coords)
-    assert plain.read_text() == "1\t2\t3\n4\t5\t6"
+    assert plain.read_text() == '1.00000\t2.00000\t3.00000\n4.00000\t5.00000\t6.00000\n'
 
     WriteUserFile(str(gz_path), coords)
     with gzip.open(gz_path, "rt", encoding="ascii") as fh:
-        assert fh.read() == "1\t2\t3\n4\t5\t6"
+        assert fh.read() == '1.00000\t2.00000\t3.00000\n4.00000\t5.00000\t6.00000\n'
 
 
 def test_default_beam_repr_and_file(tmp_path):
