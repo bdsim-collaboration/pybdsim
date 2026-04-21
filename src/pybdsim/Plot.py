@@ -727,7 +727,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
 
-    return figure instance
+    return figure instance, axis instance
 
     xScalingFactors may be a single float, int and therefore equally applied to all
     histograms, or a list of floats that must match the length of the hsitograms for
@@ -756,7 +756,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         ax = f.add_subplot(111)
     else:
         f = ax.get_figure()
-
+    
     if scalingFactors is None:
         scalingFactors = _np.ones_like(histograms)
     if xScalingFactors is None:
@@ -770,7 +770,6 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     xmax = -_np.inf
     allHistsEmpty = True  # true until one hist isn't empty
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
-
         # auto limits... complex to cover every case also in log
         histEmpty = len(h.contents[h.contents != 0]) == 0
         # x range heuristic - do before padding
@@ -796,7 +795,6 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         # plot histogram
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
                     xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
-
 
     if xlabel is None:
         ax.set_xlabel(histograms[0].xlabel)
