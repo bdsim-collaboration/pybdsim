@@ -357,7 +357,7 @@ def PlotEmitt(tfsopt, bdsopt, header, survey=None, functions=None, postfunctions
 
     # tfs
     _plt.plot(tfsopt['S'], ex, 'b', label=r'MADX $E_{x}$')
-    _plt.plot(tfsopt['S'], ey, 'g', label=r'MADX $E_{x}$')
+    _plt.plot(tfsopt['S'], ey, 'g', label=r'MADX $E_{y}$')
     # bds
     _plt.errorbar(bdsopt['S'], bdsopt['Emitt_x'],
                   yerr=bdsopt['Sigma_Emitt_x'],
