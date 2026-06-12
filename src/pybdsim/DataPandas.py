@@ -1095,6 +1095,21 @@ class BDSIMOutput:
 
         return df
 
+    def get_trajectory_processes(self, i_evnt = 0 , i_traj = 0):
+        self.et.GetEntry(i_evnt)
+
+        traj = self.e.Trajectory
+        postProcessTypes = traj.postProcessTypes[i_traj]
+        postProcessSubTypes = traj.postProcessSubTypes[i_traj]
+
+        dd = {}
+        dd['postProcessTypes'] = list(postProcessTypes)
+        dd['postProcessSubTypes'] = list(postProcessSubTypes)
+
+        df = _pd.DataFrame(dd)
+
+        return df
+
     def get_histograms(self):
         pass
 
