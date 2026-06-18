@@ -247,6 +247,13 @@ def test_Laser_repr():
     laser = pybdsim.Builder.Laser('myl', 0.1, 0.2, 0.3, 0.4, 5370)
     assert repr(laser) == 'myl: laser, l=0.1, waveLength=5370, x=0.2, y=0.3, z=0.4;\n'
 
+def test_GaborLens_repr():
+    gaborlens = pybdsim.Builder.GaborLens("myGL", b=1.0, l=0.857, aper1=0.1, anodeRadius=95e-3, anodeLength=0.444,
+                                   anodeThickness = 1.6e-3, electrodeRadius = 53.35e-3, electrodeLength = 34e-3,
+                                   electrodeThickness = 1.6e-3)
+    print(gaborlens)
+    assert repr(gaborlens) == 'myGL: gaborlens, B=1.0, anodeLength=0.444, anodeRadius=0.095, anodeThickness=0.0016, aper1=0.1, electrodeLength=0.034, electrodeRadius=0.05335, electrodeThickness=0.0016, l=0.857;\n'
+
 def test_insert():
     machine = pybdsim.Builder.Machine()
     machine.AddDrift(name="dr", length=0.1)
