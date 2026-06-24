@@ -236,6 +236,9 @@ def MadxTfs2Gmad(tfs, outputfilename,
         if particleName == "ELECTRON":
             flipmagnets = True
             print('Detected electron in TFS file - changing flipmagnets to True')
+        if particleName == "HMINUS":
+            flipmagnets = True
+            print('Detected HMINUS in TFS file - changing flipmagnets to True')
 
     # If we have collimators but no collimator dict then inform that
     # they will be converted to drifts.  should really check
@@ -754,7 +757,7 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, extraParamsDict={}):
     start of the element, i.e. you do not need to get the optics of
     the previous element, this function does that automatically.
 
-    Works for e+, e- and proton.
+    Works for e+, e-, proton (and hminus?).
     Default emittance is 1e-9mrad if 1 in tfs file.
 
     """
@@ -799,6 +802,8 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, extraParamsDict={}):
         particle = 'e+'
     elif particle == 'PROTON':
         particle = 'proton'
+    elif particle == 'HMINUS':
+        particle = 'ion 1 1 -1'
     else:
         raise ValueError("Unsupported particle " + particle)
 
