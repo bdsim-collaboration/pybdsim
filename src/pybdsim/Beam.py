@@ -44,7 +44,8 @@ BDSIMParticleTypes = [
     'mu-',
     'kaon-',
     'kaon+',
-    'kaon0L'
+    'kaon0L',
+    'ion 1 1 -1' # i.e. a hminus particle
 ]
 
 def WriteUserFile(filename, coordinates, formats=r".5f"):
