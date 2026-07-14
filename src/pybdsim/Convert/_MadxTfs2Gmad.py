@@ -22,57 +22,82 @@ _ignoreableThinElements = {"MONITOR", "VMONITOR", "HMONITOR", "PLACEHOLDER", "MA
 # anything below this length is treated as a thin element
 _THIN_ELEMENT_THRESHOLD = 1e-6
 
-# Transform3D parameter sets used by _MergeTransform3D
-_TRANSFORM3D_ADDITIVE_FIELDS   = ('x', 'y')
-_TRANSFORM3D_ROTATION_FIELDS   = ('angle', 'axisAngle', 'axisX', 'axisY', 'axisZ')
-
-
-def _SafeGet(element, key):
-    """Return element[key] or None if the key is absent."""
-    try:
-        return element[key]
-    except (KeyError, TypeError, AttributeError):
-        return None
+# Translational fields of a transform3d that are simply summed when merging.
+_TRANSFORM3D_ADDITIVE_FIELDS = ('x', 'y')
 
 
 def _MergeTransform3D(base, incoming, verbose=False):
     """Merge *incoming* (shift-only) Transform3D into *base* in-place.
 
-    This function is only called for TRANSLATION-derived elements (no rotation).
-    Rotation elements (YROTATION, XROTATION) are emitted as standalone transform3ds
-    and are never passed to this function.
+    Only called for consecutive TRANSLATION-derived elements.  Rotation
+    elements (YROTATION, XROTATION) are always emitted as standalone
+    transform3ds and never passed here.
 
-    Rules
-    -----
-    * Translational fields (x, y) are **summed**.
-    * If either element unexpectedly carries rotation fields a warning is issued
-      (this should not occur with the current routing logic).
-    * The private ``_longitudinalShift`` attribute is accumulated so the
-      calling loop can absorb it into the next drift.
+    Translational fields (x, y) are summed; the ``_longitudinalShift``
+    attribute is accumulated for later absorption into a Drift.
+
+    :param base: the buffered Transform3D that accumulates all shifts.
+    :type  base: pybdsim.Builder.Transform3D
+    :param incoming: the new shift-only Transform3D to fold in.
+    :type  incoming: pybdsim.Builder.Transform3D
     """
-    # --- Translational fields: sum ---
     for field in _TRANSFORM3D_ADDITIVE_FIELDS:
-        base_val = _SafeGet(base, field) or 0.0
-        new_val  = _SafeGet(incoming, field) or 0.0
-        combined = base_val + new_val
+        combined = base.get(field, 0.0) + incoming.get(field, 0.0)
         if abs(combined) > 1e-15:
             base[field] = combined
 
-    # --- Defensive: warn if a rotation slips through ---
-    base_has_rot = any(_SafeGet(base, f) for f in _TRANSFORM3D_ROTATION_FIELDS)
-    new_has_rot  = any(_SafeGet(incoming, f) for f in _TRANSFORM3D_ROTATION_FIELDS)
-    if base_has_rot or new_has_rot:
-        _warnings.warn(
-            "_MergeTransform3D called with a rotation-containing element "
-            "(base='{}', incoming='{}'). Rotations should not be merged with "
-            "translations — check the routing logic.".format(base.name, incoming.name))
-
-    # --- Accumulate longitudinal shift attribute ---
-    base._longitudinalShift = (getattr(base,     '_longitudinalShift', 0.0)
-                              + getattr(incoming, '_longitudinalShift', 0.0))
+    base._longitudinalShift += incoming._longitudinalShift
 
     if verbose:
         print('  Merged Transform3D {} into {}'.format(incoming.name, base.name))
+
+
+def _AbsorbLongitudinalShift(gmadElement, pendingDs, name, t, verbose=False):
+    """Attempt to absorb *pendingDs* into *gmadElement* if it is a Drift.
+
+    A MAD-X TRANSLATION with a DS component shifts the reference frame
+    forward by *ds* along the local s-axis.  BDSIM supports ``transform3d,
+    z=ds`` for this purpose, but extending the immediately following Drift
+    by *ds* is simpler and avoids any geometry-overlap issues.
+
+    Returns the updated pending shift: 0.0 if absorbed or discarded,
+    unchanged if *gmadElement* is a Transform3D (keep waiting for a Drift).
+
+    :param gmadElement: element currently being processed.
+    :param pendingDs: accumulated longitudinal shift (m).
+    :param name: element name (for warning messages).
+    :param t: MAD-X keyword (for warning messages).
+    :param verbose: print a message when a shift is absorbed.
+    :returns: updated pendingDs.
+    :rtype: float
+    """
+    if abs(pendingDs) < 1e-12:
+        return pendingDs
+
+    if isinstance(gmadElement, _Builder.Drift):
+        newLength = gmadElement.length + pendingDs
+        if newLength >= 0.0:
+            if verbose:
+                print('Absorbing longitudinal shift {:.6g} m into drift {}'.format(
+                    pendingDs, gmadElement.name))
+            gmadElement['l'] = newLength
+            gmadElement.length = newLength
+        else:
+            _warnings.warn(
+                "Cannot absorb longitudinal shift {:.6g} m into drift '{}' "
+                "(would result in negative length {:.6g} m); shift ignored.".format(
+                    pendingDs, gmadElement.name, newLength))
+        return 0.0
+    elif isinstance(gmadElement, _Builder.Transform3D):
+        return pendingDs  # keep waiting; a Drift will follow
+    else:
+        _warnings.warn(
+            "TRANSLATION longitudinal shift of {:.6g} m is not followed by a "
+            "Drift (next element: '{}', type '{}'). "
+            "The shift will be lost and s-positions may be inconsistent.".format(
+                pendingDs, name, t),
+            stacklevel=2)
+        return 0.0
 
 
 def ZeroMissingRequiredColumns(tfsinstance):
@@ -314,9 +339,10 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     oldItem = None
 
-    # Pending longitudinal shift from a TRANSLATION element.  If non-zero, the
-    # shift cannot be placed directly in BDSIM (which has no ds parameter for
-    # Transform3D), so we absorb it into the length of the next available drift.
+    # Pending longitudinal shift from a TRANSLATION element.  BDSIM supports
+    # transform3d with a z parameter for this purpose, but we instead absorb
+    # the shift into the length of the next available Drift to avoid any
+    # geometry overlap issues.  See _AbsorbLongitudinalShift().
     _pendingLongitudinalShift = 0.0
 
     # Buffer for consecutive Transform3D elements.  Instead of appending each
@@ -359,76 +385,35 @@ def MadxTfs2Gmad(tfs, outputfilename,
         elif gmadElement.length == 0.0 and isinstance(gmadElement, _Builder.Drift):
             continue
 
-        # --- Collect longitudinal shift carried by TRANSLATION elements ---
-        ds = getattr(gmadElement, '_longitudinalShift', 0.0)
-        if ds != 0.0:
-            _pendingLongitudinalShift += ds
+        # Accumulate any longitudinal shift from TRANSLATION elements, then try
+        # to absorb it into the current element if it is a Drift.
+        if isinstance(gmadElement, _Builder.Transform3D):
+            _pendingLongitudinalShift += gmadElement._longitudinalShift
+        _pendingLongitudinalShift = _AbsorbLongitudinalShift(
+            gmadElement, _pendingLongitudinalShift, name, t, verbose)
 
-        # --- Absorb any pending longitudinal shift from a preceding TRANSLATION ---
-        # into the current element if it is a Drift (first opportunity).
-        # If the element is another Transform3D, accumulate and keep waiting.
-        # If it is any other physical element, we cannot absorb: warn and discard.
-        if abs(_pendingLongitudinalShift) > 1e-12:
-            if isinstance(gmadElement, _Builder.Drift):
-                newLength = gmadElement.length + _pendingLongitudinalShift
-                if newLength >= 0.0:
-                    if verbose:
-                        print('Absorbing longitudinal shift {:.6g} m into drift {}'.format(
-                            _pendingLongitudinalShift, gmadElement.name))
-                    gmadElement['l'] = newLength
-                    gmadElement.length = newLength
-                else:
-                    _warnings.warn(
-                        "Cannot absorb longitudinal shift {:.6g} m into drift '{}' "
-                        "(would result in negative length {:.6g} m); shift ignored.".format(
-                            _pendingLongitudinalShift, gmadElement.name, newLength))
-                _pendingLongitudinalShift = 0.0
-            elif not isinstance(gmadElement, _Builder.Transform3D):
-                # Physical element that is not a drift: shift cannot be absorbed.
-                _warnings.warn(
-                    "TRANSLATION longitudinal shift of {:.6g} m is not followed by a Drift "
-                    "(next element: '{}', type '{}'). "
-                    "The shift will be lost and s-positions may be inconsistent.".format(
-                        _pendingLongitudinalShift, name, t),
-                    stacklevel=2)
-                _pendingLongitudinalShift = 0.0
-            # else: another Transform3D — keep accumulating, do nothing yet
-
-        # --- Route element into the machine ---
-        # Transform3D (from YROTATION, XROTATION, TRANSLATION) must never go
-        # through the aperture-attachment path because it is not a physical element.
-        #
-        # Consecutive TRANSLATION-only transforms are *merged* (x and y summed) to
-        # avoid the BDSIM bug where back-to-back transform3ds overwrite each other's
-        # fields rather than stacking.
-        #
-        # ROTATION elements (YROTATION, XROTATION) are always emitted as standalone
-        # elements and never merged with translations.  If a rotation and a translation
-        # were placed in the same transform3d, BDSIM would apply the translation in the
-        # pre-rotation frame, introducing a spurious dx·sin(θ) displacement.  Keeping
-        # them separate ensures each transform is applied in the correct frame.
+        # Route: rotations emitted standalone; consecutive translations merged;
+        # all other elements go through the normal aperture-attachment path.
+        # Rotations and translations are kept separate so each transform3d is
+        # applied in the correct local frame (merging them would cause BDSIM to
+        # apply the translation in the pre-rotation frame, introducing a
+        # dx·sin(θ) error).
         isTransform = (t in ('YROTATION', 'XROTATION', 'TRANSLATION', 'TRANSFORM')
                        or isinstance(gmadElement, _Builder.Transform3D))
         isRotation  = (t in ('YROTATION', 'XROTATION'))
 
         if isTransform:
             if isRotation:
-                # Rotation: flush any buffered shift-only transform first, then emit
-                # this rotation element immediately (never merged with anything else).
                 if _pendingTransform is not None:
                     machine.Append(_pendingTransform)
                     _pendingTransform = None
                 machine.Append(gmadElement)
             else:
-                # Shift-only transform (TRANSLATION): buffer and merge with any
-                # preceding shift-only transforms.
                 if _pendingTransform is None:
                     _pendingTransform = gmadElement
                 else:
                     _MergeTransform3D(_pendingTransform, gmadElement, verbose)
-                    # (gmadElement is discarded; _pendingTransform carries all info)
         else:
-            # Non-transform element: flush any buffered Transform3D first.
             if _pendingTransform is not None:
                 machine.Append(_pendingTransform)
                 _pendingTransform = None
@@ -791,28 +776,29 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                                      item['RMAT41'], item['RMAT42'], item['RMAT43'], item['RMAT44'])
     elif t == "TRANSFORM":
         print("warning: cannot convert TRANSFORM from TWISS file - no information on shift: ",name)
-        return _Builder.Transform3D(x=0)
+        element = _Builder.Transform3D(x=0)
+        element._longitudinalShift = 0.0
+        return element
     elif t == 'YROTATION':
-        # In MAD-X TWISS output, the rotation angle (in rad) is stored in the ANGLE column.
-        # (L=0 for this element type in the TFS output.)
-        # Sign convention: MAD-X YROTATION rotates the reference frame;
-        # BDSIM Transform3D rotates the volume/trajectory.  The two conventions differ
-        # by a sign, so angle_bdsim = -angle_madx.
-        angle_madx = item['ANGLE']
+        # The rotation angle (rad) is stored in the ANGLE column of the TFS output.
+        # Sign convention: MAD-X YROTATION rotates the reference frame while BDSIM
+        # Transform3D rotates the trajectory, so angle_bdsim = -angle_madx.
+        angle_madx  = item['ANGLE']
         angle_bdsim = -angle_madx
         if verbose:
             print('YROTATION', rname, 'angle_madx =', angle_madx, 'rad -> angle_bdsim =', angle_bdsim, 'rad')
-        return _Builder.Transform3D(rname, angle=angle_bdsim, axisAngle=1, axisY=1)
+        element = _Builder.Transform3D(rname, angle=angle_bdsim, axisAngle=1, axisY=1)
+        element._longitudinalShift = 0.0
+        return element
     elif t == 'XROTATION':
-        # XROTATION rotates the reference frame about the X axis.
-        # In BDSIM this maps to Transform3D with axisX=1.
-        # No sign flip needed for X (only Y-rotations require a sign change because of
-        # the right-hand rule applied to the horizontal bending plane convention).
-        angle_madx = item['ANGLE']
+        # XROTATION rotates the reference frame about the X axis → Transform3D with axisX=1.
+        angle_madx  = item['ANGLE']
         angle_bdsim = angle_madx
         if verbose:
             print('XROTATION', rname, 'angle_madx =', angle_madx, 'rad -> angle_bdsim =', angle_bdsim, 'rad')
-        return _Builder.Transform3D(rname, angle=angle_bdsim, axisAngle=1, axisX=1)
+        element = _Builder.Transform3D(rname, angle=angle_bdsim, axisAngle=1, axisX=1)
+        element._longitudinalShift = 0.0
+        return element
     elif t == 'TRANSLATION':
         # In MAD-X TWISS output, TRANSLATION parameters are not stored explicitly.
         # They must be inferred from the orbit columns and the T column.
@@ -849,7 +835,9 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
         if prevItem is None:
             _warnings.warn("TRANSLATION '{}': no previous item available to infer shift; "
                            "inserting zero Transform3D.".format(name))
-            return _Builder.Transform3D(rname, x=0)
+            element = _Builder.Transform3D(rname, x=0)
+            element._longitudinalShift = 0.0
+            return element
 
         ds = prevItem['T'] - item['T']  # longitudinal shift from T column [m]
         # Subtract the orbit's angular propagation through ds to get the true transverse shift.
