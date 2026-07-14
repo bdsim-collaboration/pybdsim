@@ -1043,26 +1043,31 @@ class BDSIMOutput:
         return _fill_event_collimator(collimator, self.et, self)
 
     def get_trajectories(self, i_evnt):
-        self.et.GetEntry(i_evnt)
+        n_events = self.get_events()
+        if i_evnt < len(n_events):
 
-        traj = self.e.Trajectory
+            self.et.GetEntry(i_evnt)
 
-        nstep = []
-        partID = []
-        trackID = []
-        for i in range(0,len(traj.partID)) :
-            nstep.append(len(traj.XYZ[i]))
-            trackID.append(traj.trackID[i])
-            partID.append(traj.partID[i])
+            traj = self.e.Trajectory
 
-        dd = {}
-        dd['nstep'] = nstep
-        dd['partID'] = partID
-        dd['trackID'] = trackID
+            nstep = []
+            partID = []
+            trackID = []
+            for i in range(0,len(traj.partID)) :
+                nstep.append(len(traj.XYZ[i]))
+                trackID.append(traj.trackID[i])
+                partID.append(traj.partID[i])
 
-        df = _pd.DataFrame(_enforce_same_length_dict(dd))
+            dd = {}
+            dd['nstep'] = nstep
+            dd['partID'] = partID
+            dd['trackID'] = trackID
 
-        return df
+            df = _pd.DataFrame(_enforce_same_length_dict(dd))
+
+            return df
+        else:
+            raise Exception("Trajectory requested beyond events generated.")
 
     def get_trajectory(self, i_evnt = 0 , i_traj = 0):
         self.et.GetEntry(i_evnt)
@@ -1092,6 +1097,21 @@ class BDSIMOutput:
         dd['kineticEnergy'] = KE
 
         df = _pd.DataFrame(_enforce_same_length_dict(dd))
+
+        return df
+
+    def get_trajectory_processes(self, i_evnt = 0 , i_traj = 0):
+        self.et.GetEntry(i_evnt)
+
+        traj = self.e.Trajectory
+        postProcessTypes = traj.postProcessTypes[i_traj]
+        postProcessSubTypes = traj.postProcessSubTypes[i_traj]
+
+        dd = {}
+        dd['postProcessTypes'] = list(postProcessTypes)
+        dd['postProcessSubTypes'] = list(postProcessSubTypes)
+
+        df = _pd.DataFrame(dd)
 
         return df
 
