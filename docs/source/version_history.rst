@@ -2,13 +2,29 @@
 Version History
 ===============
 
-v3.7.1 - 2026 / 01 / XX
+v3.8.0 - 2026 / 08 / 02
 =======================
 
+* MAD8 XSuite comparisons.
+* BDSIM XSuite comparisons.
+* BDSIM Ocelot comparisons.
+* Conversion between XSuite and Ocelot to BDSIM.
+* Added Gabor lens to Builder.
+* Integrate a histogram with a Boolean mask.
+* Rewrite of pandas loader.
+* Consistency in returns from plot functions - generally return the fig and ax.
+* No strict checking on particle type for cross section biasing as too many to reproduce in this package.
+* Added the slow extraction distributions to the Beam module.
+
+* Fixed MADX to BDSIM conversion for successive transforms - now automatically
+  detects the transforms.
+* Fixes to Beam module including units for sigmaT and userfile writing.
 * Fixed Issue #24 where Plot.MeshSteps would give an exception with more modern numpy.
 * Fixed import error for latest numpy in Theor.Field.
 * Plot.Histogram1D now returns the figure instance properly.
-* Improvments to MeshSteps and Histogram2D plotting for ranges.
+* Improvements to MeshSteps and Histogram2D plotting for ranges.
+
+
 
 v3.7.0 - 2025 / 11 / 07
 =======================
