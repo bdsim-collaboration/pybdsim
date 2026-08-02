@@ -2,8 +2,9 @@
 Converting Models
 =================
 
-pybdsim provdies converters to allow BDSIM models to prepared from optical
+pybdsim provides converters to allow BDSIM models to be prepared from optical
 descriptions of accelerators in other formats such as MADX and MAD8.
+Additional functions convert BDSIM output to other formats for comparison.
 
 The following converters are provided and described here:
 
@@ -24,6 +25,10 @@ The following converters are provided and described here:
 * BDSIM Primary Particle Conversion
   
   * `BDSIM Primaries To Others`_
+
+* BDSIM Sampler to HEPMC Conversion
+
+  * `BDSIM Sampler To HEPMC`_
 
 
 MadxTfs2Gmad
@@ -306,6 +311,7 @@ pytransport
 `<https://bitbucket.org/jairhul/pytransport>`_ is a separate utility to convert transport
 models into BDSIM ones.
 
+.. _bdsim-primaries-to-others:
 
 BDSIM Primaries To Others
 -------------------------
@@ -381,3 +387,74 @@ BdsimPrimaries2Mad8
 The primary BDSIM coordinates are converted to mad8 format. The converter is used as follows:
 
   >>> pybdsim.Convert.BdsimPrimaries2Mad8('output.root', 'inrays.dat')
+
+
+BDSIM Sampler to HEPMC
+-------------------------
+
+.. note:: This requires the pyhepmc package.
+
+Sampler data may be read from a BDSIM output ROOT file and written to a HEPMC2 or HEPMC3
+human-readable file. This allows the vertices contained in a BDSIM sampler to be used as
+input for further studies with other software such as FLUKA.
+Similar to :ref:`bdsim-primaries-to-others`, the HEPMC file may also be used to pass coordinates 
+from one BDSIM simulation to another, provided BDSIM has been installed with a corresponding 
+HEPMC readed.
+
+.. note:: HEPMC2 does not support per-event weight assignment. Hence, skimming and biasing weights 
+  can only be included in a HEPMC3 file with the optional argument :code:`weightsName` 
+  listed in the table below.
+
+The converters are used as follows:
+
+  >>> pybdsim.Convert.BdsimSamplerData2Hepmc2('output.root','hepmc2file.dat','samplerName')
+  >>> pybdsim.Convert.BdsimSamplerData2Hepmc3('output.root','hepmc3file.dat','samplerName')
+
+The following optional arguments may be given:
+
+.. tabularcolumns:: |p{5cm}|p{10cm}|
+
++-------------------------------+-------------------------------------------------------------------+
+| **ZForHits**                  | Z coordinate in meters for all particle vertices.                 |
+|                               | Default value is 0 m.                                             |
++-------------------------------+-------------------------------------------------------------------+
+| **pidList**                   | List of PDG IDs to convert. Empty by default, which will result   |
+|                               | in all particles being converted.                                 |
++-------------------------------+-------------------------------------------------------------------+
+| **weightsName**               | (HEPMC3 only) Name for statistical weights resulting from the use |
+|                               | of skimming and/or biasing. Empty string by default, which will   |
+|                               | result in weights being excluded from the HEPMC file.             |
++-------------------------------+-------------------------------------------------------------------+
+
+Some HEPMC readers do not allow vertices with no incoming particles. As a workaround, 
+the following functions produce HEPMC vertices that have the same incoming and outgoing particle. 
+For example, we start with a BDSIM root file containing the following events in Sampler A: ::
+
+  Event 1: PDG ID 13, weight = 0.5, X = 1 m, Y = 3 m, PX = 0.1 GeV, PY = 0.2 GeV, PZ = 99.9 GeV, E = 100 GeV
+  Event 2: PDG ID 14, X = 2 m, Y = 2 m, PX = 0.3 GeV, PY = 0.3 GeV, PZ = 49.9 GeV, E = 50 GeV
+  Event 3: PDG ID -13, X = -2 m, Y = -1 m, PX = 10 GeV, PY = 15 GeV, PZ = 78 GeV, E = 80 GeV
+
+Then we run the following command: ::
+
+  pybdsim.Convert.BdsimSamplerData2Hepmc3('output.root','hepmc3file.dat','Sampler A',ZForHits=300,pidList=[13,14],weightsName='bias')
+
+This results in the following output file: ::
+
+  HepMC::Version 3.02.05
+  HepMC::Asciiv3-START_EVENT_LISTING
+  W bias
+  E 0 1 2
+  U GEV MM
+  W 5.0000000000000000000000e-01
+  A 0 signal_process_id -1
+  P 1 0 13 1.0000000000000000e-01 2.0000000000000000e-01 9.9900000000000000e+01 1.0565847159070374e-01 1
+  V -1 0 [1] @  1.0000000000000000e+03  3.0000000000000000e+03 3.0000000000000000e+05 3.0000000000000000e+05
+  P 2 -1 13 1.0000000000000000e-01 2.0000000000000000e-01 9.9900000000000000e+01 1.0565847159070374e-01 1
+  E 1 1 2
+  U GEV MM
+  W 1.0000000000000000000000e+00
+  A 0 signal_process_id -1
+  P 1 0 14 3.0000000000000000e-01 3.0000000000000000e-01 4.9900000000000000e+01 0.0000000000000000e+00 1
+  V -1 0 [1] @  2.0000000000000000e+03  2.0000000000000000e+03 3.0000000000000000e+05 3.0000000000000000e+05
+  P 2 -1 14 3.0000000000000000e-01 3.0000000000000000e-01 4.9900000000000000e+01 0.0000000000000000e+00 1
+  HepMC::Asciiv3-END_EVENT_LISTING

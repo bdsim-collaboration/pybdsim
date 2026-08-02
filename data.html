@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Data Loading &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+  <title>Data Loading &mdash; pybdsim 3.8.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=8d537194"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=948f11bf"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -167,7 +167,7 @@ in the file such as the beam line model (for plotting machine diagrams).</p>
 </pre></div>
 </div>
 <p>We can also get an index with enumeration:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">event</span> <span class="ow">in</span> <span class="n">eventTree</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">event</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">eventTree</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">Eloss</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -207,7 +207,7 @@ by the user that takes one argument <code class="code docutils literal notransla
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pybdsim</span>
 <span class="k">def</span> <span class="nf">MyCustomFilter</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
     <span class="k">return</span> <span class="mf">20.0</span> <span class="o">&lt;</span> <span class="n">event</span><span class="o">.</span><span class="n">Primary</span><span class="o">.</span><span class="n">energy</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">100.0</span>
-<span class="n">SkimBDSIMFile</span><span class="p">(</span><span class="s2">&quot;originalData.root&quot;</span><span class="p">,</span> <span class="n">MyCustomFilter</span><span class="p">)</span>
+<span class="n">pybdsim</span><span class="o">.</span><span class="n">Data</span><span class="o">.</span><span class="n">SkimBDSIMFile</span><span class="p">(</span><span class="s2">&quot;originalData.root&quot;</span><span class="p">,</span> <span class="n">MyCustomFilter</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This will apply MyCustomFilter, which returns True only when the first primary in

@@ -6,17 +6,17 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Converting Models &mdash; pybdsim 0.1.dev1+g26ac039 documentation</title>
+  <title>Converting Models &mdash; pybdsim 3.8.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=8d537194"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/documentation_options.js?v=948f11bf"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -72,6 +72,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#bdsimprimaries2mad8">BdsimPrimaries2Mad8</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#bdsim-sampler-to-hepmc">BDSIM Sampler to HEPMC</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="compare.html">Model Comparison</a></li>
@@ -112,8 +113,9 @@
              
   <section id="converting-models">
 <h1>Converting Models<a class="headerlink" href="#converting-models" title="Link to this heading"></a></h1>
-<p>pybdsim provdies converters to allow BDSIM models to prepared from optical
-descriptions of accelerators in other formats such as MADX and MAD8.</p>
+<p>pybdsim provides converters to allow BDSIM models to be prepared from optical
+descriptions of accelerators in other formats such as MADX and MAD8.
+Additional functions convert BDSIM output to other formats for comparison.</p>
 <p>The following converters are provided and described here:</p>
 <ul class="simple">
 <li><p>MADX to BDSIM</p>
@@ -134,7 +136,12 @@ descriptions of accelerators in other formats such as MADX and MAD8.</p>
 </li>
 <li><p>BDSIM Primary Particle Conversion</p>
 <ul>
-<li><p><a class="reference internal" href="#bdsim-primaries-to-others">BDSIM Primaries To Others</a></p></li>
+<li><p><a class="reference internal" href="#id1">BDSIM Primaries To Others</a></p></li>
+</ul>
+</li>
+<li><p>BDSIM Sampler to HEPMC Conversion</p>
+<ul>
+<li><p><a class="reference internal" href="#bdsim-sampler-to-hepmc">BDSIM Sampler To HEPMC</a></p></li>
 </ul>
 </li>
 </ul>
@@ -434,7 +441,7 @@ Once prepared, the Tape files can be converted. The converter is used as follows
 models into BDSIM ones.</p>
 </section>
 <section id="bdsim-primaries-to-others">
-<h2>BDSIM Primaries To Others<a class="headerlink" href="#bdsim-primaries-to-others" title="Link to this heading"></a></h2>
+<span id="id1"></span><h2>BDSIM Primaries To Others<a class="headerlink" href="#bdsim-primaries-to-others" title="Link to this heading"></a></h2>
 <p>The particle coordinates recorded by BDSIM may be read from an output ROOT file and written
 to another format. This can be used for example to ensure the exact same coordinates are used
 in multiple BDSIM simulations, or to when comparing BDSIM to other tracking codes such as PTC.
@@ -501,6 +508,81 @@ time.</p>
 </pre></div>
 </div>
 </section>
+</section>
+<section id="bdsim-sampler-to-hepmc">
+<h2>BDSIM Sampler to HEPMC<a class="headerlink" href="#bdsim-sampler-to-hepmc" title="Link to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This requires the pyhepmc package.</p>
+</div>
+<p>Sampler data may be read from a BDSIM output ROOT file and written to a HEPMC2 or HEPMC3
+human-readable file. This allows the vertices contained in a BDSIM sampler to be used as
+input for further studies with other software such as FLUKA.
+Similar to <a class="reference internal" href="#bdsim-primaries-to-others"><span class="std std-ref">BDSIM Primaries To Others</span></a>, the HEPMC file may also be used to pass coordinates
+from one BDSIM simulation to another, provided BDSIM has been installed with a corresponding
+HEPMC readed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>HEPMC2 does not support per-event weight assignment. Hence, skimming and biasing weights
+can only be included in a HEPMC3 file with the optional argument <code class="code docutils literal notranslate"><span class="pre">weightsName</span></code>
+listed in the table below.</p>
+</div>
+<p>The converters are used as follows:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimSamplerData2Hepmc2</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span><span class="s1">&#39;hepmc2file.dat&#39;</span><span class="p">,</span><span class="s1">&#39;samplerName&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimSamplerData2Hepmc3</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span><span class="s1">&#39;hepmc3file.dat&#39;</span><span class="p">,</span><span class="s1">&#39;samplerName&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The following optional arguments may be given:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>ZForHits</strong></p></td>
+<td><p>Z coordinate in meters for all particle vertices.
+Default value is 0 m.</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>pidList</strong></p></td>
+<td><p>List of PDG IDs to convert. Empty by default, which will result
+in all particles being converted.</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>weightsName</strong></p></td>
+<td><p>(HEPMC3 only) Name for statistical weights resulting from the use
+of skimming and/or biasing. Empty string by default, which will
+result in weights being excluded from the HEPMC file.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Some HEPMC readers do not allow vertices with no incoming particles. As a workaround,
+the following functions produce HEPMC vertices that have the same incoming and outgoing particle.
+For example, we start with a BDSIM root file containing the following events in Sampler A:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Event</span> <span class="mi">1</span><span class="p">:</span> <span class="n">PDG</span> <span class="n">ID</span> <span class="mi">13</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="mi">1</span> <span class="n">m</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="mi">3</span> <span class="n">m</span><span class="p">,</span> <span class="n">PX</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">PY</span> <span class="o">=</span> <span class="mf">0.2</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">PZ</span> <span class="o">=</span> <span class="mf">99.9</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="mi">100</span> <span class="n">GeV</span>
+<span class="n">Event</span> <span class="mi">2</span><span class="p">:</span> <span class="n">PDG</span> <span class="n">ID</span> <span class="mi">14</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="mi">2</span> <span class="n">m</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="mi">2</span> <span class="n">m</span><span class="p">,</span> <span class="n">PX</span> <span class="o">=</span> <span class="mf">0.3</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">PY</span> <span class="o">=</span> <span class="mf">0.3</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">PZ</span> <span class="o">=</span> <span class="mf">49.9</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="mi">50</span> <span class="n">GeV</span>
+<span class="n">Event</span> <span class="mi">3</span><span class="p">:</span> <span class="n">PDG</span> <span class="n">ID</span> <span class="o">-</span><span class="mi">13</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="o">-</span><span class="mi">2</span> <span class="n">m</span><span class="p">,</span> <span class="n">Y</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="n">m</span><span class="p">,</span> <span class="n">PX</span> <span class="o">=</span> <span class="mi">10</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">PY</span> <span class="o">=</span> <span class="mi">15</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">PZ</span> <span class="o">=</span> <span class="mi">78</span> <span class="n">GeV</span><span class="p">,</span> <span class="n">E</span> <span class="o">=</span> <span class="mi">80</span> <span class="n">GeV</span>
+</pre></div>
+</div>
+<p>Then we run the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pybdsim</span><span class="o">.</span><span class="n">Convert</span><span class="o">.</span><span class="n">BdsimSamplerData2Hepmc3</span><span class="p">(</span><span class="s1">&#39;output.root&#39;</span><span class="p">,</span><span class="s1">&#39;hepmc3file.dat&#39;</span><span class="p">,</span><span class="s1">&#39;Sampler A&#39;</span><span class="p">,</span><span class="n">ZForHits</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span><span class="n">pidList</span><span class="o">=</span><span class="p">[</span><span class="mi">13</span><span class="p">,</span><span class="mi">14</span><span class="p">],</span><span class="n">weightsName</span><span class="o">=</span><span class="s1">&#39;bias&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This results in the following output file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HepMC</span><span class="p">::</span><span class="n">Version</span> <span class="mf">3.02.05</span>
+<span class="n">HepMC</span><span class="p">::</span><span class="n">Asciiv3</span><span class="o">-</span><span class="n">START_EVENT_LISTING</span>
+<span class="n">W</span> <span class="n">bias</span>
+<span class="n">E</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span>
+<span class="n">U</span> <span class="n">GEV</span> <span class="n">MM</span>
+<span class="n">W</span> <span class="mf">5.0000000000000000000000e-01</span>
+<span class="n">A</span> <span class="mi">0</span> <span class="n">signal_process_id</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">P</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">13</span> <span class="mf">1.0000000000000000e-01</span> <span class="mf">2.0000000000000000e-01</span> <span class="mf">9.9900000000000000e+01</span> <span class="mf">1.0565847159070374e-01</span> <span class="mi">1</span>
+<span class="n">V</span> <span class="o">-</span><span class="mi">1</span> <span class="mi">0</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">@</span>  <span class="mf">1.0000000000000000e+03</span>  <span class="mf">3.0000000000000000e+03</span> <span class="mf">3.0000000000000000e+05</span> <span class="mf">3.0000000000000000e+05</span>
+<span class="n">P</span> <span class="mi">2</span> <span class="o">-</span><span class="mi">1</span> <span class="mi">13</span> <span class="mf">1.0000000000000000e-01</span> <span class="mf">2.0000000000000000e-01</span> <span class="mf">9.9900000000000000e+01</span> <span class="mf">1.0565847159070374e-01</span> <span class="mi">1</span>
+<span class="n">E</span> <span class="mi">1</span> <span class="mi">1</span> <span class="mi">2</span>
+<span class="n">U</span> <span class="n">GEV</span> <span class="n">MM</span>
+<span class="n">W</span> <span class="mf">1.0000000000000000000000e+00</span>
+<span class="n">A</span> <span class="mi">0</span> <span class="n">signal_process_id</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">P</span> <span class="mi">1</span> <span class="mi">0</span> <span class="mi">14</span> <span class="mf">3.0000000000000000e-01</span> <span class="mf">3.0000000000000000e-01</span> <span class="mf">4.9900000000000000e+01</span> <span class="mf">0.0000000000000000e+00</span> <span class="mi">1</span>
+<span class="n">V</span> <span class="o">-</span><span class="mi">1</span> <span class="mi">0</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">@</span>  <span class="mf">2.0000000000000000e+03</span>  <span class="mf">2.0000000000000000e+03</span> <span class="mf">3.0000000000000000e+05</span> <span class="mf">3.0000000000000000e+05</span>
+<span class="n">P</span> <span class="mi">2</span> <span class="o">-</span><span class="mi">1</span> <span class="mi">14</span> <span class="mf">3.0000000000000000e-01</span> <span class="mf">3.0000000000000000e-01</span> <span class="mf">4.9900000000000000e+01</span> <span class="mf">0.0000000000000000e+00</span> <span class="mi">1</span>
+<span class="n">HepMC</span><span class="p">::</span><span class="n">Asciiv3</span><span class="o">-</span><span class="n">END_EVENT_LISTING</span>
+</pre></div>
+</div>
 </section>
 </section>
 
