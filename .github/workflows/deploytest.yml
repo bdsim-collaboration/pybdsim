@@ -1,19 +1,17 @@
-name: pypi deploy
+name: pypi-test deploy
 
 on:
-  release:
-    types: [ created ]
   push:
     tags:
-      - 'v*'  # Trigger only on tags like v1.2.3
+      - 'v*-rc'  # Trigger only on tags like v1.2.3-rc
 
 jobs:
-  build-and-publish:
+  publish-to-testpypi:
     runs-on: ubuntu-latest
 
     environment:
-      name: pypi
-      url: https://pypi.org/p/pybdsim
+      name: testpypi
+      url: https://test.pypi.org/p/pybdsim
 
     permissions:
       id-token: write

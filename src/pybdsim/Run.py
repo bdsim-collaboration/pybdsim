@@ -542,3 +542,41 @@ def RenderGmadJinjaTemplate(template_file, output_file, data, path=".") :
     f = open(output_file,"w")
     f.write(output)
     f.close()
+
+class Versions :
+    """
+    Retrieves and stores the versions of ROOT, Geant4, and CLHEP installed on the system.
+    This class provides attributes for the detected versions of these dependencies by
+    invoking their respective configuration commands. If a version cannot be found,
+    the attribute will be set to "Not found".
+    """
+
+    def __init__(self):
+        self.root_version = self._find_root_version()
+        self.geant4_version = self._find_geant4_version()
+        self.clhep_version = self._find_clhep_version()
+
+    def _find_root_version(self) :
+        try :
+            result = _subprocess.run(["root-config","--version"], capture_output=True, text=True, check=True)
+            return result.stdout.strip()
+        except (FileNotFoundError, _subprocess.CalledProcessError):
+            return "Not found"
+
+    def _find_geant4_version(self) :
+        try :
+            result = _subprocess.run(["geant4-config","--version"], capture_output=True, text=True, check=True)
+            return result.stdout.strip()
+        except (FileNotFoundError, _subprocess.CalledProcessError):
+            return "Not found"
+
+    def _find_clhep_version(self) :
+        try :
+            result = _subprocess.run(["clhep-config","--version"], capture_output=True, text=True, check=True)
+            parts = result.stdout.split()
+            if len(parts) == 2 :
+                return parts[1].strip()
+            else :
+                return "Not found"
+        except (FileNotFoundError, _subprocess.CalledProcessError):
+            return "Not found"

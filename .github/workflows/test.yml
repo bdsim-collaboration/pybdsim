@@ -2,9 +2,14 @@ name: Test pybdsim
 
 on:
   push:
-    branches: [master github-tests]
+    branches:
+      - develop
+      - master
+      - github-tests
   pull_request:
-    branches: [master]
+    branches:
+      - develop
+      - master
   workflow_dispatch:
 
 jobs:

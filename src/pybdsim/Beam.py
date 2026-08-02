@@ -23,7 +23,11 @@ BDSIMDistributionTypes = [
     'compositesde',
     'box',
     'bdsimsampler',
-    'halosigma'
+    'halosigma',
+    'slowext',
+    'gaussslowext',
+    'gaussmatrixslowext',
+    'gausstwissslowext'
 ]
 
 BDSIMParticleTypes = [
@@ -43,7 +47,7 @@ BDSIMParticleTypes = [
     'kaon0L'
 ]
 
-def WriteUserFile(filename, coordinates):
+def WriteUserFile(filename, coordinates, formats=r".5f"):
     """
     Function to write a BDSIM beamfile of type userfile.
 
@@ -64,18 +68,12 @@ def WriteUserFile(filename, coordinates):
         else:
             fn.write(s)
 
-    for n_coord, coord in enumerate(coordinates):
-        s = ''
-        for n_c, c in enumerate(coord):
-            if n_c < len(coord) - 1  and n_coord <= len(coordinates) - 1:
-                add = '\t'
-            elif n_c == len(coord) - 1 and n_coord < len(coordinates) - 1:
-                add = '\n'
-            elif n_c == len(coord) - 1 and n_coord == len(coordinates) - 1:
-                add = ''
-            s += str(c) + add
-        write(f, s)
+    if isinstance(formats, str):
+        formats = [formats]*len(coordinates[0])
 
+    for coords in coordinates:
+        ls = "\t".join([(r"{:" + form + r"}").format(c) for c, form in zip(coords, formats)]) + "\n"
+        write(f, ls)
     f.close()
 
 
@@ -94,6 +92,14 @@ class Beam(dict) :
     def SetEnergy(self,energy=1.0,unitsstring='GeV'):
         self['energy'] = str(energy) + '*' + unitsstring
 
+    def _MakeGauss(self):
+        setattr(self, 'SetSigmaX',     self._SetSigmaX)
+        setattr(self, 'SetSigmaY',     self._SetSigmaY)
+        setattr(self, 'SetSigmaE',     self._SetSigmaE)
+        setattr(self, 'SetSigmaXP',    self._SetSigmaXP)
+        setattr(self, 'SetSigmaYP',    self._SetSigmaYP)
+        setattr(self, 'SetSigmaT',     self._SetSigmaT)   
+        
     def _MakeGaussTwiss(self):
         setattr(self, 'SetBetaX',      self._SetBetaX)
         setattr(self, 'SetBetaY',      self._SetBetaY)
@@ -110,6 +116,12 @@ class Beam(dict) :
         setattr(self, 'SetDispXP',     self._SetDispXP)
         setattr(self, 'SetDispYP',     self._SetDispYP)
 
+    def _MakeSlowExt(self):
+        setattr(self, 'SetDTStart',    self._SetDTStart)
+        setattr(self, 'SetDTStop',     self._SetDTStop)
+        setattr(self, 'SetDPStart',    self._SetDPStart)
+        setattr(self, 'SetDPStop',     self._SetDPStop)
+
     def SetDistributionType(self,distrType='reference'):
         if distrType not in BDSIMDistributionTypes and not 'bdsimsampler:' in distrType and not 'eventgeneratorfile:' in distrType:
             raise ValueError("Unknown distribution type: '"+str(distrType)+"'")
@@ -123,14 +135,9 @@ class Beam(dict) :
         if distrType == 'reference':
             pass
         elif distrType == 'gaussmatrix':
-            setattr(self, 'SegSigmaNM',    self._SetSigmaNM)
+            setattr(self, 'SetSigmaNM',    self._SetSigmaNM)
         elif distrType == 'gauss':
-            setattr(self, 'SetSigmaX',     self._SetSigmaX)
-            setattr(self, 'SetSigmaY',     self._SetSigmaY)
-            setattr(self, 'SetSigmaE',     self._SetSigmaE)
-            setattr(self, 'SetSigmaXP',    self._SetSigmaXP)
-            setattr(self, 'SetSigmaYP',    self._SetSigmaYP)
-            setattr(self, 'SetSigmaT',     self._SetSigmaT)   
+            self._MakeGauss()
         elif distrType == 'gausstwiss':
             self._MakeGaussTwiss()
         elif distrType == 'circle':
@@ -173,6 +180,17 @@ class Beam(dict) :
         elif distrType == "userfile":
             setattr(self, 'SetDistrFile',     self._SetDistrFile)
             setattr(self, 'SetDistrFileFormat',self._SetDistrFileFormat)
+        elif distrType == "slowext":
+            self._MakeSlowExt()
+        elif distrType == "gaussslowext":
+            self._MakeGauss()
+            self._MakeSlowExt()
+        elif distrType == "gaussmatrixslowext":
+            setattr(self, 'SetSigmaNM',    self._SetSigmaNM)
+            self._MakeSlowExt()
+        elif distrType == "gausstwissslowext":
+            self._MakeGaussTwiss()
+            self._MakeSlowExt()
 
     def WriteToFile(self, filename):
         f = open(filename, 'w')
@@ -239,7 +257,7 @@ class Beam(dict) :
         self['sigmaYp'] = str(sigmayp) + '*' + unitsstring
 
     def _SetSigmaT(self,sigmat=1.0,unitsstring='s'):
-        self['sigmaT'] = str(sigmat)
+        self['sigmaT'] = str(sigmat) + '*' + unitsstring
 
     def _SetBetaX(self, betx=1.0, unitsstring='m'):
         self['betx'] = str(betx) + '*' + unitsstring
@@ -247,10 +265,10 @@ class Beam(dict) :
     def _SetBetaY(self,bety=1.0,unitsstring='m'):
         self['bety'] = str(bety) + '*' + unitsstring
 
-    def _SetAlphaX(self,alphax=1.0,unitsstring='m'):
+    def _SetAlphaX(self,alphax=1.0):
         self['alfx'] = str(alphax)
 
-    def _SetAlphaY(self,alphay=1.0,unitsstring='m'):
+    def _SetAlphaY(self,alphay=1.0):
         self['alfy'] = str(alphay)
 
     def _SetDispX(self,dispx=1.0,unitsstring='m'):
@@ -362,7 +380,7 @@ class Beam(dict) :
         if on == True:
             self["offsetSampleMean"] = 1
         else:
-            self["OffsetSampleMean"] = 0
+            self["offsetSampleMean"] = 0
 
     def _SetDistrFile(self, filename):
         self["distrFile"] = '"{}"'.format(filename)
@@ -373,18 +391,14 @@ class Beam(dict) :
     def _SetDistrFileLoop(self, loop=0):
         self["distrFileLoop"] = loop
 
-    def _MakeGaussTwiss(self):
-        setattr(self, 'SetBetaX',      self._SetBetaX)
-        setattr(self, 'SetBetaY',      self._SetBetaY)
-        setattr(self, 'SetAlphaX',     self._SetAlphaX)
-        setattr(self, 'SetAlphaY',     self._SetAlphaY)
-        setattr(self, 'SetEmittanceX', self._SetEmittanceX)
-        setattr(self, 'SetEmittanceY', self._SetEmittanceY)
-        setattr(self, 'SetEmittanceNX', self._SetEmittanceNX)
-        setattr(self, 'SetEmittanceNY', self._SetEmittanceNY)
-        setattr(self, 'SetSigmaE',     self._SetSigmaE)
-        setattr(self, 'SetSigmaT',     self._SetSigmaT)
-        setattr(self, 'SetDispX',      self._SetDispX)
-        setattr(self, 'SetDispY',      self._SetDispY)
-        setattr(self, 'SetDispXP',     self._SetDispXP)
-        setattr(self, 'SetDispYP',     self._SetDispYP)
+    def _SetDTStart(self, dtstart=0.0, unitsstring='s'):
+        self["dTStart"] = str(dtstart) + '*' + unitsstring
+
+    def _SetDTStop(self, dtstop=0.0, unitsstring='s'):
+        self["dTStop"] = str(dtstop) + '*' + unitsstring
+
+    def _SetDPStart(self, dpstart=0.0, unitsstring='GeV'):
+        self["dPStart"] = str(dpstart) + '*' + unitsstring
+
+    def _SetDPStop(self, dpstop=0.0, unitsstring='GeV'):
+        self["dPStop"] = str(dpstop) + '*' + unitsstring

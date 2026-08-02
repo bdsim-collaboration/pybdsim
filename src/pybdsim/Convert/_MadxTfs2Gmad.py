@@ -22,6 +22,83 @@ _ignoreableThinElements = {"MONITOR", "VMONITOR", "HMONITOR", "PLACEHOLDER", "MA
 # anything below this length is treated as a thin element
 _THIN_ELEMENT_THRESHOLD = 1e-6
 
+# Translational fields of a transform3d that are simply summed when merging.
+_TRANSFORM3D_ADDITIVE_FIELDS = ('x', 'y')
+
+
+def _MergeTransform3D(base, incoming, verbose=False):
+    """Merge *incoming* (shift-only) Transform3D into *base* in-place.
+
+    Only called for consecutive TRANSLATION-derived elements.  Rotation
+    elements (YROTATION, XROTATION) are always emitted as standalone
+    transform3ds and never passed here.
+
+    Translational fields (x, y) are summed; the ``_longitudinalShift``
+    attribute is accumulated for later absorption into a Drift.
+
+    :param base: the buffered Transform3D that accumulates all shifts.
+    :type  base: pybdsim.Builder.Transform3D
+    :param incoming: the new shift-only Transform3D to fold in.
+    :type  incoming: pybdsim.Builder.Transform3D
+    """
+    for field in _TRANSFORM3D_ADDITIVE_FIELDS:
+        combined = base.get(field, 0.0) + incoming.get(field, 0.0)
+        if abs(combined) > 1e-15:
+            base[field] = combined
+
+    base._longitudinalShift += incoming._longitudinalShift
+
+    if verbose:
+        print('  Merged Transform3D {} into {}'.format(incoming.name, base.name))
+
+
+def _AbsorbLongitudinalShift(gmadElement, pendingDs, name, t, verbose=False):
+    """Attempt to absorb *pendingDs* into *gmadElement* if it is a Drift.
+
+    A MAD-X TRANSLATION with a DS component shifts the reference frame
+    forward by *ds* along the local s-axis.  BDSIM supports ``transform3d,
+    z=ds`` for this purpose, but extending the immediately following Drift
+    by *ds* is simpler and avoids any geometry-overlap issues.
+
+    Returns the updated pending shift: 0.0 if absorbed or discarded,
+    unchanged if *gmadElement* is a Transform3D (keep waiting for a Drift).
+
+    :param gmadElement: element currently being processed.
+    :param pendingDs: accumulated longitudinal shift (m).
+    :param name: element name (for warning messages).
+    :param t: MAD-X keyword (for warning messages).
+    :param verbose: print a message when a shift is absorbed.
+    :returns: updated pendingDs.
+    :rtype: float
+    """
+    if abs(pendingDs) < 1e-12:
+        return pendingDs
+
+    if isinstance(gmadElement, _Builder.Drift):
+        newLength = gmadElement.length + pendingDs
+        if newLength >= 0.0:
+            if verbose:
+                print('Absorbing longitudinal shift {:.6g} m into drift {}'.format(
+                    pendingDs, gmadElement.name))
+            gmadElement['l'] = newLength
+            gmadElement.length = newLength
+        else:
+            _warnings.warn(
+                "Cannot absorb longitudinal shift {:.6g} m into drift '{}' "
+                "(would result in negative length {:.6g} m); shift ignored.".format(
+                    pendingDs, gmadElement.name, newLength))
+        return 0.0
+    elif isinstance(gmadElement, _Builder.Transform3D):
+        return pendingDs  # keep waiting; a Drift will follow
+    else:
+        _warnings.warn(
+            "TRANSLATION longitudinal shift of {:.6g} m is not followed by a "
+            "Drift (next element: '{}', type '{}'). "
+            "The shift will be lost and s-positions may be inconsistent.".format(
+                pendingDs, name, t),
+            stacklevel=2)
+        return 0.0
+
 
 def ZeroMissingRequiredColumns(tfsinstance):
     """
@@ -46,7 +123,7 @@ def ZeroMissingRequiredColumns(tfsinstance):
 
 
 def _WillIgnoreItem(item, tfsinstance, ignoreZeroLength, ignoreableThinElements):
-    tresult    = item['KEYWORD'] in ignoreableThinElements    
+    tresult    = item['KEYWORD'] in ignoreableThinElements
     zerolength = item['L'] < 1e-9
     result     = not tfsinstance.ElementPerturbs(item) and zerolength and ignoreZeroLength and tresult
     return result
@@ -262,6 +339,18 @@ def MadxTfs2Gmad(tfs, outputfilename,
 
     oldItem = None
 
+    # Pending longitudinal shift from a TRANSLATION element.  BDSIM supports
+    # transform3d with a z parameter for this purpose, but we instead absorb
+    # the shift into the length of the next available Drift to avoid any
+    # geometry overlap issues.  See _AbsorbLongitudinalShift().
+    _pendingLongitudinalShift = 0.0
+
+    # Buffer for consecutive Transform3D elements.  Instead of appending each
+    # one immediately, we accumulate them here and emit a single merged element
+    # when the run of transforms ends.  This avoids the BDSIM behaviour where
+    # back-to-back Transform3Ds overwrite rather than stack each other's fields.
+    _pendingTransform = None
+
     for item in madx[startname:stopname:stepsize]:
         name = item['NAME']
         t = item['KEYWORD']
@@ -286,32 +375,72 @@ def MadxTfs2Gmad(tfs, outputfilename,
                                               flipmagnets, linear,
                                               zerolength, ignorezerolengthitems,
                                               allNamesUnique,
-                                              namePrepend)
+                                              namePrepend,
+                                              prevItem=oldItem)
         if gmadElement is None: # factory returned nothing, go to next item.
             continue
         # We generally convert unsupported elements in the factory to
         # drifts, but if that then results in a drift with zero
         # length, then skip it.
-        elif gmadElement.length == 0.0 and isinstance(gmadElement,
-                                                      _Builder.Drift):
+        elif gmadElement.length == 0.0 and isinstance(gmadElement, _Builder.Drift):
             continue
-        elif l == 0.0: # Don't try to attach apertures to thin elements.
-            machine.Append(gmadElement)
-        elif name in collimatordict: # Don't add apertures to collimators
-            machine.Append(gmadElement)
-        elif aperlocalpositions: # split aperture if provided.
-            elements_split_with_aper = _GetElementSplitByAperture(gmadElement,
-                                                                  aperlocalpositions[i])
-            for ele in elements_split_with_aper:
-                machine.Append(ele)
-        else: # Get element with single aperture
-            element_with_aper = _GetSingleElementWithAper(item,
-                                                          gmadElement,
-                                                          aperturedict,
-                                                          defaultAperture)
-            machine.Append(element_with_aper)
+
+        # Accumulate any longitudinal shift from TRANSLATION elements, then try
+        # to absorb it into the current element if it is a Drift.
+        if isinstance(gmadElement, _Builder.Transform3D):
+            _pendingLongitudinalShift += gmadElement._longitudinalShift
+        _pendingLongitudinalShift = _AbsorbLongitudinalShift(
+            gmadElement, _pendingLongitudinalShift, name, t, verbose)
+
+        # Route: rotations emitted standalone; consecutive translations merged;
+        # all other elements go through the normal aperture-attachment path.
+        # Rotations and translations are kept separate so each transform3d is
+        # applied in the correct local frame (merging them would cause BDSIM to
+        # apply the translation in the pre-rotation frame, introducing a
+        # dx·sin(θ) error).
+        isTransform = (t in ('YROTATION', 'XROTATION', 'TRANSLATION', 'TRANSFORM')
+                       or isinstance(gmadElement, _Builder.Transform3D))
+        isRotation  = (t in ('YROTATION', 'XROTATION'))
+
+        if isTransform:
+            if isRotation:
+                if _pendingTransform is not None:
+                    machine.Append(_pendingTransform)
+                    _pendingTransform = None
+                machine.Append(gmadElement)
+            else:
+                if _pendingTransform is None:
+                    _pendingTransform = gmadElement
+                else:
+                    _MergeTransform3D(_pendingTransform, gmadElement, verbose)
+        else:
+            if _pendingTransform is not None:
+                machine.Append(_pendingTransform)
+                _pendingTransform = None
+
+            if l == 0.0: # Don't try to attach apertures to thin elements.
+                machine.Append(gmadElement)
+            elif name in collimatordict: # Don't add apertures to collimators
+                machine.Append(gmadElement)
+            elif aperlocalpositions: # split aperture if provided.
+                elements_split_with_aper = _GetElementSplitByAperture(gmadElement,
+                                                                      aperlocalpositions[i])
+                for ele in elements_split_with_aper:
+                    machine.Append(ele)
+            else: # Get element with single aperture
+                element_with_aper = _GetSingleElementWithAper(item,
+                                                              gmadElement,
+                                                              aperturedict,
+                                                              defaultAperture)
+                machine.Append(element_with_aper)
 
         oldItem = item
+
+    # Flush any Transform3D that was still pending at the end of the sequence
+    # (e.g. a rotation placed at the very last position, unlikely but safe).
+    if _pendingTransform is not None:
+        machine.Append(_pendingTransform)
+        _pendingTransform = None
 
     if (samplers is not None):
         machine.AddSampler(samplers)
@@ -345,7 +474,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                             linear, zerolength,
                             ignorezerolengthitems,
                             allNamesUnique,
-                            namePrepend=""):
+                            namePrepend="",
+                            prevItem=None):
     """
     Function which makes the correct GMAD element given a TFS
     element to gmad.
@@ -646,7 +776,93 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                                      item['RMAT41'], item['RMAT42'], item['RMAT43'], item['RMAT44'])
     elif t == "TRANSFORM":
         print("warning: cannot convert TRANSFORM from TWISS file - no information on shift: ",name)
-        return _Builder.Transform3D(x=0)
+        element = _Builder.Transform3D(x=0)
+        element._longitudinalShift = 0.0
+        return element
+    elif t == 'YROTATION':
+        # The rotation angle (rad) is stored in the ANGLE column of the TFS output.
+        # Sign convention: MAD-X YROTATION rotates the reference frame while BDSIM
+        # Transform3D rotates the trajectory, so angle_bdsim = -angle_madx.
+        angle_madx  = item['ANGLE']
+        angle_bdsim = -angle_madx
+        if verbose:
+            print('YROTATION', rname, 'angle_madx =', angle_madx, 'rad -> angle_bdsim =', angle_bdsim, 'rad')
+        element = _Builder.Transform3D(rname, angle=angle_bdsim, axisAngle=1, axisY=1)
+        element._longitudinalShift = 0.0
+        return element
+    elif t == 'XROTATION':
+        # XROTATION rotates the reference frame about the X axis → Transform3D with axisX=1.
+        angle_madx  = item['ANGLE']
+        angle_bdsim = angle_madx
+        if verbose:
+            print('XROTATION', rname, 'angle_madx =', angle_madx, 'rad -> angle_bdsim =', angle_bdsim, 'rad')
+        element = _Builder.Transform3D(rname, angle=angle_bdsim, axisAngle=1, axisX=1)
+        element._longitudinalShift = 0.0
+        return element
+    elif t == 'TRANSLATION':
+        # In MAD-X TWISS output, TRANSLATION parameters are not stored explicitly.
+        # They must be inferred from the orbit columns and the T column.
+        #
+        # The MAD-X Twiss X/Y columns represent the orbit position in the curvilinear
+        # frame.  When a TRANSLATION with DS (longitudinal shift) is applied, the orbit
+        # appears to move in X/Y because the reference-frame origin advances DS along
+        # the current s-direction while the orbit continues at its fixed angle (PX/PY).
+        # The apparent X change is therefore:
+        #
+        #   ΔX_apparent = prevItem['X'] - item['X'] = PX * DS  (not a real transverse shift)
+        #
+        # To recover the actual transverse translation (DX), we must subtract this
+        # orbit-propagation contribution:
+        #
+        #   dx = (X_prev - X_curr) + PX_prev * ds
+        #   dy = (Y_prev - Y_curr) + PY_prev * ds
+        #
+        # For a pure longitudinal translation (DX=0, DY=0, DS≠0), this gives dx≈0
+        # and dy≈0, which is correct.  For a pure transverse translation (DX≠0,
+        # DY≠0, DS=0), the PX/PY terms vanish and the formula reduces to the naive
+        # difference, which is also correct.
+        #
+        # The longitudinal shift is read from the T column (time-of-flight parameter):
+        #   ds = T_prev - T_curr  [m]
+        # This is more reliable than S differences because TRANSLATION elements are
+        # zero-length (S doesn't change).
+        #
+        # ds is returned separately so the main loop can absorb it into the next drift.
+        # S-positions in BDSIM will differ from MAD-X by ds, but survey coordinates match.
+        #
+        # prevItem must be passed into this branch; it is guaranteed non-None by the
+        # caller because a TRANSLATION always follows another element.
+        if prevItem is None:
+            _warnings.warn("TRANSLATION '{}': no previous item available to infer shift; "
+                           "inserting zero Transform3D.".format(name))
+            element = _Builder.Transform3D(rname, x=0)
+            element._longitudinalShift = 0.0
+            return element
+
+        ds = prevItem['T'] - item['T']  # longitudinal shift from T column [m]
+        # Subtract the orbit's angular propagation through ds to get the true transverse shift.
+        dx = (prevItem['X'] - item['X']) + prevItem['PX'] * ds
+        dy = (prevItem['Y'] - item['Y']) + prevItem['PY'] * ds
+
+        if verbose:
+            print('TRANSLATION', rname,
+                  'dx={:.6g} m, dy={:.6g} m, ds={:.6g} m'.format(dx, dy, ds))
+            if abs(ds) > 1e-9:
+                print('  Note: longitudinal shift ds={:.6g} m will be absorbed into '
+                      'the following drift; s-positions will differ from MAD-X.'.format(ds))
+
+        # Build Transform3D with the transverse shifts.
+        # Longitudinal shift (ds) is returned separately so the caller can adjust drifts.
+        kws_t3d = {}
+        if abs(dx) > 1e-12:
+            kws_t3d['x'] = dx
+        if abs(dy) > 1e-12:
+            kws_t3d['y'] = dy
+        # Always construct the element (even if zero, to preserve the sequence structure).
+        element = _Builder.Transform3D(rname, **kws_t3d) if kws_t3d else _Builder.Transform3D(rname, x=0)
+        # Attach ds as a custom attribute so the main loop can absorb it into a drift.
+        element._longitudinalShift = ds
+        return element
     else:
         print('unknown element type:', t, 'for element named: ', name)
         if zerolength and not ignorezerolengthitems:
@@ -667,7 +883,7 @@ def _GetElementSplitByAperture(gmadElement, localApertures):
             apertures.append(arp)
         except ValueError:
             pass
-        
+
     if localApertures[0][0] != 0.0 :
         raise ValueError("No aperture defined at start of element.")
     if len(localApertures) > 1:

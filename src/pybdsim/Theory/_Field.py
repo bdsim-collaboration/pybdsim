@@ -15,7 +15,10 @@ from numpy import array as _array
 from numpy import reshape as _reshape
 from numpy import tensordot as _tensordot
 from numpy import logical_and as _logical_and
-from numpy import trapz as _trapz
+try:
+    from numpy import trapz as _trapz
+except ImportError as e:
+    from scipy.integrate import trapezoid as _trapz
 from numpy import exp as _exp
 from numpy import zeros as _zeros
 

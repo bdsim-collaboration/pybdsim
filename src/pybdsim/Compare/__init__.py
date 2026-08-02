@@ -18,6 +18,19 @@ try:
 except ImportError:
     pass
 
+# optional xsuite
+try:
+    from ._Mad8XsuiteComparison import Mad8VsXsuite
+    from ._XsuiteBdsimComparison import XsuiteVsBDSIM
+except ImportError:
+    pass
+
+# optional ocelot
+try:
+    from ._OcelotBdsimComparison import OcelotVsBDSIM
+except ImportError:
+    pass
+
 # optional pysad
 try:
     import pysad as _pysad

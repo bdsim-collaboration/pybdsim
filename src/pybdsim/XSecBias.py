@@ -1,12 +1,5 @@
 from re import split as _split
 
-_allowedparticles = frozenset([
-    'e-',
-    'e+',
-    'proton',
-    'gamma'
-])
-
 _allowedflags = frozenset([
     '1',
     '2',
@@ -20,7 +13,7 @@ class XSecBias(object):
     """
     def __init__(self, name, particle, processes, xsecfactors, flags):
         self.name        = self.SetName(name)
-        self.particle    = self.SetParticle(particle)
+        self.particle    = particle
         self.processlist = self.SetProcesses(processes)
         self.flaglist    = self.SetFlags(flags)
         self.xseclist    = self.SetXSecFactors(xsecfactors)
@@ -34,15 +27,6 @@ class XSecBias(object):
         if name.lower() == 'xsecbias':
             raise ValueError("Forbidden name: "+ str(name) +".  Bias name cannot be any variant of 'xsecbias' (case insensitive)")
         return name
-
-    def SetParticle(self, particle):
-        """
-        Set the particle for bias to be associated with.
-        """
-        if particle  in _allowedparticles:
-            return particle
-        else:
-            raise ValueError("Unknown Particle type: " + str(particle) + ".")
 
     def SetProcesses(self, processes):
         '''

@@ -63,6 +63,7 @@ bdsimcategories = [
     'gap',
     'crystalcol',
     'undulator',
+    'gaborlens',
     'transform3d',
     'rmatrix',
     'thinrmatrix',
@@ -759,6 +760,13 @@ class Undulator(Element):
     def __init__(self, name, l, b, undulatorPeriod, **kwargs):
         Element.__init__(self, name, 'undulator', l=l, B=b, undulatorPeriod=undulatorPeriod, **kwargs)
 
+class GaborLens(Element):
+    def __init__(self, name, l, b, anodeLength, anodeRadius, anodeThickness,
+                 electrodeLength, electrodeRadius, electrodeThickness, **kwargs):
+        Element.__init__(self, name,'gaborlens',l=l,B=b,
+                         anodeLength=anodeLength,anodeRadius=anodeRadius,anodeThickness=anodeThickness,
+                         electrodeLength=electrodeLength,electrodeRadius=electrodeRadius,
+                         electrodeThickness=electrodeThickness, **kwargs)
 
 class Dump(Element):
     def __init__(self, name, l, **kwargs):
@@ -1694,6 +1702,13 @@ class Machine(object):
 
     def AddUndulator(self, name='un', length=1.0, b=0, undulatorPeriod=0.1, **kwargs):
         self.Append(Element(name,'undulator',l=length,B=b,undulatorPeriod=undulatorPeriod,**kwargs))
+
+    def AddGaborLens(self, name='gl', b=1.0, length=0.857, aper1=0.1, anodeRadius=95e-3, anodeLength=0.444,
+                     anodeThickness=1.6e-3, electrodeRadius=53.35e-3, electrodeLength=34e-3, electrodeThickness=1.6e-3, **kwargs):
+        self.Append(Element(name,'gaborlens',l=length, B=b, aper1=aper1,
+                            anodeRadius=anodeRadius, anodeLength=anodeLength, anodeThickness=anodeThickness,
+                            electrodeRadius=electrodeRadius, electrodeLength=electrodeLength,
+                            electrodeThickness=electrodeThickness, **kwargs))
 
     def AddTransform3D(self, name='t3d',**kwargs):
         if len(list(kwargs.keys())) == 0:

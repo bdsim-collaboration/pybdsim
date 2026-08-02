@@ -509,6 +509,27 @@ def BDSIMOptics(rebdsimOpticsOutput, outputfilename=None, saveall=True, survey=N
         print("Written ", output_filename)
 
 
+def MinimumNonZeroValue(histogram, scalingFactor=1.0):
+    """
+    Return a suitable minimum for a log scale plot of a histogram.
+    :param histogram: histogram instance to inspect
+    :type: histogram: pybdsim.Data.TH1, pybdsim.Data.TH2, pybdsim.Data.TH3
+    :param scalingFactor: multiplier for values
+    :type: scalingFactor: float
+
+    :return minimum: minimum non-zero value for the histogram
+    :type: minimum: float
+    """
+    # round down to the nearest power of 10
+    # not contents-errors may have a bin with 100% error, so we get ~0 or
+    # with numerical precision something very small like 1e-22. Therefore,
+    # just round down to next power of 10 on the contents.
+    h = histogram
+    sf = scalingFactor
+    minimum = sf * 10 ** (_np.floor(_np.log10(_np.min(h.contents[h.contents > 0]))))
+    return minimum
+
+
 def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0,
                 figsize=(6.4, 4.8), swapXAxis=False, log=False, xlog=False, ax=None, **errorbarKwargs):
     """
@@ -522,7 +543,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     :param log: whether to automatically plot on a vertical log scale
     :param ax: Matplotlib.Axis instance to draw into. If None, a figure will be created.
 
-    return figure instance
+    return figure instance, axis instance
     """
     if 'drawstyle' not in errorbarKwargs:
         errorbarKwargs['drawstyle'] = 'steps-mid'
@@ -532,7 +553,9 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
     if not ax:
         f = _plt.figure(figsize=figsize)
         ax = f.add_subplot(111)
-    
+    else:
+        f = ax.get_figure()
+
     sf  = scalingFactor #shortcut
     xsf = xScalingFactor
     histEmpty = len(h.contents[h.contents!=0]) == 0
@@ -571,7 +594,7 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         # not contents-errors may have a bin with 100% error, so we get ~0 or
         # with numerical precision something very small like 1e-22. Therefore,
         # just round down to next power of 10 on the contents.
-        ymin = sf * 10 ** (_np.floor(_np.log10(_np.min(h.contents[h.contents > 0]))))
+        ymin = MinimumNonZeroValue(h, sf)
         ax.set_ylim(abs(ymin)*0.9,abs(ymax)*1.3)
         if _modernMatplotlib:
             ax.set_yscale('log', nonpositive='clip')
@@ -592,9 +615,9 @@ def Histogram1D(histogram, xlabel=None, ylabel=None, title=None, scalingFactor=1
         ax.set_xlim(suggestedXMin, 1.05*xmax)
 
     if not incomingAxis:
-        _plt.tight_layout()
+        f.set_tight_layout(True)
     
-    return _plt.gcf()
+    return f, ax
 
 
 def SpectraSelect(spectra, pdgids,
@@ -704,7 +727,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
 
-    return figure instance
+    return figure instance, axis instance
 
     xScalingFactors may be a single float, int and therefore equally applied to all
     histograms, or a list of floats that must match the length of the hsitograms for
@@ -731,6 +754,8 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     if not ax:
         f = _plt.figure(figsize=figsize)
         ax = f.add_subplot(111)
+    else:
+        f = ax.get_figure()
     
     if scalingFactors is None:
         scalingFactors = _np.ones_like(histograms)
@@ -745,7 +770,6 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     xmax = -_np.inf
     allHistsEmpty = True  # true until one hist isn't empty
     for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
-
         # auto limits... complex to cover every case also in log
         histEmpty = len(h.contents[h.contents != 0]) == 0
         # x range heuristic - do before padding
@@ -771,7 +795,6 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
         # plot histogram
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
                     xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
-
 
     if xlabel is None:
         ax.set_xlabel(histograms[0].xlabel)
@@ -809,12 +832,12 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     if not incomingAxis:
         _plt.tight_layout()
     
-    return _plt.gcf()
+    return f, ax
 
 
 def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="",
                 zlabel="", title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0,
-                yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=False, vmax=None,
+                yScalingFactor=1.0, figsize=(6,5), vmin=None, autovmin=True, vmax=None,
                 colourbar=True, ax=None, cax=None, shrink=1.0, swapXAxis=False, **imshowKwargs):
     """
     Plot a pybdsim.Data.TH2 instance.
@@ -852,12 +875,13 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
         if autovmin and not histEmpty:
             vmin = _np.min(h.contents[h.contents!=0])
         else:
+            print("Setting lower limit to stasitical floor of 1/event")
             vmin = sf*1.0/h.entries # statistical floor and matplotlib requires a finite vmin
     if vmax is None:
         if histEmpty:
             vmax = 1.0
         else:
-            vmax = _np.max(h.contents)
+            vmax = sf*_np.max(h.contents)
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
         norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
@@ -906,7 +930,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
 
 def Histogram2DErrors(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlabel="", ylabel="", zlabel="",
                       title="", aspect="auto", scalingFactor=1.0, xScalingFactor=1.0, yScalingFactor=1.0,
-                      figsize=(6,5), vmin=None, autovmin=False, vmax=None, colourbar=True, ax=None,
+                      figsize=(6,5), vmin=None, autovmin=True, vmax=None, colourbar=True, ax=None,
                       cax=None, **imshowKwargs):
     """
     Similar to Histogram2D() but plot the errors from the histogram instead of the contents.
@@ -940,7 +964,7 @@ def Histogram3D(th3):
     colours = _plt.cm.viridis(l(th3.contents))
     colours[:,:,:,3] = d.data
     ax.voxels(fill, facecolors=colours)
-    return f
+    return f, ax
 
 
 def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlice=None,
@@ -969,6 +993,8 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
     :type xlabel: str
     :type ylabel: ylabel to use on final plot
     :type ylabel: str
+
+    :return: figure
     """
     allowedDimensions = ['x', 'y', 'z']
     if sliceDimension not in allowedDimensions:
@@ -980,6 +1006,8 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
     if ax is None:
         f = _plt.figure(figsize=figsize)
         ax = f.add_subplot(111)
+    else:
+        f = ax.get_figure()
 
     # for colour normalisation
     ar = getattr(th3, sliceDimension+"centres")
@@ -996,7 +1024,6 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
         endSlice = len([th3.xcentres, th3.ycentres, th3.zcentres][slice_index]) - 1
 
     functions = (th3.Slice2DZY, th3.Slice2DXZ, th3.Slice2DXY)
-    f = functions[slice_index]
 
     # Once a 2d histogram, we have only 'x' and 'y' but these might represent
     # other dimensions. Work out which function to call for which dimension.
@@ -1008,20 +1035,23 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
     f_int = functions_int[int_index]
     
     colours = _plt.cm.viridis(_np.linspace(0, 1, int(endSlice/2)+1))
-    miny = 0
-    maxy = 0
+    miny = _np.inf
+    maxy = -_np.inf
     for i in range(startSlice, endSlice + 1, 1):
-        hist = f(i)
+        hist = functions[slice_index](i)
         histo = f_int(hist) # call it on an instance
 
         if i % moduloFraction == 0:
-            miny = min(miny, _np.min(histo.contents))
+            if log:
+                miny = min(miny, MinimumNonZeroValue(histo))
+            else:
+                miny = min(miny, _np.min(histo.contents - histo.errors))
             maxy = max(maxy, _np.max(histo.contents + histo.errors))
             Histogram1D(histo, scalingFactor=scalingFactor, xScalingFactor=xScalingFactor,
-                        figsize=figsize, swapXAxis=swapXAxis, log=log, ax=ax, c=colours[i // 2])
+                             figsize=figsize, swapXAxis=swapXAxis, log=log, ax=ax, c=colours[i // 2])
 
     sm = _plt.cm.ScalarMappable(cmap="viridis", norm=_plt.Normalize(vmin=color_low, vmax=colour_high))
-    _plt.colorbar(sm, label=sliceDimension + " (m)")
+    _plt.colorbar(sm, ax=ax, label=sliceDimension + " (m)")
     if xlabel:
         _plt.xlabel(xlabel)
     else:
@@ -1031,6 +1061,7 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
     if title:
         _plt.title(title)
     _plt.ylim(miny, maxy*1.05)
+    return f, ax
 
 
 def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
@@ -1053,6 +1084,8 @@ def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
     :type startSlice: int
     :param endSlice: last index of the 2D slices
     :type endSlice: int
+
+    :return list(figure), list(axis):
     """
     if sliceDimension not in ['x', 'y', 'z']:
         raise ValueError("sliceDimension must be 'x', 'y' or 'z'")
@@ -1076,13 +1109,17 @@ def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
         vmin = _np.min(th3.contents[th3.contents>0])
     if not vmax:
         vmax = _np.max(th3.contents)
+    figs, axs = [], []
     for i in range(startSlice, endSlice):
         slice = f(i)
         title = "Slice " + str(i) + " at " + sliceDimension + " = "+"{:.2f}".format(sliceDimCentres[i])
         fig, ax = Histogram2D(slice, logNorm=logNorm, xlabel=xlabel, ylabel=ylabel, zlabel=zlabel, title=title,
                               figsize=figsize, scalingFactor=scalingFactor, vmin=vmin, vmax=vmax, swapXAxis=swapXAxis)
+        figs.append(fig)
+        axs.append(ax)
         if savingPrefix:
             fig.savefig(savingPrefix+"slice_"+f'{i:03}'+".png", dpi=400)
+        return figs, axs
 
 
 def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
@@ -1096,6 +1133,8 @@ def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=Fal
     :param ratio:  integer ratio of main plot height to ratio plot height (recommend 1 - 5)
     :param ratioYAxisLimit: ylim upper for ratio subplot y axis
     :type  ratioYAxisLimit: tuple(float, float)
+
+    :return figure, [axHist, axRatio]:
 
     If the labels are "" then the histogram.title string will be used. If None, then
     no label will be added.
@@ -1178,7 +1217,7 @@ def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=Fal
     # when using gridspec, we use its tight layout
     gs.tight_layout(fig)
 
-    return fig
+    return fig, [axHist, axRatio]
 
 
 def PrimaryPhaseSpace(filename, outputfilename=None, extension='.pdf'):

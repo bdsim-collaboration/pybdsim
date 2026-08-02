@@ -123,7 +123,7 @@ Below is an example: ::
   import pybdsim
   def MyCustomFilter(event):
       return 20.0 < event.Primary.energy[0] < 100.0
-  SkimBDSIMFile("originalData.root", MyCustomFilter)
+  pybdsim.Data.SkimBDSIMFile("originalData.root", MyCustomFilter)
 
 This will apply MyCustomFilter, which returns True only when the first primary in
 the event has a total energy greater than 20.0 GeV and less than 100.0 GeV. Events

@@ -40,6 +40,13 @@ def model_model_input(tmppath):
     return {"tfs": tfs, "outputfilename": tmppath, "aperturedict": aper, "collimatordict": coll}
 
 @pytest.fixture
+def model_model_transforms_input(tmppath):
+    tfs = "{}/model-model-transforms.tfs.gz".format(PATH_TO_TEST_INPUT)
+    aper = {}
+    coll = {}
+    return {"tfs": tfs, "outputfilename": tmppath, "aperturedict": aper, "collimatordict": coll}
+
+@pytest.fixture
 def tmppath(tmpdir):
     """A temporary file path"""
     return str(tmpdir.mkdir("testdir").join("model"))
@@ -192,3 +199,10 @@ def test_model_model_conversion_with_gmad_regression(model_model_input,
     pybdsim.Convert.MadxTfs2Gmad(**model_model_input)
     output_path = utils.get_output_path("model-model.tfs.gz")
     gmad_comparator(output_path, model_model_input['outputfilename'])
+
+@pytest.mark.regression
+def test_model_model_transforms_conversion_with_gmad_regression(model_model_transforms_input,
+                                                     gmad_comparator):
+    pybdsim.Convert.MadxTfs2Gmad(**model_model_transforms_input)
+    output_path = utils.get_output_path("model-model-transforms.tfs.gz")
+    gmad_comparator(output_path, model_model_transforms_input['outputfilename'])

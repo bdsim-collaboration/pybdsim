@@ -1216,6 +1216,16 @@ class TH1(ROOTHist):
         integral = self.hist.IntegralAndError(xBinLow, xBinHigh, error)
         return integral, error.value
 
+    def IntegrateWithMask(self, boolArray):
+        """
+        Integrate the contents but apply the boolArray mask. This should be
+        an array of Booleans the same shape as contents (numpy style).
+        :return float, float: integral, error
+        """
+        i = self.contents[boolArray].sum()
+        e = _np.sqrt((self.errors[boolArray]**2).sum())
+        return i, e
+
     def _GetContents(self):
         for i in range(self.nbinsx):
             self.contents[i] = self.hist.GetBinContent(i+1)
