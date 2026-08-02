@@ -1,12 +1,14 @@
 name: pypi deploy
 
 on:
+  release:
+    types: [ created ]
   push:
     tags:
       - 'v*'  # Trigger only on tags like v1.2.3
 
 jobs:
-  publish-to-pypi:
+  build-and-publish:
     runs-on: ubuntu-latest
 
     environment:
