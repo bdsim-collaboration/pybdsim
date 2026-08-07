@@ -69,10 +69,10 @@ from . import External
 from . import Field
 from . import Geant4
 from . import Gmad
+from . import ModelProcessing
 from . import Options
 from . import Plot
 from . import Run
-from . import ModelProcessing
 from . import Visualisation
 from . import XSecBias
 from . import _General
