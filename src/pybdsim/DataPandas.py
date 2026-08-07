@@ -297,6 +297,8 @@ def _fill_event_csampler(root_obj, root_tree, pandas_obj) :
                    attrib == "modelID" or \
                    attrib == "n":
                     dd[attrib].append(getattr(sampler, attrib))
+                elif attrib == "samplerName" :
+                    dd[attrib].append(str(getattr(sampler, attrib)))
                 else:
                     try :
                         dd[attrib].append(getattr(sampler, attrib)[iprim])
@@ -337,6 +339,8 @@ def _fill_event_ssampler(root_obj, root_tree, pandas_obj) :
                    attrib == "modelID" or \
                    attrib == "n":
                     dd[attrib].append(getattr(sampler, attrib))
+                elif attrib == "samplerName" :
+                    dd[attrib].append(str(getattr(sampler, attrib)))
                 else:
                     try :
                         dd[attrib].append(getattr(sampler, attrib)[iprim])
