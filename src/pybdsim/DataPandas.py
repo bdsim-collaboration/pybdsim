@@ -106,8 +106,10 @@ def _fill_event_sampler(root_obj, root_tree, pandas_obj) :
                 if attrib == "z" or \
                    attrib == "S" or \
                    attrib == "modelID" or \
-                   attrib == "n":
+                   attrib == "n" :
                     dd[attrib].append(getattr(sampler, attrib))
+                elif attrib == "samplerName" :
+                    dd[attrib].append(str(getattr(sampler, attrib)))
                 else:
                     try :
                         dd[attrib].append(getattr(sampler, attrib)[iprim])
