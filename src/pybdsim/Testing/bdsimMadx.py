@@ -321,7 +321,7 @@ class LatticeTest:
 
         #Get particle pdg number
         priPid = primary.data['partID']
-        pid    =  _np.int(_np.mean(priPid))  #cast to int to match pdg id
+        pid    =  int(_np.mean(priPid))  #cast to int to match pdg id
 
         #Particle mass needed for calculating momentum, in turn needed for dE.
         #All in GeV, taken from the PDG table http://pdg.lbl.gov/2017/reviews/rpp2017-rev-phys-constants.pdf
