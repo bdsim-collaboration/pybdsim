@@ -174,7 +174,8 @@ def _NumberOfCPUs(nCPUs=None):
 
 
 def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
-          silent=False, errorSilent=False, options=None, bdsimExecutable=None):
+          silent=False, errorSilent=False, options=None, bdsimExecutable=None,
+          returnTiming=False):
     """
     Runs bdsim with gmadpath as inputfile and outfile as outfile.
     Runs in batch mode by default, with 10,000 particles. Any extra
@@ -198,13 +199,20 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
     elif options is not None:
         args.extend(options)
 
+    start = _time.perf_counter()
     if not silent:
-        return _subprocess.call(args)
+        ret =  _subprocess.call(args)
     elif silent and errorSilent:
-        return _subprocess.call(args, stdout=open(_os.devnull, 'wb'), stderr=open(_os.devnull, 'wb'))
+        ret = _subprocess.call(args, stdout=open(_os.devnull, 'wb'), stderr=open(_os.devnull, 'wb'))
     else:
-        return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
+        ret = _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
+    end = _time.perf_counter()
 
+    if returnTiming:
+        return ret, end-start
+    else :
+        return ret
+    
 def BdsimParallel(gmadpath, outfile, nJobs=1, ngenerate=10000, startseed=None, batch=True,
                   silent=False, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
     """
