@@ -1078,219 +1078,203 @@ class BDSIMOutput:
             raise Exception("Trajectory requested beyond events generated.")
 
     def get_trajectory(self, i_evnt = 0 , i_traj = 0):
+        o = self.get_options()
+
         self.et.GetEntry(i_evnt)
 
         traj = self.e.Trajectory
         XYZ = traj.XYZ[i_traj]
-        kineticEnergy = traj.kineticEnergy[i_traj]
 
-        try:
-            PXPYPZ = traj.PXPYPZ[i_traj]
-        except (AttributeError, IndexError):
-            PXPYPZ = None
-        try:
-            preProcessTypesVec = traj.preProcessTypes[i_traj]
-        except (AttributeError, IndexError):
-            preProcessTypesVec = None
-        try:
-            preProcessSubTypesVec = traj.preProcessSubTypes[i_traj]
-        except (AttributeError, IndexError):
-            preProcessSubTypesVec = None
-        try:
-            postProcessTypeVec = traj.postProcessTypes[i_traj]
-        except (AttributeError, IndexError):
-            postProcessTypeVec = None
-        try:
-            postProcessSubTypeVec = traj.postProcessSubTypes[i_traj]
-        except (AttributeError, IndexError):
-            postProcessSubTypeVec = None
-        try:
+        if o['storeTrajectory'][0]:
             preWeightsVec = traj.preWeights[i_traj]
-        except (AttributeError, IndexError):
-            preWeightsVec = None
-        try:
             postWeightsVec = traj.postWeights[i_traj]
-        except (AttributeError, IndexError):
-            postWeightsVec = None
-        try:
             energyDepositVec = traj.energyDeposit[i_traj]
-        except (AttributeError, IndexError):
-            energyDepositVec = None
-        try:
             SVec = traj.S[i_traj]
-        except (AttributeError, IndexError):
-            SVec = None
-        try:
-            TVec = traj.T[i_traj]
-        except (AttributeError, IndexError):
-            TVec = None
-        try:
-            chargeVec = traj.charge[i_traj]
-        except (AttributeError, IndexError):
-            chargeVec = None
-        try:
-            massVec = traj.mass[i_traj]
-        except (AttributeError, IndexError):
-            massVec = None
-        try:
-            rigidityVec = traj.rigidity[i_traj]
-        except (AttributeError, IndexError):
-            rigidityVec = None
-        try:
-            isIonVec = traj.isIon[i_traj]
-        except (AttributeError, IndexError):
-            isIonVec = None
-        try:
-            ionAVec = traj.ionA[i_traj]
-        except (AttributeError, IndexError):
-            ionAVec = None
-        try:
-            ionZVec = traj.ionZ[i_traj]
-        except (AttributeError, IndexError):
-            ionZVec = None
-        try:
-            nElectronsVec = traj.nElectrons[i_traj]
-        except (AttributeError, IndexError):
-            nElectronsVec = None
-
-        try:
-            turnsTakenVec = traj.turnsTaken[i_traj]
-        except (AttributeError, IndexError):
-            turnsTakenVec = None
-        try:
-            materialIDVec = traj.materialID[i_traj]
-        except (AttributeError, IndexError):
-            materialIDVec = None
-        try:
             modelIndiciesVec = traj.modelIndicies[i_traj]
-        except (AttributeError, IndexError):
+        else:
+            preWeightsVec = None
+            postWeightsVec = None
+            energyDepositVec = None
+            SVec = None
             modelIndiciesVec = None
 
+        if o['storeTrajectoryIon'][0]:
+            isIonVec = traj.isIon[i_traj]
+            ionAVec = traj.ionA[i_traj]
+            ionZVec = traj.ionZ[i_traj]
+            nElectronsVec = traj.nElectrons[i_traj]
+        else:
+            isIonVec = None
+            ionAVec = None
+            ionZVec = None
+            nElectronsVec = None
+
+        if o['storeTrajectoryKineticEnergy'][0]:
+            kineticEnergy = traj.kineticEnergy[i_traj]
+        else:
+            kineticEnergy = None
+
+        if o['storeTrajectoryLocal'][0]:
+            xyz = traj.xyz[i_traj]
+        else:
+            xyz = None
+
+        if o['storeTrajectoryLinks'][0]:
+            chargeVec = traj.charge[i_traj]
+            turnsTakenVec = traj.turnsTaken[i_traj]
+            massVec = traj.mass[i_traj]
+            rigidityVec = traj.rigidity[i_traj]
+        else:
+            chargeVec = None
+            turnsTakenVec = None
+            massVec = None
+            rigidityVec = None
+
+        if o['storeTrajectoryMaterial'][0]:
+            materialIDVec = traj.materialID[i_traj]
+        else:
+            materialIDVec = None
+
+        if o['storeTrajectoryMomentumVector'][0]:
+            PXPYPZ = traj.PXPYPZ[i_traj]
+        else:
+            PXPYPZ = None
+
+        if o['storeTrajectoryProcesses'][0]:
+            preProcessTypesVec = traj.preProcessTypes[i_traj]
+            preProcessSubTypesVec = traj.preProcessSubTypes[i_traj]
+            postProcessTypeVec = traj.postProcessTypes[i_traj]
+            postProcessSubTypeVec = traj.postProcessSubTypes[i_traj]
+        else:
+            preProcessTypesVec = None
+            preProcessSubTypesVec = None
+            postProcessTypeVec = None
+            postProcessSubTypeVec = None
+
+        if o['storeTrajectoryTime'][0]:
+            TVec = traj.T[i_traj]
+        else:
+            TVec = None
 
         X = []
         Y = []
         Z = []
-        KE = []
-        preProcessTypes = []
-        preProcessSubTypes = []
-        postProcessType = []
-        postProcessSubType = []
         preWeight = []
         postWeight = []
         energyDeposit = []
-        PX = []
-        PY = []
-        PZ = []
         S = []
-        T = []
-        charge = []
-        mass = []
-        rigidity = []
+        modelIndicies = []
         isIon = []
         ionA = []
         ionZ = []
         nElectrons = []
+        KE = []
+        x = []
+        y = []
+        z = []
+        charge = []
         turnsTaken = []
+        mass = []
+        rigidity = []
         materialID = []
-        modelIndicies = []
+        PX = []
+        PY = []
+        PZ = []
+        preProcessTypes = []
+        preProcessSubTypes = []
+        postProcessType = []
+        postProcessSubType = []
+        T = []
 
         # loop over points
         for i in range(0, XYZ.size()):
             X.append(XYZ[i].x())
             Y.append(XYZ[i].y())
             Z.append(XYZ[i].z())
-            KE.append(kineticEnergy[i])
-            if preProcessTypesVec is not None:
-                preProcessTypes.append(preProcessTypesVec[i])
-            if preProcessSubTypesVec is not None:
-                preProcessSubTypes.append(preProcessSubTypesVec[i])
-            if postProcessTypeVec is not None:
-                postProcessType.append(postProcessTypeVec[i])
-            if postProcessSubTypeVec is not None:
-                postProcessSubType.append(postProcessSubTypeVec[i])
-            if preWeightsVec is not None:
+
+            if o['storeTrajectory'][0]:
                 preWeight.append(preWeightsVec[i])
-            if postWeightsVec is not None:
                 postWeight.append(postWeightsVec[i])
-            if energyDepositVec is not None:
                 energyDeposit.append(energyDepositVec[i])
-            if PXPYPZ is not None:
+                S.append(SVec[i])
+                modelIndicies.append(modelIndiciesVec[i])
+
+            if o['storeTrajectoryIon'][0]:
+                isIon.append(isIonVec[i])
+                ionA.append(ionAVec[i])
+                ionZ.append(ionZVec[i])
+                nElectrons.append(nElectronsVec[i])
+
+            if o['storeTrajectoryKineticEnergy'][0]:
+                KE.append(kineticEnergy[i])
+
+            if o['storeTrajectoryLocal'][0]:
+                x.append(xyz[i].x())
+                y.append(xyz[i].y())
+                z.append(xyz[i].z())
+
+            if o['storeTrajectoryLinks'][0]:
+                charge.append(chargeVec[i])
+                turnsTaken.append(turnsTakenVec[i])
+                mass.append(massVec[i])
+                rigidity.append(rigidityVec[i])
+
+            if o['storeTrajectoryMaterial'][0]:
+                materialID.append(materialIDVec[i])
+
+            if o['storeTrajectoryMomentumVector'][0]:
                 PX.append(PXPYPZ[i].x())
                 PY.append(PXPYPZ[i].y())
                 PZ.append(PXPYPZ[i].z())
-            if SVec is not None:
-                S.append(SVec[i])
-            if TVec is not None:
+
+            if o['storeTrajectoryProcesses'][0]:
+                preProcessTypes.append(preProcessTypesVec[i])
+                preProcessSubTypes.append(preProcessSubTypesVec[i])
+                postProcessType.append(postProcessTypeVec[i])
+                postProcessSubType.append(postProcessSubTypeVec[i])
+
+            if o['storeTrajectoryTime'][0]:
                 T.append(TVec[i])
-            if chargeVec is not None:
-                charge.append(chargeVec[i])
-            if massVec is not None:
-                mass.append(massVec[i])
-            if rigidityVec is not None:
-                rigidity.append(rigidityVec[i])
-            if isIonVec is not None:
-                isIon.append(isIonVec[i])
-            if ionAVec is not None:
-                ionA.append(ionAVec[i])
-            if ionZVec is not None:
-                ionZ.append(ionZVec[i])
-            if nElectronsVec is not None:
-                nElectrons.append(nElectronsVec[i])
-            if turnsTakenVec is not None:
-                turnsTaken.append(turnsTakenVec[i])
-            if materialIDVec is not None:
-                materialID.append(materialIDVec[i])
-            if modelIndiciesVec is not None:
-                modelIndicies.append(modelIndiciesVec[i])
 
         dd = {}
         dd['X'] = X
         dd['Y'] = Y
         dd['Z'] = Z
-        dd['kineticEnergy'] = KE
-        if preProcessTypesVec is not None:
-            dd['preProcessTypes'] = preProcessTypes
-        if preProcessSubTypesVec is not None:
-            dd['preProcessSubTypes'] = preProcessSubTypes
-        if postProcessTypeVec is not None:
-            dd['postProcessType'] = postProcessType
-        if postProcessSubTypeVec is not None:
-            dd['postProcessSubType'] = postProcessSubType
-        if preWeightsVec is not None:
+        if o['storeTrajectory'][0]:
             dd['preWeight'] = preWeight
-        if postWeightsVec is not None:
             dd['postWeight'] = postWeight
-        if energyDepositVec is not None:
             dd['energyDeposit'] = energyDeposit
-        if PXPYPZ is not None:
+            dd['S'] = S
+            dd['modelIndicies'] = modelIndicies
+        if o['storeTrajectoryIon'][0]:
+            dd['isIon'] = isIon
+            dd['ionA'] = ionA
+            dd['ionZ'] = ionZ
+            dd['nElectrons'] = nElectrons
+        if o['storeTrajectoryKineticEnergy'][0]:
+            dd['kineticEnergy'] = KE
+        if o['storeTrajectoryLocal'][0]:
+            dd['x'] = x
+            dd['y'] = y
+            dd['z'] = z
+        if o['storeTrajectoryLinks'][0]:
+            dd['charge'] = charge
+            dd['turnsTaken'] = turnsTaken
+            dd['mass'] = mass
+            dd['rigidity'] = rigidity
+        if o['storeTrajectoryMaterial'][0]:
+            dd['materialID'] = materialID
+        if o['storeTrajectoryMomentumVector'][0]:
             dd['PX'] = PX
             dd['PY'] = PY
             dd['PZ'] = PZ
-        if SVec is not None:
-            dd['S'] = S
-        if TVec is not None:
+        if o['storeTrajectoryProcesses'][0]:
+            dd['preProcessTypes'] = preProcessTypes
+            dd['preProcessSubTypes'] = preProcessSubTypes
+            dd['postProcessType'] = postProcessType
+            dd['postProcessSubType'] = postProcessSubType
+        if o['storeTrajectoryTime'][0]:
             dd['T'] = T
-        if chargeVec is not None:
-            dd['charge'] = charge
-        if massVec is not None:
-            dd['mass'] = mass
-        if rigidityVec is not None:
-            dd['rigidity'] = rigidity
-        if isIonVec is not None:
-            dd['isIon'] = isIon
-        if ionAVec is not None:
-            dd['ionA'] = ionA
-        if ionZVec is not None:
-            dd['ionZ'] = ionZ
-        if nElectronsVec is not None:
-            dd['nElectrons'] = nElectrons
-        if turnsTakenVec is not None:
-            dd['turnsTaken'] = turnsTaken
-        if materialIDVec is not None:
-            dd['materialID'] = materialID
-        if modelIndiciesVec is not None:
-            dd['modelIndicies'] = modelIndicies
-
 
         df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
