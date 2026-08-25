@@ -776,6 +776,7 @@ class BDSIMOutput:
                           "backupStepperMomLimit","batch","bdsimPath", "beamlineAngle","beamlineAxisAngle",
                           "beamlineAxisX", "beamlineAxisY","beamlineAxisZ","beamlinePhi",
                           "beamlinePsi","beamlineS","beamlineTheta", "beamlineX","beamlineY","beamlineZ",
+                          "beamPipeIsInfiniteAbsorber",
                           "beampipeMaterial", "beampipeThickness","biasForWorldContents","biasForWorldVacuum",
                           "biasForWorldVolume","buildPoleFaceGeometry","buildTunnel",
                           "buildTunnelFloor","buildTunnelStraight","cavityFieldType",
@@ -863,6 +864,7 @@ class BDSIMOutput:
                    attrib == "inputFileName" or \
                    attrib == "integratorSet" or \
                    attrib == "magnetGeometryType" or \
+                   attrib == "physicsList" or \
                    attrib == "outerMaterialName" or \
                    attrib == "outputFileName" or \
                    attrib == "outputFormat" or \
