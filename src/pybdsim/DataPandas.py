@@ -1,6 +1,7 @@
 import pandas as _pd
 import os.path as _path
 import types as _types
+import time as _time
 
 from .Data import _ROOTFileType
 from .Data import LoadROOTLibraries as _LoadROOTLibraries
@@ -1004,9 +1005,17 @@ class BDSIMOutput:
     def get_primary_global(self):
         return _fill_event_coords(self.e.PrimaryGlobal, self.et, self)
 
-    def get_eloss(self):
+    def get_eloss(self, timing = False):
         eloss = self.e.Eloss
-        return _fill_event_eloss(eloss, self.et, self)
+
+        start = _time.perf_counter()
+        r = _fill_event_eloss(eloss, self.et, self)
+        end = _time.perf_counter()
+
+        if timing :
+            return r, end-start
+        else :
+            return r
 
     def get_eloss_tunnel(self):
         eloss = self.e.ElossTunnel
@@ -1298,14 +1307,21 @@ class BDSIMOutput:
     def get_histograms(self):
         pass
 
-    def get_sampler(self, sampler_name):
+    def get_sampler(self, sampler_name, timing = False):
         if sampler_name not in self.sampler_names:
             print("Sampler name not recognized")
             return
 
         sampler = self.e.GetSampler(sampler_name)
 
-        return _fill_event_sampler(sampler, self.et, self)
+        start = _time.perf_counter()
+        s = _fill_event_sampler(sampler, self.et, self)
+        end = _time.perf_counter()
+
+        if timing :
+            return s, end-start
+        else :
+            return
 
     def get_csampler(self, sampler_name):
         if sampler_name not in self.csampler_names:
