@@ -109,14 +109,26 @@ try:
 except:
     pass
 
-try:
-    from . import DataUproot
-    __all__.append("DataUproot")
+
+# Guarded import of uprood
+try :
+    import uproot as _uproot
 except:
     pass
 
-try:
+if _uproot :
+    from . import DataUproot
+    __all__.append("DataUproot")
+
+# Guarded import of pandas
+try :
+    import pandas as _pandas
+except :
+    pass
+
+if _pandas:
     from . import DataPandas
     __all__.append("DataPandas")
-except:
-    pass
+
+
+
