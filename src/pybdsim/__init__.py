@@ -114,7 +114,7 @@ except:
 try :
     import uproot as _uproot
 except:
-    pass
+    _uproot = None
 
 if _uproot :
     from . import DataUproot
@@ -124,7 +124,7 @@ if _uproot :
 try :
     import pandas as _pandas
 except :
-    pass
+    _pandas = None
 
 if _pandas:
     from . import DataPandas
