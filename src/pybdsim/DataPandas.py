@@ -1069,17 +1069,20 @@ class BDSIMOutput:
 
             nstep = []
             partID = []
+            parentID = []
             trackID = []
             for i in range(0,len(traj.partID)) :
                 nstep.append(len(traj.XYZ[i]))
                 trackID.append(traj.trackID[i])
                 partID.append(traj.partID[i])
+                parentID.append(traj.parentID[i])
 
             dd = {}
             dd['nstep'] = nstep
             dd['partID'] = partID
             dd['trackID'] = trackID
-
+            dd['parentID'] = parentID
+            
             df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
             return df
