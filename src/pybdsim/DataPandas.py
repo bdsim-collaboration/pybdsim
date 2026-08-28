@@ -498,6 +498,8 @@ class BDSIMOutput:
         # store list of file names to get index for each file name
         self.root_file_names = list(self.root_file.GetFileNames())
 
+        self.op = self.get_options()
+
     def get_filename_index(self, file_name):
         if file_name not in self.root_file_names:
             self.root_file_names.append(file_name)
@@ -1069,17 +1071,20 @@ class BDSIMOutput:
 
             nstep = []
             partID = []
+            parentID = []
             trackID = []
             for i in range(0,len(traj.partID)) :
                 nstep.append(len(traj.XYZ[i]))
                 trackID.append(traj.trackID[i])
                 partID.append(traj.partID[i])
+                parentID.append(traj.parentID[i])
 
             dd = {}
             dd['nstep'] = nstep
             dd['partID'] = partID
             dd['trackID'] = trackID
-
+            dd['parentID'] = parentID
+            
             df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
             return df
@@ -1087,14 +1092,13 @@ class BDSIMOutput:
             raise Exception("Trajectory requested beyond events generated.")
 
     def get_trajectory(self, i_evnt = 0 , i_traj = 0):
-        o = self.get_options()
 
         self.et.GetEntry(i_evnt)
 
         traj = self.e.Trajectory
         XYZ = traj.XYZ[i_traj]
 
-        if o['storeTrajectory'][0]:
+        if self.op['storeTrajectory'][0]:
             preWeightsVec = traj.preWeights[i_traj]
             postWeightsVec = traj.postWeights[i_traj]
             energyDepositVec = traj.energyDeposit[i_traj]
@@ -1107,7 +1111,7 @@ class BDSIMOutput:
             SVec = None
             modelIndiciesVec = None
 
-        if o['storeTrajectoryIon'][0]:
+        if self.op['storeTrajectoryIon'][0]:
             isIonVec = traj.isIon[i_traj]
             ionAVec = traj.ionA[i_traj]
             ionZVec = traj.ionZ[i_traj]
@@ -1118,17 +1122,19 @@ class BDSIMOutput:
             ionZVec = None
             nElectronsVec = None
 
-        if o['storeTrajectoryKineticEnergy'][0]:
+        if self.op['storeTrajectoryKineticEnergy'][0]:
             kineticEnergy = traj.kineticEnergy[i_traj]
         else:
             kineticEnergy = None
 
-        if o['storeTrajectoryLocal'][0]:
+        if self.op['storeTrajectoryLocal'][0]:
             xyz = traj.xyz[i_traj]
+            pxpypz = traj.pxpypz[i_traj]
         else:
             xyz = None
+            pxpypz = None
 
-        if o['storeTrajectoryLinks'][0]:
+        if self.op['storeTrajectoryLinks'][0]:
             chargeVec = traj.charge[i_traj]
             turnsTakenVec = traj.turnsTaken[i_traj]
             massVec = traj.mass[i_traj]
@@ -1139,17 +1145,17 @@ class BDSIMOutput:
             massVec = None
             rigidityVec = None
 
-        if o['storeTrajectoryMaterial'][0]:
+        if self.op['storeTrajectoryMaterial'][0]:
             materialIDVec = traj.materialID[i_traj]
         else:
             materialIDVec = None
 
-        if o['storeTrajectoryMomentumVector'][0]:
+        if self.op['storeTrajectoryMomentumVector'][0]:
             PXPYPZ = traj.PXPYPZ[i_traj]
         else:
             PXPYPZ = None
 
-        if o['storeTrajectoryProcesses'][0]:
+        if self.op['storeTrajectoryProcesses'][0]:
             preProcessTypesVec = traj.preProcessTypes[i_traj]
             preProcessSubTypesVec = traj.preProcessSubTypes[i_traj]
             postProcessTypeVec = traj.postProcessTypes[i_traj]
@@ -1160,7 +1166,7 @@ class BDSIMOutput:
             postProcessTypeVec = None
             postProcessSubTypeVec = None
 
-        if o['storeTrajectoryTime'][0]:
+        if self.op['storeTrajectoryTime'][0]:
             TVec = traj.T[i_traj]
         else:
             TVec = None
@@ -1189,6 +1195,9 @@ class BDSIMOutput:
         PX = []
         PY = []
         PZ = []
+        px = []
+        py = []
+        pz = []
         preProcessTypes = []
         preProcessSubTypes = []
         postProcessType = []
@@ -1201,93 +1210,101 @@ class BDSIMOutput:
             Y.append(XYZ[i].y())
             Z.append(XYZ[i].z())
 
-            if o['storeTrajectory'][0]:
+            if self.op['storeTrajectory'][0]:
                 preWeight.append(preWeightsVec[i])
                 postWeight.append(postWeightsVec[i])
                 energyDeposit.append(energyDepositVec[i])
                 S.append(SVec[i])
                 modelIndicies.append(modelIndiciesVec[i])
 
-            if o['storeTrajectoryIon'][0]:
+            if self.op['storeTrajectoryIon'][0]:
                 isIon.append(isIonVec[i])
                 ionA.append(ionAVec[i])
                 ionZ.append(ionZVec[i])
                 nElectrons.append(nElectronsVec[i])
 
-            if o['storeTrajectoryKineticEnergy'][0]:
+            if self.op['storeTrajectoryKineticEnergy'][0]:
                 KE.append(kineticEnergy[i])
 
-            if o['storeTrajectoryLocal'][0]:
+            if self.op['storeTrajectoryLocal'][0]:
                 x.append(xyz[i].x())
                 y.append(xyz[i].y())
                 z.append(xyz[i].z())
+                px.append(pxpypz[i].x())
+                py.append(pxpypz[i].y())
+                pz.append(pxpypz[i].z())
 
-            if o['storeTrajectoryLinks'][0]:
+            if self.op['storeTrajectoryLinks'][0]:
                 charge.append(chargeVec[i])
                 turnsTaken.append(turnsTakenVec[i])
                 mass.append(massVec[i])
                 rigidity.append(rigidityVec[i])
 
-            if o['storeTrajectoryMaterial'][0]:
+            if self.op['storeTrajectoryMaterial'][0]:
                 materialID.append(materialIDVec[i])
 
-            if o['storeTrajectoryMomentumVector'][0]:
+            if self.op['storeTrajectoryMomentumVector'][0]:
                 PX.append(PXPYPZ[i].x())
                 PY.append(PXPYPZ[i].y())
                 PZ.append(PXPYPZ[i].z())
 
-            if o['storeTrajectoryProcesses'][0]:
+            if self.op['storeTrajectoryProcesses'][0]:
                 preProcessTypes.append(preProcessTypesVec[i])
                 preProcessSubTypes.append(preProcessSubTypesVec[i])
                 postProcessType.append(postProcessTypeVec[i])
                 postProcessSubType.append(postProcessSubTypeVec[i])
 
-            if o['storeTrajectoryTime'][0]:
+            if self.op['storeTrajectoryTime'][0]:
                 T.append(TVec[i])
 
         dd = {}
         dd['X'] = X
         dd['Y'] = Y
         dd['Z'] = Z
-        if o['storeTrajectory'][0]:
+        if self.op['storeTrajectory'][0]:
             dd['preWeight'] = preWeight
             dd['postWeight'] = postWeight
             dd['energyDeposit'] = energyDeposit
             dd['S'] = S
             dd['modelIndicies'] = modelIndicies
-        if o['storeTrajectoryIon'][0]:
+        if self.op['storeTrajectoryIon'][0]:
             dd['isIon'] = isIon
             dd['ionA'] = ionA
             dd['ionZ'] = ionZ
             dd['nElectrons'] = nElectrons
-        if o['storeTrajectoryKineticEnergy'][0]:
+        if self.op['storeTrajectoryKineticEnergy'][0]:
             dd['kineticEnergy'] = KE
-        if o['storeTrajectoryLocal'][0]:
+        if self.op['storeTrajectoryLocal'][0]:
             dd['x'] = x
             dd['y'] = y
             dd['z'] = z
-        if o['storeTrajectoryLinks'][0]:
+            dd['px'] = px
+            dd['py'] = py
+            dd['pz'] = pz
+        if self.op['storeTrajectoryLinks'][0]:
             dd['charge'] = charge
             dd['turnsTaken'] = turnsTaken
             dd['mass'] = mass
             dd['rigidity'] = rigidity
-        if o['storeTrajectoryMaterial'][0]:
+        if self.op['storeTrajectoryMaterial'][0]:
             dd['materialID'] = materialID
-        if o['storeTrajectoryMomentumVector'][0]:
+        if self.op['storeTrajectoryMomentumVector'][0]:
             dd['PX'] = PX
             dd['PY'] = PY
             dd['PZ'] = PZ
-        if o['storeTrajectoryProcesses'][0]:
+        if self.op['storeTrajectoryProcesses'][0]:
             dd['preProcessTypes'] = preProcessTypes
             dd['preProcessSubTypes'] = preProcessSubTypes
             dd['postProcessType'] = postProcessType
             dd['postProcessSubType'] = postProcessSubType
-        if o['storeTrajectoryTime'][0]:
+        if self.op['storeTrajectoryTime'][0]:
             dd['T'] = T
 
         df = _pd.DataFrame(_enforce_same_length_dict(dd))
 
-        return df
+        return df,  {"parentID":  traj.parentID[i_traj],
+                     "partID": traj.partID[i_traj],
+                     "trackID": traj.trackID[i_traj]}
 
     def get_trajectory_processes(self, i_evnt = 0 , i_traj = 0):
         self.et.GetEntry(i_evnt)
