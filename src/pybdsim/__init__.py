@@ -73,6 +73,7 @@ from . import ModelProcessing
 from . import Options
 from . import Plot
 from . import Run
+from . import RootEventAnalysis
 from . import Visualisation
 from . import XSecBias
 from . import _General
