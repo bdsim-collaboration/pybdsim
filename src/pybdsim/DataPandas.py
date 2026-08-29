@@ -1338,7 +1338,7 @@ class BDSIMOutput:
         if timing :
             return s, end-start
         else :
-            return
+            return s
 
     def get_csampler(self, sampler_name):
         if sampler_name not in self.csampler_names:
