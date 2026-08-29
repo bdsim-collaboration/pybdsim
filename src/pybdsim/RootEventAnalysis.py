@@ -1,5 +1,9 @@
 from . import Data
-import ROOT as _ROOT
+try:
+    import ROOT as _ROOT
+except ImportError:
+    _useRoot = False
+    pass
 
 class RootEventAnalyser :
     def __init__(self):
