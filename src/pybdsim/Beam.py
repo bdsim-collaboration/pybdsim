@@ -1,4 +1,7 @@
 import gzip as _gzip
+
+from bs4.builder import FAST
+
 """
 Module containing a similarly named Beam class for creating
 a BDSIM beam distribution programmatically.
@@ -83,10 +86,35 @@ class Beam(dict) :
         self.SetParticleType(particleType)
         self.SetEnergy(energy)
         self.SetDistributionType(distrType)
-        
+
+    @staticmethod
+    def _IsValidIon(particleType):
+        """
+        Check if the particle type has the form 'ion Z A Q' where Z, A, Q are integers.
+        Only the syntax is checked. Physical validity of these values is left to BDSIM.
+        """
+        try:
+            particle, Z, A, Q = particleType.split()
+        except ValueError:
+            return False
+
+        if particle != "ion":
+            return False
+
+        try:
+            int(Z)
+            int(A)
+            int(Q)
+        except ValueError:
+            return False
+
+        return True
+
     def SetParticleType(self,particleType='e-'):
-        if particleType not in BDSIMParticleTypes:
-            raise ValueError("Unknown particle type: '"+str(particleType)+"'")
+        if (particleType not in BDSIMParticleTypes and not self._IsValidIon(particleType)):
+            raise ValueError(f"Unknown particle type: '{particleType}'."
+                             f"\nExpected either a recognised BDSIM particle name or an ion specification"
+                             f"\nof the form 'ion Z A Q'.")
         self['particle'] = '"' + str(particleType) + '"'
 
     def SetEnergy(self,energy=1.0,unitsstring='GeV'):
