@@ -11,6 +11,7 @@ from ._MadxMadxComparison import MadxVsMadx
 from ._MultipleCodeComparison import Optics
 from ._MultipleCodeComparison import OpticsResiduals
 from ._ElegantBdsimComparison import ElegantVsBDSIM
+from ._RebdsimRebdsimComparison import RebdsimVsRebdsim
 
 # optional pymad8
 try:
