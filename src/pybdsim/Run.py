@@ -245,7 +245,7 @@ def BdsimParallel(gmadpath, outfile, nJobs=1, ngenerate=10000, startseed=None, b
     p.close()
     p.join()
 
-def Rebdsim(analysis_config_file, bdsim_raw_output_file, output_file_name=None, silent=False, rebdsimExecutable=None):
+def Rebdsim(analysis_config_file, bdsim_raw_output_file = None, output_file_name=None, silent=False, rebdsimExecutable=None):
     """
     Run rebdsim with rootpath as analysis configuration text file on a bdsim
     raw output root file.
@@ -262,9 +262,12 @@ def Rebdsim(analysis_config_file, bdsim_raw_output_file, output_file_name=None, 
     :type rebdsimExecutable: None, str
     """
     rebdsimExecutable = "rebdsim" if not rebdsimExecutable else rebdsimExecutable
-    if not _General.IsROOTFile(bdsim_raw_output_file):
-        raise IOError("Not a ROOT file")
-    args = [rebdsimExecutable, analysis_config_file, bdsim_raw_output_file]
+    if bdsim_raw_output_file is not None:
+        if not _General.IsROOTFile(bdsim_raw_output_file):
+            raise IOError("Not a ROOT file")
+        args = [rebdsimExecutable, analysis_config_file, bdsim_raw_output_file]
+    else :
+        args = [rebdsimExecutable, analysis_config_file]
     if output_file_name is not None:
         args.append(output_file_name)
     if silent:
