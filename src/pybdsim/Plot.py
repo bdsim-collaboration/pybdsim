@@ -1150,7 +1150,7 @@ def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
         axs.append(ax)
         if savingPrefix:
             fig.savefig(savingPrefix+"slice_"+f'{i:03}'+".png", dpi=400)
-        return figs, axs
+    return figs, axs
 
 
 def Histogram1DRatio(histogram1, histogram2, label1="", label2="", xLogScale=False, yLogScale=False, xlabel=None, ylabel=None, title=None, scalingFactor=1.0, xScalingFactor=1.0, figsize=(6.4, 4.8), ratio=3, histogram1Colour=None, histogram2Colour=None, ratioColour=None, ratioYAxisLimit=None, **errorbarKwargs):
