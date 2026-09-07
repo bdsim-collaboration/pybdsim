@@ -971,11 +971,26 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
               moduloFraction=1, xlabel=None, ylabel=None, title=None, scalingFactor=1.0,
               xScalingFactor=1.0, figsize=(6.4, 4.8), swapXAxis=False, log=False, ax=None, **errorbarKwargs):
     """
-    Plot multiple 1D histograms along a given dimension integrateAlong. The integrated 2D histogram originates
-    from slices along dimension sliceDimension. By default, the slices are from 0 to len(th3.zcentres)-1.
-    endSlice is inclusive meaning this slice will be included in the plot The slice index is represented
-    by a colour scale. Only every second histogram is plotted. This function is useful to visualise properties
-    of a scoring mesh. All variables referring to properties of the plot are pushed through to Histogram1D().
+    To be deprecated - see Histogram3DSlices1D
+    """
+    from warnings import warn
+    warn("Please use 'Histogram3DSlices1D' instead", DeprecationWarning)
+    return Histogram3DSlices1D(th3, sliceDimension, integrateAlong, startSlice, endSlice,
+                               moduloFraction, xlabel, ylabel, title, scalingFactor,
+                               xScalingFactor, swapXAxis, log, ax, **errorbarKwargs)
+
+
+def Histogram3DSlices1D(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlice=None,
+                        moduloFraction=1, xlabel=None, ylabel=None, title=None, scalingFactor=1.0,
+                        xScalingFactor=1.0, figsize=(6.4, 4.8), swapXAxis=False, log=False, ax=None, **errorbarKwargs):
+    """
+    In the same figure, plot multiple 1D histograms along the dimension 'sliceDimension'. At each slice, the
+    2D slice (of the 3D histogram) is first integrated along 'integrateAlong' dimension.
+
+    The default is 1D histograms for each z position showing the y profile having been integrated in x.
+
+    The slice index is represented by a colour scale. To down-select slices, use the moduloFraction parameter
+    for example as 2 to take every 2nd slice.
 
     :param th3: 3D histogram containing the data.
     :type th3: TH3
@@ -1048,7 +1063,8 @@ def MeshSteps(th3, sliceDimension='z', integrateAlong='x', startSlice=0, endSlic
                 miny = min(miny, _np.min(histo.contents - histo.errors))
             maxy = max(maxy, _np.max(histo.contents + histo.errors))
             Histogram1D(histo, scalingFactor=scalingFactor, xScalingFactor=xScalingFactor,
-                             figsize=figsize, swapXAxis=swapXAxis, log=log, ax=ax, c=colours[i // 2])
+                        figsize=figsize, swapXAxis=swapXAxis, log=log, ax=ax, c=colours[i // 2],
+                        errorbarKwargs=errorbarKwargs)
 
     sm = _plt.cm.ScalarMappable(cmap="viridis", norm=_plt.Normalize(vmin=color_low, vmax=colour_high))
     _plt.colorbar(sm, ax=ax, label=sliceDimension + " (m)")
@@ -1068,22 +1084,37 @@ def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
                       xlabel=None, ylabel=None, zlabel="", scalingFactor=1.0, swapXAxis=False,
                       figsize=(6.4, 4.8), logNorm=False, vmax=None, vmin=None, savingPrefix=None):
     """
-    Plot multiple 1D histograms along a given dimension integrateAlong. The integrated 2D histogram originates
-    from slices along dimension sliceDimension. By default, the slices are from 0 to len(th3.zcentres)-1.
-    endSlice is inclusive meaning this slice will be included in the plot The slice index is represented
-    by a colour scale. Only every second histogram is plotted. This function is useful to visualise properties
-    of a scoring mesh. All variables referring to properties of the plot are pushed through to Histogram1D().
+    Plot multiple 2D histograms along a given dimension sliceDimension. Each figure is saved
+    only if savingPrefix is given. The default is to plot x-y 2D histograms for each z position.
 
     :param th3: 3D histogram containing the
     :type  th3: TH3
     :param sliceDimension: string specifying the dimension along which to slice the histogram.
     :type sliceDimension: str
-    :param integrateAlong: string specifying to integrate the 2D along which dimension.
-    :type integrateAlong: str
     :param startSlice: first index of the 2D slices
     :type startSlice: int
     :param endSlice: last index of the 2D slices
     :type endSlice: int
+    :param xlabel: string specifying the x-axis label
+    :type xlabel: str
+    :param ylabel: string specifying the y-axis label
+    :type ylabel: str
+    :param zlabel: string specifying the colour scale for each 2D histogram
+    :type zlabel: str
+    :param scalingFactor: float specifying the scaling factor for each 2D histogram for all bins
+    :type scalingFactor: float
+    :param swapXAxis: whether to reverse the x-axis direction
+    :type swapXAxis: bool
+    :param figsize: (h, v) figure size a la matplotlib
+    :type figsize: tuple(float, float)
+    :param logNorm: whether each 2D histogram has a log colour scale
+    :type logNorm: bool
+    :param vmax: maximum value of the colour scale
+    :type vmax: float
+    :param vmin: minimum value of the colour scale
+    :type vmin: float
+    :param savingPrefix: prefix for each file name if saving the file
+    :type savingPrefix: str
 
     :return list(figure), list(axis):
     """
