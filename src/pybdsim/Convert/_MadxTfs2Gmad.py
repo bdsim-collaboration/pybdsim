@@ -732,9 +732,8 @@ def _Tfs2GmadElementFactory(item, allelementdict, verbose,
                 if 'outerDiameter' in colld:
                     kws['outerDiameter'] = colld['outerDiameter']
                 else:
-                    kws['outerDiameter'] = max([0.5,
-                                                xsize * 2.5,
-                                                ysize * 2.5])
+                    if not (type(xsize) == tuple or type(ysize) == tuple):
+                        kws['outerDiameter'] = max([0.5, xsize * 2.5, ysize * 2.5])
                 if t == 'RCOLLIMATOR' or t == "COLLIMATOR":
                     return _Builder.RCol(rname, l, xsize, ysize, **kws)
                 else:
