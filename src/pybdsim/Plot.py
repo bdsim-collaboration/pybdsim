@@ -105,7 +105,7 @@ def AddMachineLatticeFromSurveyToFigureMultiple(figure, machines, tightLayout=Tr
     return d
 
 
-def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sOffset=0., fraction=0.9):
+def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, s_offset=0., fraction=0.9):
     """
     Add a machine diagram to the top of the plot in a current figure.
 
@@ -115,8 +115,8 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sO
     :type surveyfile: str, pybdsim.Data.RebdsimFile, pybdsim.Data.BDSAsciiData, cppyy.gbl.DataLoader
     :param tightLayout: whether to call matplotlib's tight layout after adding the axes.
     :type tightLayout: bool
-    :param sOffset: add this number to the S coordinate of all elements in the machine diagram.
-    :type sOffset: float
+    :param s_offset: add this number to the S coordinate of all elements in the machine diagram.
+    :type s_offset: float
     :param fraction: controls fraction of the figure for the plot, the remainder being used for the survey.
     :type fraction: float
     """
@@ -140,7 +140,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sO
     #axmachine = _PrepareMachineAxes(figure)
     #axmachine.margins(x=0.02)
 
-    DrawMachineLattice(axmachine, sf, sOffset=sOffset)
+    DrawMachineLattice(axmachine, sf, s_offset=s_offset)
     #put callbacks for linked scrolling
     def MachineXlim(ax):
         axmachine.set_autoscale_on(False)
@@ -150,7 +150,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sO
     def Click(a):
         if a.button == 3:
             try:
-                print('Closest element: ',sf.NameFromNearestS(a.xdata - sOffset))
+                print('Closest element: ', sf.NameFromNearestS(a.xdata - s_offset))
             except ValueError:
                 pass # don't complain if the S is out of bounds
 
@@ -159,7 +159,7 @@ def AddMachineLatticeFromSurveyToFigure(figure, surveyfile, tightLayout=True, sO
     figure.canvas.mpl_connect('button_press_event', Click)
 
 
-def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
+def DrawMachineLattice(axesinstance, bdsasciidataobject, s_offset=0.0):
     """
     The low-level version of drawing a machine diagram. Draws into an axes instance
     given using loaded model data in the form of a pybdsim.Data.BDSAsciiData instance.
@@ -168,8 +168,8 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     :type axesinstance: matplotlib.axes.Axes
     :param: bdsasciidataobject The model data.
     :type bdsasciidataobject: pybdsim.Data.BDSAsciiData
-    :param sOffset: add this value to the S of all machine elements in the diagram.
-    :type sOffset: float
+    :param s_offset: add this value to the S of all machine elements in the diagram.
+    :type s_offset: float
 
     The main interface is AddMachineLatticeFromSurveyToFigure, but this function
     may be useful for more granular plotting, e.g. with custom subfigures / axes.
@@ -205,7 +205,7 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
     types   = bds.Type()
     lengths = bds.ArcLength()
     starts  = bds.SStart()
-    starts += sOffset
+    starts += s_offset
     k1      = bds.k1()
 
     for i in range(len(bds)):
@@ -256,10 +256,10 @@ def DrawMachineLattice(axesinstance, bdsasciidataobject, sOffset=0.0):
 
     # plot beam line
     ends = bds.SEnd()
-    smax = ends[-1] + sOffset
-    ax.plot([starts[0] + sOffset, smax],[0,0],'k-',lw=1)
+    smax = ends[-1] + s_offset
+    ax.plot([starts[0] + s_offset, smax], [0, 0], 'k-', lw=1)
     ax.set_ylim(-0.2,0.2)
-    ax.set_xlim(starts[0] + sOffset, smax)
+    ax.set_xlim(starts[0] + s_offset, smax)
 
 
 def SubplotsWithDrawnMachineLattice(survey, nrows=2, machine_plot_gap=0.01, gridspec_kw=None, subplots_kw=None, **fig_kw):
