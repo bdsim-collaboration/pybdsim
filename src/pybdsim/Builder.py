@@ -1301,7 +1301,7 @@ class Machine(object):
 
     def UpdateCategoryParameter(self, category, parameter, value):
         """
-        Update parameter for all elements of a given category.
+        Update parameter for all elements of a given category (i.e. type).
         """
         names = self.GetNamesOfType(category)
         self.UpdateElements(names, parameter, value)
@@ -1468,7 +1468,7 @@ class Machine(object):
                 pass
             ielement += 1
 
-    def Write(self, filename, verbose=False, overwrite=True):
+    def Write(self, filename, verbose=False, overwrite=True, sequence_name=None):
         """
         Write the machine to a series of gmad files.
 
@@ -1479,9 +1479,10 @@ class Machine(object):
         if self.sr :
             self.SynchrotronRadiationRescale()
 
+        sn = self.sequenceName if sequence_name is None else sequence_name
         verboseresult = verbose or self.verbose
         writer = _Writer.Writer()
-        writer.WriteMachine(self,filename,verboseresult)
+        writer.WriteMachine(self, filename, verbose=verboseresult, overwrite=overwrite, sequence_name=sn)
 
     def AddObject(self, obj):
         """

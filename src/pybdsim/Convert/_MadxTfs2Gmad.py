@@ -153,7 +153,8 @@ def MadxTfs2Gmad(tfs, outputfilename,
                  overwrite             = True,
                  write                 = True,
                  allNamesUnique        = False,
-                 namePrepend           = ""):
+                 namePrepend           = "",
+                 sequenceName          = None):
     """
     **MadxTfs2Gmad** convert a madx twiss output file (.tfs) into a gmad tfs file for bdsim
 
@@ -284,14 +285,18 @@ def MadxTfs2Gmad(tfs, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
     | **namePrepend**               | Optional string prepended to the name of every component.         |
     +-------------------------------+-------------------------------------------------------------------+
+    | **sequenceName**              | Preferred sequence name. Default is taken from header of TFS.     |
+    +-------------------------------+-------------------------------------------------------------------+
 
     """
-
-    # machine instance that will be added to
-    machine = _Builder.Machine()
-
     # test whether filepath or tfs instance supplied
     madx = _pymadx.Data.CheckItsTfs(tfs)
+
+    if sequenceName is None:
+        sequenceName = madx.header.get('SEQUENCE', "lattice")
+
+    # machine instance that will be added to
+    machine = _Builder.Machine(sequenceName=sequenceName)
 
     # not very elegant but needs to be done
     varnames = ['collimatordict','userdict','partnamedict','allelementdict','optionsdict','beamparamsdict']
@@ -463,7 +468,7 @@ def MadxTfs2Gmad(tfs, outputfilename,
         print('number of omitted items: ', len(itemsomitted))
 
     if write:
-        machine.Write(outputfilename, overwrite=overwrite)
+        machine.Write(outputfilename, verbose=verbose, overwrite=overwrite, sequence_name=sequenceName)
     # We return machine twice to not break old interface of returning
     # two machines.
     return machine, itemsomitted
