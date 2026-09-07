@@ -1137,9 +1137,9 @@ def Histogram3DSlices(th3, sliceDimension='z', startSlice=0, endSlice=-1,
     if not ylabel:
         ylabel = yaxis + " (m)"
     if not vmin:
-        vmin = _np.min(th3.contents[th3.contents>0])
+        vmin = _np.min(th3.contents[th3.contents>0])*scalingFactor
     if not vmax:
-        vmax = _np.max(th3.contents)
+        vmax = _np.max(th3.contents)*scalingFactor
     figs, axs = [], []
     for i in range(startSlice, endSlice):
         slice = f(i)
