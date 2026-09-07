@@ -7,7 +7,8 @@ from matplotlib.backends.backend_pdf import PdfPages as _PdfPages
 import datetime as _datetime
 
 def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
-                postfunctions=None, figsize=(10, 5), saveAll=True, outputFileName=None):
+                postfunctions=None, figsize=(10, 5), saveAll=True, outputFileName=None,
+                s_offset=0.0):
     """
     Compares MadX and BDSIM optics variables.
     User must provide a tfsoptIn file or Tfsinstance and a BDSAscii file or instance.
@@ -50,39 +51,39 @@ def MadxVsBDSIM(tfs, bdsim, survey=None, functions=None,
     figures = [PlotBetas(tfsopt, bdsopt, survey=survey,
                          functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize),
+                         figsize=figsize, s_offset=s_offset),
                PlotAlphas(tfsopt, bdsopt, survey=survey,
                           functions=functions,
                           postfunctions=postfunctions,
-                          figsize=figsize),
+                          figsize=figsize, s_offset=s_offset),
                PlotDs(tfsopt, bdsopt, survey=survey,
                       functions=functions,
                       postfunctions=postfunctions,
-                      figsize=figsize),
+                      figsize=figsize, s_offset=s_offset),
                PlotDps(tfsopt, bdsopt, survey=survey,
                        functions=functions,
                        postfunctions=postfunctions,
-                       figsize=figsize),
+                       figsize=figsize, s_offset=s_offset),
                PlotSigmas(tfsopt, bdsopt, survey=survey,
                           functions=functions,
                           postfunctions=postfunctions,
-                          figsize=figsize),
+                          figsize=figsize, s_offset=s_offset),
                PlotSigmasP(tfsopt, bdsopt, survey=survey,
                            functions=functions,
                            postfunctions=postfunctions,
-                           figsize=figsize),
+                           figsize=figsize, s_offset=s_offset),
                PlotMeans(tfsopt, bdsopt, survey=survey,
                          functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize),
+                         figsize=figsize, s_offset=s_offset),
                PlotEmitt(tfsopt, bdsopt, tfsinst.header, survey=survey,
                          functions=functions,
                          postfunctions=postfunctions,
-                         figsize=figsize),
+                         figsize=figsize, s_offset=s_offset),
                PlotNParticles(bdsopt, survey=survey,
                               functions=functions,
                               postfunctions=postfunctions,
-                              figsize=figsize)]
+                              figsize=figsize, s_offset=s_offset)]
 
     if saveAll:
         tfsname = repr(tfsinst)
@@ -209,6 +210,9 @@ def _GetTfsOptics(optics):
     optvars = {}
     for variable in MADXOpticsVariables:
         optvars[variable] = optics.GetColumn(variable)
+
+    if optvars['S'][0] != 0:
+        optvars['S'] = optvars['S'] - optvars['S'][0]
     return optvars
 
 def _GetTfsOrbit(optics):
@@ -227,54 +231,49 @@ def _GetTfsOrbit(optics):
         optvars[variable] = optics.GetColumn(variable)
     return optvars
 
-def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def PlotBetas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), s_offset=0.0):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     betaPlot = _plt.figure('Beta', figsize=figsize)
-    _plt.plot(tfsopt['S'], tfsopt['BETX'], 'b', label=r'MADX $\beta_{x}$')
-    _plt.plot(tfsopt['S'], tfsopt['BETY'], 'g', label=r'MADX $\beta_{y}$')
 
-    #bds
-    _plt.errorbar(bdsopt['S'], bdsopt['Beta_x'],
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['BETX'], 'b', label=r'MADX $\beta_{x}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['BETY'], 'g', label=r'MADX $\beta_{y}$')
+
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Beta_x'],
                   yerr=bdsopt['Sigma_Beta_x'],
                   label=r'BDSIM $\beta_{x}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='b')
+                  marker='x', ls = '', color='b')
 
-    _plt.errorbar(bdsopt['S'], bdsopt['Beta_y'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Beta_y'],
                   yerr=bdsopt['Sigma_Beta_y'],
                   label=r'BDSIM $\beta_{y}$' + ' ; N = ' + N,
-                  marker='x',
-                  ls = '',
-                  color='g')
+                  marker='x', ls = '', color='g')
 
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'$\beta_{x,y}$ / m')
     axes.set_xlabel('S / m')
     axes.legend(loc='best')
 
-    print("survey =", survey)
-
     _CallUserFigureFunctions(functions)
     _AddSurvey(betaPlot, survey)
     _CallUserFigureFunctions(postfunctions)
     
     _plt.show(block=False)
+    _plt.tight_layout()
     return betaPlot
 
-def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), s_offset=0.0):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     alphaPlot = _plt.figure('Alpha', figsize=figsize)
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['ALFX'], 'b', label=r'MADX $\alpha_{x}$')
-    _plt.plot(tfsopt['S'], tfsopt['ALFY'], 'g', label=r'MADX $\alpha_{y}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['ALFX'], 'b', label=r'MADX $\alpha_{x}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['ALFY'], 'g', label=r'MADX $\alpha_{y}$')
     #bds
-    _plt.errorbar(bdsopt['S'], bdsopt['Alpha_x'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Alpha_x'],
                   yerr=bdsopt['Sigma_Alpha_x'],
                   label=r'BDSIM $\alpha_{x}$' + ' ; N = ' + N,
                   fmt='b.', capsize=3)
 
-    _plt.errorbar(bdsopt['S'], bdsopt['Alpha_y'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Alpha_y'],
                   yerr=bdsopt['Sigma_Alpha_y'],
                   label=r'BDSIM $\alpha_{y}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
@@ -285,25 +284,26 @@ def PlotAlphas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, 
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(alphaPlot, survey)
+    _AddSurvey(alphaPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
     
     _plt.show(block=False)
+    _plt.tight_layout()
     return alphaPlot
 
-def PlotDs(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def PlotDs(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), s_offset=0.0):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPlot = _plt.figure('Dispersion', figsize=figsize)
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['DXBETA'], 'b', label=r'MADX $D_{x}$')
-    _plt.plot(tfsopt['S'], tfsopt['DYBETA'], 'g', label=r'MADX $D_{y}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['DXBETA'], 'b', label=r'MADX $D_{x}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['DYBETA'], 'g', label=r'MADX $D_{y}$')
     #bds
-    _plt.errorbar(bdsopt['S'], bdsopt['Disp_x'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Disp_x'],
                   yerr=bdsopt['Sigma_Disp_x'],
                   label=r'BDSIM $D_{x}$' + ' ; N = ' + N,
                   fmt='b.', capsize=3)
 
-    _plt.errorbar(bdsopt['S'], bdsopt['Disp_y'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Disp_y'],
                   yerr=bdsopt['Sigma_Disp_y'],
                   label=r'BDSIM $D_{y}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
@@ -314,25 +314,26 @@ def PlotDs(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figs
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(dispPlot, survey)
+    _AddSurvey(dispPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
     
     _plt.show(block=False)
+    _plt.tight_layout()
     return dispPlot
 
-def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), s_offset=0.0):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     dispPPlot = _plt.figure('Momentum_Dispersion', figsize=figsize)
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['DPXBETA'], 'b', label=r'MADX $D_{p_{x}}$')
-    _plt.plot(tfsopt['S'], tfsopt['DPYBETA'], 'g', label=r'MADX $D_{p_{y}}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['DPXBETA'], 'b', label=r'MADX $D_{p_{x}}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['DPYBETA'], 'g', label=r'MADX $D_{p_{y}}$')
     #bds
-    _plt.errorbar(bdsopt['S'], bdsopt['Disp_xp'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Disp_xp'],
                   yerr=bdsopt['Sigma_Disp_xp'],
                   label=r'BDSIM $D_{p_{x}}$' + ' ; N = ' + N,
                   fmt='b.', capsize=3)
 
-    _plt.errorbar(bdsopt['S'], bdsopt['Disp_yp'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Disp_yp'],
                   yerr=bdsopt['Sigma_Disp_yp'],
                   label=r'BDSIM $D_{p_{y}}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
@@ -343,28 +344,29 @@ def PlotDps(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, fig
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(dispPPlot, survey)
+    _AddSurvey(dispPPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
     
     _plt.show(block=False)
+    _plt.tight_layout()
     return dispPPlot
 
-def PlotEmitt(tfsopt, bdsopt, header, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+def PlotEmitt(tfsopt, bdsopt, header, survey=None, functions=None, postfunctions=None, figsize=(12, 5), s_offset=0.0):
     N = str(int(bdsopt['Npart'][0]))  # number of primaries.
     emittPlot = _plt.figure('Emittance', figsize=figsize)
     ex = header['EX'] * _np.ones(len(tfsopt['S']))
     ey = header['EY'] * _np.ones(len(tfsopt['S']))
 
     # tfs
-    _plt.plot(tfsopt['S'], ex, 'b', label=r'MADX $E_{x}$')
-    _plt.plot(tfsopt['S'], ey, 'g', label=r'MADX $E_{y}$')
+    _plt.plot(tfsopt['S']+s_offset, ex, 'b', label=r'MADX $E_{x}$')
+    _plt.plot(tfsopt['S']+s_offset, ey, 'g', label=r'MADX $E_{y}$')
     # bds
-    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_x'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Emitt_x'],
                   yerr=bdsopt['Sigma_Emitt_x'],
                   label=r'BDSIM $E_{x}$' + ' ; N = ' + N,
                   fmt='b.', capsize=3)
 
-    _plt.errorbar(bdsopt['S'], bdsopt['Emitt_y'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Emitt_y'],
                   yerr=bdsopt['Sigma_Emitt_y'],
                   label=r'BDSIM $E_{y}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
@@ -375,122 +377,130 @@ def PlotEmitt(tfsopt, bdsopt, header, survey=None, functions=None, postfunctions
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(emittPlot, survey)
+    _AddSurvey(emittPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
 
     _plt.show(block=False)
+    _plt.tight_layout()
     return emittPlot
 
-def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def PlotSigmas(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), s_offset=0.0):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPlot = _plt.figure('Sigma', figsize=figsize)
+    fac = 1000.0
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['SIGMAX'], 'b', label=r'MADX $\sigma_{x}$')
-    _plt.plot(tfsopt['S'], tfsopt['SIGMAY'], 'g', label=r'MADX $\sigma_{y}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['SIGMAX']*fac, 'b', label=r'MADX $\sigma_{x}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['SIGMAY']*fac, 'g', label=r'MADX $\sigma_{y}$')
     #bds
-    _plt.errorbar(bdsopt['S'],
-                  bdsopt['Sigma_x'],
-                  yerr=bdsopt['Sigma_Sigma_x'],
+    _plt.errorbar(bdsopt['S']+s_offset,
+                  bdsopt['Sigma_x']*fac,
+                  yerr=bdsopt['Sigma_Sigma_x']*fac,
                   label=r'BDSIM $\sigma_{x}$' + ' ; N = ' + N,
                   fmt='b.', capsize=3)
 
-    _plt.errorbar(bdsopt['S'],
-                  bdsopt['Sigma_y'],
-                  yerr=bdsopt['Sigma_Sigma_y'],
+    _plt.errorbar(bdsopt['S']+s_offset,
+                  bdsopt['Sigma_y']*fac,
+                  yerr=bdsopt['Sigma_Sigma_y']*fac,
                   label=r'BDSIM $\sigma_{y}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
     
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\sigma_{x,y}$ / m')
-    axes.set_xlabel('S / m')
+    axes.set_ylabel(r'$\sigma_{x,y}$ (mm)')
+    axes.set_xlabel('S (m)')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(sigmaPlot, survey)
+    _AddSurvey(sigmaPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
     
     _plt.show(block=False)
+    _plt.tight_layout()
     return sigmaPlot
 
-def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def PlotSigmasP(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), s_offset=0.0):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     sigmaPPlot = _plt.figure('SigmaP', figsize=figsize)
+    fac = 1000.0
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['SIGMAXP'], 'b', label=r'MADX $\sigma_{xp}$')
-    _plt.plot(tfsopt['S'], tfsopt['SIGMAYP'], 'g', label=r'MADX $\sigma_{yp}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['SIGMAXP']*fac, 'b', label=r'MADX $\sigma_{xp}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['SIGMAYP']*fac, 'g', label=r'MADX $\sigma_{yp}$')
     #bds
-    _plt.errorbar(bdsopt['S'],
-                  bdsopt['Sigma_xp'],
-                  yerr=bdsopt['Sigma_Sigma_xp'],
+    _plt.errorbar(bdsopt['S']+s_offset,
+                  bdsopt['Sigma_xp']*fac,
+                  yerr=bdsopt['Sigma_Sigma_xp']*fac,
                   label=r'BDSIM $\sigma_{xp}$' + ' ; N = ' + N,
                   fmt='b.', capsize=3)
 
-    _plt.errorbar(bdsopt['S'],
-                  bdsopt['Sigma_yp'],
-                  yerr=bdsopt['Sigma_Sigma_yp'],
+    _plt.errorbar(bdsopt['S']+s_offset,
+                  bdsopt['Sigma_yp']*fac,
+                  yerr=bdsopt['Sigma_Sigma_yp']*fac,
                   label=r'BDSIM $\sigma_{yp}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
     
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\sigma_{xp,yp}$ / rad')
-    axes.set_xlabel('S / m')
+    axes.set_ylabel(r'$\sigma_{xp,yp}$ (mrad)')
+    axes.set_xlabel('S (m)')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(sigmaPPlot, survey)
+    _AddSurvey(sigmaPPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
 
     _plt.show(block=False)
+    _plt.tight_layout()
     return sigmaPPlot
 
-def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def PlotMeans(tfsopt, bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12,5), s_offset=0.0):
     N = str(int(bdsopt['Npart'][0]))  #number of primaries.
     meanPlot = _plt.figure('Mean', figsize=figsize)
+    fac = 1000.0
     #tfs
-    _plt.plot(tfsopt['S'], tfsopt['X'], 'b', label=r'MADX $\bar{x}$')
-    _plt.plot(tfsopt['S'], tfsopt['Y'], 'g', label=r'MADX $\bar{y}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['X']*fac, 'b', label=r'MADX $\bar{x}$')
+    _plt.plot(tfsopt['S']+s_offset, tfsopt['Y']*fac, 'g', label=r'MADX $\bar{y}$')
 
     #bdsim
-    _plt.errorbar(bdsopt['S'], bdsopt['Mean_x'],
-                  yerr=bdsopt['Sigma_Mean_x'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Mean_x']*fac,
+                  yerr=bdsopt['Sigma_Mean_x']*fac,
                   label=r'BDSIM $\bar{x}$' + ' ; N = ' + N,
                   fmt='b.', capsize=3)
 
-    _plt.errorbar(bdsopt['S'], bdsopt['Mean_y'],
-                  yerr=bdsopt['Sigma_Mean_y'],
+    _plt.errorbar(bdsopt['S']+s_offset, bdsopt['Mean_y']*fac,
+                  yerr=bdsopt['Sigma_Mean_y']*fac,
                   label=r'BDSIM $\bar{y}$' + ' ; N = ' + N,
                   fmt='g.', capsize=3)
 
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
-    axes.set_xlabel('S / m')
+    axes.set_ylabel(r'$\bar{x}, \bar{y}$ (mm)')
+    axes.set_xlabel('S (m)')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(meanPlot, survey)
+    _AddSurvey(meanPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
     
     _plt.show(block=False)
+    _plt.tight_layout()
     return meanPlot
 
-def PlotNParticles(bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5)):
+def PlotNParticles(bdsopt, survey=None, functions=None, postfunctions=None, figsize=(12, 5), s_offset=0.0):
     npartPlot = _plt.figure('NParticles', figsize)
 
-    _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k-', label='BDSIM N Particles')
-    _plt.plot(bdsopt['S'],bdsopt['Npart'], 'k.')
+    _plt.plot(bdsopt['S']+s_offset, bdsopt['Npart'], 'k-', label='BDSIM N Particles')
+    _plt.plot(bdsopt['S']+s_offset, bdsopt['Npart'], 'k.')
     axes = _plt.gcf().gca()
     axes.set_ylabel(r'N Particles')
-    axes.set_xlabel('S / m')
+    axes.set_xlabel('S (m)')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(npartPlot, survey)
+    _AddSurvey(npartPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
 
     _plt.show(block=False)
+    _plt.tight_layout()
     return npartPlot
 
-def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, figsize=(12,5)):
+def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, figsize=(12,5), s_offset=0.0):
     """
     Plot both the BDSIM orbit and MADX orbit (mean x,y).
 
@@ -505,25 +515,26 @@ def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, 
         survey = tfsopt
 
     orbitPlot = _plt.figure('Orbit', figsize=figsize)
-    
+
+    fac = 1000.0
     #tfs
     tfs_s = tfsopt.GetColumn('S')
-    tfs_x = tfsopt.GetColumn('X')
-    tfs_y = tfsopt.GetColumn('Y')
+    tfs_x = tfsopt.GetColumn('X')*fac
+    tfs_y = tfsopt.GetColumn('Y')*fac
     _plt.plot(tfs_s, tfs_x, 'b', label=r'MADX $\bar{x}$')
     _plt.plot(tfs_s, tfs_y, 'g', label=r'MADX $\bar{y}$')
 
     #bdsim
     if type(bdsopt) == _pybdsim.Data.RebdsimFile:
         if (hasattr(bdsopt, "orbit")):
-            bds_s = bdsopt.orbit.s()
-            bds_x = bdsopt.orbit.x()
-            bds_y = bdsopt.orbit.y()
+            bds_s = bdsopt.orbit.s()+s_offset
+            bds_x = bdsopt.orbit.x()*fac
+            bds_y = bdsopt.orbit.y()*fac
         else:
             raise ValueError("No orbit in file")
     elif type(bdsopt) == _pybdsim.Data.BDSAsciiData:
         # ironically this will come if it's a rebdsim optics output
-        bds_s = bdsopt.GetColumn('S')
+        bds_s = bdsopt.GetColumn('S')+s_offset
         bds_x = bdsopt.GetColumn('Mean_x')
         bds_y = bdsopt.GetColumn('Mean_y')
     _plt.plot(bds_s, bds_x, 'b.', label='BDSIM x')
@@ -532,18 +543,20 @@ def MadxVsBDSIMOrbit(tfs, bds, survey=None, functions=None, postfunctions=None, 
     #_plt.plot(bds_s, bds_y, 'g-', alpha=0.4)
     
     axes = _plt.gcf().gca()
-    axes.set_ylabel(r'$\bar{x}, \bar{y}$ / m')
-    axes.set_xlabel('S / m')
+    axes.set_ylabel(r'$\bar{x}, \bar{y}$ (mm)')
+    axes.set_xlabel('S (m)')
     axes.legend(loc='best')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(orbitPlot, survey)
+    _AddSurvey(orbitPlot, survey, s_offset=s_offset)
     _CallUserFigureFunctions(postfunctions)
 
     _plt.show(block=False)
+    _plt.tight_layout()
     return orbitPlot
 
-def MadxVsBDSIMOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None, verbose=False, figsize=(12,5)):
+def MadxVsBDSIMOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctions=None, verbose=False, figsize=(12,5),
+                              s_offset=0.0):
     _CheckFilesExist(tfs, bds, survey)
     tfsinst   = _pymadx.Data.CheckItsTfs(tfs)
     bdsinst   = _pybdsim.Data.CheckItsBDSAsciiData(bds)
@@ -559,7 +572,7 @@ def MadxVsBDSIMOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctio
     dy  = tdata['Y']  - bdata['Y']
     dyp = tdata['PY'] - bdata['PY']
 
-    s   = tdata['S']
+    s = tdata['S'] + s_offset
 
     orbRes = _plt.figure('OrbitResiduals', figsize=figsize)
     _plt.plot(s, abs(dx),  '.', label='x')
@@ -572,22 +585,23 @@ def MadxVsBDSIMOrbitResiduals(tfs, bds, survey=None, functions=None, postfunctio
     _plt.yscale('log')
 
     _CallUserFigureFunctions(functions)
-    _AddSurvey(orbRes, survey)
+    _AddSurvey(orbRes, survey, s_offset)
 
     _plt.show(block=False)
+    _plt.tight_layout()
     return orbRes
 
-def _AddSurvey(figure, survey):
+def _AddSurvey(figure, survey, s_offset=0.0):
     if survey is None:
         return
     if isinstance(survey, str): # If BDSIM ASCII survey file
         if survey.split(".")[-1] == 'dat':
-            _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure,survey)
+            _pybdsim.Plot.AddMachineLatticeFromSurveyToFigure(figure, survey, s_offset=s_offset)
     # If BDSIM ASCII survey instance
     elif isinstance(survey, _pybdsim.Data.BDSAsciiData):
-        _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
+        _pymadx.Plot.AddMachineLatticeToFigure(figure, survey, s_offset=s_offset)
     elif isinstance(survey, _pymadx.Data.Tfs): # If TFS
-        _pymadx.Plot.AddMachineLatticeToFigure(figure,survey)
+        _pymadx.Plot.AddMachineLatticeToFigure(figure, survey, s_offset=s_offset)
     # if a (BDSIM) ROOT file
     elif _pybdsim._General.IsROOTFile(survey):
         pass
