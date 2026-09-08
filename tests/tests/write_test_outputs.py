@@ -7,7 +7,7 @@ the name of the input found in pybdsim/tests/test_input/.   """
 import pybdsim
 import pymadx
 
-from . import pybdsim_test_utils as utils
+import pybdsim_test_utils as utils
 
 def generate_atf2_gmad():
     input_file_name = "atf2-nominal-twiss-v5.2.tfs.tar.gz"
@@ -31,6 +31,13 @@ def generate_model_model_gmad():
                                  aperturedict=aper,
                                  collimatordict=coll_settings)
 
+def generate_model_model_transform_gmad():
+    input_file_name = "model-model-transforms.tfs.gz"
+    input_path, output_path = utils.get_input_and_output_paths(
+        input_file_name)
+    pybdsim.Convert.MadxTfs2Gmad(input_path, output_path)
+
 if __name__ == "__main__":
     generate_atf2_gmad()
     generate_model_model_gmad()
+    generate_model_model_transform_gmad()
