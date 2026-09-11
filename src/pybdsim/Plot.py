@@ -878,13 +878,10 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
             print("Setting lower limit to stasitical floor of 1/event")
             vmin = sf*1.0/h.entries # statistical floor and matplotlib requires a finite vmin
     if vmax is None:
-        if histEmpty:
-            vmax = 1.0
-        else:
-            vmax = sf*_np.max(h.contents)
+        vmax = 1.0 if histEmpty else sf*_np.max(h.contents)
     if logNorm:
         d = _copy.deepcopy(sf*h.contents.T)
-        norm = _LogNorm(vmin=vmin,vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
+        norm = _LogNorm(vmin=vmin, vmax=vmax) if vmax is not None else _LogNorm(vmin=vmin)
         im = ax.pcolormesh(h.xedges*xsf, h.yedges*ysf, d, norm=norm, rasterized=True, **imshowKwargs)
         #_plt.imshow(d, extent=ext, origin='lower', aspect=aspect, norm=norm, interpolation='none', **imshowKwargs)
         if colourbar:
