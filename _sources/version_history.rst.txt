@@ -2,6 +2,16 @@
 Version History
 ===============
 
+v3.9.0 - 2026 / 09 / 11
+=======================
+
+* Default MADX conversion to GMAD now prepends the sequence name to each sub-sequence part.
+* Name of sequence controllable in Builder class.
+* Fix s offset for machine diagrams if using an offset lattice in BDSIM.
+* The :code:`pybdsim.Plot.MeshSteps` funciton is deprecated in favour of :code:`pybdsim.Plot.Histogram3DSlices1D`.
+* Allow default name output from rebdsim when running from pybdsim.
+* Fix automatic collimator outer size determination when using units in the supplied collimator dictionary.
+
 v3.8.0 - 2026 / 08 / 02
 =======================
 
