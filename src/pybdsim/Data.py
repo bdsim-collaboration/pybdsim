@@ -1528,7 +1528,7 @@ class TH3(TH2):
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
-        self.hist.GetZaxis().SetRange(index+1,index+2)
+        self.hist.GetZaxis().SetRange(index+1,index+1)
         h2d = self.hist.Project3D("yxe")
         return TH2(h2d)
 
@@ -1541,7 +1541,7 @@ class TH3(TH2):
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
-        self.hist.GetYaxis().SetRange(index+1,index+2)
+        self.hist.GetYaxis().SetRange(index+1,index+1)
         h2d = self.hist.Project3D("xze")
         return TH2(h2d)
 
@@ -1554,7 +1554,7 @@ class TH3(TH2):
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
-        self.hist.GetXaxis().SetRange(index+1, index+2)
+        self.hist.GetXaxis().SetRange(index+1, index+1)
         h2d = self.hist.Project3D("yze")
         return TH2(h2d)
 
