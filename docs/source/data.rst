@@ -239,10 +239,10 @@ Some useful functions assuming a histogram :code:`h` of type TH1D or TH2D or TH3
 Python Histogram Operations
 ---------------------------
 
-Some of the above operations are provided in functions of `pybdsim.Data.TH2` and `pybdsim.Data.TH3` -
-the 'Python' versions in pybdsim.
+The pybdsim wrapper classes are provided for convenience. These are also called TH1, TH2 and TH3.
+See :class:`pybdsim.Data.TH1`, :class:`pybdsim.Data.TH2`, :class:`pybdsim.Data.TH3` for details.
 
-See :ref:`pybdsim-data-module` and look for each of the classes there, where their functions are listed.
+Each can be passed into a corresponding plot function such as :meth:`pybdsim.Plot.Histogram2D`.
 
 Some specifically for 3D histograms (i.e. often scoring meshes) are described below.
 

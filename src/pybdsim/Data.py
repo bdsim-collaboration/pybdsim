@@ -1193,7 +1193,13 @@ class TH1(ROOTHist):
         TH1D bin numbering scheme (usually 1 is the first bin and 0 is the underflow).
         If left empty, they will integrate the whole range.
 
-        returns the integral,error
+        :param startBin: ROOT index for start of integral
+        :type startBin: int
+        :param endBin: ROOT index for end of integral
+        :type endBin: int
+
+        :return: integral, error
+        :rtype: float, float
         """
         if not startBin:
             startBin = self.hist.GetXaxis().GetFirst()
@@ -1212,7 +1218,13 @@ class TH1(ROOTHist):
         found with TH1.FindBin(xLow) and that bin is used for the
         integration range.
 
-        returns the integral,error
+        :param xLow: x coordinate to integrate from.
+        :type xLow: float
+        :param xHigh: x coordinate to integrate to.
+        :type xHigh: float
+
+        :return: integral, error
+        :rtype: float, float
         """
         xBinLow = self.hist.FindBin(xLow) if xLow is not None else self.hist.GetXaxis().GetFirst()
         xBinHigh = self.hist.FindBin(xHigh) if xHigh is not None else self.hist.GetXaxis().GetLast()
@@ -1224,7 +1236,11 @@ class TH1(ROOTHist):
         """
         Integrate the contents but apply the boolArray mask. This should be
         an array of Booleans the same shape as contents (numpy style).
-        :return float, float: integral, error
+
+        :param boolArray: boolean array to integrate with (True means count it)
+        :type boolArray: numpy array
+        :return: integral, error
+        :rtype: float, float
         """
         i = self.contents[boolArray].sum()
         e = _np.sqrt((self.errors[boolArray]**2).sum())
@@ -1236,6 +1252,14 @@ class TH1(ROOTHist):
             self.errors[i]   = self.hist.GetBinError(i+1)
 
     def Rebin(self, nBins):
+        """
+        Rebin nBins into one bin and return a new histogram.
+        :param nBins: number of bin to combine, e.g. 2 (into 1).
+
+        :type nBins: int
+        :return: rebinned histogram.
+        :rtype: TH1
+        """
         if type(nBins) is not int or nBins < 0:
             raise TypeError("nBins must be a positive integer")
         if nBins == 1:
@@ -1244,6 +1268,14 @@ class TH1(ROOTHist):
         return TH1(htemp)
 
     def GetContentsAt(self, x):
+        """
+        Return the contents closest to coordinate (not bin index) x.
+
+        :param x: coordinate
+        :type x: float
+        :return: content
+        :rtype: float
+        """
         ibin = _np.searchsorted(self.xedges, x) - 1
         return self.contents[ibin]
 
@@ -1296,6 +1328,9 @@ class TH2(TH1):
     def SwapAxes(self):
         """
         Swap X and Y for all members. Returns a new copy of the histogram.
+
+        :return: new 2D histogram
+        :rtype: TH2
         """
         r = _copy.deepcopy(self)
         r.nbinsy    = self.nbinsx
@@ -1327,6 +1362,17 @@ class TH2(TH1):
                 self.errors[i,j]   = self.hist.GetBinError(i+1,j+1)
 
     def Rebin(self, nBinsX, nBinsY=None):
+        """
+        Rebin the histogram reducing nBinsX into 1 and nBinsY into 1.
+
+        :param nBinsX: number of bins to reduce into 1 in x axis
+        :type nBinsX: int
+        :param nBinsY: number of bins to reduce into 1 in y axis
+        :type nBinsY: int
+
+        :return: new TH2 histogram
+        :rtype: TH2
+        """
         if type(nBinsX) is not int or nBinsX < 0:
             raise TypeError("nBinsX must be a positive integer")
         if nBinsY is None:
@@ -1342,6 +1388,9 @@ class TH2(TH1):
     def IntegrateAlongX(self):
         """
         Integrate along the x-axis returning a TH1 in y.
+
+        :return: new 1D histogram
+        :rtype: TH1
         """
         h1d = self.hist.ProjectionY(self.name+"_int_y", 0, -1, "e")
         return TH1(h1d)
@@ -1349,6 +1398,9 @@ class TH2(TH1):
     def IntegrateAlongY(self):
         """
         Integrate along the y-axis returning a TH1 in x.
+
+        :return: new 1D histogram
+        :rtype: TH1
         """
         h1d = self.hist.ProjectionX(self.name+"_int_x", 0, -1, "e")
         return TH1(h1d)
@@ -1358,7 +1410,17 @@ class TH2(TH1):
         Integrate the histogram based on coordinates (not bins). The
         default is to return the integral of the whole histogram.
 
-        returns the integral,error
+        :param xLow: x coordinate to integrate from.
+        :type xLow: float
+        :param xHigh: x coordinate to integrate to.
+        :type xHigh: float
+        :param yLow: y coordinate to integrate from.
+        :type yLow: float
+        :param yHigh: y coordinate to integrate to.
+        :type yHigh: float
+
+        :return: integral, error
+        :rtype: float, float
         """
         xBinLow = self.hist.GetXaxis().FindBin(xLow) if xLow is not None else self.hist.GetXaxis().GetFirst()
         xBinHigh = self.hist.GetXaxis().FindBin(xHigh) if xHigh is not None else self.hist.GetXaxis().GetLast()
@@ -1411,6 +1473,10 @@ class TH3(TH2):
         self.integralError = _np.sqrt((self.errors**2).sum())
 
     def ZRange(self):
+        """
+        Return the range in z coordinate values from lowest to highest edges of bins.
+        :rtype: float
+        """
         return self.zrange[1] - self.zrange[0]
 
     def _GetContents(self):
@@ -1468,18 +1534,27 @@ class TH3(TH2):
     def IntegrateAlongX(self):
         """
         Override from TH2 class to implement 3D version. Returns TH2.
+
+        :return: new 1D histogram
+        :rtype: TH1
         """
         return self.IntegrateAlong1Dimension('x')
 
     def IntegrateAlongY(self):
         """
         Override from TH2 class to implement 3D version. Returns TH2.
+
+        :return: new 1D histogram
+        :rtype: TH1
         """
         return self.IntegrateAlong1Dimension('y')
 
     def IntegrateAlongZ(self):
         """
         Override from TH2 class to implement 3D version. Returns TH2.
+
+        :return: new 1D histogram
+        :rtype: TH1
         """
         return self.IntegrateAlong1Dimension('z')
 
@@ -1490,7 +1565,8 @@ class TH3(TH2):
         :param dimension: 'x', 'y' or 'z' dimension to integrate along
         :type  dimension: str
 
-        returns pybdsim.Data.TH2 instance.
+        :return: new 2D histogram
+        :rtype: TH2
 
         If the projection is done in z, a 2D histogram of x,y is returned
         that is the sum of the bins along z. The errors are also calculated.
@@ -1518,7 +1594,8 @@ class TH3(TH2):
         :param resultDimension: 'x', 'y' or 'z' dimension to produce 1D histogram along.
         :type  resultDimension: str
 
-        returns pybdsim.Data.TH1 instance.
+        :return: new 1D histogram
+        :rtype: TH1
         """
         if resultDimension == 'x':
             h1d = self.hist.Project3D('xe')
@@ -1538,6 +1615,9 @@ class TH3(TH2):
         
         :param index: index in z array of bins to extract, e.g. 0 -> nbinsz-1
         :type  index: int
+
+        :return: new 2D histogram
+        :rtype: TH2
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
@@ -1554,6 +1634,9 @@ class TH3(TH2):
         
         :param index: index in y array of bins to extract, e.g. 0 -> nbinsy-1
         :type  index: int
+
+        :return: new 2D histogram
+        :rtype: TH2
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
@@ -1570,6 +1653,9 @@ class TH3(TH2):
         
         :param index: index in x array of bins to extract, e.g. 0 -> nbinsx-1
         :type  index: int
+
+        :return: new 2D histogram
+        :rtype: TH2
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
@@ -1601,7 +1687,7 @@ class TH3(TH2):
 
     def ApplyTransform(self, dx=0.0, dy=0.0, dz=0.0):
         """
-        Add an offset to the x,y,z coordinates of the mesh independently.
+        Add an offset to the x,y,z coordinates of this 3d histogram independently.
 
         :param dx: x offset to apply
         :type dx: float, int

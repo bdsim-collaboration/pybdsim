@@ -213,7 +213,7 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
     else :
         return ret
 
-    
+
 def BdsimParallel(gmadpath, outfile, nJobs=1, ngenerate=10000, startseed=None, batch=True,
                   silent=False, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
     """
