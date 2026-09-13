@@ -212,6 +212,7 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
         return ret, end-start
     else :
         return ret
+
     
 def BdsimParallel(gmadpath, outfile, nJobs=1, ngenerate=10000, startseed=None, batch=True,
                   silent=False, errorSilent=True, options=None, bdsimExecutable=None, nCPUs=None):
@@ -245,6 +246,7 @@ def BdsimParallel(gmadpath, outfile, nJobs=1, ngenerate=10000, startseed=None, b
     p.close()
     p.join()
 
+
 def Rebdsim(analysis_config_file, bdsim_raw_output_file = None, output_file_name=None, silent=False, rebdsimExecutable=None):
     """
     Run rebdsim with rootpath as analysis configuration text file on a bdsim
@@ -275,6 +277,7 @@ def Rebdsim(analysis_config_file, bdsim_raw_output_file = None, output_file_name
     else:
         return _subprocess.call(args)
 
+
 def Bdskim(skim_config_file, bdsim_raw_output_file, output_file_name=None, silent=False, bdskimExecutable=None):
     """
     Run bdskim with skim_config_file as skim configuration text file on a bdsim
@@ -301,6 +304,7 @@ def Bdskim(skim_config_file, bdsim_raw_output_file, output_file_name=None, silen
         return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call(args)
+
 
 def BdskimParallel(skim_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=False,
                    bdskimExecutable=None, nCPUs=None):
@@ -329,6 +333,7 @@ def BdskimParallel(skim_config_file, bdsim_raw_output_file_list, outfilelist=Non
     p.close()
     p.join()
 
+
 def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelist=None, silent=False,
                     rebdsimExecutable=None, nCPUs=None):
     """
@@ -356,6 +361,7 @@ def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelis
     p.close()
     p.join()
 
+
 def RebdsimOptics(rootpath, outpath, silent=False):
     """
     Run rebdsimOptics
@@ -367,6 +373,7 @@ def RebdsimOptics(rootpath, outpath, silent=False):
                                stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call(["rebdsimOptics", rootpath, outpath])
+
 
 def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=None):
     """
@@ -381,6 +388,7 @@ def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=No
                                stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath])
+
 
 def RebdsimHistoMergeParallel(bdsim_raw_output_file_list, outfilelist=None, silent=False,
                               rebdsimHistoExecutable=None, nCPUs=None):
@@ -406,6 +414,7 @@ def RebdsimHistoMergeParallel(bdsim_raw_output_file_list, outfilelist=None, sile
     p.close()
     p.join()
 
+
 def BdsimCombine(infileList, outpath, silent=False, bdsimCombineExecutable=None):
     """
     Run bdsimCombine
@@ -421,6 +430,7 @@ def BdsimCombine(infileList, outpath, silent=False, bdsimCombineExecutable=None)
         return _subprocess.call(job, stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call(job)
+
 
 def RebdsimCombine(infileList, outpath, silent=False, rebdsimCombineExecutable=None):
     """
@@ -438,6 +448,7 @@ def RebdsimCombine(infileList, outpath, silent=False, rebdsimCombineExecutable=N
     else:
         return _subprocess.call(job)
 
+
 def RebdsimOrbit(rootpath, outpath, index='1', silent=False, rebdsimHistoExecutable=None):
     """
     Run rebdsimOrbit
@@ -451,6 +462,7 @@ def RebdsimOrbit(rootpath, outpath, index='1', silent=False, rebdsimHistoExecuta
                                stdout=open(_os.devnull, 'wb'))
     else:
         return _subprocess.call([rebdsimHistoExecutable, rootpath, outpath, index])
+
 
 def GetOpticsFromGMAD(gmad, keep_optics=False):
     """
@@ -473,7 +485,7 @@ def GetOpticsFromGMAD(gmad, keep_optics=False):
 
 
 def Chunks(l, n):
-    """ Yield successive n-sized chunks from list l."""
+    """Yield successive n-sized chunks from list l."""
     return [l[i:i+n] for i in range(0,len(l),n)]
 
 
@@ -482,7 +494,7 @@ def Reduce(globcommand, nPerChunk, outputprefix):
     Apply bdsimCombine to the globcommand set of files combining
     nPerchunks into an output file.
 
-    ReduceRun("datadir/*.root", 10, "outputdir/")
+    Reduce("datadir/*.root", 10, "outputdir/")
     """
 
     files = _glob.glob(globcommand)
@@ -535,6 +547,7 @@ def ReduceParallel(globcommand, nPerChunk, outputprefix, nCPUs=4):
     p = _Pool(processes=nCPUs)
     p.starmap(_Combine, zip(chunkname, chunks))
 
+
 def RenderGmadJinjaTemplate(template_file, output_file, data, path=".") :
     from jinja2 import Environment, FileSystemLoader
     import os
@@ -554,14 +567,14 @@ def RenderGmadJinjaTemplate(template_file, output_file, data, path=".") :
     f.write(output)
     f.close()
 
-class Versions :
+
+class Versions:
     """
     Retrieves and stores the versions of ROOT, Geant4, and CLHEP installed on the system.
     This class provides attributes for the detected versions of these dependencies by
     invoking their respective configuration commands. If a version cannot be found,
     the attribute will be set to "Not found".
     """
-
     def __init__(self):
         self.root_version = self._find_root_version()
         self.geant4_version = self._find_geant4_version()
