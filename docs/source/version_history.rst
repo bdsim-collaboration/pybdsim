@@ -9,8 +9,9 @@ v3.9.1 - 2026 / 09 / 13
 * Fix range checking for slicing of 3D histograms to 2D ones.
 * Support `np.shape(h)` for all of our Python wrapped histograms.
 * Documentation improvements.
-* Fix :code:`pybdsim.Plot.Histogram3DSlices1D` function for various combinations
+* Fix :meth:`pybdsim.Plot.Histogram3DSlices1D` function for various combinations
   and also including scaling factors.
+* Allow choice of colour map for sequential colours when using :meth:`pybdsim.Plot.Histogram1DMultiple`.
 
 
 v3.9.0 - 2026 / 09 / 11
@@ -19,7 +20,7 @@ v3.9.0 - 2026 / 09 / 11
 * Default MADX conversion to GMAD now prepends the sequence name to each sub-sequence part.
 * Name of sequence controllable in Builder class.
 * Fix s offset for machine diagrams if using an offset lattice in BDSIM.
-* The :code:`pybdsim.Plot.MeshSteps` funciton is deprecated in favour of :code:`pybdsim.Plot.Histogram3DSlices1D`.
+* The :code:`pybdsim.Plot.MeshSteps` funciton is deprecated in favour of :meth:`pybdsim.Plot.Histogram3DSlices1D`.
 * Allow default name output from rebdsim when running from pybdsim.
 * Fix automatic collimator outer size determination when using units in the supplied collimator dictionary.
 

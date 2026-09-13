@@ -722,7 +722,7 @@ def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None
 
 def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None,
                         title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),
-                        legendKwargs=None, ax=None, **errorbarKwargs):
+                        legendKwargs=None, ax=None, controlColour=False, colourMap="cividis", **errorbarKwargs):
     r"""
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
@@ -769,7 +769,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     xmin = _np.inf
     xmax = -_np.inf
     allHistsEmpty = True  # true until one hist isn't empty
-    for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
+    for i, (xsf,h,l,sf) in enumerate(zip(xScalingFactors, histograms, labels, scalingFactors)):
         # auto limits... complex to cover every case also in log
         histEmpty = len(h.contents[h.contents != 0]) == 0
         # x range heuristic - do before padding
@@ -793,6 +793,11 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
             ht = h
 
         # plot histogram
+        if controlColour:
+            cr = i/(len(histograms)-1)
+            _cm = getattr(_plt.cm, colourMap)
+            c = _cm(cr)
+            errorbarKwargs['c'] = c
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
                     xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
