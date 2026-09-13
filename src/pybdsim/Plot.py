@@ -1036,21 +1036,22 @@ def Histogram3DSlices1D(th3, sliceDimension='z', integrateAlong='x', startSlice=
         endSlice = len([th3.xcentres, th3.ycentres, th3.zcentres][slice_index]) - 1
 
     functions = (th3.Slice2DZY, th3.Slice2DXZ, th3.Slice2DXY)
-
+    f_slice = functions[slice_index]
     # Once a 2d histogram, we have only 'x' and 'y' but these might represent
     # other dimensions. Work out which function to call for which dimension.
     functions_int = (_Data.TH2.IntegrateAlongX, _Data.TH2.IntegrateAlongY) # unbound function references
-    int_index = [*allowedDimensions]
-    pop_index = int_index.index(sliceDimension)
-    int_index.pop(pop_index)
-    int_index = int_index.index(integrateAlong)
-    f_int = functions_int[int_index]
+
+    # IntegrateAlongX and Y in the sliced 2d histogram aren't necessarily in order because
+    # of the choice of Slice2DAB functions. Map them here to the right function.
+    slice_int_function_index = {'x' : {'y':1, 'z':0}, 'y' : {'x':1, 'z':0}, 'z' : {'x':0, 'y':1}}
+    function_index = slice_int_function_index[sliceDimension][integrateAlong]
+    f_int = functions_int[function_index]
     
     colours = _plt.cm.viridis(_np.linspace(0, 1, int(endSlice/2)+1))
     miny = _np.inf
     maxy = -_np.inf
     for i in range(startSlice, endSlice + 1, 1):
-        hist = functions[slice_index](i)
+        hist = f_slice(i)
         histo = f_int(hist) # call it on an instance
 
         if i % moduloFraction == 0:
