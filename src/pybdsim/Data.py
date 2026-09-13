@@ -1146,6 +1146,9 @@ class TH1(ROOTHist):
 
     >>> h = file.Get("histogramName")
     >>> hpy = TH1(h)
+
+    >>> np.shape(h)
+        (nbinsx)
     """
     def __init__(self, hist, extractData=True):
         super(TH1, self).__init__(hist)
@@ -1157,6 +1160,7 @@ class TH1(ROOTHist):
         self.xhighedge  = _np.zeros(self.nbinsx)
         self.xedges     = _np.zeros(self.nbinsx+1)
         self.xrange     = (0, 0)
+        self.shape      = (self.nbinsx)
 
         # data holders
         self.contents  = _np.zeros(self.nbinsx)
@@ -1249,6 +1253,9 @@ class TH2(TH1):
 
     >>> h = file.Get("histogramName")
     >>> hpy = TH2(h)
+
+    >>> np.shape(h)
+        (nbinsx, nbinsy)
     """
     def __init__(self, hist, extractData=True):
         super(TH2, self).__init__(hist, False)
@@ -1259,6 +1266,7 @@ class TH2(TH1):
         self.yhighedge = _np.zeros(self.nbinsy)
         self.yedges    = _np.zeros(self.nbinsy+1)
         self.yrange    = (0, 0)
+        self.shape     = (self.nbinsx, self.nbinsy)
 
         self.contents = _np.zeros((self.nbinsx, self.nbinsy))
         self.errors   = _np.zeros((self.nbinsx, self.nbinsy))
@@ -1308,6 +1316,7 @@ class TH2(TH1):
 
         r.contents = r.contents.transpose()
         r.errors   = r.errors.transpose()
+        r.shape    = r.shape[::-1]
 
         return r
 
@@ -1366,6 +1375,9 @@ class TH3(TH2):
 
     >>> h = file.Get("histogramName")
     >>> hpy = TH3(h)
+
+    >>> np.shape(h)
+        (nbinsx, nbinsy, nbinsz)
     """
     def __init__(self, hist, extractData=True):
         super(TH3, self).__init__(hist, False)
@@ -1377,6 +1389,7 @@ class TH3(TH2):
         self.zhighedge = _np.zeros(self.nbinsz)
         self.zedges    = _np.zeros(self.nbinsz + 1)
         self.zrange    = (0, 0)
+        self.shape     = (self.nbinsx, self.nbinsy, self.nbinsz)
 
         self.contents = _np.zeros((self.nbinsx, self.nbinsy, self.nbinsz))
         self.errors   = _np.zeros((self.nbinsx, self.nbinsy, self.nbinsz))
