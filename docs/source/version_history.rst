@@ -2,6 +2,14 @@
 Version History
 ===============
 
+v3.9.1 - 2026 / 09 / 13
+=======================
+
+* Fix slicing of 3D histograms to 2D ones due to ROOT's odd behaviour.
+* Support `np.shape(h)` for all of our Python wrapped histograms.
+* Documentation improvements.
+
+
 v3.9.0 - 2026 / 09 / 11
 =======================
 
@@ -11,6 +19,7 @@ v3.9.0 - 2026 / 09 / 11
 * The :code:`pybdsim.Plot.MeshSteps` funciton is deprecated in favour of :code:`pybdsim.Plot.Histogram3DSlices1D`.
 * Allow default name output from rebdsim when running from pybdsim.
 * Fix automatic collimator outer size determination when using units in the supplied collimator dictionary.
+
 
 v3.8.0 - 2026 / 08 / 02
 =======================
@@ -33,7 +42,6 @@ v3.8.0 - 2026 / 08 / 02
 * Fixed import error for latest numpy in Theor.Field.
 * Plot.Histogram1D now returns the figure instance properly.
 * Improvements to MeshSteps and Histogram2D plotting for ranges.
-
 
 
 v3.7.0 - 2025 / 11 / 07
