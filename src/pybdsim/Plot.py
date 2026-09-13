@@ -1073,7 +1073,7 @@ def Histogram3DSlices1D(th3, sliceDimension='z', integrateAlong='x', startSlice=
         _plt.ylabel(ylabel)
     if title:
         _plt.title(title)
-    _plt.ylim(miny, maxy*1.05)
+    _plt.ylim(miny*scalingFactor, scalingFactor*maxy*1.05)
     return f, ax
 
 
