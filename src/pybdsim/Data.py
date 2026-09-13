@@ -1638,8 +1638,8 @@ class TH3(TH2):
         :return: new 2D histogram
         :rtype: TH2
         """
-        if not (0 <= index < self.nbinsz):
-            raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        if not (0 <= index < self.nbinsy):
+            raise ValueError("index must be in range [0 : "+str(self.nbinsy-1)+"]")
         self.hist.GetXaxis().SetRange(0, 0)
         self.hist.GetYaxis().SetRange(index+1,index+1)
         self.hist.GetZaxis().SetRange(0, 0)
@@ -1657,8 +1657,8 @@ class TH3(TH2):
         :return: new 2D histogram
         :rtype: TH2
         """
-        if not (0 <= index < self.nbinsz):
-            raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        if not (0 <= index < self.nbinsx):
+            raise ValueError("index must be in range [0 : "+str(self.nbinsx-1)+"]")
         self.hist.GetXaxis().SetRange(index+1, index+1)
         self.hist.GetYaxis().SetRange(0, 0)
         self.hist.GetZaxis().SetRange(0, 0)
