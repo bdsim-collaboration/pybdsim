@@ -1061,7 +1061,7 @@ def Histogram3DSlices1D(th3, sliceDimension='z', integrateAlong='x', startSlice=
             maxy = max(maxy, _np.max(histo.contents + histo.errors))
             Histogram1D(histo, scalingFactor=scalingFactor, xScalingFactor=xScalingFactor,
                         figsize=figsize, swapXAxis=swapXAxis, log=log, ax=ax, c=colours[i // 2],
-                        errorbarKwargs=errorbarKwargs)
+                        **errorbarKwargs)
 
     sm = _plt.cm.ScalarMappable(cmap="viridis", norm=_plt.Normalize(vmin=color_low, vmax=colour_high))
     _plt.colorbar(sm, ax=ax, label=sliceDimension + " (m)")
