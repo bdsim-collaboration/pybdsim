@@ -1528,8 +1528,11 @@ class TH3(TH2):
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        self.hist.GetXaxis().SetRange(0, 0)
+        self.hist.GetYaxis().SetRange(0, 0)
         self.hist.GetZaxis().SetRange(index+1,index+1)
         h2d = self.hist.Project3D("yxe")
+        self.hist.GetZaxis().SetRange(0, 0)
         return TH2(h2d)
 
     def Slice2DXZ(self, index):
@@ -1541,8 +1544,11 @@ class TH3(TH2):
         """
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
+        self.hist.GetXaxis().SetRange(0, 0)
         self.hist.GetYaxis().SetRange(index+1,index+1)
+        self.hist.GetZaxis().SetRange(0, 0)
         h2d = self.hist.Project3D("xze")
+        self.hist.GetYaxis().SetRange(0, 0)
         return TH2(h2d)
 
     def Slice2DZY(self, index):
@@ -1555,7 +1561,10 @@ class TH3(TH2):
         if not (0 <= index < self.nbinsz):
             raise ValueError("index must be in range [0 : "+str(self.nbinsz-1)+"]")
         self.hist.GetXaxis().SetRange(index+1, index+1)
+        self.hist.GetYaxis().SetRange(0, 0)
+        self.hist.GetZaxis().SetRange(0, 0)
         h2d = self.hist.Project3D("yze")
+        self.hist.GetXaxis().SetRange(0, 0)
         return TH2(h2d)
 
     def Rebin(self, nBinsX, nBinsY=None, nBinsZ=None):
