@@ -6,8 +6,11 @@ v3.9.1 - 2026 / 09 / 13
 =======================
 
 * Fix slicing of 3D histograms to 2D ones due to ROOT's odd behaviour.
+* Fix range checking for slicing of 3D histograms to 2D ones.
 * Support `np.shape(h)` for all of our Python wrapped histograms.
 * Documentation improvements.
+* Fix :code:`pybdsim.Plot.Histogram3DSlices1D` function for various combinations
+  and also including scaling factors.
 
 
 v3.9.0 - 2026 / 09 / 11
