@@ -722,7 +722,7 @@ def Spectra(spectra, log=False, xlog=False, xlabel=None, ylabel=None, title=None
 
 def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, ylabel=None,
                         title=None, scalingFactors=None, xScalingFactors=None, figsize=(10,5),
-                        legendKwargs=None, ax=None, **errorbarKwargs):
+                        legendKwargs=None, ax=None, controlColour=False, colourMap="cividis", **errorbarKwargs):
     r"""
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
@@ -769,7 +769,7 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     xmin = _np.inf
     xmax = -_np.inf
     allHistsEmpty = True  # true until one hist isn't empty
-    for xsf,h,l,sf in zip(xScalingFactors, histograms, labels, scalingFactors):
+    for i, (xsf,h,l,sf) in enumerate(zip(xScalingFactors, histograms, labels, scalingFactors)):
         # auto limits... complex to cover every case also in log
         histEmpty = len(h.contents[h.contents != 0]) == 0
         # x range heuristic - do before padding
@@ -793,6 +793,11 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
             ht = h
 
         # plot histogram
+        if controlColour:
+            cr = i/(len(histograms)-1)
+            _cm = getattr(_plt.cm, colourMap)
+            c = _cm(cr)
+            errorbarKwargs['c'] = c
         ax.errorbar(xsf*ht.xcentres, sf*ht.contents, yerr=sf*ht.errors,
                     xerr=ht.xwidths*0.5, label=l, drawstyle='steps-mid', **errorbarKwargs)
 
@@ -1036,21 +1041,22 @@ def Histogram3DSlices1D(th3, sliceDimension='z', integrateAlong='x', startSlice=
         endSlice = len([th3.xcentres, th3.ycentres, th3.zcentres][slice_index]) - 1
 
     functions = (th3.Slice2DZY, th3.Slice2DXZ, th3.Slice2DXY)
-
+    f_slice = functions[slice_index]
     # Once a 2d histogram, we have only 'x' and 'y' but these might represent
     # other dimensions. Work out which function to call for which dimension.
     functions_int = (_Data.TH2.IntegrateAlongX, _Data.TH2.IntegrateAlongY) # unbound function references
-    int_index = [*allowedDimensions]
-    pop_index = int_index.index(sliceDimension)
-    int_index.pop(pop_index)
-    int_index = int_index.index(integrateAlong)
-    f_int = functions_int[int_index]
+
+    # IntegrateAlongX and Y in the sliced 2d histogram aren't necessarily in order because
+    # of the choice of Slice2DAB functions. Map them here to the right function.
+    slice_int_function_index = {'x' : {'y':1, 'z':0}, 'y' : {'x':1, 'z':0}, 'z' : {'x':0, 'y':1}}
+    function_index = slice_int_function_index[sliceDimension][integrateAlong]
+    f_int = functions_int[function_index]
     
     colours = _plt.cm.viridis(_np.linspace(0, 1, int(endSlice/2)+1))
     miny = _np.inf
     maxy = -_np.inf
     for i in range(startSlice, endSlice + 1, 1):
-        hist = functions[slice_index](i)
+        hist = f_slice(i)
         histo = f_int(hist) # call it on an instance
 
         if i % moduloFraction == 0:
@@ -1061,7 +1067,7 @@ def Histogram3DSlices1D(th3, sliceDimension='z', integrateAlong='x', startSlice=
             maxy = max(maxy, _np.max(histo.contents + histo.errors))
             Histogram1D(histo, scalingFactor=scalingFactor, xScalingFactor=xScalingFactor,
                         figsize=figsize, swapXAxis=swapXAxis, log=log, ax=ax, c=colours[i // 2],
-                        errorbarKwargs=errorbarKwargs)
+                        **errorbarKwargs)
 
     sm = _plt.cm.ScalarMappable(cmap="viridis", norm=_plt.Normalize(vmin=color_low, vmax=colour_high))
     _plt.colorbar(sm, ax=ax, label=sliceDimension + " (m)")
@@ -1073,7 +1079,7 @@ def Histogram3DSlices1D(th3, sliceDimension='z', integrateAlong='x', startSlice=
         _plt.ylabel(ylabel)
     if title:
         _plt.title(title)
-    _plt.ylim(miny, maxy*1.05)
+    _plt.ylim(miny*scalingFactor, scalingFactor*maxy*1.05)
     return f, ax
 
 
