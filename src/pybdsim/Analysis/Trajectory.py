@@ -111,6 +111,9 @@ def hash_trajectory(t,
     hash += _hashlib.sha256(str(parentStepIndex).encode('utf-8')).digest()
     hash += _hashlib.sha256(str(partID).encode('utf-8')).digest()
 
+    if debugFile is not None  :
+        debugFile.write(str(t.trackID[itraj])+" "+str(nstep)+" "+str(hash.hex())+"\n")
+
     for istep in range(nstep) :
         hash += _hashlib.sha256(str(charge[istep]).encode('utf-8')).digest()
         hash += _hashlib.sha256(str(energyDeposit[istep]).encode('utf-8')).digest()
@@ -139,7 +142,7 @@ def hash_trajectory(t,
 
     if debugFile is not None  :
         debugFile.write(str(t.trackID[itraj])+" "+str(nstep)+" "+str(ret.hex())+"\n")
-        
+
     return ret
 
 def visit_trajectories(t,
