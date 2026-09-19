@@ -5,5 +5,6 @@ from ._RMatrix import CompareRMatrix
 from ._RMatrix import PlotRMatrix
 from ._SigmaMatrix import CalculateBeamCentroid
 from ._SigmaMatrix import CalculateSigmaMatrix
+from . import Trajectory
 from ._Twiss import CalculateTwissFromSigmaMatrix
 
