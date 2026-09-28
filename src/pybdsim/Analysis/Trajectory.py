@@ -1,5 +1,4 @@
 import hashlib as _hashlib
-import ROOT as _ROOT
 import numpy as _np
 
 def find_primary_index(t) :
@@ -233,6 +232,8 @@ def sampler_trajectory_match(s, t, m) :
 
     Match between sampler hit and trajectory space point
     '''
+
+    import ROOT as _ROOT
 
     mid = s.modelID # model id
     endPos = m.model.endPos[mid]
