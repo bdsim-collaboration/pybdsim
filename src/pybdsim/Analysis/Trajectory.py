@@ -1,4 +1,6 @@
 import hashlib as _hashlib
+import ROOT as _ROOT
+import numpy as _np
 
 def find_primary_index(t) :
     '''
@@ -219,3 +221,44 @@ def traverse_trajectories(t,
         f.close()
 
     return visted, hash
+
+def sampler_trajectory_match(s, t, m) :
+    '''
+    :param s: Sampler
+    :type s:  BDSOutputROOTEventSampler
+    :param t: Trajectory
+    :type t:  BDSOutputROOTEventTrajectory
+    :param m: Model
+    :type m: Model
+
+    Match between sampler hit and trajectory space point
+    '''
+
+    mid = s.modelID # model id
+    endPos = m.model.endPos[mid]
+    endRot = m.model.endRot[mid]
+
+    distMins = []
+
+    # loop over hits in a sampler
+    for sindex, tid in enumerate(s.trackID) :
+        tindex = t.trackID_trackIndex[tid]
+        tXYZ = t.XYZ[tindex] # track global
+        sxyz = _ROOT.TVector3(s.x[sindex], s.y[sindex], s.z)
+        sXYZ = endRot * sxyz + endPos
+
+        distMin = 1e9
+        for i in range(0,len(t.XYZ[tindex])) :
+            dist = (t.XYZ[tindex][i] - sXYZ).Mag()
+            if dist < distMin :
+                distMin = dist
+
+            # t.XYZ[tindex][i].Print()
+        distMins.append(distMin)
+
+        if distMin > 1e-7 :
+            print(sindex, distMin)
+
+    return _np.array(distMins)
+
+
