@@ -132,9 +132,10 @@ def BdsimSampler2BdsimUserFile(inputfile, outfile, samplername, start=0, ninrays
     if samplername != "Primary":
         meanT = _np.mean(tof)
         tof = tof - meanT
-    nentries = len(x)
 
-    x,xp,y,yp,t,E = _TruncateCoordinates(x,xp,y,yp,tof,E,ninrays,start)
+    x,xp,y,yp,tof,E = _TruncateCoordinates(x,xp,y,yp,tof,E,ninrays,start)
+
+    nentries = len(x)
 
     outfile = open(outfile, 'w')
     for n in range(0, nentries):  # n denotes a given particle
