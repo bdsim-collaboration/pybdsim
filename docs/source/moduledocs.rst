@@ -10,6 +10,16 @@ may be incomplete.
     :undoc-members:
     :show-inheritance:
 
+pybdsim.Analysis module
+-----------------------
+
+pybdsim.Analysis.Trajectory module
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: pybdsim.Analysis.Trajectory
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 pybdsim.Beam module
 -------------------

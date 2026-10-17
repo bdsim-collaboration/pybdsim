@@ -727,23 +727,37 @@ def Histogram1DMultiple(histograms, labels, log=False, xlog=False, xlabel=None, 
     Plot multiple 1D histograms on the same plot. Histograms and labels should 
     be lists of the same length with pybdsim.Data.TH1 objects and strings.
 
+    :param histograms: list of histogram objects
+    :type histogram: list(pybdsim.Data.TH1,...)
+    :param labels: list of label for each histogram
+    :type labels: list(string)
+    :param log: logarithmic vertical scale
+    :type log: bool
+    :param xlog: logarithmic horizontal scale
+    :type xlog: bool
+    :param xlabel: x-axis label
+    :type xlabel: str
+    :param ylabel: y-axis label
+    :type ylabel: str
+    :param title: plot title
+    :type title: str
+    :param scalingFactors: list of scaling factors per histogram - must match len(histograms)
+    :type scalingFactors: list(float)
+    :param xScalingFactors: x-axis scaling factors per histogram - must match len(histograms)
+    :type xScalingFactors: list(float)
+    :param figsize: figure size in matplotlib's inches
+    :type figsize: tuple(float, float)
+    :param legendKwargs: additional keyword arguments to pass to matplotlib.pyplot.legend
+    :type legendKwargs: dict
+    :param ax: matplotlib axes to draw into - if none, a new figure will be created.
+    :param errorbarKwargs: additional keyword arguments to pass to matplotlib.pyplot.errorbar
+    :type errorbarKwargs: dict
+
     return figure instance, axis instance
 
     xScalingFactors may be a single float, int and therefore equally applied to all
-    histograms, or a list of floats that must match the length of the hsitograms for
+    histograms, or a list of floats that must match the length of the histograms for
     unique scalings of each one.
-
-    Example: ::
-
-      Histogram1DMultiple([h1,h2,h3], 
-                          ['Photons', 'Electrons', 'Positrons'], 
-                          xlabel=r'$\mu$m', 
-                          ylabel='Fraction',
-                          scalingFactors=[1,100,100],
-                          xScalingFactors=1e6,
-                          log=True)
-
-    :param ax: matplotlib axes to draw into - if none, a new figure will be created.
     """
     if "xScalingFactor" in errorbarKwargs:
         raise ValueError("'xScalingFactor' - did you mean 'xScalingFactors'?")
@@ -861,7 +875,7 @@ def Histogram2D(histogram, logNorm=False, xLogScale=False, yLogScale=False, xlab
     cax            - optional axes to draw coloubar into
     swapXAxis      - flip the plotting of the x axis
 
-    return figure instance
+    return figure, axis
     """
     h = histogram
     incomingAxis = bool(ax)

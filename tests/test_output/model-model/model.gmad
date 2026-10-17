@@ -5,9 +5,9 @@
 
 include model_components.gmad;
 include model_sequence.gmad;
+use, RING;
 include model_beam.gmad;
 include model_options.gmad;
 
 
 sample, all;
-use, RING;

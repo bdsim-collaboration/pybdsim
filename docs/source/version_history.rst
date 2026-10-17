@@ -2,6 +2,11 @@
 Version History
 ===============
 
+v3.9.2 - 2026 / 10 / 08
+=======================
+
+* Fix order of samplers and use command in automatically converted model from MADX.
+
 v3.9.1 - 2026 / 09 / 13
 =======================
 

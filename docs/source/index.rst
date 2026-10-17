@@ -17,6 +17,7 @@ of BDSIM models.
    data_uproot
    plotting
    fieldmaps
+   analysis
    classes
    support
    version_history
