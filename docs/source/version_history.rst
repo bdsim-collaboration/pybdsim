@@ -19,18 +19,6 @@ v3.9.1 - 2026 / 09 / 13
 * Allow choice of colour map for sequential colours when using :meth:`pybdsim.Plot.Histogram1DMultiple`.
 
 
-v3.9.1 - 2026 / 09 / 13
-=======================
-
-* Fix slicing of 3D histograms to 2D ones due to ROOT's odd behaviour.
-* Fix range checking for slicing of 3D histograms to 2D ones.
-* Support `np.shape(h)` for all of our Python wrapped histograms.
-* Documentation improvements.
-* Fix :meth:`pybdsim.Plot.Histogram3DSlices1D` function for various combinations
-  and also including scaling factors.
-* Allow choice of colour map for sequential colours when using :meth:`pybdsim.Plot.Histogram1DMultiple`.
-
-
 v3.9.0 - 2026 / 09 / 11
 =======================
 
