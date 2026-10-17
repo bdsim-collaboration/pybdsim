@@ -362,17 +362,19 @@ def RebdsimParallel(analysis_config_file, bdsim_raw_output_file_list, outfilelis
     p.join()
 
 
-def RebdsimOptics(rootpath, outpath, silent=False):
+def RebdsimOptics(rootpath, outpath, silent=False, emittanceOnTheFly=False):
     """
     Run rebdsimOptics
     """
     if not _General.IsROOTFile(rootpath):
         raise IOError("Not a ROOT file")
+    args = ["rebdsimOptics", rootpath, outpath]
+    if emittanceOnTheFly:
+        args.append("--emittanceOnTheFly")
     if silent:
-        return _subprocess.call(["rebdsimOptics", rootpath, outpath],
-                               stdout=open(_os.devnull, 'wb'))
+        return _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
     else:
-        return _subprocess.call(["rebdsimOptics", rootpath, outpath])
+        return _subprocess.call(args)
 
 
 def RebdsimHistoMerge(rootpath, outpath, silent=False, rebdsimHistoExecutable=None):
