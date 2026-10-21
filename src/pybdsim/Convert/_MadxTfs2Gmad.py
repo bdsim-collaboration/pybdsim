@@ -321,6 +321,9 @@ def MadxTfs2Gmad(tfs, outputfilename,
         if particleName == "HMINUS":
             flipmagnets = True
             print('Detected HMINUS in TFS file - changing flipmagnets to True')
+        if particleName == "ANTIPROTON":
+            flipmagnets = True
+            print('Detected ANTIPROTON in TFS file - changing flipmagnets to True')
 
     # If we have collimators but no collimator dict then inform that
     # they will be converted to drifts.  should really check
@@ -1024,6 +1027,8 @@ def MadxTfs2GmadBeam(tfs, startname=None, verbose=False, extraParamsDict={}):
         particle = 'proton'
     elif particle == 'HMINUS':
         particle = 'ion 1 1 -1'
+    elif particle == 'ANTIPROTON':
+        particle = 'anti_proton'
     else:
         raise ValueError("Unsupported particle " + particle)
 

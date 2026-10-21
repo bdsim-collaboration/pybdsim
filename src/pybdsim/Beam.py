@@ -39,6 +39,7 @@ BDSIMParticleTypes = [
     'proton',
     'gamma',
     'antiproton',
+    'anti_proton',
     'pi+',
     'pi-',
     'neutron',
