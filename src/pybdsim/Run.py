@@ -201,11 +201,14 @@ def Bdsim(gmadpath, outfile, ngenerate=10000, seed=None, batch=True,
 
     start = _time.perf_counter()
     if not silent:
-        ret =  _subprocess.call(args)
+        ret =  _subprocess.run(args, capture_output=True, text=True)
+        print(ret.stdout)
+        print(ret.stderr)
     elif silent and errorSilent:
-        ret = _subprocess.call(args, stdout=open(_os.devnull, 'wb'), stderr=open(_os.devnull, 'wb'))
+        ret = _subprocess.run(args, capture_output=True, text=True)
     else:
-        ret = _subprocess.call(args, stdout=open(_os.devnull, 'wb'))
+        ret = _subprocess.run(args, capture_output=True, text=True)
+        print(ret.stderr)
     end = _time.perf_counter()
 
     if returnTiming:
