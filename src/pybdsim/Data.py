@@ -418,9 +418,9 @@ class Run:
                 inner.histograms3dpy[h.GetName()] = TH3(h)
 
             # loop over 3d histograms
-            for h in ri.Histos.Get4DHistograms() :
-                inner.histograms4d[h.GetName()] = h
-                inner.histograms4dpy[h.GetName()] = TH4(h)
+            #for h in ri.Histos.Get4DHistograms() :
+            #    inner.histograms4d[h.GetName()] = h
+            #    inner.histograms4dpy[h.GetName()] = TH4(h)
 
     def __init__(self, **kwargs):
         if 'RunTree' in kwargs:
