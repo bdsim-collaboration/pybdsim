@@ -21,7 +21,6 @@ from .Data import TH3 as _TH3
 
 try:
     import ROOT as _ROOT
-    _LoadROOTLibraries()
     import cppyy as _cppyy
     _useRoot = True
 except ImportError:
@@ -455,11 +454,10 @@ class REBDSIMOptics:
         return df
 
 class BDSIMOutput:
-
     def __init__(self, filepath):
-
         if not _path.isfile(filepath) and filepath.find("*") == -1:
             raise FileNotFoundError(f"No such file or directory: '{filepath}'")
+        _LoadROOTLibraries()
         self.root_file = _ROOT.DataLoader(filepath)
 
         self.ht = self.root_file.GetHeaderTree()
