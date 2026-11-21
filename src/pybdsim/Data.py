@@ -25,6 +25,7 @@ _libsLoaded   = False
 
 try:
     import ROOT as _ROOT
+    _ROOT.PyConfig.StartGUIThread = False  # ROOT doesn't hook into IPython's event loop.
 except ImportError:
     _useRoot = False
     pass
