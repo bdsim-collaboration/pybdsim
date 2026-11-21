@@ -365,6 +365,8 @@ class PandasConverter:
         root_obj_attributes = dir(self.root_structure)
 
         root_attribute_map = {}
+        root_obj_attributes_set = set()
+        root_obj_attributes_tocheck = []
 
         for att_key in root_obj_attributes:
             if att_key in PandasConverter.attr_to_skip :
