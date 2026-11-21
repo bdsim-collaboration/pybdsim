@@ -64,11 +64,11 @@ def LoadROOTLibraries(verbose=1):
 
     # Shared libraries. Suppress ROOT's verbose search-path error as we print our own warning.
     oldLevel = _ROOT.gErrorIgnoreLevel
-    if verbose > 1:
+    if verbose < 2:
         _ROOT.gErrorIgnoreLevel = _ROOT.kFatal
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
-    if verbose > 1:
+    if verbose < 2:
         _ROOT.gErrorIgnoreLevel = oldLevel
 
     # 0=ok, -1=fail, 1=already loaded
