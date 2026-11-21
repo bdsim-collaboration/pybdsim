@@ -1,12 +1,7 @@
 import numpy as _np
 import scipy.special as _special
-try :
-    import vtk as _vtk
-except ModuleNotFoundError :
-    pass
 
-
-def DriftTransverseMatrix(l) :
+def DriftTransverseMatrix(l):
     """
     Calculates drift transverse matrix.
 
@@ -49,7 +44,7 @@ def QuadrupoleThickTransverseMatrix(l,k1 = None, k1l = None) :
         return _np.array([[_np.cos(_np.sqrt(k1)*l),               _np.sin(_np.sqrt(k1)*l)/_np.sqrt(k1)],
                           [-_np.sqrt(k1)*_np.sin(_np.sqrt(k1)*l), _np.cos(_np.sqrt(k1)*l)             ]])
     else:
-        k1 = fabs(k1)
+        k1 = abs(k1)
         return _np.array([[_np.cosh(_np.sqrt(k1)*l),               _np.sinh(_np.sqrt(k1)*l)/_np.sqrt(k1)],
                           [-_np.sqrt(k1)*_np.sinh(_np.sqrt(k1)*l), _np.cosh(_np.sqrt(k1)*l)             ]])
 def QuadrupoleThinTransverseMatrix(k1l) :
@@ -62,6 +57,7 @@ def Plot():
     nZ = 10
     nPhi = 10
 
+    import vtk as _vtk
     sg = _vtk.vtkStructuredGrid()
     points = _vtk.vtkPoints()
     points.Allocate(nR*nZ*nPhi)
