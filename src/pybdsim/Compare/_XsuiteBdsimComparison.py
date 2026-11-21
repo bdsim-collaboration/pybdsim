@@ -1,6 +1,5 @@
 import pymad8 as _m8
 import pybdsim as _pybdsim
-import xtrack as _xt
 import matplotlib.pyplot as _plt
 import numpy as _np
 from os.path import isfile as _isfile
