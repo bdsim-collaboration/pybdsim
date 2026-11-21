@@ -21,7 +21,6 @@ from .Data import TH3 as _TH3
 
 try:
     import ROOT as _ROOT
-    import cppyy as _cppyy
     _useRoot = True
 except ImportError:
     _useRoot = False
@@ -362,6 +361,7 @@ class PandasConverter:
         self.attr_dict = self.variables()
 
     def variables(self):
+        import cppyy as _cppyy
         root_obj_attributes = dir(self.root_structure)
 
         root_attribute_map = {}
