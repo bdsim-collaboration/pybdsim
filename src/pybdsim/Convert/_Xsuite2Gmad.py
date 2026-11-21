@@ -1,7 +1,6 @@
 from copy import deepcopy as _deepcopy
 import numpy as _np
 import math as _math
-import xtrack as _xt
 import warnings as _warnings
 from .. import Builder as _Builder
 from .. import Beam as _Beam
@@ -9,8 +8,6 @@ from .. import Data as _Data
 from ..Options import Options as _Options
 import pybdsim._General
 
-_ignoreableThinElements = {_xt.Marker, _xt.LimitRect, _xt.LimitEllipse, _xt.Wire,
-                           _xt.ParticlesMonitor, _xt.BeamPositionMonitor, _xt.BeamProfileMonitor}
 
 # Constants
 # anything below this length is treated as a thin element
@@ -169,6 +166,9 @@ def Xsuite2Gmad(xsuite, linename, outputfilename,
     +-------------------------------+-------------------------------------------------------------------+
 
     """
+    import xtrack as _xt # Imported here as it is slow to import.
+    ignoreableThinElements = {_xt.Marker, _xt.LimitRect, _xt.LimitEllipse, _xt.Wire,
+                              _xt.ParticlesMonitor, _xt.BeamPositionMonitor, _xt.BeamProfileMonitor}
 
     # test for input
     try:
@@ -228,7 +228,7 @@ def Xsuite2Gmad(xsuite, linename, outputfilename,
 
         # skip ignorable thin elements of zero length
         zerolength = True if l < 1e-9 else False
-        if zerolength and t in _ignoreableThinElements:
+        if zerolength and t in ignoreableThinElements:
             if verbose:
                 print('skipping zero-length item: {}'.format(name))
             itemsomitted.append(name)
@@ -282,6 +282,7 @@ def _Xsuite2GmadElementFactory(name, item, allelementdict, verbose, userdict, co
     """
     Function which makes the correct GMAD element given a Xsuite element.
     """
+    import xtrack as _xt # Imported here as it is slow to import.
     # if it's already a prepared element, just return it
     if isinstance(item, _Builder.Element):
         return item
