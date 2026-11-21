@@ -207,10 +207,8 @@ def _LoadRoot(filepath, verbose=1):
         if d.header.nOriginalEvents == 0:
             d.header.nOriginalEvents = int(d.GetEventTree().GetEntries())
 
-        def AddRun() :
-            """
-            Add pythonic conversion of run tree (including run histograms)
-            """
+        def AddRun():
+            """Add pythonic conversion of run tree (including run histograms)"""
             d.run = Run(RunTree=d.GetRunTree())
 
         d.AddRun = AddRun
@@ -385,8 +383,7 @@ class Run:
     A simple Python version of a run in a BDSIM file for
     easy access to the data.
     """
-
-    class _Summary :
+    class _Summary:
         def __init__(inner, ri):
             inner.startTime = ri.Summary.startTime
             inner.stopTime = ri.Summary.stopTime
@@ -394,7 +391,7 @@ class Run:
             inner.durationCPU = ri.Summary.durationCPU
             inner.seedState = "TODO"
 
-    class _Histos :
+    class _Histos:
         def __init__(inner,ri):
             inner.histograms1d = {}
             inner.histograms2d = {}
