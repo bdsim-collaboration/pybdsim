@@ -2,6 +2,13 @@
 Version History
 ===============
 
+v3.9.3 - 2026 / 11 / XX
+=======================
+
+* Fix warnings about missing librebdsim and libbdsimROOTEvent when importing pybdsim every time.
+* Suppress verbose ROOT error messages when using `pybdsim.Data.Load`. They can be viewed by setting the new verbose argument to 2.
+* Speed up import by importing only necessary packages.
+
 v3.9.2 - 2026 / 10 / 08
 =======================
 
