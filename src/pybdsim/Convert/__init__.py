@@ -3,6 +3,7 @@ Module for various conversions.
 
 """
 import sys
+from importlib.util import find_spec as _find_spec
 
 # pymadx
 from ._MadxTfs2Gmad import MadxTfs2Gmad
@@ -32,8 +33,8 @@ try:
 except ImportError:
     pass
 
-# optional xsuite
-if sys.version_info >= (3, 10):
+# optional xsuite - only check it's installed as importing xtrack is slow
+if sys.version_info >= (3, 10) and _find_spec("xtrack"):
     try:
         from ._Mad8Twiss2Xsuite import Mad8Twiss2Xsuite
         from ._Xsuite2Gmad import Xsuite2Gmad

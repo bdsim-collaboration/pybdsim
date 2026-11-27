@@ -25,6 +25,7 @@ _libsLoaded   = False
 
 try:
     import ROOT as _ROOT
+    _ROOT.PyConfig.StartGUIThread = False  # ROOT doesn't hook into IPython's event loop.
 except ImportError:
     _useRoot = False
     pass
@@ -40,7 +41,7 @@ _bdsimApertureTypes = {"circular",
                        "circularvacuum",
                        "clicpcl"}
 
-def LoadROOTLibraries():
+def LoadROOTLibraries(verbose=1):
     """
     Load root libraries. Only works once to prevent errors.
     """
@@ -61,9 +62,15 @@ def LoadROOTLibraries():
     except KeyError:
         pass
 
-    # shared libraries
+    # Shared libraries. Suppress ROOT's verbose search-path error as we print our own warning.
+    oldLevel = _ROOT.gErrorIgnoreLevel
+    if verbose < 2:
+        _ROOT.gErrorIgnoreLevel = _ROOT.kFatal
     bdsLoad = _ROOT.gSystem.Load("libbdsimRootEvent")
     reLoad  = _ROOT.gSystem.Load("librebdsim")
+    if verbose < 2:
+        _ROOT.gErrorIgnoreLevel = oldLevel
+
     # 0=ok, -1=fail, 1=already loaded
     if reLoad < 0 or bdsLoad < 0:
         if reLoad < 0:
@@ -74,9 +81,14 @@ def LoadROOTLibraries():
     else:
         _libsLoaded = True
 
-def Load(filepath, messageio = True):
+def Load(filepath, verbose=1):
     """
     Load the data with the appropriate loader.
+
+    :param filepath: path to file
+    :type filepath: str
+    :param verbose: verbosity level: 0=none, 1=basic load statement, 2+ =all root warnings
+    :type verbose: int
 
     ASCII file   - returns BDSAsciiData instance.
     BDSIM file   - uses ROOT, returns BDSIM DataLoader instance.
@@ -95,7 +107,7 @@ def Load(filepath, messageio = True):
         return _LoadAscii(filepath)
     elif extension == 'root':
         try:
-            return _LoadRoot(filepath, messageio)
+            return _LoadRoot(filepath, verbose)
         except NameError:
             #raise error rather than return None, saves later scripting errors.
             raise IOError('Root loader not available.')
@@ -173,21 +185,21 @@ def _ROOTFileType(filepath):
     f.Close()
     return result
 
-def _LoadRoot(filepath, messageio):
+def _LoadRoot(filepath, verbose=1):
     """
     Inspect file and check it's a BDSIM file of some kind and load.
     """
     if not _useRoot:
         raise IOError("ROOT in python not available - cannot load ROOT file")
 
-    LoadROOTLibraries()
+    LoadROOTLibraries(verbose=verbose)
     if not _libsLoaded:
         raise IOError("BDSIM ROOT libraries not found - cannot load data - source bdsim.sh")
 
     fileType = _ROOTFileType(filepath) #throws warning if not a bdsim file
 
     if fileType == "BDSIM":
-        if messageio:
+        if verbose > 0:
             print('BDSIM output file - using DataLoader')
         d = _ROOT.DataLoader(filepath)
         d.model = GetModelForPlotting(d) # attach BDSAsciiData instance for convenience
@@ -195,20 +207,20 @@ def _LoadRoot(filepath, messageio):
         if d.header.nOriginalEvents == 0:
             d.header.nOriginalEvents = int(d.GetEventTree().GetEntries())
 
-        def AddRun() :
-            """
-            Add pythonic conversion of run tree (including run histograms)
-            """
+        def AddRun():
+            """Add pythonic conversion of run tree (including run histograms)"""
             d.run = Run(RunTree=d.GetRunTree())
 
         d.AddRun = AddRun
 
         return d
     elif fileType == "REBDSIM":
-        print('REBDSIM analysis file - using RebdsimFile')
+        if verbose > 0:
+            print('REBDSIM analysis file - using RebdsimFile')
         return RebdsimFile(filepath)
     elif fileType == "REBDSIMCOMBINE":
-        print('REBDSIMCOMBINE analysis file - using RebdsimFile')
+        if verbose > 0:
+            print('REBDSIMCOMBINE analysis file - using RebdsimFile')
         return RebdsimFile(filepath)
     else:
         raise IOError("This file type "+fileType+" isn't supported")
@@ -371,8 +383,7 @@ class Run:
     A simple Python version of a run in a BDSIM file for
     easy access to the data.
     """
-
-    class _Summary :
+    class _Summary:
         def __init__(inner, ri):
             inner.startTime = ri.Summary.startTime
             inner.stopTime = ri.Summary.stopTime
@@ -380,7 +391,7 @@ class Run:
             inner.durationCPU = ri.Summary.durationCPU
             inner.seedState = "TODO"
 
-    class _Histos :
+    class _Histos:
         def __init__(inner,ri):
             inner.histograms1d = {}
             inner.histograms2d = {}
@@ -407,9 +418,9 @@ class Run:
                 inner.histograms3dpy[h.GetName()] = TH3(h)
 
             # loop over 3d histograms
-            for h in ri.Histos.Get4DHistograms() :
-                inner.histograms4d[h.GetName()] = h
-                inner.histograms4dpy[h.GetName()] = TH4(h)
+            #for h in ri.Histos.Get4DHistograms() :
+            #    inner.histograms4d[h.GetName()] = h
+            #    inner.histograms4dpy[h.GetName()] = TH4(h)
 
     def __init__(self, **kwargs):
         if 'RunTree' in kwargs:

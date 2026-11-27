@@ -21,8 +21,6 @@ from .Data import TH3 as _TH3
 
 try:
     import ROOT as _ROOT
-    _LoadROOTLibraries()
-    import cppyy as _cppyy
     _useRoot = True
 except ImportError:
     _useRoot = False
@@ -352,12 +350,10 @@ def _fill_event_ssampler(root_obj, root_tree, pandas_obj) :
     df = _pd.DataFrame(_enforce_same_length_dict(dd))
     return df
 
-class PandasConverter :
-
+class PandasConverter:
     attr_to_skip = ['__python_owns__', 'kBitMask', 'kInconsistent', 'kIsOnHeap',
                     'kNotDeleted', 'kOverwrite','kSingleKey', 'kWriteDelete',
                     'kZombie','']
-
     def __init__(self,root_structure, root_tree):
         self.root_structure = root_structure
         self.root_tree = root_tree
@@ -365,9 +361,12 @@ class PandasConverter :
         self.attr_dict = self.variables()
 
     def variables(self):
+        import cppyy as _cppyy
         root_obj_attributes = dir(self.root_structure)
 
         root_attribute_map = {}
+        root_obj_attributes_set = set()
+        root_obj_attributes_tocheck = []
 
         for att_key in root_obj_attributes:
             if att_key in PandasConverter.attr_to_skip :
@@ -419,17 +418,17 @@ class PandasConverter :
     def convert_vector_as_row(self):
         pass
 
-def Load(filepath) :
+def Load(filepath):
     type = _ROOTFileType(filepath)
 
-    if type == "BDSIM" :
+    if type == "BDSIM":
         return BDSIMOutput(filepath)
-    else :
+    else:
         raise Exception("Unsupported file type")
 
 class REBDSIM:
     def __init__(self, filepath):
-        if not _path.isfile(filepath) :
+        if not _path.isfile(filepath):
             print("file not found",filepath)
             return
 
@@ -455,11 +454,10 @@ class REBDSIMOptics:
         return df
 
 class BDSIMOutput:
-
     def __init__(self, filepath):
-
         if not _path.isfile(filepath) and filepath.find("*") == -1:
             raise FileNotFoundError(f"No such file or directory: '{filepath}'")
+        _LoadROOTLibraries()
         self.root_file = _ROOT.DataLoader(filepath)
 
         self.ht = self.root_file.GetHeaderTree()
@@ -569,16 +567,15 @@ class BDSIMOutput:
         return _TH1(h)
 
     def get_histo2d(self, name, evnt = -1):
-
         # Check event number
-        if evnt > self.et.GetEntries()-1 :
+        if evnt > self.et.GetEntries()-1:
             print("event number beyond end of file")
             return
 
         # Find histogram index
         ind = -1
         hist_list = self.r.Histos.Get2DHistograms()
-        for h, i in zip(hist_list,range(0,len(hist_list))) :
+        for h, i in zip(hist_list,range(0,len(hist_list))):
             if name == h.GetName() :
                 ind = i
         if ind == -1 :
@@ -594,7 +591,6 @@ class BDSIMOutput:
         return _TH2(h)
 
     def get_histo3d(self, name, evnt = -1):
-
         # Check event number
         if evnt > self.et.GetEntries()-1 :
             print("event number beyond end of file")
@@ -619,7 +615,6 @@ class BDSIMOutput:
         return _TH3(h)
 
     def get_header(self):
-
         header_attribs = ["bdsimVersion","clhepVersion","rootVersion","dataVersion",
                           "doublePrecisionOutput","fileType","nEventsInFile","nEventsInFileSkipped",
                           "nEventsRequested","nOriginalEvents","nTrajectoryFilters","skimmedFile",
@@ -632,14 +627,14 @@ class BDSIMOutput:
         for attrib in header_attribs:
             dd[attrib] = []
 
-        for iheader in range(0, self.ht.GetEntries()) :
+        for iheader in range(0, self.ht.GetEntries()):
             self.ht.GetEntry(iheader)
             dd['file_name'].append(self.ht.GetFile().GetName())
             dd['file_idx'].append(self.get_filename_index(self.ht.GetFile().GetName()))
             dd['header_idx'].append(iheader)
 
             for attrib in header_attribs:
-                if attrib == "trajectoryFilters" :
+                if attrib == "trajectoryFilters":
                     dd[attrib].append([str(tf) for tf in getattr(self.h.header, attrib)])
                 elif attrib == "bdsimVersion" or \
                      attrib == "clhepVersion" or \
@@ -655,7 +650,6 @@ class BDSIMOutput:
         return df
 
     def get_model(self, debug = False):
-
         model_attribs = ['angle', 'bField', 'beamPipeAper1', 'beamPipeAper2', 'beamPipeAper3', 'beamPipeAper4',
                          'beamPipeType', 'cavityBranchNamesUnique', 'cavityIndices', 'cavityInfo', 'collimatorBranchNamesUnique',
                          'collimatorIndices', 'collimatorInfo', 'componentName', 'componentType', 'e1',
@@ -674,10 +668,10 @@ class BDSIMOutput:
         for attrib in model_attribs:
             dd[attrib] = []
 
-        for imodel in range(0, self.mt.GetEntries()) :
+        for imodel in range(0, self.mt.GetEntries()):
             self.mt.GetEntry(imodel)
 
-            for jmodel in range(0, self.m.model.n) :
+            for jmodel in range(0, self.m.model.n):
                 dd['file_name'].append(self.mt.GetFile().GetName())
                 dd['file_idx'].append(self.get_filename_index(self.mt.GetFile().GetName()))
                 dd['model_idx'].append(imodel)
@@ -750,7 +744,7 @@ class BDSIMOutput:
         for attrib in run_attribs:
             dd[attrib] = []
 
-        for ibeam in range(0, self.bt.GetEntries()) :
+        for ibeam in range(0, self.bt.GetEntries()):
             self.bt.GetEntry(ibeam)
             dd['file_name'].append(self.bt.GetFile().GetName())
             dd['file_idx'].append(self.get_filename_index(self.bt.GetFile().GetName()))
@@ -764,10 +758,10 @@ class BDSIMOutput:
                      attrib == "yDistrType" or\
                      attrib == "energyDistrType" or \
                      attrib == "distrFile" or \
-                     attrib == "distrFileFormat" :
+                     attrib == "distrFileFormat":
 
                     dd[attrib].append(str(getattr(self.b.beam, attrib)))
-                else :
+                else:
                     dd[attrib].append(getattr(self.b.beam, attrib))
 
         df = _pd.DataFrame(_enforce_same_length_dict(dd))
@@ -965,7 +959,7 @@ class BDSIMOutput:
         # plane samplers
         samplers = [self.e.GetSampler(sn) for sn in self.sampler_names]
 
-        for ievt in range(0, self.et.GetEntries()) :
+        for ievt in range(0, self.et.GetEntries()):
             self.et.GetEntry(ievt)
 
             nprimary.append(primary.n)
@@ -1358,12 +1352,11 @@ class BDSIMOutput:
 
         return _fill_event_ssampler(sampler, self.et, self)
 
-class LinkBunch :
+class LinkBunch:
     def __init__(self, link_Bunch):
         self._link_Bunch = link_Bunch
 
     def get_dataframe(self):
-
         dd = {}
 
         dd['Beta'] = []
@@ -1427,12 +1420,11 @@ class LinkBunch :
 
         return _pd.DataFrame(dd)
 
-class LinkSamplerHits :
+class LinkSamplerHits:
     def __init__(self, link_SamplerHits):
         self._samplerHits = link_SamplerHits
 
     def get_dataframe(self):
-
         dd = {}
 
         dd['A'] = []

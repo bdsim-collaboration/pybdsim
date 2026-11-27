@@ -1,5 +1,4 @@
 import numpy as _np
-import xtrack as xt
 import warnings as _warnings
 
 
@@ -37,6 +36,7 @@ def Mad8Twiss2Xsuite(mad8twiss,
         | endname         | Optional. Overide startindex and endindex               |
         +-----------------+---------------------------------------------------------+
         """
+    import xtrack as xt # Imported here as it is slow to import.
 
     # Setup mass and charge for the input particle. Default is electron.
     match particle:

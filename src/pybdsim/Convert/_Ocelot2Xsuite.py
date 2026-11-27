@@ -1,5 +1,4 @@
 import numpy as _np
-import xtrack as _xt
 import ocelot as _ocl
 
 
@@ -58,6 +57,7 @@ def Ocelot2Xsuite(ocelot, line_name='line_from_ocelot', s0=0, x0=0, y0=0, z0=0, 
         |                  | angle of this previous lattice.                         |
         +------------------+---------------------------------------------------------+
     """
+    import xtrack as _xt # Imported here as it is slow to import.
 
     lattice = _ocl.MagneticLattice(ocelot.cell)
     tws0_ocelot = ocelot.tws0

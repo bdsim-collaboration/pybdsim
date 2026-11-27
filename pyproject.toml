@@ -49,9 +49,9 @@ all = ["awkward", "uproot", "pandas", "pint", "boost-histogram", "cpymad", "merg
 dev = ["pytest", "sphinx", "sphinx-rtd-theme"]
 
 [project.urls]
-homepage = "http://www.pp.rhul.ac.uk/bdsim/pybdsim"
-documentation = "http://www.pp.rhul.ac.uk/bdsim/pybdsim"
-repository = "https://bitbucket.org/jairhul/pybdsim"
+homepage = "https://bdsim-collaboration.github.io/web/"
+documentation = "https://bdsim-collaboration.github.io/pybdsim/"
+repository = "https://github.com/bdsim-collaboration/pybdsim"
 
 [build-system]
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
